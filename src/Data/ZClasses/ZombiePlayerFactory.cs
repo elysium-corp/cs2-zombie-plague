@@ -6,9 +6,9 @@ namespace CS2ZombiePlague.Data.ZClasses;
 
 public class ZombiePlayerFactory : IZombiePlayerFactory
 {
-    public ZombiePlayer Create(IPlayer player, ZombieManager zombieManager, IZombieClass zombieClass, bool isNemesis = false)
+    public ZombiePlayer Create(IPlayer player, ZombieManager zombieManager, IZClass izClass, bool isNemesis = false)
     {
-        return zombieClass switch
+        return izClass switch
         {
             ZCleric zCleric => new ZombiePlayer(player, zombieManager, zCleric, isNemesis),
             ZHunter zHunter => new ZombiePlayer(player, zombieManager, zHunter, isNemesis),

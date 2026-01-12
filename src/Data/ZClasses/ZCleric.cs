@@ -4,7 +4,7 @@ using CS2ZombiePlague.Data.Abilities.Contracts;
 
 namespace CS2ZombiePlague.Data.ZClasses;
 
-public sealed class ZCleric(ZombieCleric config, IAbilityFactory abilityFactory) : IZombieClass
+public sealed class ZCleric(ZombieCleric config, IAbilityFactory abilityFactory) : IZClass
 {
     public string InternalName { get; set; } = config.InternalName;
     

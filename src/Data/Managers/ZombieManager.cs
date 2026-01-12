@@ -1,4 +1,5 @@
-﻿using CS2ZombiePlague.Data.ZClasses;
+﻿using CS2ZombiePlague.Data.Events;
+using CS2ZombiePlague.Data.ZClasses;
 using CS2ZombiePlague.Di;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
@@ -6,7 +7,7 @@ using SwiftlyS2.Shared.Players;
 
 namespace CS2ZombiePlague.Data.Managers;
 
-public class ZombieManager(IZombiePlayerFactory zombiePlayerFactory, ISwiftlyCore core)
+public class ZombieManager(IZombiePlayerFactory zombiePlayerFactory, ISwiftlyCore core, IEventPublisher eventPublisher)
 {
     private readonly Dictionary<int, ZombiePlayer> _zombiePlayers = new();
 
@@ -23,6 +24,7 @@ public class ZombieManager(IZombiePlayerFactory zombiePlayerFactory, ISwiftlyCor
         }
 
         var zClass = DependencyManager.GetService<ZCleric>();
+        
         return _zombiePlayers[player.PlayerID] =
             zombiePlayerFactory.Create(player, this, zClass);
     }

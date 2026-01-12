@@ -7,20 +7,20 @@ namespace CS2ZombiePlague.Data.ZClasses;
 public class ZombiePlayer
 {
     private readonly ZombieManager _zombieManager;
-    private readonly IZombieClass _zombieClass;
+    private readonly IZClass _izClass;
     private readonly IPlayer _player;
     public bool IsNemesis { get; }
 
-    public ZombiePlayer(IPlayer player, ZombieManager zombieManager, IZombieClass zombieClass, bool isNemesis = false)
+    public ZombiePlayer(IPlayer player, ZombieManager zombieManager, IZClass izClass, bool isNemesis = false)
     {
         IsNemesis = isNemesis;
         _zombieManager = zombieManager;
-        _zombieClass = zombieClass;
+        _izClass = izClass;
         _player = player;
 
         Initialize();
 
-        player.SendAlert("Ваш класс => " + zombieClass.DisplayName);
+        player.SendAlert("Ваш класс => " + izClass.DisplayName);
     }
 
     public bool Infect(IPlayer target)
@@ -35,19 +35,19 @@ public class ZombiePlayer
         return false;
     }
 
-    public IZombieClass GetZombieClass()
+    public IZClass GetZombieClass()
     {
-        return _zombieClass;
+        return _izClass;
     }
 
     public void Initialize()
     {
-        _player.SetHealth(_zombieClass.Health);
-        _player.SetSpeed(_zombieClass.Speed);
-        _player.SetGravity(_zombieClass.Gravity);
-        _player.SetModel(_zombieClass.Model);
+        _player.SetHealth(_izClass.Health);
+        _player.SetSpeed(_izClass.Speed);
+        _player.SetGravity(_izClass.Gravity);
+        _player.SetModel(_izClass.Model);
 
-        _zombieClass.Abilities.ForEach(zClass => zClass.SetCaster(_player));
+        _izClass.Abilities.ForEach(zClass => zClass.SetCaster(_player));
 
         _player.SwitchTeam(Team.T);
 
@@ -61,7 +61,7 @@ public class ZombiePlayer
 
     public void UnHookAbilities()
     {
-        _zombieClass.Abilities.ForEach(zClass => zClass.UnHook());
+        _izClass.Abilities.ForEach(zClass => zClass.UnHook());
     }
 
     public IPlayer GetPlayer()

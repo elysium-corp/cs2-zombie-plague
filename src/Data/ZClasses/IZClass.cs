@@ -3,7 +3,7 @@ using CS2ZombiePlague.Data.Abilities.Contracts;
 
 namespace CS2ZombiePlague.Data.ZClasses;
 
-public interface IZombieClass
+public interface IZClass
 {
     public string InternalName { get; set; }
     

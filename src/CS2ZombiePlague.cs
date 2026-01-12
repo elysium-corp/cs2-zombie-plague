@@ -28,7 +28,7 @@ namespace CS2ZombiePlague
         private readonly Lazy<MoneySystem> _moneySystem = new(DependencyManager.GetService<MoneySystem>);
         private readonly Lazy<ScreenFade> _screenFade = new(DependencyManager.GetService<ScreenFade>);
         private readonly Lazy<CommonUtils> _utils = new(DependencyManager.GetService<CommonUtils>);
-
+        
         public override void Load(bool hotReload)
         {
             if (hotReload)

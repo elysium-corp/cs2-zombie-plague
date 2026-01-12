@@ -4,7 +4,7 @@ using CS2ZombiePlague.Data.Abilities.Contracts;
 
 namespace CS2ZombiePlague.Data.ZClasses;
 
-public class ZNemesis(ZombieNemesis config, IAbilityFactory abilityFactory) : IZombieClass
+public class ZNemesis(ZombieNemesis config, IAbilityFactory abilityFactory) : IZClass
 {
     public string InternalName { get; set; } = config.InternalName;
 

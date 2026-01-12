@@ -4,7 +4,7 @@ using CS2ZombiePlague.Data.Abilities.Contracts;
 
 namespace CS2ZombiePlague.Data.ZClasses;
 
-public sealed class ZShaman(ZombieShaman config) : IZombieClass
+public sealed class ZShaman(ZombieShaman config) : IZClass
 {
     public string InternalName { get; set; } = config.InternalName;
 

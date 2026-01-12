@@ -6,6 +6,7 @@ using CS2ZombiePlague.Config.Zombie;
 using CS2ZombiePlague.Data;
 using CS2ZombiePlague.Data.Abilities;
 using CS2ZombiePlague.Data.Abilities.Contracts;
+using CS2ZombiePlague.Data.Events;
 using CS2ZombiePlague.Data.Managers;
 using CS2ZombiePlague.Data.Rounds;
 using CS2ZombiePlague.Data.Weapons.Knifes;
@@ -93,6 +94,13 @@ public static class DependencyManager
         _services
             .AddOptionsWithValidateOnStart<ZombiePlagueCoreConfig>()
             .BindConfiguration(CoreConfigSectionName);
+        
+        // EventService Registration 
+        _services.AddSingleton<EventService>();
+        _services.AddSingleton<IEventSubscriber>(sp =>
+            sp.GetRequiredService<EventService>());
+        _services.AddSingleton<IEventPublisher>(sp =>
+            sp.GetRequiredService<EventService>());
 
         RegisterZClasses();
         RegisterKnifes();

@@ -42,7 +42,7 @@ public abstract class BasePassiveAbility(ISwiftlyCore core) : IPassiveAbility, I
         Hook();
     }
 
-    public void Hook()
+    public virtual void Hook()
     {
         if (_isHooked)
         {
@@ -52,7 +52,7 @@ public abstract class BasePassiveAbility(ISwiftlyCore core) : IPassiveAbility, I
         _isHooked = true;
     }
 
-    public void UnHook()
+    public virtual void UnHook()
     {
         if (!_isHooked)
         {

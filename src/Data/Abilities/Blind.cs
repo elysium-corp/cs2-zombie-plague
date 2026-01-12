@@ -8,19 +8,22 @@ using SwiftlyS2.Shared.Misc;
 
 namespace CS2ZombiePlague.Data.Abilities;
 
-public sealed class Blind : BasePassiveAbility
+public sealed class Blind(ISwiftlyCore core, BlindConfig config) : BasePassiveAbility(core)
 {
-    private readonly ISwiftlyCore _core;
-    private readonly BlindConfig _config;
-    
-    public override float Cooldown => _config.CooldownTime;
+    public override float Cooldown => config.CooldownTime;
 
-    public Blind(ISwiftlyCore core, BlindConfig config) : base(core)
+    private Guid _abilityCallbackGuid = Guid.Empty;
+
+    public override void Hook()
     {
-        _core = core;
-        _config = config;
-        
-        core.GameEvent.HookPost<EventPlayerHurt>(OnPlayerHurtPost);
+        base.Hook();
+        _abilityCallbackGuid = core.GameEvent.HookPost<EventPlayerHurt>(OnPlayerHurtPost);
+    }
+
+    public override void UnHook()
+    {
+        core.GameEvent.Unhook(_abilityCallbackGuid);
+        base.UnHook();
     }
 
     public override void Use()
@@ -30,16 +33,16 @@ public sealed class Blind : BasePassiveAbility
             return;
         }
         
-        _core.NetMessage.SendCUserMessageFade(
+        core.NetMessage.SendCUserMessageFade(
             playerId: Target.PlayerID,
-            duration: _config.DurationEffectAfterAbilityOnAttacker,
-            holdTime: _config.HoldTimeEffectAfterAbilityOnAttacker,
+            duration: config.DurationEffectAfterAbilityOnAttacker,
+            holdTime: config.HoldTimeEffectAfterAbilityOnAttacker,
             flags: NetMessageExt.FFadeOut,
             color: NetMessageExt.Rgba(
-                r: _config.RedColorEffectAfterAbilityOnAttacker,
-                g: _config.GreenColorEffectAfterAbilityOnAttacker,
-                b: _config.BlueColorEffectAfterAbilityOnAttacker,
-                a: _config.AlphaEffectAfterAbilityOnAttacker
+                r: config.RedColorEffectAfterAbilityOnAttacker,
+                g: config.GreenColorEffectAfterAbilityOnAttacker,
+                b: config.BlueColorEffectAfterAbilityOnAttacker,
+                a: config.AlphaEffectAfterAbilityOnAttacker
             )
         );
         

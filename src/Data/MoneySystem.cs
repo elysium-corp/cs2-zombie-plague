@@ -1,14 +1,17 @@
 ﻿using CS2ZombiePlague.Config;
+using CS2ZombiePlague.Data.Events;
 using CS2ZombiePlague.Data.Extensions;
+using CS2ZombiePlague.Data.ZClasses;
 using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Convars;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Misc;
+using SwiftlyS2.Shared.Players;
 
 namespace CS2ZombiePlague.Data;
 
-public class MoneySystem(ISwiftlyCore core, IOptions<ZombiePlagueCoreConfig> config)
+public class MoneySystem(ISwiftlyCore core, IOptions<ZombiePlagueCoreConfig> config, IEventSubscriber eventSubscriber)
 {
     public void Start()
     {
@@ -19,6 +22,13 @@ public class MoneySystem(ISwiftlyCore core, IOptions<ZombiePlagueCoreConfig> con
         
         IConVar<int>? startMoney = core.ConVar.Find<int>("mp_startmoney");
         startMoney!.Value = config.Value.StartMoney;
+
+        eventSubscriber.OnPlayerInfected += OnPlayerInfected;
+    }
+    
+    private void OnPlayerInfected(IPlayer player, IZClass zClass)
+    {
+        core.PlayerManager.SendChat($"Игрок {player.Controller.PlayerName} заразился и его класс = {zClass.DisplayName}");
     }
     
     private HookResult OnPlayerHurtPost(EventPlayerHurt @event)

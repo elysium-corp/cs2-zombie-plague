@@ -5,5 +5,5 @@ namespace CS2ZombiePlague.Data.ZClasses;
 
 public interface IZombiePlayerFactory
 {
-    public ZombiePlayer Create(IPlayer player, ZombieManager zombieManager, IZombieClass zombieClass, bool isNemesis = false);
+    public ZombiePlayer Create(IPlayer player, ZombieManager zombieManager, IZClass izClass, bool isNemesis = false);
 }
