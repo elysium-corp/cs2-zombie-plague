@@ -53,7 +53,7 @@ public sealed class Blind(ISwiftlyCore core, BlindConfig config) : BasePassiveAb
     {
         var attacker = @event.AttackerPlayer;
         var victim = @event.UserIdPlayer;
-
+        
         if (!attacker.IsValid || !attacker.IsAlive || attacker.IsInfected())
         {
             return HookResult.Continue;

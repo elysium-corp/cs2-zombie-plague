@@ -18,7 +18,7 @@ public sealed class Heal(ISwiftlyCore core, HealConfig config) : BaseActiveAbili
     public override KeyKind? Key => KeyKind.E;
 
     public override float Cooldown => config.CooldownTime;
-    
+
     private const float EyePositionZ = 64f;
 
     private readonly CommonUtils _commonUtils = DependencyManager.GetService<CommonUtils>();
@@ -28,7 +28,7 @@ public sealed class Heal(ISwiftlyCore core, HealConfig config) : BaseActiveAbili
     {
         var casterPawn = Caster.RequiredPlayerPawn;
 
-        var origin = casterPawn.CBodyComponent?.SceneNode?.AbsOrigin;
+        var origin = casterPawn.AbsOrigin;
         if (origin is null)
         {
             return;
@@ -54,6 +54,8 @@ public sealed class Heal(ISwiftlyCore core, HealConfig config) : BaseActiveAbili
         ApplyHeal(target, targetPawn);
         Target = target;
 
+        PlaySound();
+
         base.Use();
     }
 
@@ -77,12 +79,13 @@ public sealed class Heal(ISwiftlyCore core, HealConfig config) : BaseActiveAbili
         return true;
     }
 
-    private bool TryFindHealTarget(CBasePlayerPawn casterPawn, Vector start, Vector end, out IPlayer target)
+    private bool TryFindHealTarget(CCSPlayerPawn casterPawn, Vector start, Vector end, out IPlayer target)
     {
         target = null!;
-
+        
+        Console.WriteLine(Caster.RequiredPawn.Controller.Value.PlayerName);
+        
         var trace = new CGameTrace();
-
         core.Trace.SimpleTrace(
             start,
             end,
@@ -95,7 +98,7 @@ public sealed class Heal(ISwiftlyCore core, HealConfig config) : BaseActiveAbili
             ref trace,
             casterPawn
         );
-        
+
         var entity = trace.Entity;
         if (entity is null)
             return false;
@@ -148,7 +151,7 @@ public sealed class Heal(ISwiftlyCore core, HealConfig config) : BaseActiveAbili
         var random = new Random();
         var listOfParticle = config.ParticleEffectNames;
         var randomParticleEffect = config.ParticleEffectNames[random.Next(listOfParticle.Count)];
-        
+
         particle.EffectName = randomParticleEffect;
         particle.StartActive = true;
         particle.DispatchSpawn();
@@ -190,7 +193,7 @@ public sealed class Heal(ISwiftlyCore core, HealConfig config) : BaseActiveAbili
         using var sound = new SoundEvent(randomSound);
 
         sound.Recipients.AddAllPlayers();
-        sound.SourceEntityIndex = -1;
+        sound.SourceEntityIndex = (int)Caster.RequiredPlayerPawn.Index;
 
         sound.Emit();
     }

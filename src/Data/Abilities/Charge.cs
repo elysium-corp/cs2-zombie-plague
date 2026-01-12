@@ -6,6 +6,7 @@ using CS2ZombiePlague.Di;
 using CS2ZombiePlague.Utils;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Events;
+using SwiftlyS2.Shared.Sounds;
 
 namespace CS2ZombiePlague.Data.Abilities;
 
@@ -22,6 +23,8 @@ public sealed class Charge(ISwiftlyCore core, ChargeConfig config) : BaseActiveA
 
     public override void Use()
     {
+        PlaySound();
+        
         var startSpeed = _zombieManager.GetZombie(Caster.PlayerID).GetZombieClass().Speed;
         var maxSpeed = config.MaxSpeed;
         var chargeTime = config.ChargeTime;
@@ -34,7 +37,7 @@ public sealed class Charge(ISwiftlyCore core, ChargeConfig config) : BaseActiveA
         core.NetMessage.SendCUserMessageFade(
             playerId: Caster.PlayerID,
             duration: DurationEffectAbility,
-            holdTime: (chargeTime * 1000) - (DurationEffectAbility * 2) - 1000,
+            holdTime: (chargeTime * 1000) - (DurationEffectAbility * 2),
             flags: NetMessageExt.FFadeIn | NetMessageExt.FFadeOut,
             color: NetMessageExt.Rgba(153, 40, 40, 80)
         );
@@ -78,5 +81,22 @@ public sealed class Charge(ISwiftlyCore core, ChargeConfig config) : BaseActiveA
         }
 
         return true;
+    }
+    
+    public override void PlaySound()
+    {
+        var randomSound = config.SoundEffectNames[new Random().Next(config.SoundEffectNames.Count)];
+
+        if (config.SoundEffectNames.Count == 0)
+        {
+            return;
+        }
+
+        using var sound = new SoundEvent(randomSound);
+
+        sound.Recipients.AddAllPlayers();
+        sound.SourceEntityIndex = (int)Caster.RequiredPawn.Index;
+
+        sound.Emit();
     }
 }

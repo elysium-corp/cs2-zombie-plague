@@ -4,7 +4,7 @@ using CS2ZombiePlague.Data.Abilities.Contracts;
 
 namespace CS2ZombiePlague.Data.ZClasses;
 
-public sealed class ZAssassin(ZombieAssassin config) : IZClass
+public sealed class ZAssassin(ZombieAssassin config, IAbilityFactory abilityFactory) : IZClass
 {
     public string InternalName { get; set; } = config.InternalName;
 
@@ -24,5 +24,5 @@ public sealed class ZAssassin(ZombieAssassin config) : IZClass
 
     public int Gravity { get; set; } = config.Gravity;
 
-    public List<IAbility> Abilities { get; set; } = [];
+    public List<IAbility> Abilities { get; set; } = [abilityFactory.Create<Charge>()];
 }

@@ -7,7 +7,7 @@ using SwiftlyS2.Shared.Players;
 
 namespace CS2ZombiePlague.Data.Managers;
 
-public class ZombieManager(IZombiePlayerFactory zombiePlayerFactory, ISwiftlyCore core, IEventPublisher eventPublisher)
+public class ZombieManager(IZombiePlayerFactory zombiePlayerFactory, ZClassMenu zClassMenu, IEventPublisher eventPublisher, ISwiftlyCore core)
 {
     private readonly Dictionary<int, ZombiePlayer> _zombiePlayers = new();
 
@@ -23,8 +23,7 @@ public class ZombieManager(IZombiePlayerFactory zombiePlayerFactory, ISwiftlyCor
             FireFakeDeath(attackerId.Value, victimId.Value);
         }
 
-        var zClass = DependencyManager.GetService<ZCleric>();
-        
+        var zClass = GetZClassFromMenu(player.PlayerID);
         return _zombiePlayers[player.PlayerID] =
             zombiePlayerFactory.Create(player, this, zClass);
     }
@@ -65,6 +64,11 @@ public class ZombieManager(IZombiePlayerFactory zombiePlayerFactory, ISwiftlyCor
     public Dictionary<int, ZombiePlayer> GetAllZombies()
     {
         return _zombiePlayers;
+    }
+
+    public IZClass GetZClassFromMenu(int playerId)
+    {
+        return zClassMenu.GetPlayerZClass(playerId);
     }
 
     private void FireFakeDeath(int attackerId, int victimId)

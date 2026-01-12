@@ -9,6 +9,8 @@ public sealed class AbilityConfig
     public BlindConfig Blind { get; set; } = new();
 
     public ChargeConfig Charge { get; set; } = new();
+    
+    public TrapConfig Trap { get; set; } = new();
 }
 
 public sealed class HealConfig : IAbilityConfig
@@ -32,7 +34,7 @@ public sealed class HealConfig : IAbilityConfig
     public float DurationParticleEffect { get; set; } = 2.0f;
 
     // Путь к звуковому эффекту способности
-    public List<string> SoundEffectNames { get; set; } = [""];
+    public List<string> SoundEffectNames { get; set; } = ["ZombiePlagueAbility.zombie_healing_1"];
 
     // Эффект после применения способности на таргете (экран покрывается определенным цветом)
     public bool HasScreenEffectAfterAbilityOnTarget { get; set; } = true;
@@ -119,14 +121,39 @@ public sealed class ChargeConfig : IAbilityConfig
     public List<string> ParticleEffectNames { get; set; } = [""];
 
     // Путь к звуковому эффекту способности
-    public List<string> SoundEffectNames { get; set; } = [""];
+    public List<string> SoundEffectNames { get; set; } = ["ZombiePlagueAbility.zombie_pressure"];
     
     // Максимальная скорость при использовании способности
-    public float MaxSpeed { get; set; } = 600f;
+    public float MaxSpeed { get; set; } = 550f;
 
     // Общее время действия способности 
-    public uint ChargeTime { get; set; } = 5;
+    public uint ChargeTime { get; set; } = 3;
 
     // Время обновления скорости (от 0.01 до 0.1, чем меньше, тем плавнее) 
     public float SpeedUpdatePerTimeTick { get; set; } = 0.05f;
+}
+
+public sealed class TrapConfig : IAbilityConfig
+{
+    // Доступна ли способность
+    public bool Enable { get; set; } = true;
+    
+    // Время в течение которого способность будет недоступна для повторного применения 
+    public float CooldownTime { get; set; } = 20f;
+
+    // Путь к визуальному эффекту способности
+    public string ParticleEffectName { get; set; } = "particles/kolka/part7.vpcf";
+
+    // Путь к звуковому эффекту способности
+    public List<string> SoundEffectNames { get; set; } = ["ZombiePlagueAbility.zombie_pressure"];
+    
+    // Длительность жизни ловушки
+    public float LiveDuration { get; set; } = 20f;
+    
+    // Длительность эффекта ловушки
+    public float EffectDuration { get; set; } = 5f;
+    
+    // Радиус срабатывания ловушки
+    public float TriggerRadius { get; set; } = 100f;
+    
 }

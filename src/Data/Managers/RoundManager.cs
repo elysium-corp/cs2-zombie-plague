@@ -39,7 +39,7 @@ public class RoundManager(ISwiftlyCore core, IOptions<ZombiePlagueCoreConfig> co
         _token = core.Scheduler.RepeatBySeconds(1, () =>
         {
             localTime += 1;
-            core.PlayerManager.SendCenter("До заражения " + (roundStartTime - localTime) + " секунд");
+            core.PlayerManager.SendCenterAsync("До заражения " + (roundStartTime - localTime) + " секунд");
 
             if (roundStartTime - localTime <= 11 && !soundIsActive)
             {

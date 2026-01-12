@@ -24,5 +24,5 @@ public sealed class ZCleric(ZombieCleric config, IAbilityFactory abilityFactory)
 
     public int Gravity { get; set; } = config.Gravity;
 
-    public List<IAbility> Abilities { get; set; } = [abilityFactory.Create<Heal>(), abilityFactory.Create<Blind>(), abilityFactory.Create<Charge>()];
+    public List<IAbility> Abilities { get; set; } = [abilityFactory.Create<Heal>()];
 }

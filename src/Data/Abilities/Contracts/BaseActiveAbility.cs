@@ -19,6 +19,8 @@ public abstract class BaseActiveAbility(ISwiftlyCore core) : IActiveAbility, ICo
     private CancellationTokenSource? _cooldownToken;
     private float _cooldownElapsedTime;
     
+    private const int CooldownMessageTime = 300;
+    
     public CParticleSystem? Particle { get; set; }
     
     private bool _isHooked;
@@ -67,7 +69,7 @@ public abstract class BaseActiveAbility(ISwiftlyCore core) : IActiveAbility, ICo
     
     public void OnClientKeyStateChanged(IOnClientKeyStateChangedEvent @event)
     {
-        if (@event.PlayerId == Caster.PlayerID && @event.Pressed && @event.Key == Key && !IsActive)
+        if (@event.PlayerId == Caster.PlayerID && @event.Pressed && @event.Key == Key)
         {
             OnClientButtonClickHandler(@event.PlayerId, @event.Key, @event.Pressed);
         }
@@ -84,6 +86,8 @@ public abstract class BaseActiveAbility(ISwiftlyCore core) : IActiveAbility, ICo
     {
         if (IsActive)
         {
+            Caster.SendMessage(MessageType.Alert,
+                $"Способность восстановится через {Cooldown - _cooldownElapsedTime} секунд", CooldownMessageTime);
             return;
         }
 

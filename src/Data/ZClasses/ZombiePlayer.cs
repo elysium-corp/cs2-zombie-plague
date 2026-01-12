@@ -7,7 +7,7 @@ namespace CS2ZombiePlague.Data.ZClasses;
 public class ZombiePlayer
 {
     private readonly ZombieManager _zombieManager;
-    private readonly IZClass _izClass;
+    private IZClass _izClass;
     private readonly IPlayer _player;
     public bool IsNemesis { get; }
 
@@ -17,10 +17,10 @@ public class ZombiePlayer
         _zombieManager = zombieManager;
         _izClass = izClass;
         _player = player;
-
+        
+        player.SendAlert("Ваш класс => " + _izClass.DisplayName);
+        
         Initialize();
-
-        player.SendAlert("Ваш класс => " + izClass.DisplayName);
     }
 
     public bool Infect(IPlayer target)
@@ -42,6 +42,12 @@ public class ZombiePlayer
 
     public void Initialize()
     {
+        if (_izClass != _zombieManager.GetZClassFromMenu(_player.PlayerID))
+        {
+            _izClass.Abilities.ForEach(ability => ability.UnHook());
+            _izClass = _zombieManager.GetZClassFromMenu(_player.PlayerID);
+        }
+            
         _player.SetHealth(_izClass.Health);
         _player.SetSpeed(_izClass.Speed);
         _player.SetGravity(_izClass.Gravity);

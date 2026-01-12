@@ -64,6 +64,7 @@ public static class DependencyManager
             .AddSingleton<IZombiePlayerFactory, ZombiePlayerFactory>()
             .AddSingleton<IKnifeFactory, KnifeFactory>()
             .AddSingleton<IAbilityFactory, AbilityFactory>()
+            .AddSingleton<ZClassMenu>()
             .AddSingleton<ZombieManager>()
             .AddSingleton<KnifeManager>()
             .AddSingleton<RoundManager>()
@@ -178,17 +179,19 @@ public static class DependencyManager
         _services
             .AddTransient<ZAssassin>(sp =>
             {
+                var abilityFactory = sp.GetRequiredService<IAbilityFactory>();
                 var zClassConfig = sp.GetRequiredService<IOptions<ZClassConfig>>().Value;
                 var config = zClassConfig.Assassin;
-                return new ZAssassin(config);
+                return new ZAssassin(config, abilityFactory);
             });
         
         _services
             .AddTransient<ZHeavy>(sp =>
             {
+                var abilityFactory = sp.GetRequiredService<IAbilityFactory>();
                 var zClassConfig = sp.GetRequiredService<IOptions<ZClassConfig>>().Value;
                 var config = zClassConfig.Heavy;
-                return new ZHeavy(config);
+                return new ZHeavy(config, abilityFactory);
             });
         
         _services
