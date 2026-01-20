@@ -4,7 +4,6 @@ using CS2ZombiePlague.Data.Weapons.Knifes;
 using Microsoft.Extensions.Options;
 using SwiftlyS2.Core.Menus.OptionsBase;
 using SwiftlyS2.Shared;
-using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Menus;
 using SwiftlyS2.Shared.Misc;
@@ -14,7 +13,6 @@ namespace CS2ZombiePlague.Data.Managers;
 
 public class KnifeManager(
     ISwiftlyCore core,
-    RoundManager roundManager,
     IKnifeFactory factory,
     IOptions<KnifeConfig> config)
 {
@@ -26,14 +24,13 @@ public class KnifeManager(
 
     public void RegisterHooks()
     {
-        core.Event.OnClientPutInServer += ClientPutInServerEvent;
         core.GameEvent.HookPost<EventItemEquip>(PlayerEquipEvent);
         core.GameEvent.HookPost<EventPlayerChat>(PlayerChatEvent);
         core.GameEvent.HookPost<EventPlayerSpawn>(PlayerSpawnEvent);
         _menuApi = CreateMenu();
     }
 
-    public IKnife? GetPlayerKnife(int playerId) => _playerKnifes!.GetValueOrDefault(playerId, null);
+    public IKnife? GetCurrentKnife(int playerId) => _playerKnifes.GetValueOrDefault(playerId, null);
     private void SetDefaultKnife(int playerId) => _playerKnifes[playerId] = factory.Create<GravityKnifeWeapon>();
 
     private HookResult PlayerSpawnEvent(EventPlayerSpawn @event)
@@ -52,7 +49,7 @@ public class KnifeManager(
         var player = @event.UserIdPlayer;
         var pawn = player.RequiredPawn;
 
-        if (pawn == null || player.Controller.Team == Team.T)
+        if (!pawn.IsValid || player.IsInfected())
             return HookResult.Continue;
 
         if (@event.Item != "knife")
@@ -60,26 +57,16 @@ public class KnifeManager(
             SetDefaultProperties(player);
             return HookResult.Continue;
         }
-
+        
         var playerId = player.PlayerID;
-
         if (!_playerKnifes.ContainsKey(playerId))
             SetDefaultKnife(playerId);
-
-        var eventKnifeName = @event.Item;
-
-        if (pawn.WeaponServices.ActiveWeapon.Value.DesignerName.Contains(eventKnifeName))
-        {
-            var knife = GetPlayerKnife(playerId);
-            SetKnifeProperties(knife, player);
-        }
+        
+        var knife = GetCurrentKnife(playerId);
+        
+        SetKnifeProperties(knife!, player);
 
         return HookResult.Continue;
-    }
-
-    private void ClientPutInServerEvent(IOnClientPutInServerEvent @event)
-    {
-        SetDefaultKnife(@event.PlayerId);
     }
 
     private void SetKnifeProperties(IKnife knife, IPlayer player)
@@ -138,19 +125,29 @@ public class KnifeManager(
             {
                 return;
             }
-
+            
+            var weaponService = pawn.WeaponServices;
+            var itemService = pawn.ItemServices;
+            if (weaponService == null || itemService == null)
+            {
+                return;
+            }
+            
             if (!_playerKnifes.ContainsKey(player.PlayerID))
                 SetDefaultKnife(player.PlayerID);
 
-            pawn.WeaponServices?.RemoveWeaponByDesignerName("weapon_knife");
-            pawn.ItemServices?.GiveItem("weapon_knife_t");
-            foreach (var weapon in pawn.WeaponServices.MyValidWeapons)
+            var knife = GetCurrentKnife(player.PlayerID);
+            
+            weaponService.RemoveWeaponByDesignerName("weapon_knife");
+            itemService.GiveItem("weapon_knife_t");
+            
+            foreach (var weapon in weaponService.MyValidWeapons)
             {
                 if (!weapon.DesignerName.Contains("knife"))
                     continue;
 
-                weapon.SetModel(GetPlayerKnife(player.PlayerID).Model);
-                pawn.WeaponServices.SelectWeapon(weapon);
+                weapon.SetModel(knife.Model);
+                weaponService.SelectWeapon(weapon);
 
                 break;
             }
