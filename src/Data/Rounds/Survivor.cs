@@ -4,6 +4,7 @@ using CS2ZombiePlague.Data.Managers;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
+using SwiftlyS2.Shared.Sounds;
 
 namespace CS2ZombiePlague.Data.Rounds;
 
@@ -24,6 +25,8 @@ public class Survivor(ISwiftlyCore core, RoundManager roundManager, ZombieManage
         }
         Initialize(survivor);
 
+        PlaySound();
+        
         core.PlayerManager.SendCenter("Выживший => " + survivor.Controller.PlayerName);
     }
     
@@ -48,6 +51,17 @@ public class Survivor(ISwiftlyCore core, RoundManager roundManager, ZombieManage
         itemServices.RemoveItems();
         itemServices.GiveItem("weapon_knife_t");
         itemServices.GiveItem("weapon_negev");
+    }
+    
+    private void PlaySound()
+    {
+        using var sound = new SoundEvent(config.MusicSoundName);
+        
+        sound.Recipients.AddAllPlayers();
+        sound.SourceEntityIndex = -1;
+        sound.Volume = 0.5f;
+
+        sound.Emit();
     }
     
 }

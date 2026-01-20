@@ -12,20 +12,12 @@ public class WeaponManager(ISwiftlyCore core, RoundManager roundManager, CommonU
     {
         Register(new FrostNade(core, roundManager, commonUtils));
         Register(new BarrierNade(core, roundManager, commonUtils));
-        
-        LoadAll();
-    }
-    
-    private void LoadAll()
-    {
-        foreach (var weapon in _customWeapons.Values)
-        {
-            weapon.Load();
-        }
+        Register(new JumpNade(core, commonUtils));
     }
     
     private void Register(ICustomWeapon weapon)
     {
         _customWeapons[weapon.OriginalName] = weapon;
+        _customWeapons[weapon.OriginalName].Load();
     }
 }

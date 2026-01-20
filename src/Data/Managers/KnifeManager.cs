@@ -33,8 +33,7 @@ public class KnifeManager(
         _menuApi = CreateMenu();
     }
 
-    public IKnife GetPlayerKnife(int playerId) => _playerKnifes[playerId];
-
+    public IKnife? GetPlayerKnife(int playerId) => _playerKnifes!.GetValueOrDefault(playerId, null);
     private void SetDefaultKnife(int playerId) => _playerKnifes[playerId] = factory.Create<GravityKnifeWeapon>();
 
     private HookResult PlayerSpawnEvent(EventPlayerSpawn @event)
@@ -45,7 +44,6 @@ public class KnifeManager(
         }
 
         GiveKnifeAsync(@event.UserIdPlayer);
-
         return HookResult.Continue;
     }
 
@@ -68,17 +66,7 @@ public class KnifeManager(
         if (!_playerKnifes.ContainsKey(playerId))
             SetDefaultKnife(playerId);
 
-        var weapons = pawn.WeaponServices?.MyValidWeapons;
         var eventKnifeName = @event.Item;
-        foreach (var weapon in weapons)
-        {
-            if (!weapon.DesignerName.Contains(eventKnifeName))
-                continue;
-
-            var knife = GetPlayerKnife(playerId);
-            weapon.SetModel(knife.Model);
-            break;
-        }
 
         if (pawn.WeaponServices.ActiveWeapon.Value.DesignerName.Contains(eventKnifeName))
         {
@@ -112,27 +100,28 @@ public class KnifeManager(
             .Design.SetMenuTitle("Выбери нож")
             .EnableSound();
 
-        void AddKnifeOption<T>(IKnifeConfig cfg) where T : IKnife
-        {
-            var button = new ButtonMenuOption($"{cfg.DisplayName} {cfg.Description}");
-            button.Click += async (_, args) =>
-            {
-                if (@args.Player == null || @args.Player.IsInfected())
-                {
-                    return;
-                }
-
-                _playerKnifes[args.Player.PlayerID] = factory.Create<T>();
-                GiveKnifeAsync(args.Player);
-            };
-            builder.AddOption(button);
-        }
-
-        AddKnifeOption<KnockbackKnifeWeapon>(config.Value.Knockback);
-        AddKnifeOption<SpeedKnifeWeapon>(config.Value.Speed);
-        AddKnifeOption<GravityKnifeWeapon>(config.Value.Gravity);
+        AddKnifeOption<KnockbackKnifeWeapon>(builder, config.Value.Knockback);
+        AddKnifeOption<SpeedKnifeWeapon>(builder, config.Value.Speed);
+        AddKnifeOption<GravityKnifeWeapon>(builder, config.Value.Gravity);
+        AddKnifeOption<VipKnifeWeapon>(builder, config.Value.Vip);
 
         return builder.Build();
+    }
+
+    private void AddKnifeOption<T>(IMenuBuilderAPI builder, IKnifeConfig cfg) where T : IKnife
+    {
+        var button = new ButtonMenuOption($"{cfg.DisplayName} {cfg.Description}");
+        button.Click += async (_, args) =>
+        {
+            if (@args.Player.IsInfected())
+            {
+                return;
+            }
+
+            _playerKnifes[args.Player.PlayerID] = factory.Create<T>();
+            GiveKnifeAsync(args.Player);
+        };
+        builder.AddOption(button);
     }
 
     private void GiveKnifeAsync(IPlayer player)
@@ -149,7 +138,7 @@ public class KnifeManager(
             {
                 return;
             }
-            
+
             if (!_playerKnifes.ContainsKey(player.PlayerID))
                 SetDefaultKnife(player.PlayerID);
 
@@ -162,7 +151,7 @@ public class KnifeManager(
 
                 weapon.SetModel(GetPlayerKnife(player.PlayerID).Model);
                 pawn.WeaponServices.SelectWeapon(weapon);
-                
+
                 break;
             }
         });

@@ -61,11 +61,11 @@ public static class PlayerExtensions
     {
         if (player.PlayerPawn == null || !player.Controller.PawnIsAlive) return;
         
-        DependencyManager.GetService<ISwiftlyCore>().Scheduler.NextTick(() =>
+        DependencyManager.GetService<ISwiftlyCore>().Scheduler.NextWorldUpdate(() =>
         {
             if (player.IsValid)
             {
-                player.RequiredPawn.SetModel(modelPath);
+                player.PlayerPawn.SetModel(modelPath);
             }
         });
     }

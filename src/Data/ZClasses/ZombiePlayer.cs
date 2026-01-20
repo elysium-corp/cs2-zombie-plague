@@ -28,7 +28,7 @@ public class ZombiePlayer
         if (target != null && !target.IsInfected() && !target.IsLastHuman() && target.PlayerPawn.ArmorValue == 0 &&
             !_player.IsNemesis())
         {
-            _zombieManager.CreateZombie(target, _player.PlayerID, target.PlayerID);
+            _zombieManager.CreateZombie(target, _player);
             return true;
         }
 

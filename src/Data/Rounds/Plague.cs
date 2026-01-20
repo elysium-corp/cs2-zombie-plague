@@ -17,7 +17,8 @@ public class Plague(
     PlagueConfig config) : IRound
 {
     private Guid _playerDeathEvent = Guid.Empty;
-
+    private Guid _playerConnect = Guid.Empty;
+    
     public void End()
     {
         core.Event.OnEntityTakeDamage -= TakeDamage;
@@ -25,6 +26,7 @@ public class Plague(
         if (config.ZombieRevived)
         {
             core.GameEvent.Unhook(_playerDeathEvent);
+            core.GameEvent.Unhook(_playerConnect);
         }
 
         roundManager.SetRound(new None());
@@ -39,9 +41,10 @@ public class Plague(
         if (config.ZombieRevived)
         {
             _playerDeathEvent = core.GameEvent.HookPre<EventPlayerDeath>(EventPlayerDeath);
+            _playerConnect = core.GameEvent.HookPre<EventPlayerConnectFull>(EventPlayerConnect);
         }
 
-        var players = core.PlayerManager.GetAllPlayers().ToList();
+        var players = core.PlayerManager.GetAlive().ToList();
         var countZombies = Math.Ceiling(players.Count * config.ZombieSpawnRatio);
         var newPlayers = players.Shuffle();
 
@@ -95,12 +98,45 @@ public class Plague(
         var player = @event.UserIdPlayer;
         core.Scheduler.DelayBySeconds(config.ZombieSpawnTime, () =>
         {
-            if (player != null && player.IsValid && player.IsInfected() && roundManager.GetRound() == this)
+            if (player is not { IsValid: true } || roundManager.GetRound() != this)
+            {
+                return;
+            }
+            
+            if (player.IsInfected())
             {
                 player.Controller.Respawn();
-
                 var zombie = zombieManager.GetZombie(player.PlayerID);
                 zombie.Initialize();
+            }
+            else
+            {
+                player.Controller.Respawn();
+                var zombie = zombieManager.CreateZombie(player);
+            }
+        });
+
+        return HookResult.Continue;
+    }
+    
+    private HookResult EventPlayerConnect(EventPlayerConnectFull @event)
+    {
+        var player = @event.UserIdPlayer;
+        core.Scheduler.DelayBySeconds(config.ZombieSpawnTime, () =>
+        {
+            if (player is { IsValid: true } && player.IsInfected() && roundManager.GetRound() == this)
+            {
+                player.Controller.Respawn();
+                if (zombieManager.GetZombie(player.PlayerID) != null)
+                {
+                    var zombie = zombieManager.GetZombie(player.PlayerID);
+                    zombie.Initialize();
+                }
+                else
+                {
+                    zombieManager.CreateZombie(player);
+                }
+                
             }
         });
 

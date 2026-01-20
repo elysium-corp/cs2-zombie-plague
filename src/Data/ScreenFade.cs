@@ -18,7 +18,7 @@ public class ScreenFade(ISwiftlyCore core, IOptions<ZombiePlagueCoreConfig> conf
     {
         var attacker = @event.AttackerPlayer;
 
-        if (!attacker.IsValid)
+        if (!attacker.IsValid || attacker.Equals(@event.UserIdPlayer))
         {
             return HookResult.Continue;
         }

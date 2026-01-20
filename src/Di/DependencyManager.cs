@@ -150,6 +150,13 @@ public static class DependencyManager
                 var config = knifeConfig.Gravity;
                 return new GravityKnifeWeapon(config);
             });
+        _services
+            .AddTransient<VipKnifeWeapon>(sp =>
+            {
+                var knifeConfig = sp.GetRequiredService<IOptions<KnifeConfig>>().Value;
+                var config = knifeConfig.Vip;
+                return new VipKnifeWeapon(config);
+            });
         
     }
     private static void RegisterZClasses()
@@ -171,9 +178,10 @@ public static class DependencyManager
         _services
             .AddTransient<ZHunter>(sp =>
             {
+                var abilityFactory = sp.GetRequiredService<IAbilityFactory>();
                 var zClassConfig = sp.GetRequiredService<IOptions<ZClassConfig>>().Value;
                 var config = zClassConfig.Hunter;
-                return new ZHunter(config);
+                return new ZHunter(config, abilityFactory);
             });
         
         _services

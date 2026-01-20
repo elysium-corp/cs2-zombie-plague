@@ -25,7 +25,7 @@ public sealed class HealConfig : IAbilityConfig
     public int HealAmount { get; set; } = 500;
     
     // Время в течение которого способность будет недоступна для повторного применения 
-    public float CooldownTime { get; set; } = 30f;
+    public float CooldownTime { get; set; } = 20f;
 
     // Путь к визуальному эффекту способности
     public List<string> ParticleEffectNames { get; set; } = ["particles/kolka/part2.vpcf"];
@@ -66,11 +66,11 @@ public sealed class LeapConfig : IAbilityConfig
     // Время в течение которого способность будет недоступна для повторного применения 
     public float CooldownTime { get; set; } = 10.0f;
 
-    // Максимальная дистанция прыжка
-    public float LeapDistance { get; set; } = 700f;
+    // Максимальная сила прыжка
+    public float LeapDistance { get; set; } = 550f;
     
     // Высота прыжка
-    public float LeapBoost { get; set; } = 400f;
+    public float LeapBoost { get; set; } = 350f;
 } 
 
 public sealed class BlindConfig : IAbilityConfig
@@ -115,7 +115,7 @@ public sealed class ChargeConfig : IAbilityConfig
     public bool Enable { get; set; } = true;
     
     // Время в течение которого способность будет недоступна для повторного применения 
-    public float CooldownTime { get; set; } = 30f;
+    public float CooldownTime { get; set; } = 20f;
 
     // Путь к визуальному эффекту способности
     public List<string> ParticleEffectNames { get; set; } = [""];
@@ -145,7 +145,7 @@ public sealed class TrapConfig : IAbilityConfig
     public string ParticleEffectName { get; set; } = "particles/kolka/part7.vpcf";
 
     // Путь к звуковому эффекту способности
-    public List<string> SoundEffectNames { get; set; } = ["ZombiePlagueAbility.zombie_pressure"];
+    public List<string> SoundEffectNames { get; set; } = ["ZombiePlagueAbility.zombie_trap_cathed"];
     
     // Длительность жизни ловушки
     public float LiveDuration { get; set; } = 20f;

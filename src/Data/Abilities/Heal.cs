@@ -34,9 +34,8 @@ public sealed class Heal(ISwiftlyCore core, HealConfig config) : BaseActiveAbili
             return;
         }
 
-        var start = origin.Value + new Vector(0f, 0f, EyePositionZ);
-
         var forward = _commonUtils.ForwardFromAngles(casterPawn.EyeAngles);
+        var start = origin.Value + new Vector(0f, 0f, EyePositionZ) + forward*50;
         var end = start + forward * config.MaxHealDistance;
 
         if (!TryFindHealTarget(casterPawn, start, end, out var target))
@@ -82,8 +81,6 @@ public sealed class Heal(ISwiftlyCore core, HealConfig config) : BaseActiveAbili
     private bool TryFindHealTarget(CCSPlayerPawn casterPawn, Vector start, Vector end, out IPlayer target)
     {
         target = null!;
-        
-        Console.WriteLine(Caster.RequiredPawn.Controller.Value.PlayerName);
         
         var trace = new CGameTrace();
         core.Trace.SimpleTrace(

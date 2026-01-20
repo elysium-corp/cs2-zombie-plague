@@ -3,6 +3,7 @@ using CS2ZombiePlague.Data.Extensions;
 using CS2ZombiePlague.Data.Managers;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Players;
+using SwiftlyS2.Shared.Sounds;
 
 namespace CS2ZombiePlague.Data.Rounds;
 
@@ -14,7 +15,7 @@ public class Nemesis(
 {
     public void Start()
     {
-        var players = core.PlayerManager.GetAllPlayers().ToList();
+        var players = core.PlayerManager.GetAlive().ToList();
         var nemesis = players[Random.Shared.Next(0, players.Count)];
 
         zombieManager.CreateNemesis(nemesis);
@@ -27,6 +28,8 @@ public class Nemesis(
                 player.SwitchTeam(Team.CT);
             }
         }
+
+        PlaySound();
 
         core.PlayerManager.SendCenter("Немезида => " + nemesis.Controller.PlayerName);
     }
@@ -45,5 +48,16 @@ public class Nemesis(
         var countPlayers = core.PlayerManager.GetAlive().Count();
 
         nemesis.SetHealth(zombieClass.Health + (config.NemesisBonusHealthPerPlayer * countPlayers));
+    }
+    
+    private void PlaySound()
+    {
+        using var sound = new SoundEvent(config.MusicSoundName);
+
+        sound.Recipients.AddAllPlayers();
+        sound.SourceEntityIndex = -1;
+        sound.Volume = 0.5f;
+        
+        sound.Emit();
     }
 }

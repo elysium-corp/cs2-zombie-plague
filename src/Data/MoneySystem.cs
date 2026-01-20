@@ -1,7 +1,6 @@
 ﻿using CS2ZombiePlague.Config;
 using CS2ZombiePlague.Data.Events;
 using CS2ZombiePlague.Data.Extensions;
-using CS2ZombiePlague.Data.ZClasses;
 using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Convars;
@@ -23,12 +22,12 @@ public class MoneySystem(ISwiftlyCore core, IOptions<ZombiePlagueCoreConfig> con
         IConVar<int>? startMoney = core.ConVar.Find<int>("mp_startmoney");
         startMoney!.Value = config.Value.StartMoney;
 
-        eventSubscriber.OnPlayerInfected += OnPlayerInfected;
+        eventSubscriber.OnPlayerInfectedBy += OnPlayerInfectedBy;
     }
     
-    private void OnPlayerInfected(IPlayer player, IZClass zClass)
+    private void OnPlayerInfectedBy(IPlayer infector, IPlayer player)
     {
-        core.PlayerManager.SendChat($"Игрок {player.Controller.PlayerName} заразился и его класс = {zClass.DisplayName}");
+        GiveMoney(infector, config.Value.MoneyForInfection);
     }
     
     private HookResult OnPlayerHurtPost(EventPlayerHurt @event)
@@ -44,18 +43,19 @@ public class MoneySystem(ISwiftlyCore core, IOptions<ZombiePlagueCoreConfig> con
             return HookResult.Continue;
         }
 
+        GiveMoney(player, @event.DmgHealth);
+
+        return HookResult.Continue;
+    }
+
+    private void GiveMoney(IPlayer player, int count)
+    {
         var playerMoneyService = player.Controller.InGameMoneyServices;
-        if (playerMoneyService == null)
-        {
-            return HookResult.Continue;
-        }
 
         var currentMoney = playerMoneyService.Account;
-        var additionalMoney = (int)@event.DmgHealth;
+        var additionalMoney = count;
 
         playerMoneyService.Account = currentMoney + additionalMoney;
         playerMoneyService.AccountUpdated();
-
-        return HookResult.Continue;
     }
 }

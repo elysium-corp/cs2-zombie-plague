@@ -5,6 +5,8 @@ public sealed class KnifeConfig
     public KnockbackKnife Knockback { get; set; } = new();
     public SpeedKnife Speed { get; set; } = new();
     public GravityKnife Gravity { get; set; } = new();
+    
+    public VipKnife Vip { get; set; } = new();
 }
 
 public class KnockbackKnife () : IKnifeConfig
@@ -38,4 +40,15 @@ public class GravityKnife () : IKnifeConfig
     public float Speed { get; set; } = 250f;
     public float Knockback { get; set; } = 350f;
     public int Gravity { get; set; } = 600;
+}
+
+public class VipKnife () : IKnifeConfig
+{
+    public string InternalName { get; set; } = "knife_vip";
+    public string DisplayName { get; set; } = "Katana";
+    public string Model { get; set; } = "weapons/nozb1/valogun/knife/oni_katana_tactical/oni_katana_tactical_ag2.vmdl";
+    public string Description { get; set; } = "VIP";
+    public float Speed { get; set; } = 300f;
+    public float Knockback { get; set; } = 1400f;
+    public int Gravity { get; set; } = 550;
 }

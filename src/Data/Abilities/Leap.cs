@@ -21,7 +21,7 @@ public class Leap(ISwiftlyCore core, LeapConfig config) : BaseActiveAbility(core
         var forward = _commonUtils.ForwardFromAngles(viewAngles);
         
         var leapVelocity = forward * config.LeapDistance;
-        leapVelocity.Z = config.LeapBoost * casterPawn.GravityScale;
+        leapVelocity.Z = config.LeapBoost * (1 / casterPawn.GravityScale );
         
         Caster.Teleport(casterPawn.AbsOrigin, viewAngles, leapVelocity);
         

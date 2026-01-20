@@ -24,5 +24,5 @@ public sealed class ZAssassin(ZombieAssassin config, IAbilityFactory abilityFact
 
     public int Gravity { get; set; } = config.Gravity;
 
-    public List<IAbility> Abilities { get; set; } = [abilityFactory.Create<Charge>()];
+    public List<IAbility> Abilities { get; set; } = [abilityFactory.Create<Charge>(), abilityFactory.Create<Leap>()];
 }

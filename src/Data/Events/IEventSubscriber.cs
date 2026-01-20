@@ -2,5 +2,5 @@
 
 public interface IEventSubscriber
 {
-    event EventDelegates.OnPlayerInfected? OnPlayerInfected;
+    event EventDelegates.OnPlayerInfectedBy? OnPlayerInfectedBy;
 }

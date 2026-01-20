@@ -24,5 +24,5 @@ public sealed class ZHeavy(ZombieHeavy config, IAbilityFactory abilityFactory) :
 
     public int Gravity { get; set; } = config.Gravity;
 
-    public List<IAbility> Abilities { get; set; } = [abilityFactory.Create<Blind>()];
+    public List<IAbility> Abilities { get; set; } = [abilityFactory.Create<Blind>(), abilityFactory.Create<Leap>()];
 }

@@ -38,7 +38,6 @@ namespace CS2ZombiePlague
             }
 
             DependencyManager.Load(Core);
-
             _roundManager.Value.RegisterRounds();
             _weaponManager.Value.RegisterWeapons();
             _knifeManager.Value.RegisterHooks();
@@ -63,7 +62,6 @@ namespace CS2ZombiePlague
             }
 
             new AdminMenu(Core, _roundManager.Value, _zombieManager.Value).Load();
-
             Core.GameEvent.HookPost<EventRoundStart>(OnRoundStart);
             Core.GameEvent.HookPost<EventRoundEnd>(OnRoundEnd);
         }
@@ -92,7 +90,7 @@ namespace CS2ZombiePlague
 
             return HookResult.Continue;
         }
-
+        
         [GameEventHandler(HookMode.Pre)]
         private HookResult OnPlayerHurt(EventPlayerHurt @event)
         {
@@ -132,6 +130,7 @@ namespace CS2ZombiePlague
             @event.AddItem("weapons/nozb1/valogun/knife/sovereign_tactical/sovereign_tactical_ag2.vmdl");
             @event.AddItem("weapons/nozb1/valogun/knife/ejderbicak_cord/ejderbicak_cord_ag2.vmdl");
             @event.AddItem("weapons/nozb1/valogun/knife/ashen_kukri/ashen_kukri_ag2.vmdl");
+            @event.AddItem("weapons/nozb1/valogun/knife/oni_katana_tactical/oni_katana_tactical_ag2.vmdl");
             @event.AddItem("particles/kolka/part1.vpcf");
             @event.AddItem("particles/kolka/part2.vpcf");
             @event.AddItem("particles/kolka/part3.vpcf");
@@ -158,18 +157,49 @@ namespace CS2ZombiePlague
             @event.AddItem("sounds/cs2/zombie/zombie_pressure.vsnd");
             @event.AddItem("models/props/de_dust/hr_dust/dust_soccerball/dust_soccer_ball001.vmdl");
         }
-
+        
         [EventListener<EventDelegates.OnWeaponServicesCanUseHook>]
         private void OnItemServicesCanAcquireHook(IOnWeaponServicesCanUseHookEvent @event)
         {
             var player = Core.PlayerManager.GetPlayer((int)@event.WeaponServices.Pawn.Controller.EntityIndex - 1);
             if (player != null && player.IsValid)
             {
-                if (player.IsInfected() && @event.Weapon.DesignerName != "weapon_knife")
+                if (player.IsInfected() && @event.Weapon.DesignerName != "weapon_knife" && !@event.Weapon.DesignerName.Contains("smoke"))
                 {
                     @event.SetResult(false);
                 }
             }
+        }
+        
+        [GameEventHandler(HookMode.Pre)]
+        private HookResult EventPlayerDisconnect(EventPlayerDisconnect @event)
+        {
+            var player = @event.UserIdPlayer;
+            if (player == null || player.IsFakeClient)
+                return HookResult.Continue;
+
+            if (_zombieManager.Value.GetZombie(player.PlayerID) != null)
+            {
+                _zombieManager.Value.Remove(player);
+            }
+            
+            return HookResult.Continue;
+        }
+        
+        [GameEventHandler(HookMode.Pre)]
+        private HookResult EventPlayerConnectFull(EventPlayerConnectFull @event)
+        {
+            var player = @event.UserIdPlayer;
+            if (player == null || player.IsFakeClient)
+                return HookResult.Continue;
+
+            if (_roundManager.Value.IsNoneRound())
+            {
+                player.SwitchTeam(Team.CT);
+                player.Respawn();
+            }
+            
+            return HookResult.Continue;
         }
     }
 }

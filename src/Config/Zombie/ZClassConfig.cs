@@ -15,13 +15,13 @@ public class ZombieCleric : IZClassConfig
     public bool Enabled { get; set; } = true;
     public string InternalName { get; set; } = "zombie_cleric";
     public string DisplayName { get; set; } = "Cleric";
-    public string Model { get; set; } = "characters/models/s2ze/zombie_frozen/zombie_frozen.vmdl";
+    public string Model { get; set; } = "characters/models/kolka/2025/hazmat/hazmat.vmdl";
     public string ArmsModel { get; set; } = "characters/models/s2ze/zombie_frozen/zombie_frozen.vmdl";
     public string Description { get; set; } = "Лечит зомби";
-    public int Health { get; set; } = 2_500;
-    public float Speed { get; set; } = 250f;
+    public int Health { get; set; } = 3_500;
+    public float Speed { get; set; } = 260f;
     public float Knockback { get; set; } = 0.9f;
-    public int Gravity { get; set; } = 800;
+    public int Gravity { get; set; } = 600;
     public List<string> Abilities { get; set; } = ["heal"];
 }
 
@@ -33,10 +33,10 @@ public class ZombieHunter : IZClassConfig
     public string Model { get; set; } = "characters/models/s2ze/zombie_frozen/zombie_frozen.vmdl";
     public string ArmsModel { get; set; } = "characters/models/s2ze/zombie_frozen/zombie_frozen.vmdl";
     public string Description { get; set; } = "Ставит ловушки";
-    public int Health { get; set; } = 2_500;
-    public float Speed { get; set; } = 250f;
+    public int Health { get; set; } = 3_500;
+    public float Speed { get; set; } = 260f;
     public float Knockback { get; set; } = 0.9f;
-    public int Gravity { get; set; } = 800;
+    public int Gravity { get; set; } = 600;
     public List<string> Abilities { get; set; } = [];
 }
 
@@ -45,13 +45,13 @@ public class ZombieAssassin : IZClassConfig
     public bool Enabled { get; set; } = true;
     public string InternalName { get; set; } = "zombie_assassin";
     public string DisplayName { get; set; } = "Assassin";
-    public string Model { get; set; } = "characters/models/s2ze/zombie_frozen/zombie_frozen.vmdl";
+    public string Model { get; set; } = "characters/models/kolka/2025/lurker/lurker.vmdl";
     public string ArmsModel { get; set; } = "characters/models/s2ze/zombie_frozen/zombie_frozen.vmdl";
     public string Description { get; set; } = "Ускоряется";
-    public int Health { get; set; } = 2_500;
-    public float Speed { get; set; } = 250f;
+    public int Health { get; set; } = 3_200;
+    public float Speed { get; set; } = 280f;
     public float Knockback { get; set; } = 0.9f;
-    public int Gravity { get; set; } = 800;
+    public int Gravity { get; set; } = 600;
     public List<string> Abilities { get; set; } = [];
 }
 
@@ -63,10 +63,10 @@ public class ZombieHeavy : IZClassConfig
     public string Model { get; set; } = "characters/models/s2ze/zombie_frozen/zombie_frozen.vmdl";
     public string ArmsModel { get; set; } = "characters/models/s2ze/zombie_frozen/zombie_frozen.vmdl";
     public string Description { get; set; } = "Ослепляет";
-    public int Health { get; set; } = 2_500;
+    public int Health { get; set; } = 4_500;
     public float Speed { get; set; } = 250f;
     public float Knockback { get; set; } = 0.9f;
-    public int Gravity { get; set; } = 800;
+    public int Gravity { get; set; } = 700;
     public List<string> Abilities { get; set; } = [];
 }
 
@@ -90,12 +90,12 @@ public class ZombieNemesis : IZClassConfig
     public bool Enabled { get; set; } = true;
     public string InternalName { get; set; } = "zombie_nemesis";
     public string DisplayName { get; set; } = "Nemesis";
-    public string Model { get; set; } = "characters/models/s2ze/zombie_frozen/zombie_frozen.vmdl";
+    public string Model { get; set; } = "characters/models/kolka/2025/bull/bull.vmdl";
     public string ArmsModel { get; set; } = "characters/models/s2ze/zombie_frozen/zombie_frozen.vmdl";
     public string Description { get; set; } = "Убивает";
     public int Health { get; set; } = 5_000;
     public float Speed { get; set; } = 280f;
     public float Knockback { get; set; } = 1f;
-    public int Gravity { get; set; } = 650;
+    public int Gravity { get; set; } = 400;
     public List<string> Abilities { get; set; } = [];
 }

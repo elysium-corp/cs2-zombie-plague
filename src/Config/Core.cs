@@ -7,9 +7,14 @@ public sealed class ZombiePlagueCoreConfig
 
     public bool KnockbackEnabled { get; set; } = true;
     
+    // Включить денежную систему
     public bool MoneySystemEnabled { get; set; } = true;
+    // Максимальное количество денег
     public int MaxMoney { get; set; } = 100000;
+    // Стартовое количество денег
     public int StartMoney { get; set; } = 5000;
+    // Количество денег за заражение
+    public int MoneyForInfection { get; set; } = 500;
 
     public int PreStartDelay { get; set; } = 20;
     public int ZombieSpawnDelay { get; set; } = 5;

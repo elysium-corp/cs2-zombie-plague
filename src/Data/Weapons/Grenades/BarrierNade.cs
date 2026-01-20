@@ -57,7 +57,7 @@ public class BarrierNade(ISwiftlyCore core, RoundManager roundManager, CommonUti
 
             if (startTime >= LiveTime)
             {
-                if (particle != null)
+                if (particle != null && particle.IsValidEntity)
                 {
                     particle.Despawn();
                 }

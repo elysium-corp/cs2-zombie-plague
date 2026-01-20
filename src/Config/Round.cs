@@ -40,6 +40,8 @@ public sealed class NemesisConfig : IRoundConfig
     public bool Enable { get; set; } = true;
 
     public int Chance { get; set; } = 1;
+    
+    public string MusicSoundName {get; set;} = "ZombiePlagueAbility.Nemesis";
 
     public bool NemesisLeap { get; set; } = true;
     public int NemesisBonusHealthPerPlayer { get; set; } = 1500;
@@ -50,6 +52,8 @@ public sealed class SurvivorConfig : IRoundConfig
     public bool Enable { get; set; } = true;
 
     public int Chance { get; set; } = 1;
+    
+    public string MusicSoundName {get; set;} = "ZombiePlagueAbility.Survivor";
 
     public int SurvivorBonusHealthPerZombie { get; set; } = 150;
 }

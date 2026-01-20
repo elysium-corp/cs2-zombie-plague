@@ -7,20 +7,25 @@ using SwiftlyS2.Shared.Players;
 
 namespace CS2ZombiePlague.Data.Managers;
 
-public class ZombieManager(IZombiePlayerFactory zombiePlayerFactory, ZClassMenu zClassMenu, IEventPublisher eventPublisher, ISwiftlyCore core)
+public class ZombieManager(
+    ISwiftlyCore core,
+    IZombiePlayerFactory zombiePlayerFactory,
+    ZClassMenu zClassMenu,
+    IEventPublisher eventPublisher)
 {
     private readonly Dictionary<int, ZombiePlayer> _zombiePlayers = new();
 
-    public ZombiePlayer? CreateZombie(IPlayer player, int? attackerId = null, int? victimId = null)
+    public ZombiePlayer? CreateZombie(IPlayer player, IPlayer? infector = null)
     {
         if (!player.IsValid)
         {
             return null;
         }
 
-        if (attackerId != null && victimId != null)
+        if (infector != null)
         {
-            FireFakeDeath(attackerId.Value, victimId.Value);
+            FireFakeDeath(infector.PlayerID, player.PlayerID);
+            eventPublisher.OnPlayerInfectedBy(infector, player);
         }
 
         var zClass = GetZClassFromMenu(player.PlayerID);
@@ -56,7 +61,7 @@ public class ZombieManager(IZombiePlayerFactory zombiePlayerFactory, ZClassMenu 
         _zombiePlayers.Clear();
     }
 
-    public ZombiePlayer GetZombie(int playerId)
+    public ZombiePlayer? GetZombie(int playerId)
     {
         return _zombiePlayers[playerId];
     }
@@ -71,12 +76,30 @@ public class ZombieManager(IZombiePlayerFactory zombiePlayerFactory, ZClassMenu 
         return zClassMenu.GetPlayerZClass(playerId);
     }
 
-    private void FireFakeDeath(int attackerId, int victimId)
+    private void FireFakeDeath(int infectorId, int victimId)
     {
+        var infector = core.PlayerManager.GetPlayer(infectorId);
+        var victim = core.PlayerManager.GetPlayer(victimId);
+
+        if (infector != null)
+        {
+            var matchstats = infector.Controller.ActionTrackingServices.MatchStats;
+            matchstats.Kills++;
+            matchstats.KillsUpdated();
+            infector.Controller.Score++;
+            infector.Controller.ScoreUpdated();
+        }
+        if (victim != null)
+        {
+            var matchstats = victim.Controller.ActionTrackingServices.MatchStats;
+            matchstats.Deaths++;
+            matchstats.DeathsUpdated();
+        }
+        
         core.GameEvent.FireAsync<EventPlayerDeath>((@event) =>
         {
             @event.UserId = victimId;
-            @event.Attacker = attackerId;
+            @event.Attacker = infectorId;
             @event.Weapon = "knife";
             @event.Assister = -1;
         });
