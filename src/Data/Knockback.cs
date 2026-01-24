@@ -99,6 +99,7 @@ public class Knockback(ISwiftlyCore core, ZombieManager zombieManager, KnifeMana
         var zombieKnockback = zombie.GetZombieClass().Knockback;
         
         bool onGround = victimPawn.GroundEntity.Value != null;
+        
         var zBoost = onGround ? 150f : 25f;
 
         var victimVelocity = victimPawn.AbsVelocity;

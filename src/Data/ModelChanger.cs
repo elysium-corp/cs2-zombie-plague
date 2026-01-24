@@ -1,4 +1,6 @@
 ﻿using CS2ZombiePlague.Config.models;
+using CS2ZombiePlague.Data.Extensions;
+using CS2ZombiePlague.Data.Managers;
 using Microsoft.Extensions.Options;
 using SwiftlyS2.Core.Menus.OptionsBase;
 using SwiftlyS2.Shared;
@@ -9,9 +11,9 @@ using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
 using SwiftlyS2.Shared.Sounds;
 
-namespace CS2ZombiePlague.Data.Models;
+namespace CS2ZombiePlague.Data;
 
-public class ModelChanger(ISwiftlyCore core, IOptions<ModelsConfig> config)
+public class ModelChanger(ISwiftlyCore core, ZombieManager zombieManager, RoundManager roundManager, CommonUtils utils, IOptions<ModelsConfig> modelsConfig)
 {
     private static readonly HashSet<string> RadioArray = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -26,18 +28,20 @@ public class ModelChanger(ISwiftlyCore core, IOptions<ModelsConfig> config)
     private readonly Dictionary<int, List<string>> _playersModel = new();
     private readonly Dictionary<int, string> _currentModel = new();
 
-    private const string DefaultHumanModelPath = "characters/models/ctm_sas/ctm_sas.vmdl";
+    private List<string> _defaultHumanModelPaths = new();
 
     public void Load()
     {
-        core.GameEvent.HookPre<EventPlayerSpawn>(OnPlayerSpawn);
-        core.GameEvent.HookPre<EventRoundStart>(OnRoundStart);
+        _defaultHumanModelPaths = modelsConfig.Value.DefaultHumanModels;
+
+        core.GameEvent.HookPost<EventPlayerSpawn>(OnPlayerSpawn);
+        core.GameEvent.HookPost<EventRoundStart>(OnRoundStart);
         core.GameEvent.HookPre<EventPlayerConnectFull>(OnPlayerConnectFull);
         core.GameEvent.HookPre<EventPlayerDisconnect>(OnPlayerDisconnect);
         core.GameEvent.HookPost<EventPlayerChat>(PlayerChatEvent);
-        
-        
-        if (config.Value.EnableRadioCommands)
+
+
+        if (modelsConfig.Value.EnableRadioCommands)
         {
             core.Command.HookClientCommand((playerId, commandLine) =>
             {
@@ -53,7 +57,8 @@ public class ModelChanger(ISwiftlyCore core, IOptions<ModelsConfig> config)
                 if (!_currentModel.TryGetValue(player.PlayerID, out var modelPath))
                     return HookResult.Continue;
 
-                if (player.PlayerPawn.CBodyComponent.SceneNode.GetSkeletonInstance().ModelState.ModelName != _currentModel[playerId])
+                if (player.PlayerPawn.CBodyComponent.SceneNode.GetSkeletonInstance().ModelState.ModelName !=
+                    _currentModel[playerId])
                 {
                     return HookResult.Continue;
                 }
@@ -116,8 +121,14 @@ public class ModelChanger(ISwiftlyCore core, IOptions<ModelsConfig> config)
             return HookResult.Continue;
         }
 
-        if (player.Controller.Team != Team.CT)
+        if (player.IsInfected() && !roundManager.IsNoneRound())
         {
+            var zombieModel = zombieManager.GetZombie(player.PlayerID)?.GetZombieClass().Model;
+            if (zombieModel != null)
+            {
+                player.SetModel(zombieModel);
+            }
+
             return HookResult.Continue;
         }
 
@@ -139,14 +150,7 @@ public class ModelChanger(ISwiftlyCore core, IOptions<ModelsConfig> config)
         {
             return HookResult.Continue;
         }
-
-
-        foreach (var configModel in config.Value.Models)
-        {
-            core.PlayerManager.SendChat(configModel.InternalName);
-        }
-
-
+        
         var player = core.PlayerManager.GetPlayer(@event.Playerid);
         if (player != null)
         {
@@ -199,7 +203,7 @@ public class ModelChanger(ISwiftlyCore core, IOptions<ModelsConfig> config)
         {
             if (_currentModel.ContainsKey(player.PlayerID))
             {
-                _currentModel[player.PlayerID] = DefaultHumanModelPath;
+                _currentModel[player.PlayerID] = _defaultHumanModelPaths[utils.RandomNum(0, _defaultHumanModelPaths.Count)];
                 @args.Player.SendChatAsync("Модель будет убрана в следующем раунде!");
             }
         };
@@ -224,12 +228,12 @@ public class ModelChanger(ISwiftlyCore core, IOptions<ModelsConfig> config)
 
     private IModelConfig? GetModelByIternalName(string modelName)
     {
-        return config.Value.Models.Find(model => model.InternalName == modelName);
+        return modelsConfig.Value.Models.Find(model => model.InternalName == modelName);
     }
 
     private IModelConfig? GetModelByModelPath(string modelPath)
     {
-        return config.Value.Models.Find(model => model.ModelPath == modelPath);
+        return modelsConfig.Value.Models.Find(model => model.ModelPath == modelPath);
     }
 
     private void PlaySound(IPlayer player, string soundName)
@@ -246,13 +250,14 @@ public class ModelChanger(ISwiftlyCore core, IOptions<ModelsConfig> config)
 
     private void ApplyPlayerModel(IPlayer player)
     {
-        var pawn = player.Pawn;
+        var pawn = player.PlayerPawn;
         if (pawn is not { IsValid: true })
             return;
 
         if (!HasCustomModels(player))
         {
-            SetModel(pawn, DefaultHumanModelPath);
+            var model = _defaultHumanModelPaths[utils.RandomNum(0, _defaultHumanModelPaths.Count)];
+            SetModel(pawn, model);
             return;
         }
 

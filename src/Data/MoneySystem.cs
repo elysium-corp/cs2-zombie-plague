@@ -35,7 +35,7 @@ public class MoneySystem(ISwiftlyCore core, IOptions<ZombiePlagueCoreConfig> con
         var player = @event.AttackerPlayer;
         var victim = @event.UserIdPlayer;
 
-        if (!player.IsValid || !victim.IsValid)
+        if (player == null || victim == null || !player.IsValid || !victim.IsValid)
             return HookResult.Continue;
 
         if (player.IsInfected() || victim.Controller.Team == player.Controller.Team)

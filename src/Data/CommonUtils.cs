@@ -8,6 +8,7 @@ namespace CS2ZombiePlague.Data;
 
 public class CommonUtils(ISwiftlyCore core)
 {
+    private readonly Random _randomizer = new();
     public IPlayer? ResolvePlayerFromHandle(CHandle<CEntityInstance> handle)
     {
         if (!handle.IsValid)
@@ -112,5 +113,10 @@ public class CommonUtils(ISwiftlyCore core)
             cosPitch * MathF.Sin(yaw),
             -MathF.Sin(pitch)
         );
+    }
+
+    public int RandomNum(int num1, int num2)
+    {
+        return _randomizer.Next(num1, num2);
     }
 }

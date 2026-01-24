@@ -1,6 +1,7 @@
 ﻿using System.Data;
 using CS2ZombiePlague.Config;
 using CS2ZombiePlague.Config.Ability;
+using CS2ZombiePlague.Config.models;
 using CS2ZombiePlague.Config.Weapon;
 using CS2ZombiePlague.Config.Zombie;
 using CS2ZombiePlague.Data;
@@ -33,6 +34,8 @@ public static class DependencyManager
     private const string KnifeConfigSectionName = "KnifeConfig";
     private const string CoreConfigName = "core.json";
     private const string CoreConfigSectionName = "CoreConfig";
+    private const string ModelConfigName = "models.json";
+    private const string ModelConfigSectionName = "ModelConfig";
 
     public static void Load(ISwiftlyCore core)
     {
@@ -55,6 +58,10 @@ public static class DependencyManager
         core.Configuration
             .InitializeJsonWithModel<ZombiePlagueCoreConfig>(CoreConfigName, CoreConfigSectionName)
             .Configure(builder => { builder.AddJsonFile(CoreConfigName, optional: false, reloadOnChange: true); });
+        
+        core.Configuration
+            .InitializeJsonWithModel<ModelsConfig>(ModelConfigName, ModelConfigSectionName)
+            .Configure(builder => { builder.AddJsonFile(ModelConfigName, optional: false, reloadOnChange: true); });
 
         _services = new ServiceCollection();
 
@@ -95,6 +102,10 @@ public static class DependencyManager
         _services
             .AddOptionsWithValidateOnStart<ZombiePlagueCoreConfig>()
             .BindConfiguration(CoreConfigSectionName);
+        
+        _services
+            .AddOptionsWithValidateOnStart<ModelsConfig>()
+            .BindConfiguration(ModelConfigSectionName);
         
         // EventService Registration 
         _services.AddSingleton<EventService>();

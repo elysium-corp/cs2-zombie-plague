@@ -2,7 +2,11 @@
 
 public sealed class ModelsConfig
 {
+    // Модели людей
+    public List<string> DefaultHumanModels = ["characters/models/ctm_sas/ctm_sas.vmdl"];
+    // Включить озвучку радиокоманд у кастомных моделей
     public bool EnableRadioCommands { get; set; } = true;
+    // Список включенных моделей
     public readonly List<IModelConfig> Models = [new LionelMessi()];
 }
 

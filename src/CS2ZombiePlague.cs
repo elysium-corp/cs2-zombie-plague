@@ -1,4 +1,5 @@
 using CS2ZombiePlague.Config;
+using CS2ZombiePlague.Config.models;
 using CS2ZombiePlague.Data;
 using CS2ZombiePlague.Data.Extensions;
 using CS2ZombiePlague.Data.Managers;
@@ -29,7 +30,7 @@ namespace CS2ZombiePlague
         private readonly Lazy<ScreenFade> _screenFade = new(DependencyManager.GetService<ScreenFade>);
         private readonly Lazy<ZClassMenu> _zClassMenu = new(DependencyManager.GetService<ZClassMenu>);
         private readonly Lazy<CommonUtils> _utils = new(DependencyManager.GetService<CommonUtils>);
-        
+
         public override void Load(bool hotReload)
         {
             if (hotReload)
@@ -48,21 +49,27 @@ namespace CS2ZombiePlague
             {
                 _damageNotify.Value.Start();
             }
+
             if (config.KnockbackEnabled)
             {
                 _knockback.Value.Start();
             }
+
             if (config.MoneySystemEnabled)
             {
                 _moneySystem.Value.Start();
             }
+
             if (config.ScreenFadeEnable)
             {
                 _screenFade.Value.Start();
             }
 
+            new ModelChanger(Core, _zombieManager.Value, _roundManager.Value, _utils.Value,
+                DependencyManager.GetService<IOptions<ModelsConfig>>()).Load();
             new AdminMenu(Core, _roundManager.Value, _zombieManager.Value).Load();
-            Core.GameEvent.HookPost<EventRoundStart>(OnRoundStart);
+
+            Core.GameEvent.HookPre<EventRoundStart>(OnRoundStart);
             Core.GameEvent.HookPost<EventRoundEnd>(OnRoundEnd);
         }
 
@@ -70,12 +77,18 @@ namespace CS2ZombiePlague
         {
         }
 
+        [GameEventHandler(HookMode.Pre)]
+        private HookResult OnMapChange(EventMapTransition @event)
+        {
+            return HookResult.Continue;
+        }
+
         private HookResult OnRoundStart(EventRoundStart @event)
         {
             var zombieManager = _zombieManager.Value;
             var roundManager = _roundManager.Value;
             var utils = _utils.Value;
-            
+
             zombieManager.RemoveAll();
             roundManager.CancelToken();
             utils.MoveAllPlayersToTeam(Team.CT);
@@ -90,7 +103,7 @@ namespace CS2ZombiePlague
 
             return HookResult.Continue;
         }
-        
+
         [GameEventHandler(HookMode.Pre)]
         private HookResult OnPlayerHurt(EventPlayerHurt @event)
         {
@@ -157,20 +170,21 @@ namespace CS2ZombiePlague
             @event.AddItem("sounds/cs2/zombie/zombie_pressure.vsnd");
             @event.AddItem("models/props/de_dust/hr_dust/dust_soccerball/dust_soccer_ball001.vmdl");
         }
-        
+
         [EventListener<EventDelegates.OnWeaponServicesCanUseHook>]
         private void OnItemServicesCanAcquireHook(IOnWeaponServicesCanUseHookEvent @event)
         {
             var player = Core.PlayerManager.GetPlayer((int)@event.WeaponServices.Pawn.Controller.EntityIndex - 1);
             if (player != null && player.IsValid)
             {
-                if (player.IsInfected() && @event.Weapon.DesignerName != "weapon_knife" && !@event.Weapon.DesignerName.Contains("smoke"))
+                if (player.IsInfected() && @event.Weapon.DesignerName != "weapon_knife" &&
+                    !@event.Weapon.DesignerName.Contains("smoke"))
                 {
                     @event.SetResult(false);
                 }
             }
         }
-        
+
         [GameEventHandler(HookMode.Pre)]
         private HookResult EventPlayerDisconnect(EventPlayerDisconnect @event)
         {
@@ -182,10 +196,10 @@ namespace CS2ZombiePlague
             {
                 _zombieManager.Value.Remove(player);
             }
-            
+
             return HookResult.Continue;
         }
-        
+
         [GameEventHandler(HookMode.Pre)]
         private HookResult EventPlayerConnectFull(EventPlayerConnectFull @event)
         {
@@ -198,7 +212,7 @@ namespace CS2ZombiePlague
                 player.SwitchTeam(Team.CT);
                 player.Respawn();
             }
-            
+
             return HookResult.Continue;
         }
     }

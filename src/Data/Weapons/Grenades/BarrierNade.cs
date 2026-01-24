@@ -45,6 +45,7 @@ public class BarrierNade(ISwiftlyCore core, RoundManager roundManager, CommonUti
         token = core.Scheduler.RepeatBySeconds(Delay, () =>
         {
             startTime += Delay;
+            
             var playersInRadius = commonUtils.FindAllPlayersInSphere(ExplodeRadius, position);
 
             foreach (var player in playersInRadius)
@@ -57,12 +58,12 @@ public class BarrierNade(ISwiftlyCore core, RoundManager roundManager, CommonUti
 
             if (startTime >= LiveTime)
             {
-                if (particle != null && particle.IsValidEntity)
+                if (particle is { IsValidEntity: true })
                 {
                     particle.Despawn();
                 }
 
-                token.Cancel();
+                token?.Cancel();
             }
         });
     }
@@ -70,7 +71,7 @@ public class BarrierNade(ISwiftlyCore core, RoundManager roundManager, CommonUti
     private HookResult PreEventGrenadeStarted(EventDecoyStarted @event)
     {
         var grenade = core.EntitySystem.GetEntityByIndex<CEntityInstance>((uint)@event.EntityID);
-        if (grenade != null && grenade.IsValid)
+        if (grenade is { IsValid: true })
         {
             Explode(@event.UserId, new Vector(@event.X, @event.Y, @event.Z), (int)grenade.Index);
             grenade.Despawn();
