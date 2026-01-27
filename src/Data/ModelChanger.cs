@@ -13,7 +13,12 @@ using SwiftlyS2.Shared.Sounds;
 
 namespace CS2ZombiePlague.Data;
 
-public class ModelChanger(ISwiftlyCore core, ZombieManager zombieManager, RoundManager roundManager, CommonUtils utils, IOptions<ModelsConfig> modelsConfig)
+public class ModelChanger(
+    ISwiftlyCore core,
+    ZombieManager zombieManager,
+    RoundManager roundManager,
+    CommonUtils utils,
+    IOptions<ModelsConfig> modelsConfig)
 {
     private static readonly HashSet<string> RadioArray = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -150,7 +155,7 @@ public class ModelChanger(ISwiftlyCore core, ZombieManager zombieManager, RoundM
         {
             return HookResult.Continue;
         }
-        
+
         var player = core.PlayerManager.GetPlayer(@event.Playerid);
         if (player != null)
         {
@@ -203,7 +208,8 @@ public class ModelChanger(ISwiftlyCore core, ZombieManager zombieManager, RoundM
         {
             if (_currentModel.ContainsKey(player.PlayerID))
             {
-                _currentModel[player.PlayerID] = _defaultHumanModelPaths[utils.RandomNum(0, _defaultHumanModelPaths.Count)];
+                _currentModel[player.PlayerID] =
+                    _defaultHumanModelPaths[utils.RandomNum(0, _defaultHumanModelPaths.Count)];
                 @args.Player.SendChatAsync("Модель будет убрана в следующем раунде!");
             }
         };

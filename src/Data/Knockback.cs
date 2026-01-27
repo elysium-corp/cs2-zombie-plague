@@ -53,7 +53,7 @@ public class Knockback(ISwiftlyCore core, ZombieManager zombieManager, KnifeMana
     {
         core.GameEvent.HookPost<EventPlayerHurt>(OnPlayerHurtPost);
     }
-
+    
     private HookResult OnPlayerHurtPost(EventPlayerHurt @event)
     {
         var victim = core.PlayerManager.GetPlayer(@event.UserId);
@@ -62,7 +62,7 @@ public class Knockback(ISwiftlyCore core, ZombieManager zombieManager, KnifeMana
         {
             return HookResult.Continue;
         }
-
+        
         if (!victim.IsInfected() || attacker.IsInfected() ||  victim.IsFrozen())
         {
             return HookResult.Continue;
@@ -77,7 +77,7 @@ public class Knockback(ISwiftlyCore core, ZombieManager zombieManager, KnifeMana
         
         var weaponKnockback = _weaponKnockback[weaponName].Recoil;
         var weaponPickDistance = _weaponKnockback[weaponName].PickDistance;
-
+        
         if (weaponName == "weapon_knife")
         {
             weaponKnockback = knifeManager.GetCurrentKnife(attacker.PlayerID).Knockback;
@@ -111,7 +111,7 @@ public class Knockback(ISwiftlyCore core, ZombieManager zombieManager, KnifeMana
         );
 
         victimPawn.GroundEntity.Value = null;
-
+        
         victim.Teleport(victimOrigin, victimPawn.EyeAngles, newVelocity);
 
         core.Scheduler.Delay(20, () => { victim.SetSpeed(zombie.GetZombieClass().Speed); });

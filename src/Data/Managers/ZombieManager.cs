@@ -30,7 +30,7 @@ public class ZombieManager(
 
         var zClass = GetZClassFromMenu(player.PlayerID);
         return _zombiePlayers[player.PlayerID] =
-            zombiePlayerFactory.Create(player, this, zClass);
+            zombiePlayerFactory.Create(core, this, player, zClass);
     }
 
     public ZombiePlayer? CreateNemesis(IPlayer player)
@@ -39,7 +39,7 @@ public class ZombieManager(
         {
             var nemesis = DependencyManager.GetService<ZNemesis>();
             return _zombiePlayers[player.PlayerID] =
-                zombiePlayerFactory.Create(player, this, nemesis, true);
+                zombiePlayerFactory.Create(core, this, player, nemesis, true);
         }
 
         return null;
@@ -63,7 +63,7 @@ public class ZombieManager(
 
     public ZombiePlayer? GetZombie(int playerId)
     {
-        return _zombiePlayers[playerId];
+        return _zombiePlayers.GetValueOrDefault(playerId);
     }
 
     public Dictionary<int, ZombiePlayer> GetAllZombies()
@@ -89,13 +89,14 @@ public class ZombieManager(
             infector.Controller.Score++;
             infector.Controller.ScoreUpdated();
         }
+
         if (victim != null)
         {
             var matchstats = victim.Controller.ActionTrackingServices.MatchStats;
             matchstats.Deaths++;
             matchstats.DeathsUpdated();
         }
-        
+
         core.GameEvent.FireAsync<EventPlayerDeath>((@event) =>
         {
             @event.UserId = victimId;

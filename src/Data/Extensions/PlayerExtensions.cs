@@ -11,10 +11,11 @@ public static class PlayerExtensions
     public static void SetHealth(this IPlayer player, int health)
     {
         var playerPawn = player.PlayerPawn;
-        if (playerPawn == null || playerPawn.Health <= 0) return;
-
-        playerPawn.MaxHealth = health;
-        playerPawn.MaxHealthUpdated();
+        if (playerPawn == null)
+        {
+            return;
+        }
+        
         playerPawn.Health = health;
         playerPawn.HealthUpdated();
     }
@@ -32,7 +33,7 @@ public static class PlayerExtensions
         {
             playerPawn.ArmorValue = armor;
         }
-
+        
         playerPawn.ArmorValueUpdated();
     }
 

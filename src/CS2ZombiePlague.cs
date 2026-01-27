@@ -145,6 +145,7 @@ namespace CS2ZombiePlague
             @event.AddItem("weapons/nozb1/valogun/knife/ashen_kukri/ashen_kukri_ag2.vmdl");
             @event.AddItem("weapons/nozb1/valogun/knife/oni_katana_tactical/oni_katana_tactical_ag2.vmdl");
             @event.AddItem("particles/kolka/part1.vpcf");
+            @event.AddItem("particles/barrier_nade.vpcf");
             @event.AddItem("particles/kolka/part2.vpcf");
             @event.AddItem("particles/kolka/part3.vpcf");
             @event.AddItem("particles/kolka/part4.vpcf");
@@ -169,19 +170,30 @@ namespace CS2ZombiePlague
             @event.AddItem("sounds/cs2/weapons/frostnade/frostnade_hit.vsnd");
             @event.AddItem("sounds/cs2/zombie/zombie_pressure.vsnd");
             @event.AddItem("models/props/de_dust/hr_dust/dust_soccerball/dust_soccer_ball001.vmdl");
+
+
+            @event.AddItem("particles/ui/rank_carepackage_recieve.vpcf");
+            @event.AddItem("particles/ui/ammohealthcenter/ui_hud_kill_burn_ringfire.vpcf");
+            @event.AddItem("particles/ui/ammohealthcenter/ui_hud_kill_streaks_circle_flash.vpcf");
+            @event.AddItem("particles/ui/hud/ui_mvp_winner_burst.vpcf");
         }
 
         [EventListener<EventDelegates.OnWeaponServicesCanUseHook>]
         private void OnItemServicesCanAcquireHook(IOnWeaponServicesCanUseHookEvent @event)
         {
-            var player = Core.PlayerManager.GetPlayer((int)@event.WeaponServices.Pawn.Controller.EntityIndex - 1);
-            if (player != null && player.IsValid)
+            var pawn = @event.WeaponServices.Pawn;
+            var player = core.PlayerManager.GetPlayerFromPawn(pawn);
+
+            if (player is not { IsValid: true })
             {
-                if (player.IsInfected() && @event.Weapon.DesignerName != "weapon_knife" &&
-                    !@event.Weapon.DesignerName.Contains("smoke"))
-                {
-                    @event.SetResult(false);
-                }
+                return;
+            }
+
+            var weaponName = @event.Weapon.DesignerName;
+
+            if (player.IsInfected() && !weaponName.Contains("knife") && !weaponName.Contains("smoke"))
+            {
+                @event.SetResult(false);
             }
         }
 

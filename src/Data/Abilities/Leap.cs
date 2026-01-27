@@ -44,19 +44,21 @@ public class Leap(ISwiftlyCore core, LeapConfig config) : BaseActiveAbility(core
         {
             return false;
         }
+        
+        var pawn = Caster.PlayerPawn;
 
-        var deltaTime = core.Engine.GlobalVars.CurrentTime - Caster.RequiredPlayerPawn.MovementServices?.JumpPressedTime;
+        // var deltaTime = core.Engine.GlobalVars.CurrentTime - Caster.RequiredPlayerPawn.MovementServices?.Jump;
   
-        if (Caster.PlayerPawn?.GroundEntity.Value != null)
-        {
-            return false;
-        }
-        
-        if (Caster.PlayerPawn?.GroundEntity.Value == null && deltaTime > 0.25f)
-        {
-            return false;
-        }
-        
+        // if (Caster.PlayerPawn?.GroundEntity.Value != null)
+        // {
+        //     return false;
+        // }
+        //
+        // if (Caster.PlayerPawn?.GroundEntity.Value == null && deltaTime > 0.25f)
+        // {
+        //     return false;
+        // }
+        //
 
         return true;
     }

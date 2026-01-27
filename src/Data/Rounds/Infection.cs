@@ -77,20 +77,26 @@ public class Infection(
     {
         var attacker = commonUtils.ResolvePlayerFromHandle(@event.Info.Attacker);
         var victim = commonUtils.FindPlayerByPawnAddress(@event.Entity.Address);
+        
         if (victim == null || !victim.IsValid || attacker == null)
             return;
-        if (attacker.IsInfected())
+
+        if (!attacker.IsInfected() || victim.IsLastHuman())
         {
-            var zombie = zombieManager.GetZombie(attacker.PlayerID);
-            if (!zombie.Infect(victim))
+            return;
+        }
+        
+        var zombie = zombieManager.GetZombie(attacker.PlayerID);
+        
+        if (!zombie.Infect(victim))
+        {
+            if (!victim.IsLastHuman())
             {
-                if (!victim.IsLastHuman())
-                {
-                    victim.SetArmor(victim.PlayerPawn.ArmorValue - (int)@event.Info.Damage);
-                    @event.Info.Damage = 0;
-                }
+                victim.SetArmor(victim.PlayerPawn.ArmorValue - (int)@event.Info.Damage);
             }
         }
+
+        @event.Info.Damage = 0;
     }
 
     private HookResult EventPlayerDeath(EventPlayerDeath @event)
