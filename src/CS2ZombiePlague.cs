@@ -180,25 +180,19 @@ namespace CS2ZombiePlague
             @event.AddItem("particles/kolka/part18.vpcf");
             @event.AddItem("particles/barrier_nade.vpcf");
             @event.AddItem("soundevents/soundevents_zombieplague.vsndevts");
-<<<<<<< feature/update-round
             @event.AddItem("particles/explosions_fx/bumpmine_detonate_sparks.vpcf");
             @event.AddItem("particles/explosions_fx/bumpmine_detonate.vpcf");
             @event.AddItem("models/de_overpass/decorations/security_camera/security_camera_1_base.vmdl"); 
-            @event.AddItem("models/props/cs_office/plant01a.vmdl");
-=======
             @event.AddItem("sounds/cs2/countdown/countdown.vsnd");
             @event.AddItem("sounds/cs2/weapons/frostnade/frostnade_detonate.vsnd");
             @event.AddItem("sounds/cs2/weapons/frostnade/frostnade_end.vsnd");
             @event.AddItem("sounds/cs2/weapons/frostnade/frostnade_hit.vsnd");
             @event.AddItem("sounds/cs2/zombie/zombie_pressure.vsnd");
             @event.AddItem("models/props/de_dust/hr_dust/dust_soccerball/dust_soccer_ball001.vmdl");
-
-
             @event.AddItem("particles/ui/rank_carepackage_recieve.vpcf");
             @event.AddItem("particles/ui/ammohealthcenter/ui_hud_kill_burn_ringfire.vpcf");
             @event.AddItem("particles/ui/ammohealthcenter/ui_hud_kill_streaks_circle_flash.vpcf");
             @event.AddItem("particles/ui/hud/ui_mvp_winner_burst.vpcf");
->>>>>>> develop
         }
 
         [EventListener<EventDelegates.OnWeaponServicesCanUseHook>]
@@ -208,20 +202,8 @@ namespace CS2ZombiePlague
             var player = core.PlayerManager.GetPlayerFromPawn(pawn);
 
             if (player is not { IsValid: true })
-<<<<<<< feature/update-round
             {
                 return;
-=======
-            {
-                return;
-            }
-
-            var weaponName = @event.Weapon.DesignerName;
-
-            if (player.IsInfected() && !weaponName.Contains("knife") && !weaponName.Contains("smoke"))
-            {
-                @event.SetResult(false);
->>>>>>> develop
             }
             
             var weaponName = @event.Weapon.DesignerName;

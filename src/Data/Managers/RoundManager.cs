@@ -23,7 +23,8 @@ public class RoundManager(ISwiftlyCore core, IOptions<ZombiePlagueCoreConfig> co
             roundConfig.Value.Infection,
             roundConfig.Value.Plague,
             roundConfig.Value.Nemesis,
-            roundConfig.Value.Survivor
+            roundConfig.Value.Survivor,
+            roundConfig.Value.Armageddon
         ];
         foreach (var round in rounds)
         {
