@@ -81,7 +81,8 @@ public static class DependencyManager
             .AddSingleton<DamageNotify>()
             .AddSingleton<MoneySystem>()
             .AddSingleton<ScreenFade>()
-            .AddSingleton<CommonUtils>();
+            .AddSingleton<CommonUtils>()
+            .AddSingleton<LaserMineController>();
         
         _services
             .AddOptionsWithValidateOnStart<RoundConfig>()

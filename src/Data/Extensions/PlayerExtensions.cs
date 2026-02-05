@@ -62,12 +62,9 @@ public static class PlayerExtensions
     {
         if (player.PlayerPawn == null || !player.Controller.PawnIsAlive) return;
         
-        DependencyManager.GetService<ISwiftlyCore>().Scheduler.NextWorldUpdate(() =>
+        DependencyManager.GetService<ISwiftlyCore>().Scheduler.NextWorldUpdateAsync(() =>
         {
-            if (player.IsValid)
-            {
-                player.PlayerPawn.SetModel(modelPath);
-            }
+            player.Pawn.SetModel(modelPath);
         });
     }
     public static bool IsInfected(this IPlayer player)

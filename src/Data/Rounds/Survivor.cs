@@ -2,7 +2,8 @@
 using CS2ZombiePlague.Data.Extensions;
 using CS2ZombiePlague.Data.Managers;
 using SwiftlyS2.Shared;
-using SwiftlyS2.Shared.Natives;
+using SwiftlyS2.Shared.Events;
+using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.Sounds;
 
@@ -13,6 +14,8 @@ public class Survivor(ISwiftlyCore core, RoundManager roundManager, ZombieManage
     public void Start()
     {
 
+        core.Event.OnWeaponServicesDropWeaponHook += OnWeaponServicesDropWeaponHook;
+        
         var allPlayers = core.PlayerManager.GetAlive().ToList();
         var survivor = allPlayers[Random.Shared.Next(0, allPlayers.Count)];
 
@@ -32,9 +35,16 @@ public class Survivor(ISwiftlyCore core, RoundManager roundManager, ZombieManage
     
     public void End()
     {
+        core.Event.OnWeaponServicesDropWeaponHook -= OnWeaponServicesDropWeaponHook;
+        
         roundManager.SetRound(new None());
 
         core.PlayerManager.SendCenter("Раунд окончен");
+    }
+
+    public int GetChance()
+    {
+        return config.Chance;
     }
 
     private void Initialize(IPlayer survivor)
@@ -43,7 +53,7 @@ public class Survivor(ISwiftlyCore core, RoundManager roundManager, ZombieManage
         var playerPawn = survivor.RequiredPlayerPawn;
 
         survivor.SetHealth(playerPawn.Health + (config.SurvivorBonusHealthPerZombie * countPlayers));
-        playerPawn.Render = new Color(0, 0, 255);
+        survivor.SetModel(config.Model);
 
         var itemServices = playerPawn.ItemServices;
         if (itemServices == null) return;
@@ -62,6 +72,16 @@ public class Survivor(ISwiftlyCore core, RoundManager roundManager, ZombieManage
         sound.Volume = 0.5f;
 
         sound.Emit();
+    }
+
+    private void OnWeaponServicesDropWeaponHook(IOnWeaponServicesDropWeaponHook @event)
+    {
+        var pawn = @event.WeaponServices.Pawn;
+
+        if (pawn.Team == Team.CT && !@event.SwappingWeapon)
+        {
+            @event.Result = HookResult.Stop;
+        }
     }
     
 }

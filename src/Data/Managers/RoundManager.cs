@@ -18,7 +18,14 @@ public class RoundManager(ISwiftlyCore core, IOptions<ZombiePlagueCoreConfig> co
     {
         _rounds.Clear();
         _rounds.Add(roundFactory.Create(null, this));
-        foreach (var round in roundConfig.Value.Rounds)
+        List<IRoundConfig> rounds =
+        [
+            roundConfig.Value.Infection,
+            roundConfig.Value.Plague,
+            roundConfig.Value.Nemesis,
+            roundConfig.Value.Survivor
+        ];
+        foreach (var round in rounds)
         {
             var instance = roundFactory.Create(round, this);
             if (round.Enable && !_rounds.Contains(instance))
@@ -123,24 +130,24 @@ public class RoundManager(ISwiftlyCore core, IOptions<ZombiePlagueCoreConfig> co
     private IRound RandomRound()
     {
         var totalWeight = 0;
-        foreach (var config in roundConfig.Value.Rounds)
+        foreach (var round in _rounds)
         {
-            totalWeight += config.Chance;
+            totalWeight += round.GetChance();
         }
-
+        
         var randomizer = new Random();
-        var randomWeight = randomizer.Next(0, totalWeight + 1);
+        var randomWeight = randomizer.Next(1, totalWeight + 1);
 
         var currentWeight = 0;
-        foreach (var config in roundConfig.Value.Rounds)
+        foreach (var round in _rounds)
         {
-            currentWeight += config.Chance;
+            currentWeight += round.GetChance();
             if (randomWeight <= currentWeight)
             {
-                return roundFactory.Create(config, this);
+                return round;
             }
         }
 
-        return roundFactory.Create(roundConfig.Value.Rounds.Find(r => r is InfectionConfig), this);
+        return roundFactory.Create(roundConfig.Value.Infection, this);
     }
 }

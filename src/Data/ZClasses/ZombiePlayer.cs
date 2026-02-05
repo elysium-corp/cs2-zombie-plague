@@ -1,4 +1,5 @@
-﻿using CS2ZombiePlague.Data.Extensions;
+﻿using CS2ZombiePlague.Data.Abilities.Contracts;
+using CS2ZombiePlague.Data.Extensions;
 using CS2ZombiePlague.Data.Managers;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Players;
@@ -42,7 +43,7 @@ public class ZombiePlayer
 
     public void Initialize()
     {
-        if (_iZClass != _zombieManager.GetZClassFromMenu(_player.PlayerID))
+        if (_iZClass != _zombieManager.GetZClassFromMenu(_player.PlayerID) && !IsNemesis)
         {
             _iZClass.Abilities.ForEach(ability => ability.UnHook());
             _iZClass = _zombieManager.GetZClassFromMenu(_player.PlayerID);
@@ -81,5 +82,10 @@ public class ZombiePlayer
     public IZClass GetZombieClass()
     {
         return _iZClass;
+    }
+
+    public void AddAbility(IAbility ability)
+    {
+        _iZClass.Abilities.Add(ability);
     }
 }

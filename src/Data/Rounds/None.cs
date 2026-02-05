@@ -4,11 +4,16 @@ public class None : IRound
 {
     public void Start()
     {
-        throw new NotImplementedException();
+        
     }
 
     public void End()
     {
-        throw new NotImplementedException();
+        
+    }
+
+    public int GetChance()
+    {
+        return 0;
     }
 }

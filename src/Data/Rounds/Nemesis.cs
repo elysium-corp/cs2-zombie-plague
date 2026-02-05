@@ -19,7 +19,7 @@ public class Nemesis(
         var nemesis = players[Random.Shared.Next(0, players.Count)];
 
         zombieManager.CreateNemesis(nemesis);
-        Initialize(nemesis);
+        core.Scheduler.NextWorldUpdate(()=>Initialize(nemesis));
 
         foreach (var player in players)
         {
@@ -39,6 +39,11 @@ public class Nemesis(
         roundManager.SetRound(new None());
 
         core.PlayerManager.SendCenter("Раунд окончен");
+    }
+
+    public int GetChance()
+    {
+        return config.Chance;
     }
 
     private void Initialize(IPlayer nemesis)

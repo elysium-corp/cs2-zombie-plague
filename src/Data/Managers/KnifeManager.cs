@@ -31,6 +31,50 @@ public class KnifeManager(
     }
 
     public IKnife? GetCurrentKnife(int playerId) => _playerKnifes.GetValueOrDefault(playerId, null);
+
+    public void GiveKnife(IPlayer player)
+    {
+        core.Scheduler.NextWorldUpdateAsync(() =>
+        {
+            var pawn = player.PlayerPawn;
+            if (pawn == null || !player.Controller.PawnIsAlive)
+            {
+                return;
+            }
+
+            if (player.IsInfected())
+            {
+                return;
+            }
+
+            var weaponService = pawn.WeaponServices;
+            var itemService = pawn.ItemServices;
+            if (weaponService == null || itemService == null)
+            {
+                return;
+            }
+
+            if (!_playerKnifes.ContainsKey(player.PlayerID))
+                SetDefaultKnife(player.PlayerID);
+
+            var knife = GetCurrentKnife(player.PlayerID);
+
+            weaponService.RemoveWeaponByDesignerName("weapon_knife");
+            itemService.GiveItem("weapon_knife_t");
+
+            foreach (var weapon in weaponService.MyValidWeapons)
+            {
+                if (!weapon.DesignerName.Contains("knife"))
+                    continue;
+
+                weapon.SetModel(knife.Model);
+                weaponService.SelectWeapon(weapon);
+
+                break;
+            }
+        });
+    }
+
     private void SetDefaultKnife(int playerId) => _playerKnifes[playerId] = factory.Create<GravityKnifeWeapon>();
 
     private HookResult PlayerSpawnEvent(EventPlayerSpawn @event)
@@ -40,7 +84,7 @@ public class KnifeManager(
             return HookResult.Continue;
         }
 
-        GiveKnifeAsync(@event.UserIdPlayer);
+        GiveKnife(@event.UserIdPlayer);
         return HookResult.Continue;
     }
 
@@ -57,13 +101,13 @@ public class KnifeManager(
             SetDefaultProperties(player);
             return HookResult.Continue;
         }
-        
+
         var playerId = player.PlayerID;
         if (!_playerKnifes.ContainsKey(playerId))
             SetDefaultKnife(playerId);
-        
+
         var knife = GetCurrentKnife(playerId);
-        
+
         SetKnifeProperties(knife!, player);
 
         return HookResult.Continue;
@@ -106,52 +150,9 @@ public class KnifeManager(
             }
 
             _playerKnifes[args.Player.PlayerID] = factory.Create<T>();
-            GiveKnifeAsync(args.Player);
+            GiveKnife(args.Player);
         };
         builder.AddOption(button);
-    }
-
-    private void GiveKnifeAsync(IPlayer player)
-    {
-        core.Scheduler.NextWorldUpdateAsync(() =>
-        {
-            var pawn = player.PlayerPawn;
-            if (pawn == null || !player.Controller.PawnIsAlive)
-            {
-                return;
-            }
-
-            if (player.IsInfected())
-            {
-                return;
-            }
-            
-            var weaponService = pawn.WeaponServices;
-            var itemService = pawn.ItemServices;
-            if (weaponService == null || itemService == null)
-            {
-                return;
-            }
-            
-            if (!_playerKnifes.ContainsKey(player.PlayerID))
-                SetDefaultKnife(player.PlayerID);
-
-            var knife = GetCurrentKnife(player.PlayerID);
-            
-            weaponService.RemoveWeaponByDesignerName("weapon_knife");
-            itemService.GiveItem("weapon_knife_t");
-            
-            foreach (var weapon in weaponService.MyValidWeapons)
-            {
-                if (!weapon.DesignerName.Contains("knife"))
-                    continue;
-
-                weapon.SetModel(knife.Model);
-                weaponService.SelectWeapon(weapon);
-
-                break;
-            }
-        });
     }
 
     private HookResult PlayerChatEvent(EventPlayerChat @event)

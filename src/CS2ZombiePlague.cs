@@ -132,6 +132,18 @@ namespace CS2ZombiePlague
 
             return HookResult.Continue;
         }
+        
+        [GameEventHandler(HookMode.Pre)]
+        private HookResult OnGameRestart(EventCsPreRestart @event)
+        {
+            var roundManager = _roundManager.Value;
+            if (roundManager.GetRound() != null)
+            {
+                roundManager.GetRound()?.End();
+            }
+
+            return HookResult.Continue;
+        }
 
         [EventListener<EventDelegates.OnPrecacheResource>]
         private void OnPrecacheResource(IOnPrecacheResourceEvent @event)
@@ -144,6 +156,9 @@ namespace CS2ZombiePlague
             @event.AddItem("weapons/nozb1/valogun/knife/ejderbicak_cord/ejderbicak_cord_ag2.vmdl");
             @event.AddItem("weapons/nozb1/valogun/knife/ashen_kukri/ashen_kukri_ag2.vmdl");
             @event.AddItem("weapons/nozb1/valogun/knife/oni_katana_tactical/oni_katana_tactical_ag2.vmdl");
+            @event.AddItem("characters/models/nozb1/nemesis_player_model/nemesis_player_model.vmdl");
+            @event.AddItem("characters/models/nozb1/zhunter_player_model/zhunter_player_model.vmdl");
+            @event.AddItem("characters/models/nozb1/nanosuit_player_model/nanosuit_player_model.vmdl");
             @event.AddItem("particles/kolka/part1.vpcf");
             @event.AddItem("particles/barrier_nade.vpcf");
             @event.AddItem("particles/kolka/part2.vpcf");
@@ -163,7 +178,14 @@ namespace CS2ZombiePlague
             @event.AddItem("particles/kolka/part16.vpcf");
             @event.AddItem("particles/kolka/part17.vpcf");
             @event.AddItem("particles/kolka/part18.vpcf");
+            @event.AddItem("particles/barrier_nade.vpcf");
             @event.AddItem("soundevents/soundevents_zombieplague.vsndevts");
+<<<<<<< feature/update-round
+            @event.AddItem("particles/explosions_fx/bumpmine_detonate_sparks.vpcf");
+            @event.AddItem("particles/explosions_fx/bumpmine_detonate.vpcf");
+            @event.AddItem("models/de_overpass/decorations/security_camera/security_camera_1_base.vmdl"); 
+            @event.AddItem("models/props/cs_office/plant01a.vmdl");
+=======
             @event.AddItem("sounds/cs2/countdown/countdown.vsnd");
             @event.AddItem("sounds/cs2/weapons/frostnade/frostnade_detonate.vsnd");
             @event.AddItem("sounds/cs2/weapons/frostnade/frostnade_end.vsnd");
@@ -176,6 +198,7 @@ namespace CS2ZombiePlague
             @event.AddItem("particles/ui/ammohealthcenter/ui_hud_kill_burn_ringfire.vpcf");
             @event.AddItem("particles/ui/ammohealthcenter/ui_hud_kill_streaks_circle_flash.vpcf");
             @event.AddItem("particles/ui/hud/ui_mvp_winner_burst.vpcf");
+>>>>>>> develop
         }
 
         [EventListener<EventDelegates.OnWeaponServicesCanUseHook>]
@@ -185,6 +208,10 @@ namespace CS2ZombiePlague
             var player = core.PlayerManager.GetPlayerFromPawn(pawn);
 
             if (player is not { IsValid: true })
+<<<<<<< feature/update-round
+            {
+                return;
+=======
             {
                 return;
             }
@@ -194,9 +221,17 @@ namespace CS2ZombiePlague
             if (player.IsInfected() && !weaponName.Contains("knife") && !weaponName.Contains("smoke"))
             {
                 @event.SetResult(false);
+>>>>>>> develop
+            }
+            
+            var weaponName = @event.Weapon.DesignerName;
+
+            if (player.IsInfected() && !weaponName.Contains("knife") && !weaponName.Contains("smoke"))
+            {
+                @event.SetResult(false);
             }
         }
-
+        
         [GameEventHandler(HookMode.Pre)]
         private HookResult EventPlayerDisconnect(EventPlayerDisconnect @event)
         {

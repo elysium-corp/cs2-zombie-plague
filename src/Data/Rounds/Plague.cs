@@ -34,6 +34,11 @@ public class Plague(
         core.PlayerManager.SendCenter("Раунд окончен");
     }
 
+    public int GetChance()
+    {
+        return config.Chance;
+    }
+
     public void Start()
     {
         core.Event.OnEntityTakeDamage += TakeDamage;

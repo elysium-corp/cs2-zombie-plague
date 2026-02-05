@@ -4,4 +4,5 @@ public interface IRound
 {
     public void Start();
     public void End();
+    public int GetChance();
 }

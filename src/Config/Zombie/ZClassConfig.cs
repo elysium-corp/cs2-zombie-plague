@@ -31,7 +31,7 @@ public class ZombieHunter : IZClassConfig
     public string InternalName { get; set; } = "zombie_hunter";
     public string DisplayName { get; set; } = "Hunter";
     public string Model { get; set; } = "characters/models/s2ze/zombie_frozen/zombie_frozen.vmdl";
-    public string ArmsModel { get; set; } = "characters/models/s2ze/zombie_frozen/zombie_frozen.vmdl";
+    public string ArmsModel { get; set; } = "characters/models/kolka/2025/lurker/lurker.vmdl";
     public string Description { get; set; } = "Ставит ловушки";
     public int Health { get; set; } = 3_500;
     public float Speed { get; set; } = 260f;
@@ -45,7 +45,7 @@ public class ZombieAssassin : IZClassConfig
     public bool Enabled { get; set; } = true;
     public string InternalName { get; set; } = "zombie_assassin";
     public string DisplayName { get; set; } = "Assassin";
-    public string Model { get; set; } = "characters/models/kolka/2025/lurker/lurker.vmdl";
+    public string Model { get; set; } = "characters/models/nozb1/zhunter_player_model/zhunter_player_model.vmdl";
     public string ArmsModel { get; set; } = "characters/models/s2ze/zombie_frozen/zombie_frozen.vmdl";
     public string Description { get; set; } = "Ускоряется";
     public int Health { get; set; } = 3_200;
@@ -90,7 +90,7 @@ public class ZombieNemesis : IZClassConfig
     public bool Enabled { get; set; } = true;
     public string InternalName { get; set; } = "zombie_nemesis";
     public string DisplayName { get; set; } = "Nemesis";
-    public string Model { get; set; } = "characters/models/kolka/2025/bull/bull.vmdl";
+    public string Model { get; set; } = "characters/models/nozb1/nemesis_player_model/nemesis_player_model.vmdl";
     public string ArmsModel { get; set; } = "characters/models/s2ze/zombie_frozen/zombie_frozen.vmdl";
     public string Description { get; set; } = "Убивает";
     public int Health { get; set; } = 5_000;

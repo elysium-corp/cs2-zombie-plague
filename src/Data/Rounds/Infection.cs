@@ -20,21 +20,11 @@ public class Infection(
     private Guid _playerDeathEvent = Guid.Empty;
     private Guid _playerConnect = Guid.Empty;
 
-    public void End()
+    public int GetChance()
     {
-        core.Event.OnEntityTakeDamage -= TakeDamage;
-
-        if (config.ZombieRevived)
-        {
-            core.GameEvent.Unhook(_playerDeathEvent);
-            core.GameEvent.Unhook(_playerConnect);
-        }
-
-        roundManager.SetRound(new None());
-
-        core.PlayerManager.SendCenter("Раунд окончен");
+        return config.Chance;
     }
-    
+
     public void Start()
     {
         core.Event.OnEntityTakeDamage += TakeDamage;
@@ -71,6 +61,21 @@ public class Infection(
         }
 
         core.PlayerManager.SendCenter("Первый заражённый => " + firstZombie.Controller.PlayerName);
+    }
+    
+    public void End()
+    {
+        core.Event.OnEntityTakeDamage -= TakeDamage;
+
+        if (config.ZombieRevived)
+        {
+            core.GameEvent.Unhook(_playerDeathEvent);
+            core.GameEvent.Unhook(_playerConnect);
+        }
+
+        roundManager.SetRound(new None());
+
+        core.PlayerManager.SendCenter("Раунд окончен");
     }
 
     private void TakeDamage(IOnEntityTakeDamageEvent @event)

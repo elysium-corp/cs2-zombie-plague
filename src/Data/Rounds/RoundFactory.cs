@@ -14,6 +14,7 @@ public class RoundFactory(ISwiftlyCore core, ZombieManager zombieManager, Common
             NemesisConfig roundConfig => new Nemesis(core, roundManager, zombieManager, roundConfig),
             PlagueConfig roundConfig => new Plague(core, roundManager, zombieManager, commonUtils, roundConfig),
             SurvivorConfig roundConfig => new Survivor(core, roundManager, zombieManager, roundConfig),
+            ArmageddonConfig roundConfig => new Armageddon(core, roundManager, zombieManager, roundConfig),
             _ => new None()
         };
     }
