@@ -8,8 +8,10 @@ using CS2ZombiePlague.Data;
 using CS2ZombiePlague.Data.Abilities;
 using CS2ZombiePlague.Data.Abilities.Contracts;
 using CS2ZombiePlague.Data.Events;
+using CS2ZombiePlague.Data.Lifecycle;
 using CS2ZombiePlague.Data.Managers;
 using CS2ZombiePlague.Data.Rounds;
+using CS2ZombiePlague.Data.Weapons;
 using CS2ZombiePlague.Data.Weapons.Knifes;
 using CS2ZombiePlague.Data.ZClasses;
 using CS2ZombiePlague.Service;
@@ -72,6 +74,10 @@ public static class DependencyManager
             .AddSingleton<IZombiePlayerFactory, ZombiePlayerFactory>()
             .AddSingleton<IKnifeFactory, KnifeFactory>()
             .AddSingleton<IAbilityFactory, AbilityFactory>()
+            .AddSingleton<IWeaponFactory, WeaponFactory>()
+            .AddSingleton<LifecycleManager>()
+            .AddSingleton<PlayerLifecycleManager>()
+            .AddSingleton<ServiceLifecycleManager>()
             .AddSingleton<ZClassMenu>()
             .AddSingleton<ZombieManager>()
             .AddSingleton<KnifeManager>()
@@ -83,6 +89,7 @@ public static class DependencyManager
             .AddSingleton<MoneySystem>()
             .AddSingleton<ScreenFade>()
             .AddSingleton<WeaponService>()
+            .AddSingleton<RoundRatingNotify>()
             .AddSingleton<WeaponParticleService>()
             .AddSingleton<CommonUtils>();
         

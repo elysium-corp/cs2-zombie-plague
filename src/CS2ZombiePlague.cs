@@ -37,6 +37,7 @@ namespace CS2ZombiePlague
         private readonly Lazy<ZClassMenu> _zClassMenu = new(DependencyManager.GetService<ZClassMenu>);
         private readonly Lazy<WeaponService> _weaponService = new(DependencyManager.GetService<WeaponService>);
         private readonly Lazy<CommonUtils> _utils = new(DependencyManager.GetService<CommonUtils>);
+        private readonly Lazy<RoundRatingNotify> _roundRatingNotify = new(DependencyManager.GetService<RoundRatingNotify>);
         private readonly Lazy<LifecycleManager> _lifecycleManager = new(DependencyManager.GetService<LifecycleManager>);
         private readonly Lazy<PlayerLifecycleManager> _playerLifecycleManager = new(DependencyManager.GetService<PlayerLifecycleManager>);
 
@@ -75,6 +76,11 @@ namespace CS2ZombiePlague
             if (config.ScreenFadeEnable)
             {
                 _screenFade.Value.Start();
+            }
+            
+            if (config.RoundRatingNotify)
+            {
+                _roundRatingNotify.Value.Start();
             }
 
             new ModelChanger(Core, _zombieManager.Value, _roundManager.Value, _utils.Value,

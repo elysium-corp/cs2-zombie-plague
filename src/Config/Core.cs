@@ -7,6 +7,8 @@ public sealed class ZombiePlagueCoreConfig
 
     public bool KnockbackEnabled { get; set; } = true;
     
+    public bool RoundRatingNotify { get; set; } = true;
+    
     // Включить денежную систему
     public bool MoneySystemEnabled { get; set; } = true;
     // Максимальное количество денег
