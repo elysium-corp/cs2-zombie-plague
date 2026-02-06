@@ -39,7 +39,7 @@ public class ZClassMenu(ISwiftlyCore core)
         AddZClassOption<ZAssassin>(builder);
         AddZClassOption<ZHeavy>(builder);
         AddZClassOption<ZHunter>(builder);
-        AddZClassOption<ZShaman>(builder);
+        AddZClassOption<ZSmoker>(builder);
 
         return builder.Build();
     }

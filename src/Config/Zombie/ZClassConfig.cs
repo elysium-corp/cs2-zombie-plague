@@ -6,7 +6,7 @@ public sealed class ZClassConfig
     public ZombieHunter Hunter { get; set; } = new();
     public ZombieAssassin Assassin { get; set; } = new();
     public ZombieHeavy Heavy { get; set; } = new();
-    public ZombieShaman Shaman { get; set; } = new();
+    public ZombieSmoker Smoker { get; set; } = new();
     public ZombieNemesis Nemesis { get; set; } = new();
 }
 
@@ -70,14 +70,14 @@ public class ZombieHeavy : IZClassConfig
     public List<string> Abilities { get; set; } = [];
 }
 
-public class ZombieShaman : IZClassConfig
+public class ZombieSmoker : IZClassConfig
 {
     public bool Enabled { get; set; } = true;
-    public string InternalName { get; set; } = "zombie_shaman";
-    public string DisplayName { get; set; } = "Shaman";
+    public string InternalName { get; set; } = "zombie_smoker";
+    public string DisplayName { get; set; } = "Smoker";
     public string Model { get; set; } = "characters/models/s2ze/zombie_frozen/zombie_frozen.vmdl";
     public string ArmsModel { get; set; } = "characters/models/s2ze/zombie_frozen/zombie_frozen.vmdl";
-    public string Description { get; set; } = "Кричит";
+    public string Description { get; set; } = "Притягивает";
     public int Health { get; set; } = 2_500;
     public float Speed { get; set; } = 250f;
     public float Knockback { get; set; } = 0.9f;

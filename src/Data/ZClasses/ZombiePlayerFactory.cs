@@ -15,7 +15,7 @@ public class ZombiePlayerFactory : IZombiePlayerFactory
             ZHunter zHunter => new ZombiePlayer(core, zombieManager, player, zHunter, isNemesis),
             ZAssassin zAssassin => new ZombiePlayer(core, zombieManager, player, zAssassin, isNemesis),
             ZHeavy zHeavy => new ZombiePlayer(core, zombieManager, player, zHeavy, isNemesis),
-            ZShaman zShaman => new ZombiePlayer(core, zombieManager, player, zShaman, isNemesis),
+            ZSmoker zSmoker => new ZombiePlayer(core, zombieManager, player, zSmoker, isNemesis),
             ZNemesis zombieNemesis => new ZombiePlayer(core, zombieManager, player, zombieNemesis, isNemesis),
             _ => new ZombiePlayer(core, zombieManager, player, DependencyManager.GetService<ZCleric>(), isNemesis)
         };

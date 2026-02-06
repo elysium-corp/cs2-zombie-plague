@@ -11,6 +11,8 @@ public sealed class AbilityConfig
     public ChargeConfig Charge { get; set; } = new();
     
     public TrapConfig Trap { get; set; } = new();
+    
+    public CatchConfig Catch { get; set; } = new();
 }
 
 public sealed class HealConfig : IAbilityConfig
@@ -156,4 +158,31 @@ public sealed class TrapConfig : IAbilityConfig
     // Радиус срабатывания ловушки
     public float TriggerRadius { get; set; } = 100f;
     
+}
+
+public sealed class CatchConfig : IAbilityConfig
+{
+    // Доступна ли способность
+    public bool Enable { get; set; } = true;
+    
+    // Время в течение которого способность будет недоступна для повторного применения 
+    public float CooldownTime { get; set; } = 20f;
+    
+    // Путь к звуковому эффекту способности
+    public List<string> SoundEffectNames { get; set; } = ["ZombiePlagueAbility.zombie_trap_cathed"];
+    
+    // Сила притягивание цели к кастеру
+    public float Strength { get; set; } = 100f;
+    
+    // Ширина луча
+    public float BeamWidth { get; set; } = 0.5f;
+    
+    // Кол-во красного в цвете эффекта от 0..255
+    public byte RedColorEffect { get; set; } = 255;
+    
+    // Кол-во зеленного в цвете эффекта от 0..255
+    public byte GreenColorEffect { get; set; } = 255;
+    
+    // Кол-во синего в цвете эффекта от 0..255
+    public byte BlueColorEffect { get; set; } = 0;
 }

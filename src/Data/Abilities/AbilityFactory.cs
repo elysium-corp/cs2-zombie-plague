@@ -15,6 +15,8 @@ public class AbilityFactory(ISwiftlyCore core, IOptions<AbilityConfig> config) :
             var t when t == typeof(Leap) => new Leap(core, config.Value.Leap),
             var t when t == typeof(Blind) => new Blind(core, config.Value.Blind),
             var t when t == typeof(Charge) => new Charge(core, config.Value.Charge),
+            var t when t == typeof(Trap) => new Trap(core, config.Value.Trap),
+            var t when t == typeof(Catch) => new Catch(core, config.Value.Catch),
             _ => throw new NotSupportedException("ZAbilityFactory: type T hasn't supported!")
         };
     }
