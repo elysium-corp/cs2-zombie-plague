@@ -3,4 +3,5 @@
 public interface IEventSubscriber
 {
     event EventDelegates.OnPlayerInfectedBy? OnPlayerInfectedBy;
+    event EventDelegates.OnWeaponDrop? OnWeaponDrop;
 }

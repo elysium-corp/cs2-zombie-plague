@@ -8,7 +8,7 @@
     ".NETCoreApp,Version=v10.0": {
       "CS2ZombiePlague/1.0.0": {
         "dependencies": {
-          "SwiftlyS2.CS2": "1.1.1-beta.40"
+          "SwiftlyS2.CS2": "1.1.5-beta.25"
         },
         "runtime": {
           "CS2ZombiePlague.dll": {}
@@ -391,7 +391,7 @@
           }
         }
       },
-      "SwiftlyS2.CS2/1.1.1-beta.40": {
+      "SwiftlyS2.CS2/1.1.5-beta.25": {
         "dependencies": {
           "Dapper": "2.1.66",
           "McMaster.NETCore.Plugins": "2.0.0",
@@ -408,8 +408,8 @@
         },
         "runtime": {
           "lib/net10.0/SwiftlyS2.CS2.dll": {
-            "assemblyVersion": "1.1.1.0",
-            "fileVersion": "1.1.1.0"
+            "assemblyVersion": "1.1.5.0",
+            "fileVersion": "1.1.5.0"
           }
         }
       },
@@ -671,12 +671,12 @@
       "path": "stub.system.data.sqlite.core.netstandard/1.0.119",
       "hashPath": "stub.system.data.sqlite.core.netstandard.1.0.119.nupkg.sha512"
     },
-    "SwiftlyS2.CS2/1.1.1-beta.40": {
+    "SwiftlyS2.CS2/1.1.5-beta.25": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-H3BmPdqrZYDG7c7MPF01AR8OuPgFTGhnt1C2Pj+zhnCMe552NbFfpb45yLe/N4HpT+AFxK/p7jagyHU9DMb1qg==",
-      "path": "swiftlys2.cs2/1.1.1-beta.40",
-      "hashPath": "swiftlys2.cs2.1.1.1-beta.40.nupkg.sha512"
+      "sha512": "sha512-4uj2FcyScE4L0a6/omoSMt3zjwLg2LUiS5t0FCpz/cvmKyhkjxXiHaAcRICxPW2c7bkvYt9KJzvUrzGW1y2+ZQ==",
+      "path": "swiftlys2.cs2/1.1.5-beta.25",
+      "hashPath": "swiftlys2.cs2.1.1.5-beta.25.nupkg.sha512"
     },
     "System.Data.SQLite.Core/1.0.119": {
       "type": "package",

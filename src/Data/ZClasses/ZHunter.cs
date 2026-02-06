@@ -24,5 +24,5 @@ public sealed class ZHunter(ZombieHunter config, IAbilityFactory abilityFactory)
 
     public int Gravity { get; set; } = config.Gravity;
 
-    public List<IAbility> Abilities { get; set; } = [abilityFactory.Create<Trap>(), abilityFactory.Create<Leap>()];
+    public List<IAbility> Abilities { get; set; } = [abilityFactory.Create<Leap>()];
 }

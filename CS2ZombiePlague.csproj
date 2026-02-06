@@ -39,6 +39,10 @@
     <Compile Remove="src\Data\Abilities\IParticleRestricted.cs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="src\Data\Events\Hook\" />
+  </ItemGroup>
+
   <Target Name="CreateZip" AfterTargets="Publish">
     <ItemGroup>
       <PublishFiles Include="$(PublishDir)**\*.*" />
