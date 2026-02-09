@@ -6,7 +6,6 @@ public interface IZClassConfig
     public string InternalName { get; set; }
     public string DisplayName { get; set; }
     public string Model { get; set; }
-    public string ArmsModel { get; set; }
     public string Description { get; set; }
     public int Health { get; set; }
     public float Speed { get; set; }

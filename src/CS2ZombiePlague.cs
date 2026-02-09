@@ -285,6 +285,9 @@ namespace CS2ZombiePlague
             @event.AddItem("particles/weapons/cs_weapon_fx/weapon_confetti_sparks_2.vpcf");
             @event.AddItem("particles/ui/ammohealthcenter/ui_hud_kill_elec_innerpoint.vpcf");
             @event.AddItem("weapons/luci/x3_m4a1/x3_m4a1_ag2.vmdl");
+            @event.AddItem("characters/models/nozb1/chris_walker_player_model/chris_walker_player_model.vmdl");
+            @event.AddItem("characters/models/nozb1/jason_player_model/jason_player_model.vmdl");
+            @event.AddItem("characters/models/nozb1/zombie_stalker_player_model/zombie_stalker_player_model.vmdl");
             @event.AddItem("weapons/luci/car_ump45/car_ump45_ag2.vmdl");
             @event.AddItem("weapons/luci/eov_mp5/eov_mp5_ag2.vmdl");
             @event.AddItem("weapons/luci/parab_ssg/parab_ssg_ag2.vmdl");

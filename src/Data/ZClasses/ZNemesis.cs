@@ -12,8 +12,6 @@ public class ZNemesis(ZombieNemesis config, IAbilityFactory abilityFactory) : IZ
 
     public string Model { get; set; } = config.Model;
 
-    public string ArmsModel { get; set; } = config.ArmsModel;
-
     public string Description { get; set; } = config.Description;
 
     public int Health { get; set; } = config.Health;

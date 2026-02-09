@@ -1,5 +1,4 @@
-﻿using CS2ZombiePlague.Data.Abilities;
-using CS2ZombiePlague.Data.Abilities.Contracts;
+﻿using CS2ZombiePlague.Data.Abilities.Contracts;
 
 namespace CS2ZombiePlague.Data.ZClasses;
 
@@ -10,8 +9,6 @@ public interface IZClass
     public string DisplayName { get; set; }
     
     public string Model { get; set; }
-    
-    public string ArmsModel { get; set; }
     
     public string Description { get; set; }
     
