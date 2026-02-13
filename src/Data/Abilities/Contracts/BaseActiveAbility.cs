@@ -5,40 +5,42 @@ using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace CS2ZombiePlague.Data.Abilities.Contracts;
 
-public abstract class BaseActiveAbility(ISwiftlyCore core) : IActiveAbility, ICooldownRestricted, IParticleRestricted, ISoundPlayable
+public abstract class BaseActiveAbility(ISwiftlyCore core)
+    : IActiveAbility, ICooldownRestricted, IParticleRestricted, ISoundPlayable
 {
     protected IPlayer Caster { get; private set; } = null!;
-    
+
     protected IPlayer? Target { get; set; }
 
     public bool IsActive { get; set; }
-    
+
     public abstract KeyKind? Key { get; }
-    
+
     public abstract float Cooldown { get; }
     private CancellationTokenSource? _cooldownToken;
     private float _cooldownElapsedTime;
-    
+
+    public virtual bool IsCooldownNotify => true;
     private const int CooldownMessageTime = 300;
-    
+
     public CParticleSystem? Particle { get; set; }
-    
+
     private bool _isHooked;
-    
+
     private const float TickInterval = 1.0f;
-    
+
     public virtual void Use()
     {
         if (Cooldown > 0)
         {
             StartCooldown();
         }
-        
+
         CreateParticle();
-        
+
         PlaySound();
     }
-    
+
     public void SetCaster(IPlayer caster)
     {
         Caster = caster;
@@ -55,7 +57,7 @@ public abstract class BaseActiveAbility(ISwiftlyCore core) : IActiveAbility, ICo
         core.Event.OnClientKeyStateChanged += OnClientKeyStateChanged;
         _isHooked = true;
     }
-    
+
     public void UnHook()
     {
         if (!_isHooked)
@@ -66,7 +68,7 @@ public abstract class BaseActiveAbility(ISwiftlyCore core) : IActiveAbility, ICo
         core.Event.OnClientKeyStateChanged -= OnClientKeyStateChanged;
         _isHooked = false;
     }
-    
+
     public void OnClientKeyStateChanged(IOnClientKeyStateChangedEvent @event)
     {
         if (@event.PlayerId == Caster.PlayerID && @event.Pressed && @event.Key == Key)
@@ -79,15 +81,19 @@ public abstract class BaseActiveAbility(ISwiftlyCore core) : IActiveAbility, ICo
     {
         TryUse();
     }
-    
+
     protected virtual bool CanUse() => true;
-    
+
     private void TryUse()
     {
         if (IsActive)
         {
-            Caster.SendMessage(MessageType.Alert,
-                $"Способность восстановится через {Cooldown - _cooldownElapsedTime} секунд", CooldownMessageTime);
+            if (IsCooldownNotify)
+            {
+                Caster.SendMessage(MessageType.Alert,
+                    $"Способность восстановится через {Cooldown - _cooldownElapsedTime} секунд", CooldownMessageTime);
+            }
+
             return;
         }
 
@@ -98,7 +104,7 @@ public abstract class BaseActiveAbility(ISwiftlyCore core) : IActiveAbility, ICo
 
         Use();
     }
-    
+
     public void StartCooldown()
     {
         IsActive = true;
@@ -127,7 +133,7 @@ public abstract class BaseActiveAbility(ISwiftlyCore core) : IActiveAbility, ICo
         _cooldownToken?.Cancel();
         _cooldownElapsedTime = 0f;
     }
-    
+
     public virtual void DestroyParticle()
     {
         try
@@ -144,10 +150,14 @@ public abstract class BaseActiveAbility(ISwiftlyCore core) : IActiveAbility, ICo
         }
     }
 
-    public virtual void CreateParticle() { }
+    public virtual void CreateParticle()
+    {
+    }
 
-    public virtual void PlaySound() { }
-    
+    public virtual void PlaySound()
+    {
+    }
+
     private void StopCooldownTimerInternal()
     {
         try

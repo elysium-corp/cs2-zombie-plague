@@ -17,6 +17,7 @@ public abstract class BasePassiveAbility(ISwiftlyCore core) : IPassiveAbility, I
     private float _cooldownElapsedTime;
     
     public CParticleSystem? Particle { get; set; }
+    public virtual bool IsCooldownNotify => false;
     
     private bool _isHooked;
     

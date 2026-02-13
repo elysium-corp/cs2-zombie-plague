@@ -274,7 +274,7 @@ namespace CS2ZombiePlague
             @event.AddItem("sounds/cs2/weapons/frostnade/frostnade_end.vsnd");
             @event.AddItem("sounds/cs2/weapons/frostnade/frostnade_hit.vsnd");
             @event.AddItem("sounds/cs2/zombie/zombie_pressure.vsnd");
-            @event.AddItem("models/props/de_dust/hr_dust/dust_soccerball/dust_soccer_ball001.vmdl");
+            @event.AddItem("characters/models/kolka/2025/lurker/lurker.vmdl");
             @event.AddItem("particles/ui/rank_carepackage_recieve.vpcf");
             @event.AddItem("particles/ui/ammohealthcenter/ui_hud_kill_burn_ringfire.vpcf");
             @event.AddItem("particles/ui/ammohealthcenter/ui_hud_kill_streaks_circle_flash.vpcf");

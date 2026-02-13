@@ -31,11 +31,11 @@ public class Trap(ISwiftlyCore core, TrapConfig config) : BaseActiveAbility(core
         {
             var casterPos = Caster.RequiredPawn.AbsOrigin;
             _trapEntity = core.EntitySystem.CreateEntity<CBaseModelEntity>();
-            _trapEntity.SetModel("models/props/de_dust/hr_dust/dust_soccerball/dust_soccer_ball001.vmdl");
+            _trapEntity.SetModel("");
             _trapEntity.Render = new Color(255, 255, 255, 0);
-
-            _trapEntity.Teleport(casterPos, null, null);
             _trapEntity.DispatchSpawn();
+            
+            _trapEntity.Teleport(casterPos, null, null);
 
             var filter = new CRecipientFilter(NetChannelBufType_t.BUF_RELIABLE);
             filter.AddRecipient(Caster.PlayerID);

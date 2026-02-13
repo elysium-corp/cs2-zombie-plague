@@ -16,7 +16,6 @@ public class ZombieCleric : IZClassConfig
     public string InternalName { get; set; } = "zombie_cleric";
     public string DisplayName { get; set; } = "Cleric";
     public string Model { get; set; } = "characters/models/nozb1/zombie_stalker_player_model/zombie_stalker_player_model.vmdl";
-    public string ArmsModel { get; set; } = "characters/models/s2ze/zombie_frozen/zombie_frozen.vmdl";
     public string Description { get; set; } = "Лечит зомби";
     public int Health { get; set; } = 3_500;
     public float Speed { get; set; } = 260f;
@@ -30,7 +29,7 @@ public class ZombieHunter : IZClassConfig
     public bool Enabled { get; set; } = true;
     public string InternalName { get; set; } = "zombie_hunter";
     public string DisplayName { get; set; } = "Hunter";
-    public string Model { get; set; } = "characters/models/s2ze/zombie_frozen/zombie_frozen.vmdl";
+    public string Model { get; set; } = "characters/models/kolka/2025/lurker/lurker.vmdl";
     public string Description { get; set; } = "Ставит ловушки";
     public int Health { get; set; } = 3_500;
     public float Speed { get; set; } = 260f;

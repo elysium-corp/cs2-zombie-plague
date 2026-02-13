@@ -11,8 +11,10 @@ public class Leap(ISwiftlyCore core, LeapConfig config) : BaseActiveAbility(core
 {
     public override KeyKind? Key => KeyKind.Ctrl; 
     public override float Cooldown => config.CooldownTime;
-    
+
     private readonly CommonUtils _commonUtils = DependencyManager.GetService<CommonUtils>();
+    
+    public override bool IsCooldownNotify => false;
     
     public override void Use()
     {
@@ -44,21 +46,26 @@ public class Leap(ISwiftlyCore core, LeapConfig config) : BaseActiveAbility(core
         {
             return false;
         }
+
+        if ((Caster.PlayerPawn?.MovementServices?.Buttons.ButtonPressed & GameButtonFlags.Space) == 0)
+        {
+            return false;
+        }
         
         var pawn = Caster.PlayerPawn;
 
-        // var deltaTime = core.Engine.GlobalVars.CurrentTime - Caster.RequiredPlayerPawn.MovementServices?.Jump;
+        var deltaTime = core.Engine.GlobalVars.TickCount - Caster.RequiredPlayerPawn?.MovementServices?.LastJumpTick.Value;
   
-        // if (Caster.PlayerPawn?.GroundEntity.Value != null)
-        // {
-        //     return false;
-        // }
-        //
-        // if (Caster.PlayerPawn?.GroundEntity.Value == null && deltaTime > 0.25f)
-        // {
-        //     return false;
-        // }
-        //
+        if (Caster.PlayerPawn?.GroundEntity.Value != null)
+        {
+            return false;
+        }
+        
+        if (Caster.PlayerPawn?.GroundEntity.Value == null && deltaTime > 60)
+        {
+            return false;
+        }
+        
 
         return true;
     }

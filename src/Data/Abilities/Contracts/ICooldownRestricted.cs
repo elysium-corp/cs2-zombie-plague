@@ -2,7 +2,7 @@
 
 public interface ICooldownRestricted
 {
-    public bool IsActive { get; set; }
+    bool IsActive { get; set; }
     
     float Cooldown { get; }
 
@@ -10,5 +10,7 @@ public interface ICooldownRestricted
 
     bool ShouldResetCooldown();
 
+    bool IsCooldownNotify { get; }
+    
     void ResetCooldown();
 }
