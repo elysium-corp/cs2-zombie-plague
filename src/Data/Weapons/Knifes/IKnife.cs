@@ -16,4 +16,6 @@ public interface IKnife
     
     public int Gravity { get; set; }
     
+    public float DamageMultiplier { get; set; }
+    
 }

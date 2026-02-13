@@ -9,4 +9,5 @@ public interface IKnifeConfig
     public float Speed { get; set; }
     public float Knockback { get; set; }
     public int Gravity { get; set; }
+    public float DamageMultiplier { get; set; }
 }

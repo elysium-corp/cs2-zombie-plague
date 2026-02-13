@@ -11,4 +11,5 @@ public class VipKnifeWeapon(IKnifeConfig config) : IKnife
     public float Speed { get; set; } = config.Speed;
     public float Knockback { get; set; } = config.Knockback;
     public int Gravity { get; set; } = config.Gravity;
+    public float DamageMultiplier { get; set; } = config.DamageMultiplier;
 }

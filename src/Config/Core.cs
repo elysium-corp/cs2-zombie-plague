@@ -41,4 +41,6 @@ public sealed class ZombiePlagueCoreConfig
     
     // Прозрачность эффекта от 0..255
     public byte AlphaScreenFade { get; set; } = 80;
+    
+    // Время
 }

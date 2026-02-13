@@ -18,6 +18,7 @@ public class KnockbackKnife () : IKnifeConfig
     public float Speed { get; set; } = 250f;
     public float Knockback { get; set; } = 1400f;
     public int Gravity { get; set; } = 800;
+    public float DamageMultiplier { get; set; } = 1.0f;
 }
 
 public class SpeedKnife () : IKnifeConfig
@@ -29,6 +30,7 @@ public class SpeedKnife () : IKnifeConfig
     public float Speed { get; set; } = 300f;
     public float Knockback { get; set; } = 350f;
     public int Gravity { get; set; } = 800;
+    public float DamageMultiplier { get; set; } = 1.0f;
 }
 
 public class GravityKnife () : IKnifeConfig
@@ -40,6 +42,7 @@ public class GravityKnife () : IKnifeConfig
     public float Speed { get; set; } = 250f;
     public float Knockback { get; set; } = 350f;
     public int Gravity { get; set; } = 600;
+    public float DamageMultiplier { get; set; } = 1.0f;
 }
 
 public class VipKnife () : IKnifeConfig
@@ -51,4 +54,5 @@ public class VipKnife () : IKnifeConfig
     public float Speed { get; set; } = 300f;
     public float Knockback { get; set; } = 1400f;
     public int Gravity { get; set; } = 550;
+    public float DamageMultiplier { get; set; } = 3.0f;
 }
