@@ -4,7 +4,7 @@ using SwiftlyS2.Shared;
 
 namespace CS2ZombiePlague.Data.Rounds;
 
-public class RoundFactory(ISwiftlyCore core, ZombieManager zombieManager, CommonUtils commonUtils) : IRoundFactory
+public class RoundFactory(ISwiftlyCore core, ZombieManager zombieManager, HumanManager humanManager, CommonUtils commonUtils) : IRoundFactory
 {
     public IRound Create(IRoundConfig? config, RoundManager roundManager)
     {
@@ -13,8 +13,8 @@ public class RoundFactory(ISwiftlyCore core, ZombieManager zombieManager, Common
             InfectionConfig roundConfig => new Infection(core, roundManager, zombieManager, commonUtils, roundConfig),
             NemesisConfig roundConfig => new Nemesis(core, roundManager, zombieManager, roundConfig),
             PlagueConfig roundConfig => new Plague(core, roundManager, zombieManager, commonUtils, roundConfig),
-            SurvivorConfig roundConfig => new Survivor(core, roundManager, zombieManager, roundConfig),
-            ArmageddonConfig roundConfig => new Armageddon(core, roundManager, zombieManager, roundConfig),
+            SurvivorConfig roundConfig => new Survivor(core, roundManager, zombieManager, humanManager, roundConfig),
+            ArmageddonConfig roundConfig => new Armageddon(core, roundManager, zombieManager, humanManager, roundConfig),
             _ => new None()
         };
     }

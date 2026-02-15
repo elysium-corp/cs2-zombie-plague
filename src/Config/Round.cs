@@ -38,7 +38,13 @@ public sealed class NemesisConfig : IRoundConfig
     public int NemesisBonusHealthPerPlayer { get; set; } = 1500;
 }
 
-public sealed class SurvivorConfig : IRoundConfig
+public interface ISurvivorConfig
+{
+    public string Model { get; set; }
+    public int SurvivorBonusHealthPerZombie { get; set; }
+}
+
+public sealed class SurvivorConfig : IRoundConfig, ISurvivorConfig
 {
     public bool Enable { get; set; } = true;
     public int Chance { get; set; } = 1;
@@ -47,13 +53,15 @@ public sealed class SurvivorConfig : IRoundConfig
     public int SurvivorBonusHealthPerZombie { get; set; } = 150;
 }
 
-public sealed class ArmageddonConfig : IRoundConfig
+public sealed class ArmageddonConfig : IRoundConfig, ISurvivorConfig
 {
     public bool Enable { get; set; } = true;
 
     public int Chance { get; set; } = 2;
     
     public int NemesisBonusHealthPerPlayer { get; set; } = 1000;
+
+    public string Model { get; set; } = "characters/models/nozb1/nanosuit_player_model/nanosuit_player_model.vmdl";
 
     public int SurvivorBonusHealthPerZombie { get; set; } = 100;
 }

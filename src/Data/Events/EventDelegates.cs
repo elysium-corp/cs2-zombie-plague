@@ -6,5 +6,6 @@ namespace CS2ZombiePlague.Data.Events;
 public class EventDelegates
 {
     public delegate void OnPlayerInfectedBy(IPlayer infector, IPlayer victim);  
+    public delegate void OnPlayerInfected(IPlayer victim);  
     public delegate void OnWeaponDrop(IPlayer player, CCSWeaponBase weapon);  
 }

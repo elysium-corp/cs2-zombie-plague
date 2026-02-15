@@ -27,6 +27,8 @@ public class ZombieManager(
             FireFakeDeath(infector.PlayerID, player.PlayerID);
             eventPublisher.OnPlayerInfectedBy(infector, player);
         }
+        
+        eventPublisher.OnPlayerInfected(player);
 
         var zClass = GetZClassFromMenu(player.PlayerID);
         return _zombiePlayers[player.PlayerID] =
@@ -35,14 +37,16 @@ public class ZombieManager(
 
     public ZombiePlayer? CreateNemesis(IPlayer player)
     {
-        if (player is { IsValid: true })
+        if (!player.IsValid)
         {
-            var nemesis = DependencyManager.GetService<ZNemesis>();
-            return _zombiePlayers[player.PlayerID] =
-                zombiePlayerFactory.Create(core, this, player, nemesis, true);
+            return null;
         }
-
-        return null;
+        
+        eventPublisher.OnPlayerInfected(player);
+        
+        var nemesis = DependencyManager.GetService<ZNemesis>();
+        return _zombiePlayers[player.PlayerID] =
+            zombiePlayerFactory.Create(core, this, player, nemesis, true);
     }
 
     public void Remove(IPlayer player)

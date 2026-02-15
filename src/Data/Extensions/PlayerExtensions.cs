@@ -87,10 +87,24 @@ public static class PlayerExtensions
 
             return false;
         }
+        
+        public bool IsHuman()
+        {
+            var allHumans = DependencyManager.GetService<HumanManager>().GetAllHumanPlayers();
+            return allHumans.Contains(player);
+        }
 
         public bool IsLastHuman()
         {
-            return !player.IsInfected() && DependencyManager.GetService<HumanManager>().GetCountHumans() == 1;
+            var allHumans = DependencyManager.GetService<HumanManager>().GetAllHumanPlayers();
+            var humansCount = allHumans.Count;
+            return player.IsHuman() && humansCount == 1;
+        }
+
+        public bool IsSurvivor()
+        {
+            var human = DependencyManager.GetService<HumanManager>().GetHuman(player);
+            return human?.IsSurvivor ?? false;
         }
 
         public bool IsFrozen()

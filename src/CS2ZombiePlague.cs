@@ -28,6 +28,7 @@ namespace CS2ZombiePlague
     {
         private readonly Lazy<RoundManager> _roundManager = new(DependencyManager.GetService<RoundManager>);
         private readonly Lazy<ZombieManager> _zombieManager = new(DependencyManager.GetService<ZombieManager>);
+        private readonly Lazy<HumanManager> _humanManager = new(DependencyManager.GetService<HumanManager>);
         private readonly Lazy<WeaponManager> _weaponManager = new(DependencyManager.GetService<WeaponManager>);
         private readonly Lazy<KnifeManager> _knifeManager = new(DependencyManager.GetService<KnifeManager>);
         private readonly Lazy<Knockback> _knockback = new(DependencyManager.GetService<Knockback>);
@@ -82,6 +83,8 @@ namespace CS2ZombiePlague
             {
                 _roundRatingNotify.Value.Start();
             }
+            
+            _humanManager.Value.RegisterHooks();
 
             new ModelChanger(Core, _zombieManager.Value, _roundManager.Value, _utils.Value,
                 DependencyManager.GetService<IOptions<ModelsConfig>>()).Load();
