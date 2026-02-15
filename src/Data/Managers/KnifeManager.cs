@@ -33,7 +33,10 @@ public class KnifeManager(
         core.GameEvent.HookPost<EventItemEquip>(PlayerEquipEvent);
         core.GameEvent.HookPost<EventPlayerChat>(PlayerChatEvent);
         core.GameEvent.HookPost<EventPlayerSpawn>(PlayerSpawnEvent);
+        core.GameEvent.HookPost<EventPlayerHurt>(PlayerHurtEvent);
+        
         core.Event.OnEntityTakeDamage += OnEntityTakeDamage;
+        
         _menuApi = CreateMenu();
     }
 
@@ -109,6 +112,38 @@ public class KnifeManager(
         }
 
         GiveKnife(player);
+        return HookResult.Continue;
+    }
+    
+    private HookResult PlayerHurtEvent(EventPlayerHurt @event)
+    {
+        var player = @event.UserIdPlayer;
+        if (player == null || !player.IsValid || player.IsInfected())
+        {
+            return HookResult.Continue;
+        }
+
+        var weaponService = player.PlayerPawn?.WeaponServices;
+        var activeWeapon = weaponService?.ActiveWeapon.Value;
+        if (activeWeapon == null)
+        {
+            return HookResult.Continue;
+        }
+        
+        var isKnife = activeWeapon.DesignerName.Contains("knife");
+        if (!isKnife)
+        {
+            return HookResult.Continue;
+        }
+
+        var playerId = player.PlayerID;
+        if (!_playerKnifes.ContainsKey(playerId))
+            SetDefaultKnife(playerId);
+
+        var knife = GetCurrentKnife(playerId);
+
+        SetKnifeProperties(knife!, player);
+        
         return HookResult.Continue;
     }
 
