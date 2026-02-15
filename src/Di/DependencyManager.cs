@@ -13,7 +13,8 @@ using CS2ZombiePlague.Data.Managers;
 using CS2ZombiePlague.Data.Rounds;
 using CS2ZombiePlague.Data.Weapons;
 using CS2ZombiePlague.Data.Weapons.Knifes;
-using CS2ZombiePlague.Data.ZClasses;
+using CS2ZombiePlague.Data.Zombies;
+using CS2ZombiePlague.Data.Zombies.ZClasses;
 using CS2ZombiePlague.Service;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -71,7 +72,7 @@ public static class DependencyManager
         _services
             .AddSwiftly(core)
             .AddSingleton<IRoundFactory, RoundFactory>()
-            .AddSingleton<IZombiePlayerFactory, ZombiePlayerFactory>()
+            .AddSingleton<IZombieFactory, ZombieFactory>()
             .AddSingleton<IKnifeFactory, KnifeFactory>()
             .AddSingleton<IAbilityFactory, AbilityFactory>()
             .AddSingleton<IWeaponFactory, WeaponFactory>()

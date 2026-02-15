@@ -1,19 +1,20 @@
 ﻿using CS2ZombiePlague.Data.Abilities.Contracts;
 using CS2ZombiePlague.Data.Extensions;
 using CS2ZombiePlague.Data.Managers;
+using CS2ZombiePlague.Data.Zombies.ZClasses;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Players;
 
-namespace CS2ZombiePlague.Data.ZClasses;
+namespace CS2ZombiePlague.Data.Zombies;
 
-public class ZombiePlayer
+public class Zombie
 {
     private readonly ZombieManager _zombieManager;
     private readonly IPlayer _player;
     private IZClass _iZClass;
     public bool IsNemesis { get; }
 
-    public ZombiePlayer(ISwiftlyCore core, ZombieManager zombieManager, IPlayer player, IZClass izClass,
+    public Zombie(ISwiftlyCore core, ZombieManager zombieManager, IPlayer player, IZClass izClass,
         bool isNemesis = false)
     {
         _zombieManager = zombieManager;

@@ -1,5 +1,6 @@
 ﻿using CS2ZombiePlague.Data.Events;
-using CS2ZombiePlague.Data.ZClasses;
+using CS2ZombiePlague.Data.Zombies;
+using CS2ZombiePlague.Data.Zombies.ZClasses;
 using CS2ZombiePlague.Di;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
@@ -9,13 +10,13 @@ namespace CS2ZombiePlague.Data.Managers;
 
 public class ZombieManager(
     ISwiftlyCore core,
-    IZombiePlayerFactory zombiePlayerFactory,
+    IZombieFactory zombieFactory,
     ZClassMenu zClassMenu,
     IEventPublisher eventPublisher)
 {
-    private readonly Dictionary<int, ZombiePlayer> _zombiePlayers = new();
+    private readonly Dictionary<int, Zombie> _zombiePlayers = new();
 
-    public ZombiePlayer? CreateZombie(IPlayer player, IPlayer? infector = null)
+    public Zombie? CreateZombie(IPlayer player, IPlayer? infector = null)
     {
         if (!player.IsValid)
         {
@@ -32,10 +33,10 @@ public class ZombieManager(
 
         var zClass = GetZClassFromMenu(player.PlayerID);
         return _zombiePlayers[player.PlayerID] =
-            zombiePlayerFactory.Create(core, this, player, zClass);
+            zombieFactory.Create(core, this, player, zClass);
     }
 
-    public ZombiePlayer? CreateNemesis(IPlayer player)
+    public Zombie? CreateNemesis(IPlayer player)
     {
         if (!player.IsValid)
         {
@@ -46,7 +47,7 @@ public class ZombieManager(
         
         var nemesis = DependencyManager.GetService<ZNemesis>();
         return _zombiePlayers[player.PlayerID] =
-            zombiePlayerFactory.Create(core, this, player, nemesis, true);
+            zombieFactory.Create(core, this, player, nemesis, true);
     }
 
     public void Remove(IPlayer player)
@@ -65,12 +66,12 @@ public class ZombieManager(
         _zombiePlayers.Clear();
     }
 
-    public ZombiePlayer? GetZombie(int playerId)
+    public Zombie? GetZombie(int playerId)
     {
         return _zombiePlayers.GetValueOrDefault(playerId);
     }
 
-    public Dictionary<int, ZombiePlayer> GetAllZombies()
+    public Dictionary<int, Zombie> GetAllZombies()
     {
         return _zombiePlayers;
     }

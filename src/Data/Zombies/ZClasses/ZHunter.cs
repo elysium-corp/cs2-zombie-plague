@@ -2,9 +2,9 @@
 using CS2ZombiePlague.Data.Abilities;
 using CS2ZombiePlague.Data.Abilities.Contracts;
 
-namespace CS2ZombiePlague.Data.ZClasses;
+namespace CS2ZombiePlague.Data.Zombies.ZClasses;
 
-public sealed class ZHeavy(ZombieHeavy config, IAbilityFactory abilityFactory) : IZClass
+public sealed class ZHunter(ZombieHunter config, IAbilityFactory abilityFactory) : IZClass
 {
     public string InternalName { get; set; } = config.InternalName;
 
@@ -22,5 +22,5 @@ public sealed class ZHeavy(ZombieHeavy config, IAbilityFactory abilityFactory) :
 
     public int Gravity { get; set; } = config.Gravity;
 
-    public List<IAbility> Abilities { get; set; } = [abilityFactory.Create<Blind>(), abilityFactory.Create<Leap>()];
+    public List<IAbility> Abilities { get; set; } = [abilityFactory.Create<Leap>()];
 }

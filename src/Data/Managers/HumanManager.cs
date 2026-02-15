@@ -2,6 +2,7 @@
 using CS2ZombiePlague.Data.Events;
 using CS2ZombiePlague.Data.Extensions;
 using CS2ZombiePlague.Data.Humans;
+using CS2ZombiePlague.Data.Lifecycle;
 using CS2ZombiePlague.Di;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
@@ -10,17 +11,29 @@ using SwiftlyS2.Shared.Players;
 
 namespace CS2ZombiePlague.Data.Managers;
 
-public class HumanManager(ISwiftlyCore core, IEventSubscriber eventSubscriber)
+public class HumanManager(ISwiftlyCore core, IEventSubscriber eventSubscriber) : ILifecycle
 {
     private readonly KnifeManager _knifeManager = DependencyManager.GetService<KnifeManager>();
     private readonly Dictionary<IPlayer, Human> _humans = new();
     
+    private Guid _onRoundStartEvent;
+    private Guid _onPlayerDisconnectEvent;
+    private Guid _onPlayerDeathEvent;
+    
     public void RegisterHooks()
     {
-        core.GameEvent.HookPost<EventRoundStart>(OnRoundStart);
-        core.GameEvent.HookPost<EventPlayerDisconnect>(OnPlayerDisconnect);
-        core.GameEvent.HookPost<EventPlayerDeath>(OnPlayerDeath);
+        _onRoundStartEvent = core.GameEvent.HookPost<EventRoundStart>(OnRoundStart);
+        _onPlayerDisconnectEvent = core.GameEvent.HookPost<EventPlayerDisconnect>(OnPlayerDisconnect);
+        _onPlayerDeathEvent = core.GameEvent.HookPost<EventPlayerDeath>(OnPlayerDeath);
         eventSubscriber.OnPlayerInfected += OnPlayerInfected;
+    }
+    
+    public void Dispose()
+    {
+        core.GameEvent.Unhook(_onRoundStartEvent);
+        core.GameEvent.Unhook(_onPlayerDisconnectEvent);
+        core.GameEvent.Unhook(_onPlayerDeathEvent);
+        eventSubscriber.OnPlayerInfected -= OnPlayerInfected;
     }
 
     public List<IPlayer> GetAllHumanPlayers()
@@ -52,14 +65,22 @@ public class HumanManager(ISwiftlyCore core, IEventSubscriber eventSubscriber)
         }
         
         var human = GetHuman(player);
-        human!.IsSurvivor = true;
+        if (human == null)
+        {
+            return;
+        }
+        
+        human.IsSurvivor = true;
         
         var countPlayers = core.PlayerManager.GetAlive().Count();
         player.SetHealth(playerPawn.Health + (roundSettings.SurvivorBonusHealthPerZombie * countPlayers));
         player.SetModel(roundSettings.Model);
 
         var itemServices = playerPawn.ItemServices;
-        if (itemServices == null) return;
+        if (itemServices == null)
+        {
+            return;
+        }
 
         itemServices.RemoveItems();
         _knifeManager.GiveKnife(player);
@@ -99,7 +120,7 @@ public class HumanManager(ISwiftlyCore core, IEventSubscriber eventSubscriber)
             var humansSnapshot = GetAllHumanPlayers();
             foreach (var human in humansSnapshot)
             {
-                if (human.IsInfected() || !human.IsValid)
+                if (human.IsInfected() || !human.IsValid || !human.IsAlive)
                 {
                     _humans.Remove(human);
                 }

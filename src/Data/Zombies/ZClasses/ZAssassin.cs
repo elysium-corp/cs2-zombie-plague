@@ -2,9 +2,9 @@
 using CS2ZombiePlague.Data.Abilities;
 using CS2ZombiePlague.Data.Abilities.Contracts;
 
-namespace CS2ZombiePlague.Data.ZClasses;
+namespace CS2ZombiePlague.Data.Zombies.ZClasses;
 
-public sealed class ZSmoker(ZombieSmoker config, IAbilityFactory abilityFactory) : IZClass
+public sealed class ZAssassin(ZombieAssassin config, IAbilityFactory abilityFactory) : IZClass
 {
     public string InternalName { get; set; } = config.InternalName;
 
@@ -22,5 +22,5 @@ public sealed class ZSmoker(ZombieSmoker config, IAbilityFactory abilityFactory)
 
     public int Gravity { get; set; } = config.Gravity;
 
-    public List<IAbility> Abilities { get; set; } = [abilityFactory.Create<Catch>()];
+    public List<IAbility> Abilities { get; set; } = [abilityFactory.Create<Charge>(), abilityFactory.Create<Leap>()];
 }

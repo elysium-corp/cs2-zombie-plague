@@ -14,29 +14,24 @@ public static class PlayerExtensions
         public void SetHealth(int health)
         {
             var playerPawn = player.PlayerPawn;
-            if (playerPawn == null)
+            if (playerPawn == null || !player.IsAlive)
             {
                 return;
             }
         
-            playerPawn.Health = health;
+            playerPawn.Health = health <= 0 ? 0 : health;
             playerPawn.HealthUpdated();
         }
 
         public void SetArmor(int armor)
         {
             var playerPawn = player.PlayerPawn;
-            if (playerPawn == null || !player.Controller.PawnIsAlive) return;
-
-            if (armor <= 0)
+            if (playerPawn == null || !player.IsAlive)
             {
-                playerPawn.ArmorValue = 0;
+                return;
             }
-            else
-            {
-                playerPawn.ArmorValue = armor;
-            }
-        
+            
+            playerPawn.ArmorValue = armor <= 0 ? 0 : armor;
             playerPawn.ArmorValueUpdated();
         }
 
@@ -44,7 +39,10 @@ public static class PlayerExtensions
         public void SetSpeed(float speed)
         {
             var playerPawn = player.PlayerPawn;
-            if (playerPawn == null || !player.Controller.PawnIsAlive) return;
+            if (playerPawn == null || !player.IsAlive)
+            {
+                return;
+            }
 
             playerPawn.VelocityModifier = speed / 250;
             playerPawn.VelocityModifierUpdated();
@@ -54,7 +52,10 @@ public static class PlayerExtensions
         public void SetGravity(float gravity)
         {
             var pawn = player.Pawn;
-            if (pawn == null || !player.Controller.PawnIsAlive) return;
+            if (pawn == null || !player.IsAlive)
+            {
+                return;
+            }
 
             pawn.GravityScale = gravity / 800;
             pawn.ActualGravityScale = gravity / 800;
@@ -63,7 +64,10 @@ public static class PlayerExtensions
 
         public void SetModel(string modelPath)
         {
-            if (player.PlayerPawn == null || !player.Controller.PawnIsAlive) return;
+            if (player.PlayerPawn == null || !player.IsAlive)
+            {
+                return;
+            }
         
             DependencyManager.GetService<ISwiftlyCore>().Scheduler.NextWorldUpdateAsync(() =>
             {
@@ -79,13 +83,13 @@ public static class PlayerExtensions
 
         public bool IsNemesis()
         {
-            if (player.IsInfected())
+            if (!player.IsInfected())
             {
-                var zombie = DependencyManager.GetService<ZombieManager>().GetZombie(player.PlayerID);
-                return zombie.IsNemesis;
+                return false;
             }
-
-            return false;
+            
+            var zombie = DependencyManager.GetService<ZombieManager>().GetZombie(player.PlayerID);
+            return zombie != null && zombie.IsNemesis;
         }
         
         public bool IsHuman()
@@ -96,9 +100,8 @@ public static class PlayerExtensions
 
         public bool IsLastHuman()
         {
-            var allHumans = DependencyManager.GetService<HumanManager>().GetAllHumanPlayers();
-            var humansCount = allHumans.Count;
-            return player.IsHuman() && humansCount == 1;
+            var humanCount = DependencyManager.GetService<HumanManager>().GetHumanCount();
+            return player.IsHuman() && humanCount == 1;
         }
 
         public bool IsSurvivor()
@@ -115,7 +118,6 @@ public static class PlayerExtensions
         public IPlayerLifecycle GetLifecycle()
         {
             var playerLifecycleManager = DependencyManager.GetService<PlayerLifecycleManager>();
-
             return playerLifecycleManager.GetPlayerWithLifecycle(player);
         }
     }

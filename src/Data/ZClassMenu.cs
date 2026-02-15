@@ -1,4 +1,4 @@
-﻿using CS2ZombiePlague.Data.ZClasses;
+﻿using CS2ZombiePlague.Data.Zombies.ZClasses;
 using CS2ZombiePlague.Di;
 using SwiftlyS2.Core.Menus.OptionsBase;
 using SwiftlyS2.Shared;
