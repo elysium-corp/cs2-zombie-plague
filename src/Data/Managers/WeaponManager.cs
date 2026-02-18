@@ -10,7 +10,8 @@ public class WeaponManager(ISwiftlyCore core, RoundManager roundManager, CommonU
     
     public void RegisterWeapons()
     {
-        Register(new FrostNade(core, roundManager, commonUtils));
+        Register(new FrostNade(core, commonUtils));
+        Register(new FireNade(core, commonUtils));
         Register(new BarrierNade(core, roundManager, commonUtils));
         Register(new JumpNade(core, commonUtils));
     }

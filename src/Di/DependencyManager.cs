@@ -7,6 +7,8 @@ using CS2ZombiePlague.Config.Zombie;
 using CS2ZombiePlague.Data;
 using CS2ZombiePlague.Data.Abilities;
 using CS2ZombiePlague.Data.Abilities.Contracts;
+using CS2ZombiePlague.Data.Effects;
+using CS2ZombiePlague.Data.Effects.Contracts;
 using CS2ZombiePlague.Data.Events;
 using CS2ZombiePlague.Data.Lifecycle;
 using CS2ZombiePlague.Data.Managers;
@@ -75,12 +77,14 @@ public static class DependencyManager
             .AddSingleton<IZombieFactory, ZombieFactory>()
             .AddSingleton<IKnifeFactory, KnifeFactory>()
             .AddSingleton<IAbilityFactory, AbilityFactory>()
+            .AddSingleton<IEffectFactory, EffectFactory>()
             .AddSingleton<IWeaponFactory, WeaponFactory>()
             .AddSingleton<LifecycleManager>()
             .AddSingleton<PlayerLifecycleManager>()
             .AddSingleton<ServiceLifecycleManager>()
             .AddSingleton<ZClassMenu>()
             .AddSingleton<ZombieManager>()
+            .AddSingleton<EffectManager>()
             .AddSingleton<KnifeManager>()
             .AddSingleton<RoundManager>()
             .AddSingleton<HumanManager>()

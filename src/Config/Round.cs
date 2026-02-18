@@ -29,19 +29,24 @@ public sealed class PlagueConfig : IRoundConfig
     public int InfectionChance { get; set; } = 10;
 }
 
-public sealed class NemesisConfig : IRoundConfig
+public interface INemesisConfig
 {
-    public bool Enable { get; set; } = true;
-    public int Chance { get; set; } = 1;
-    public string MusicSoundName { get; set; } = "ZombiePlagueAbility.Nemesis";
-    public bool NemesisLeap { get; set; } = true;
-    public int NemesisBonusHealthPerPlayer { get; set; } = 1500;
+    public int NemesisBonusHealthPerPlayer { get; set; }
 }
 
 public interface ISurvivorConfig
 {
     public string Model { get; set; }
     public int SurvivorBonusHealthPerZombie { get; set; }
+}
+
+public sealed class NemesisConfig : IRoundConfig, INemesisConfig
+{
+    public bool Enable { get; set; } = true;
+    public int Chance { get; set; } = 1;
+    public string MusicSoundName { get; set; } = "ZombiePlagueAbility.Nemesis";
+    public bool NemesisLeap { get; set; } = true;
+    public int NemesisBonusHealthPerPlayer { get; set; } = 1500;
 }
 
 public sealed class SurvivorConfig : IRoundConfig, ISurvivorConfig
@@ -53,7 +58,7 @@ public sealed class SurvivorConfig : IRoundConfig, ISurvivorConfig
     public int SurvivorBonusHealthPerZombie { get; set; } = 150;
 }
 
-public sealed class ArmageddonConfig : IRoundConfig, ISurvivorConfig
+public sealed class ArmageddonConfig : IRoundConfig, ISurvivorConfig, INemesisConfig
 {
     public bool Enable { get; set; } = true;
 

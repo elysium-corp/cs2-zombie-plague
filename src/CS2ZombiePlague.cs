@@ -37,6 +37,7 @@ namespace CS2ZombiePlague
         private readonly Lazy<ScreenFade> _screenFade = new(DependencyManager.GetService<ScreenFade>);
         private readonly Lazy<ZClassMenu> _zClassMenu = new(DependencyManager.GetService<ZClassMenu>);
         private readonly Lazy<WeaponService> _weaponService = new(DependencyManager.GetService<WeaponService>);
+        private readonly Lazy<EffectManager> _effectManager = new(DependencyManager.GetService<EffectManager>);
         private readonly Lazy<CommonUtils> _utils = new(DependencyManager.GetService<CommonUtils>);
         private readonly Lazy<RoundRatingNotify> _roundRatingNotify = new(DependencyManager.GetService<RoundRatingNotify>);
         private readonly Lazy<LifecycleManager> _lifecycleManager = new(DependencyManager.GetService<LifecycleManager>);
@@ -85,6 +86,7 @@ namespace CS2ZombiePlague
             }
             
             _humanManager.Value.RegisterHooks();
+            _effectManager.Value.RegisterHooks();
 
             new ModelChanger(Core, _zombieManager.Value, _roundManager.Value, _utils.Value,
                 DependencyManager.GetService<IOptions<ModelsConfig>>()).Load();
@@ -295,6 +297,7 @@ namespace CS2ZombiePlague
             @event.AddItem("weapons/luci/eov_mp5/eov_mp5_ag2.vmdl");
             @event.AddItem("weapons/luci/parab_ssg/parab_ssg_ag2.vmdl");
             @event.AddItem("weapons/luci/psd_mp9/psd_mp9_ag2.vmdl");
+            @event.AddItem("particles/burning_fx/env_fire_small_b.vpcf");
         }
 
         [EventListener<EventDelegates.OnWeaponServicesCanUseHook>]

@@ -1,9 +1,9 @@
-﻿using CS2ZombiePlague.Data.Lifecycle;
+﻿using CS2ZombiePlague.Data.Effects;
+using CS2ZombiePlague.Data.Lifecycle;
 using CS2ZombiePlague.Data.Managers;
 using CS2ZombiePlague.Di;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Players;
-using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace CS2ZombiePlague.Data.Extensions;
 
@@ -20,7 +20,9 @@ public static class PlayerExtensions
             }
         
             playerPawn.Health = health <= 0 ? 0 : health;
+            playerPawn.MaxHealth = health <= 0 ? 0 : health;
             playerPawn.HealthUpdated();
+            playerPawn.MaxHealthUpdated();
         }
 
         public void SetArmor(int armor)
@@ -112,7 +114,11 @@ public static class PlayerExtensions
 
         public bool IsFrozen()
         {
-            return player.PlayerPawn != null && (player.PlayerPawn.MoveType == MoveType_t.MOVETYPE_FLY ? true : false);
+            return DependencyManager.GetService<EffectManager>().PlayerHasEffect<Freeze>(player);
+        }
+        public bool IsBurn()
+        {
+            return DependencyManager.GetService<EffectManager>().PlayerHasEffect<Burn>(player);
         }
         
         public IPlayerLifecycle GetLifecycle()

@@ -1,30 +1,26 @@
-﻿using CS2ZombiePlague.Data.Extensions;
+﻿using CS2ZombiePlague.Data.Effects;
+using CS2ZombiePlague.Data.Extensions;
 using CS2ZombiePlague.Data.Managers;
+using CS2ZombiePlague.Di;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Misc;
-using SwiftlyS2.Shared.Natives;
-using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
 using SwiftlyS2.Shared.Sounds;
 using Vector = SwiftlyS2.Shared.Natives.Vector;
 
 namespace CS2ZombiePlague.Data.Weapons.Grenades;
 
-public class FrostNade(ISwiftlyCore core, RoundManager roundManager, CommonUtils commonUtils) : ICustomWeapon, IGrenade
+public class FrostNade(ISwiftlyCore core, CommonUtils commonUtils) : ICustomWeapon, IGrenade
 {
     public string OriginalName => "hegrenade_projectile";
     public string IternalName => "weapon_frost_nade";
     public string DisplayName => "FrostNade";
-
-    private readonly Dictionary<int, Color> _oldRender = new();
-    private readonly Dictionary<int, IPlayer> _frozenPlayers = new();
+    
+    private readonly EffectManager _effectManager = DependencyManager.GetService<EffectManager>();
 
     private const float ExplodeRadius = 250.0f;
-    private const float FreezeTime = 5.0f;
-    private const float Delay = 0.1f;
-    private const float StartTime = 0f;
 
     public void Load()
     {
@@ -41,14 +37,7 @@ public class FrostNade(ISwiftlyCore core, RoundManager roundManager, CommonUtils
         {
             if (player.IsInfected() && !player.IsNemesis() && !player.IsFrozen())
             {
-                _oldRender[player.PlayerID] = player.PlayerPawn.Render;
-                _frozenPlayers[player.PlayerID] = player;
-
-                player.PlayerPawn.Render = new Color(127, 127, 255);
-                player.PlayerPawn.RenderUpdated();
-                Freeze(player);
-
-                CreateStateHandler(player);
+                _effectManager.ApplyEffect<Freeze>(null, player);
             }
         }
     }
@@ -72,53 +61,7 @@ public class FrostNade(ISwiftlyCore core, RoundManager roundManager, CommonUtils
 
         return HookResult.Handled;
     }
-
-    private void CreateStateHandler(IPlayer player)
-    {
-        var startTime = StartTime;
-
-        CancellationTokenSource token = null!;
-        token = core.Scheduler.RepeatBySeconds(Delay, () =>
-        {
-            startTime += Delay;
-
-            if (player == null && !player.Controller.PawnIsAlive)
-            {
-                token.Cancel();
-            }
-
-            if (startTime >= FreezeTime || !player.IsInfected() || roundManager.IsNoneRound() ||
-                !player.Controller.PawnIsAlive)
-            {
-                _frozenPlayers[player.PlayerID] = null;
-                player.PlayerPawn.Render = _oldRender[player.PlayerID];
-
-                UnFreeze(player);
-                player.PlayerPawn.RenderUpdated();
-                token.Cancel();
-            }
-        });
-    }
-
-    private void Freeze(IPlayer player)
-    {
-        player.PlayerPawn.MoveType = MoveType_t.MOVETYPE_FLY;
-        player.PlayerPawn.ActualMoveType = MoveType_t.MOVETYPE_FLY;
-        player.PlayerPawn.MoveTypeUpdated();
-        player.PlayerPawn.AbsVelocity = new Vector(0, 0, 0);
-
-        PlaySound("FrostNade.hit", (int)player.PlayerPawn.Index);
-    }
-
-    private void UnFreeze(IPlayer player)
-    {
-        player.PlayerPawn.MoveType = MoveType_t.MOVETYPE_WALK;
-        player.PlayerPawn.ActualMoveType = MoveType_t.MOVETYPE_WALK;
-        player.PlayerPawn.MoveTypeUpdated();
-
-        PlaySound("FrostNade.end", (int)player.PlayerPawn.Index);
-    }
-
+    
     private void PlaySound(string soundName, int entityIndex)
     {
         using var soundEvent = new SoundEvent()
