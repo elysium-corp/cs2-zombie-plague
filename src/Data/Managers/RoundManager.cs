@@ -13,11 +13,14 @@ public class RoundManager(ISwiftlyCore core, IOptions<ZombiePlagueCoreConfig> co
     private IRound? _currentRound;
 
     private CancellationTokenSource? _token;
+    private const int TimerTickInterval = 1;
 
     public void RegisterRounds()
     {
         _rounds.Clear();
+        
         _rounds.Add(roundFactory.Create(null, this));
+        
         List<IRoundConfig> rounds =
         [
             roundConfig.Value.Infection,
@@ -25,7 +28,8 @@ public class RoundManager(ISwiftlyCore core, IOptions<ZombiePlagueCoreConfig> co
             roundConfig.Value.Nemesis,
             roundConfig.Value.Survivor,
             roundConfig.Value.Armageddon
-        ];
+        ]; 
+        
         foreach (var round in rounds)
         {
             var instance = roundFactory.Create(round, this);
@@ -36,47 +40,24 @@ public class RoundManager(ISwiftlyCore core, IOptions<ZombiePlagueCoreConfig> co
         }
     }
 
-    public void Start()
+    public void StartGameCountdown()
     {
-        var roundStartTime = coreConfig.Value.PreStartDelay;
-        var localTime = 0;
-        bool soundIsActive = false;
-
         StartRoundMusic();
             
-        _token = core.Scheduler.RepeatBySeconds(1, () =>
-        {
-            localTime += 1;
-            core.PlayerManager.SendCenterAsync("До заражения " + (roundStartTime - localTime) + " секунд");
-
-            if (roundStartTime - localTime <= 11 && !soundIsActive)
-            {
-                soundIsActive = StartCountdownSound();
-            }
-
-            if (localTime >= roundStartTime)
-            {
-                if (_currentRound is None)
-                {
-                    SetRound(RandomRound());
-                }
-
-                _currentRound!.Start();
-                _token?.Cancel();
-            }
-        });
+        StartCountdownTimer();
     }
 
     public bool RoundIsAvailable()
     {
         var players = core.PlayerManager.GetAllPlayers();
-
-        if (core.EntitySystem.GetGameRules()?.WarmupPeriod == true)
+        var gameRules = core.EntitySystem.GetGameRules();
+        
+        if (gameRules == null)
         {
             return false;
         }
 
-        return players.Count() > 1;
+        return players.Count() > 1 && !gameRules.WarmupPeriod;
     }
 
     public bool IsNoneRound()
@@ -86,10 +67,7 @@ public class RoundManager(ISwiftlyCore core, IOptions<ZombiePlagueCoreConfig> co
 
     public void CancelToken()
     {
-        if (_token != null)
-        {
-            _token.Cancel();
-        }
+        _token?.Cancel();
     }
 
     public void SetRound(IRound round)
@@ -110,6 +88,7 @@ public class RoundManager(ISwiftlyCore core, IOptions<ZombiePlagueCoreConfig> co
             Name = "ZombiePlagueSounds.round_start",
             SourceEntityIndex = -1
         };
+        
         soundEvent.Recipients.AddAllPlayers();
         soundEvent.Emit();
     }
@@ -128,7 +107,39 @@ public class RoundManager(ISwiftlyCore core, IOptions<ZombiePlagueCoreConfig> co
         return true;
     }
 
-    private IRound RandomRound()
+    private void StartCountdownTimer()
+    {   
+        var roundStartTime = coreConfig.Value.PreStartDelay;
+        var currentTime = 0;
+        var soundIsActive = false;
+        
+        _token = core.Scheduler.RepeatBySeconds(TimerTickInterval, () =>
+        {
+            currentTime += TimerTickInterval;
+
+            var timeUntilStart = roundStartTime - currentTime;
+            
+            core.PlayerManager.SendCenterAsync("До заражения " + (timeUntilStart) + " секунд");
+
+            if (timeUntilStart <= 11 && !soundIsActive)
+            {
+                soundIsActive = StartCountdownSound();
+            }
+
+            if (timeUntilStart <= 0)
+            {
+                if (_currentRound is None)
+                {
+                    SetRound(GenerateRandomRound());
+                }
+
+                _currentRound?.Start();
+                _token?.Cancel();
+            }
+        });
+    }
+    
+    private IRound GenerateRandomRound()
     {
         var totalWeight = 0;
         foreach (var round in _rounds)

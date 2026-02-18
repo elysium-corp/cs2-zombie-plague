@@ -10,12 +10,13 @@ namespace CS2ZombiePlague.Data.Effects;
 public class Burn(IPlayer? caster, IPlayer target) : BaseTickEffect(caster, target), IParticleRestricted
 {
     private readonly ISwiftlyCore _core = DependencyManager.GetService<ISwiftlyCore>();
-    public override float TickInterval { get; set; } = 1.0f;
-    public override float Duration { get; set; } = 5.0f;
-    private float DamagePerTickInPercent { get; } = 2.0f;
+    private const float DamagePerTickInPercent = 1.0f;
+    private const float InstantDamageInPercent = 5.0f;
+    private const string ParticleName = "particles/inferno_fx/molotov_child_flame01a.vpcf";
     public CParticleSystem? Particle { get; set; }
-    private const string ParticleName = "particles/burning_fx/env_fire_small_b.vpcf";
-
+    public override float Duration { get; set; } = 5.0f;
+    public override float TickInterval { get; set; } = 0.5f;
+    
     protected override bool CanApply()
     {
         if (!Target.IsValid || !Target.IsAlive) return false;
@@ -26,9 +27,11 @@ public class Burn(IPlayer? caster, IPlayer target) : BaseTickEffect(caster, targ
     protected override void ApplyEffect()
     {
         CreateParticle();
+
+        ApplyInstantDamage();
     }
-    
-    protected override void DestroyEffect()
+
+    public override void DestroyEffect()
     {
         DestroyParticle();
         base.DestroyEffect();
@@ -37,17 +40,18 @@ public class Burn(IPlayer? caster, IPlayer target) : BaseTickEffect(caster, targ
     protected override void TickEffect()
     {
         Target.PlayerPawn?.TakeDamage(
-            GetFireDamage(),
+            GetFireDamage(DamagePerTickInPercent),
             DamageTypes_t.DMG_ACID,
             inflictor: null,
             attacker: Caster?.PlayerPawn
         );
     }
-    private int GetFireDamage()
+
+    private int GetFireDamage(float percent)
     {
-        return (int)(Target.PlayerPawn!.MaxHealth * (DamagePerTickInPercent / 100));
+        return (int)(Target.PlayerPawn!.MaxHealth * (percent / 100));
     }
- 
+
     public void CreateParticle()
     {
         var playerPawn = Target?.PlayerPawn;
@@ -55,7 +59,7 @@ public class Burn(IPlayer? caster, IPlayer target) : BaseTickEffect(caster, targ
         {
             return;
         }
-        
+
         Particle = _core.EntitySystem.CreateEntity<CParticleSystem>();
         Particle.EffectName = ParticleName;
         Particle.StartActive = true;
@@ -72,5 +76,15 @@ public class Burn(IPlayer? caster, IPlayer target) : BaseTickEffect(caster, targ
         {
             Particle.Despawn();
         }
+    }
+
+    private void ApplyInstantDamage()
+    {
+        Target.PlayerPawn?.TakeDamage(
+            GetFireDamage(InstantDamageInPercent),
+            DamageTypes_t.DMG_ACID,
+            inflictor: null,
+            attacker: Caster?.PlayerPawn
+        );
     }
 }

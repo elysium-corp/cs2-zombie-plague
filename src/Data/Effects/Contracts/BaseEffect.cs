@@ -39,9 +39,8 @@ public abstract class BaseEffect : ISoundPlayable
     /// <summary>
     /// Вызывается в конце жизни эффекта.
     /// </summary>
-    protected virtual void DestroyEffect()
+    public virtual void DestroyEffect()
     {
-        _effectManager.Effects.Remove(this);
         DurationThinker?.Cancel();
     }
 
@@ -57,7 +56,7 @@ public abstract class BaseEffect : ISoundPlayable
             return;
         }
         
-        _effectManager.Effects.Add(this);
+        _effectManager.AddEffect(this);
         
         StartDestroyTimer();
 

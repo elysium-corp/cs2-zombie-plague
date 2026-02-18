@@ -189,7 +189,7 @@ namespace CS2ZombiePlague
 
             if (roundManager.RoundIsAvailable())
             {
-                roundManager.Start();
+                roundManager.StartGameCountdown();
             }
 
             return HookResult.Continue;
@@ -298,6 +298,7 @@ namespace CS2ZombiePlague
             @event.AddItem("weapons/luci/parab_ssg/parab_ssg_ag2.vmdl");
             @event.AddItem("weapons/luci/psd_mp9/psd_mp9_ag2.vmdl");
             @event.AddItem("particles/burning_fx/env_fire_small_b.vpcf");
+            @event.AddItem("particles/inferno_fx/molotov_child_flame01a.vpcf");
         }
 
         [EventListener<EventDelegates.OnWeaponServicesCanUseHook>]

@@ -15,7 +15,7 @@ public abstract class BaseTickEffect : BaseEffect
         CreateTickThinker();
     }
     
-    protected override void DestroyEffect()
+    public override void DestroyEffect()
     {
         base.DestroyEffect();
         DestroyThinker();

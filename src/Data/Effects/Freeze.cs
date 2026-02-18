@@ -22,7 +22,7 @@ public class Freeze(IPlayer? caster, IPlayer target) : BaseEffect(caster, target
         PlaySound(FreezeSoundName);
     }
 
-    protected override void DestroyEffect()
+    public override void DestroyEffect()
     {
         ApplyUnfreezeEffect();
         PlaySound(UnFreezeSoundName);
