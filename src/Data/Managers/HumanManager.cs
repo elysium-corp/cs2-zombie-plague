@@ -48,7 +48,29 @@ public class HumanManager(ISwiftlyCore core, IEventSubscriber eventSubscriber) :
 
     public Human? GetHuman(IPlayer player)
     {
-        return _humans.ContainsKey(player) ? _humans[player] : null;
+        return _humans.GetValueOrDefault(player);
+    }
+
+    public void Respawn(IPlayer player)
+    {
+        if (player.IsAlive)
+        {
+            return;
+        }
+        
+        if (player.IsInfected())
+        {
+            return;
+        }
+
+        if (!player.IsHuman())
+        {
+            var human = new Human(player);
+            _humans.Add(player, human);
+        }
+        
+        player.SwitchTeam(Team.CT);
+        player.Respawn();
     }
 
     public int GetHumanCount()

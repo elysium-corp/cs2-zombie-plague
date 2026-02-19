@@ -1,21 +1,58 @@
 ﻿using CS2ZombiePlague.Data.Events;
+using CS2ZombiePlague.Data.Extensions;
 using CS2ZombiePlague.Data.Zombies;
 using CS2ZombiePlague.Data.Zombies.ZClasses;
 using CS2ZombiePlague.Di;
 using SwiftlyS2.Shared;
+using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.GameEventDefinitions;
+using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Players;
 
 namespace CS2ZombiePlague.Data.Managers;
 
-public class ZombieManager(
-    ISwiftlyCore core,
-    IZombieFactory zombieFactory,
-    ZClassMenu zClassMenu,
-    IEventPublisher eventPublisher)
+public class ZombieManager(ISwiftlyCore core, IZombieFactory zombieFactory, ZClassMenu zClassMenu, IEventPublisher eventPublisher)
 {
     private readonly Dictionary<int, Zombie> _zombiePlayers = new();
+    
+    private Guid _onPlayerDisconnectEvent;
+    
+    public void RegisterHooks()
+    {
+        _onPlayerDisconnectEvent = core.GameEvent.HookPost<EventPlayerDisconnect>(OnPlayerDisconnect);
+        core.Event.OnWeaponServicesCanUseHook += OnItemServicesCanAcquireHook;
+    }
 
+    private void OnItemServicesCanAcquireHook(IOnWeaponServicesCanUseHookEvent @event)
+    {
+        var pawn = @event.WeaponServices.Pawn;
+        var player = core.PlayerManager.GetPlayerFromPawn(pawn);
+
+        if (player == null || !player.IsValid)
+        {
+            return;
+        }
+            
+        var weaponName = @event.Weapon.DesignerName;
+
+        if (player.IsInfected() && !weaponName.Contains("knife") && !weaponName.Contains("smoke"))
+        {
+            @event.SetResult(false);
+        }
+    }
+    
+    private HookResult OnPlayerDisconnect(EventPlayerDisconnect @event)
+    {
+        var playerId = @event.PlayerID;
+        var zombie = GetZombie(playerId);
+        if (zombie != null)
+        {
+            _zombiePlayers.Remove(playerId);
+        }
+        
+        return HookResult.Continue;
+    }
+    
     public Zombie? CreateZombie(IPlayer player, IPlayer? infector = null)
     {
         if (!player.IsValid)

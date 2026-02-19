@@ -1,23 +1,13 @@
 using CS2ZombiePlague.Config;
 using CS2ZombiePlague.Config.models;
 using CS2ZombiePlague.Data;
-using CS2ZombiePlague.Data.Extensions;
 using CS2ZombiePlague.Data.Lifecycle;
 using CS2ZombiePlague.Data.Managers;
-using CS2ZombiePlague.Data.Rounds;
-using CS2ZombiePlague.Data.Weapons.Shotguns;
 using CS2ZombiePlague.Di;
-using CS2ZombiePlague.Service;
 using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;
-using SwiftlyS2.Shared.Commands;
 using SwiftlyS2.Shared.Events;
-using SwiftlyS2.Shared.GameEventDefinitions;
-using SwiftlyS2.Shared.GameEvents;
-using SwiftlyS2.Shared.Misc;
-using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.Plugins;
-using SwiftlyS2.Shared.SchemaDefinitions;
 using EventDelegates = SwiftlyS2.Shared.Events.EventDelegates;
 
 namespace CS2ZombiePlague
@@ -36,12 +26,10 @@ namespace CS2ZombiePlague
         private readonly Lazy<MoneySystem> _moneySystem = new(DependencyManager.GetService<MoneySystem>);
         private readonly Lazy<ScreenFade> _screenFade = new(DependencyManager.GetService<ScreenFade>);
         private readonly Lazy<ZClassMenu> _zClassMenu = new(DependencyManager.GetService<ZClassMenu>);
-        private readonly Lazy<WeaponService> _weaponService = new(DependencyManager.GetService<WeaponService>);
         private readonly Lazy<EffectManager> _effectManager = new(DependencyManager.GetService<EffectManager>);
         private readonly Lazy<CommonUtils> _utils = new(DependencyManager.GetService<CommonUtils>);
         private readonly Lazy<RoundRatingNotify> _roundRatingNotify = new(DependencyManager.GetService<RoundRatingNotify>);
         private readonly Lazy<LifecycleManager> _lifecycleManager = new(DependencyManager.GetService<LifecycleManager>);
-        private readonly Lazy<PlayerLifecycleManager> _playerLifecycleManager = new(DependencyManager.GetService<PlayerLifecycleManager>);
 
         public override void Load(bool hotReload)
         {
@@ -52,13 +40,35 @@ namespace CS2ZombiePlague
             }
 
             DependencyManager.Load(Core);
-            
+
             _lifecycleManager.Value.Initialize();
-            _roundManager.Value.RegisterRounds();
             _weaponManager.Value.RegisterWeapons();
+
+            RegisterHooks();
+            LoadFeatures();
+
+            new ModelChanger(Core, _zombieManager.Value, _roundManager.Value, _utils.Value,
+                DependencyManager.GetService<IOptions<ModelsConfig>>()).Load();
+            new AdminMenu(Core, _roundManager.Value, _zombieManager.Value).Load();
+        }
+
+        public override void Unload()
+        {
+        }
+
+        private void RegisterHooks()
+        {
+            _roundManager.Value.RegisterRounds();
             _knifeManager.Value.RegisterHooks();
             _zClassMenu.Value.RegisterHooks();
+            _zombieManager.Value.RegisterHooks();
+            _humanManager.Value.RegisterHooks();
+            _effectManager.Value.RegisterHooks();
+            _roundManager.Value.RegisterHooks();
+        }
 
+        private void LoadFeatures()
+        {
             var config = DependencyManager.GetService<IOptions<ZombiePlagueCoreConfig>>().Value;
             if (config.DamageNotifyEnabled)
             {
@@ -79,161 +89,11 @@ namespace CS2ZombiePlague
             {
                 _screenFade.Value.Start();
             }
-            
+
             if (config.RoundRatingNotify)
             {
                 _roundRatingNotify.Value.Start();
             }
-            
-            _humanManager.Value.RegisterHooks();
-            _effectManager.Value.RegisterHooks();
-
-            new ModelChanger(Core, _zombieManager.Value, _roundManager.Value, _utils.Value,
-                DependencyManager.GetService<IOptions<ModelsConfig>>()).Load();
-            new AdminMenu(Core, _roundManager.Value, _zombieManager.Value).Load();
-
-            RegisterCommands();
-            
-            Core.GameEvent.HookPre<EventRoundStart>(OnRoundStart);
-            Core.GameEvent.HookPost<EventRoundEnd>(OnRoundEnd);
-        }
-
-        public override void Unload()
-        {
-        }
-        
-        private void RegisterCommands()
-        {
-            Core.Command.RegisterCommand(
-                commandName: "gun",
-                handler: GunHandler,
-                registerRaw: true
-            );
-            
-            Core.Command.RegisterCommand(
-                commandName: "debug",
-                handler: DebugHandler,
-                registerRaw: true
-            );
-        }
-
-        private void GunHandler(ICommandContext context)
-        {
-            var player = context.Sender;
-            
-            if (!context.IsSentByPlayer)
-            {
-                return;
-            }
-
-            if (player == null)
-            {
-                return;
-            }
-            
-            Core.PlayerManager.SendChat($"Команда !{context.CommandName} вызвалась!");
-            _weaponService.Value.GiveWeapon<Frostbyte, CWeaponMP7>(player);
-        }
-        
-        private void DebugHandler(ICommandContext context)
-        {
-            var player = context.Sender;
-            
-            if (!context.IsSentByPlayer)
-            {
-                return;
-            }
-
-            if (player == null)
-            {
-                return;
-            }
-
-            var weaponService = _weaponService.Value;
-            var weapons = weaponService.GetAllWeapons();
-            var numberOfWeapons = weapons.Count;
-            
-            Core.PlayerManager.SendChat($"WeaponService на данный момент имеет {numberOfWeapons} пушек");
-
-            for (int i = 0; i < numberOfWeapons; i++)
-            {
-                Core.PlayerManager.SendChat($"{i + 1}. {weapons[i].DisplayName} (index = {weapons[i].InheritorWeapon?.Index})");
-            }
-
-            var playerLifecycleManager = _playerLifecycleManager.Value;
-            
-            foreach (var playerLifecycle in playerLifecycleManager.GetPlayers())
-            {
-                Core.PlayerManager.SendChat($"playerLifecycle = {playerLifecycle.Player.Controller.PlayerName}");
-            }
-        }
-
-        [GameEventHandler(HookMode.Pre)]
-        private HookResult OnMapChange(EventMapTransition @event)
-        {
-            return HookResult.Continue;
-        }
-
-        private HookResult OnRoundStart(EventRoundStart @event)
-        {
-            var zombieManager = _zombieManager.Value;
-            var roundManager = _roundManager.Value;
-            var utils = _utils.Value;
-
-            zombieManager.RemoveAll();
-            roundManager.CancelToken();
-            utils.MoveAllPlayersToTeam(Team.CT);
-            utils.AllResetRenderColor();
-
-            roundManager.SetRound(new None());
-
-            if (roundManager.RoundIsAvailable())
-            {
-                roundManager.StartGameCountdown();
-            }
-
-            return HookResult.Continue;
-        }
-
-        [GameEventHandler(HookMode.Pre)]
-        private HookResult OnPlayerHurt(EventPlayerHurt @event)
-        {
-            var roundManager = _roundManager.Value;
-            var victim = Core.PlayerManager.GetPlayer(@event.UserId);
-            if (victim == null)
-            {
-                return HookResult.Continue;
-            }
-
-            if (roundManager.IsNoneRound())
-            {
-                return HookResult.Stop;
-            }
-
-            return HookResult.Continue;
-        }
-
-        private HookResult OnRoundEnd(EventRoundEnd @event)
-        {
-            var roundManager = _roundManager.Value;
-            if (roundManager.GetRound() != null)
-            {
-                roundManager.GetRound()?.End();
-            }
-
-            return HookResult.Continue;
-        }
-        
-        [GameEventHandler(HookMode.Pre)]
-        private HookResult OnGameRestart(EventCsPreRestart @event)
-        {
-            var roundManager = _roundManager.Value;
-            if (roundManager.GetRound() != null)
-            {
-                roundManager.GetRound()?.End();
-            }
-
-            return HookResult.Continue;
         }
 
         [EventListener<EventDelegates.OnPrecacheResource>]
@@ -273,7 +133,7 @@ namespace CS2ZombiePlague
             @event.AddItem("soundevents/soundevents_zombieplague.vsndevts");
             @event.AddItem("particles/explosions_fx/bumpmine_detonate_sparks.vpcf");
             @event.AddItem("particles/explosions_fx/bumpmine_detonate.vpcf");
-            @event.AddItem("models/de_overpass/decorations/security_camera/security_camera_1_base.vmdl"); 
+            @event.AddItem("models/de_overpass/decorations/security_camera/security_camera_1_base.vmdl");
             @event.AddItem("sounds/cs2/countdown/countdown.vsnd");
             @event.AddItem("sounds/cs2/weapons/frostnade/frostnade_detonate.vsnd");
             @event.AddItem("sounds/cs2/weapons/frostnade/frostnade_end.vsnd");
@@ -298,57 +158,6 @@ namespace CS2ZombiePlague
             @event.AddItem("weapons/luci/parab_ssg/parab_ssg_ag2.vmdl");
             @event.AddItem("weapons/luci/psd_mp9/psd_mp9_ag2.vmdl");
             @event.AddItem("particles/burning_fx/env_fire_small_b.vpcf");
-            @event.AddItem("particles/inferno_fx/molotov_child_flame01a.vpcf");
-        }
-
-        [EventListener<EventDelegates.OnWeaponServicesCanUseHook>]
-        private void OnItemServicesCanAcquireHook(IOnWeaponServicesCanUseHookEvent @event)
-        {
-            var pawn = @event.WeaponServices.Pawn;
-            var player = core.PlayerManager.GetPlayerFromPawn(pawn);
-
-            if (player is not { IsValid: true })
-            {
-                return;
-            }
-            
-            var weaponName = @event.Weapon.DesignerName;
-
-            if (player.IsInfected() && !weaponName.Contains("knife") && !weaponName.Contains("smoke"))
-            {
-                @event.SetResult(false);
-            }
-        }
-        
-        [GameEventHandler(HookMode.Pre)]
-        private HookResult EventPlayerDisconnect(EventPlayerDisconnect @event)
-        {
-            var player = @event.UserIdPlayer;
-            if (player == null || player.IsFakeClient)
-                return HookResult.Continue;
-
-            if (_zombieManager.Value.GetZombie(player.PlayerID) != null)
-            {
-                _zombieManager.Value.Remove(player);
-            }
-
-            return HookResult.Continue;
-        }
-
-        [GameEventHandler(HookMode.Pre)]
-        private HookResult EventPlayerConnectFull(EventPlayerConnectFull @event)
-        {
-            var player = @event.UserIdPlayer;
-            if (player == null || player.IsFakeClient)
-                return HookResult.Continue;
-
-            if (_roundManager.Value.IsNoneRound())
-            {
-                player.SwitchTeam(Team.CT);
-                player.Respawn();
-            }
-
-            return HookResult.Continue;
         }
     }
 }
