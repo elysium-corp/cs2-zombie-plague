@@ -80,7 +80,7 @@ public class Knockback(ISwiftlyCore core, ZombieManager zombieManager, KnifeMana
         
         if (weaponName == "weapon_knife")
         {
-            weaponKnockback = knifeManager.GetCurrentKnife(attacker.PlayerID).Knockback;
+            weaponKnockback = knifeManager.GetPlayerKnife(attacker).Knockback;
         }
 
         var attackerPawn = attacker.RequiredPlayerPawn;
