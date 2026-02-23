@@ -1,4 +1,5 @@
 using CS2ZombiePlague.Config;
+using CS2ZombiePlague.Data.Events;
 using CS2ZombiePlague.Data.Rounds;
 using CS2ZombiePlague.Di;
 using Microsoft.Extensions.Options;
@@ -10,7 +11,7 @@ using SwiftlyS2.Shared.Sounds;
 
 namespace CS2ZombiePlague.Data.Managers;
 
-public class RoundManager(ISwiftlyCore core, IOptions<ZombiePlagueCoreConfig> coreConfig, IOptions<RoundConfig> roundConfig, IRoundFactory roundFactory)
+public class RoundManager(ISwiftlyCore core, IOptions<ZombiePlagueCoreConfig> coreConfig, IOptions<RoundConfig> roundConfig, IRoundFactory roundFactory, IEventPublisher eventPublisher)
     : IRoundManager
 {
     private readonly ZombieManager _zombieManager = DependencyManager.GetService<ZombieManager>();
@@ -18,7 +19,7 @@ public class RoundManager(ISwiftlyCore core, IOptions<ZombiePlagueCoreConfig> co
     private readonly CommonUtils _commonUtils = DependencyManager.GetService<CommonUtils>();
     
     private readonly List<IRound> _rounds = [];
-    private IRound? _currentRound;
+    private IRound _currentRound = new None();
 
     private CancellationTokenSource? _token;
     
@@ -137,7 +138,9 @@ public class RoundManager(ISwiftlyCore core, IOptions<ZombiePlagueCoreConfig> co
                 {
                     SetRound(RandomRound());
                 }
-
+                
+                eventPublisher.OnGameRoundStarted(_currentRound);
+                
                 _currentRound!.Start();
                 _token?.Cancel();
             }
@@ -171,7 +174,7 @@ public class RoundManager(ISwiftlyCore core, IOptions<ZombiePlagueCoreConfig> co
         _currentRound = round;
     }
 
-    public IRound? GetRound()
+    public IRound GetRound()
     {
         return _currentRound;
     }

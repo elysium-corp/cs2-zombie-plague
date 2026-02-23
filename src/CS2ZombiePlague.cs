@@ -3,6 +3,7 @@ using CS2ZombiePlague.Config.models;
 using CS2ZombiePlague.Data;
 using CS2ZombiePlague.Data.Lifecycle;
 using CS2ZombiePlague.Data.Managers;
+using CS2ZombiePlague.Data.SupplyBox;
 using CS2ZombiePlague.Di;
 using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;
@@ -34,7 +35,7 @@ namespace CS2ZombiePlague
         public override void Load(bool hotReload)
         {
             if (hotReload)
-            {
+            { 
                 DependencyManager.Dispose();
                 _lifecycleManager.Value.Dispose();
             }
@@ -50,6 +51,7 @@ namespace CS2ZombiePlague
             new ModelChanger(Core, _zombieManager.Value, _roundManager.Value, _utils.Value,
                 DependencyManager.GetService<IOptions<ModelsConfig>>()).Load();
             new AdminMenu(Core, _roundManager.Value, _zombieManager.Value).Load();
+            new SupplyBox().RegisterHooks();
         }
 
         public override void Unload()
@@ -158,6 +160,9 @@ namespace CS2ZombiePlague
             @event.AddItem("weapons/luci/parab_ssg/parab_ssg_ag2.vmdl");
             @event.AddItem("weapons/luci/psd_mp9/psd_mp9_ag2.vmdl");
             @event.AddItem("particles/burning_fx/env_fire_small_b.vpcf");
+            @event.AddItem("models/props/crates/cs2_drop_crate_01.vmdl");
+            @event.AddItem("characters/nozb1/parachute/parachute_carbon/parachute_open.vmdl");
+            @event.AddItem("sounds/cs2/supplybox/supplybox_fly.vsnd");
         }
     }
 }

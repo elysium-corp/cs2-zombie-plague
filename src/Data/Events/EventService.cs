@@ -1,5 +1,6 @@
-﻿using SwiftlyS2.Shared.Players;
-using SwiftlyS2.Shared.SchemaDefinitions;
+﻿using CS2ZombiePlague.Data.Rounds;
+using CS2ZombiePlague.Data.SupplyBox;
+using SwiftlyS2.Shared.Players;
 
 namespace CS2ZombiePlague.Data.Events;
 
@@ -7,7 +8,9 @@ public sealed class EventService : IEventSubscriber, IEventPublisher
 {
     public event EventDelegates.OnPlayerInfectedBy? OnPlayerInfectedBy;
     public event EventDelegates.OnPlayerInfected? OnPlayerInfected;
-    public event EventDelegates.OnWeaponDrop? OnWeaponDrop;
+    public event EventDelegates.OnGameRoundStarted? OnGameRoundStarted;
+    public event EventDelegates.OnSupplyBoxDropped? OnSupplyBoxDropped;
+    public event EventDelegates.OnSupplyBoxPickedUp? OnSupplyBoxPickedUp;
 
     void IEventPublisher.OnPlayerInfectedBy(IPlayer infector, IPlayer victim)
     {
@@ -40,16 +43,49 @@ public sealed class EventService : IEventSubscriber, IEventPublisher
             }
         }
     }
-    
-    void IEventPublisher.OnWeaponDrop(IPlayer player, CCSWeaponBase weapon)
+
+    void IEventPublisher.OnGameRoundStarted(IRound round)
     {
-        var handlers = OnWeaponDrop;
+        var handlers = OnGameRoundStarted;
         if (handlers == null) return;
         
         foreach (var @delegate in handlers.GetInvocationList())
         {
-            var handler = (EventDelegates.OnWeaponDrop)@delegate;
-            try { handler(player, weapon); }
+            var handler = (EventDelegates.OnGameRoundStarted)@delegate;
+            try { handler(round); }
+            catch (Exception ex)
+            {
+                // add custom logger
+            }
+        }
+    }
+
+    void IEventPublisher.OnSupplyBoxDropped(SupplyBoxEntity supplyBox)
+    {
+        var handlers = OnSupplyBoxDropped;
+        if (handlers == null) return;
+        
+        foreach (var @delegate in handlers.GetInvocationList())
+        {
+            var handler = (EventDelegates.OnSupplyBoxDropped)@delegate;
+            try { handler(supplyBox); }
+            catch (Exception ex)
+            {
+                // add custom logger
+            }
+        }
+    }
+
+    void IEventPublisher.OnSupplyBoxPickedUp(IPlayer player, SupplyBoxEntity supplyBox)
+    {
+        var handlers = OnSupplyBoxPickedUp;
+        
+        if (handlers == null) return;
+        
+        foreach (var @delegate in handlers.GetInvocationList())
+        {
+            var handler = (EventDelegates.OnSupplyBoxPickedUp)@delegate;
+            try { handler(player,  supplyBox); }
             catch (Exception ex)
             {
                 // add custom logger

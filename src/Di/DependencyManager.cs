@@ -2,6 +2,7 @@
 using CS2ZombiePlague.Config;
 using CS2ZombiePlague.Config.Ability;
 using CS2ZombiePlague.Config.models;
+using CS2ZombiePlague.Config.SupplyBox;
 using CS2ZombiePlague.Config.Weapon;
 using CS2ZombiePlague.Config.Zombie;
 using CS2ZombiePlague.Data;
@@ -13,6 +14,7 @@ using CS2ZombiePlague.Data.Events;
 using CS2ZombiePlague.Data.Lifecycle;
 using CS2ZombiePlague.Data.Managers;
 using CS2ZombiePlague.Data.Rounds;
+using CS2ZombiePlague.Data.SupplyBox;
 using CS2ZombiePlague.Data.Weapons;
 using CS2ZombiePlague.Data.Weapons.Knifes;
 using CS2ZombiePlague.Data.Zombies;
@@ -32,16 +34,24 @@ public static class DependencyManager
     
     private const string RoundConfigName = "round.json";
     private const string RoundConfigSectionName = "RoundConfig";
+    
     private const string AbilityConfigName = "ability.json";
     private const string AbilityConfigSectionName = "AbilityConfig";
+    
     private const string ZClassConfigName = "zombie_class.json";
     private const string ZClassConfigSectionName = "ZClassConfig";
+    
     private const string KnifeConfigName = "knife.json";
     private const string KnifeConfigSectionName = "KnifeConfig";
+    
     private const string CoreConfigName = "core.json";
     private const string CoreConfigSectionName = "CoreConfig";
+    
     private const string ModelConfigName = "models.json";
     private const string ModelConfigSectionName = "ModelConfig";
+    
+    private const string SupplyBoxConfigName = "supply_box.json";
+    private const string SupplyBoxConfigSectionName = "SupplyBox";
 
     public static void Load(ISwiftlyCore core)
     {
@@ -68,6 +78,10 @@ public static class DependencyManager
         core.Configuration
             .InitializeJsonWithModel<ModelsConfig>(ModelConfigName, ModelConfigSectionName)
             .Configure(builder => { builder.AddJsonFile(ModelConfigName, optional: false, reloadOnChange: true); });
+        
+        core.Configuration
+            .InitializeJsonWithModel<SupplyBoxConfig>(SupplyBoxConfigName, SupplyBoxConfigSectionName)
+            .Configure(builder => { builder.AddJsonFile(SupplyBoxConfigName, optional: false, reloadOnChange: true); });
 
         _services = new ServiceCollection();
 
@@ -96,7 +110,11 @@ public static class DependencyManager
             .AddSingleton<WeaponService>()
             .AddSingleton<RoundRatingNotify>()
             .AddSingleton<WeaponParticleService>()
-            .AddSingleton<CommonUtils>();
+            .AddSingleton<CommonUtils>()
+            .AddSingleton<SupplyBoxMapConfigService>()
+            .AddSingleton<SupplyBoxMenuService>()
+            .AddSingleton<SupplyBoxEditService>();
+        
         
         _services
             .AddOptionsWithValidateOnStart<RoundConfig>()
@@ -121,6 +139,10 @@ public static class DependencyManager
         _services
             .AddOptionsWithValidateOnStart<ModelsConfig>()
             .BindConfiguration(ModelConfigSectionName);
+        
+        _services
+            .AddOptionsWithValidateOnStart<SupplyBoxConfig>()
+            .BindConfiguration(SupplyBoxConfigSectionName);
         
         // EventService Registration 
         _services.AddSingleton<EventService>();
