@@ -6,10 +6,14 @@ using SwiftlyS2.Shared.Sounds;
 
 namespace CS2ZombiePlague.Data.Effects;
 
-public class Freeze(IPlayer? caster, IPlayer target) : BaseEffect(caster, target)
+public sealed class Freeze(IPlayer? caster, IPlayer target) : BaseEffect(caster, target)
 {
-    public override float Duration { get; set; } = 5.0f;
-    
+    public override float Duration { get; } = 5.0f;
+    public override void Destroy()
+    {
+        DestroyEffect();
+    }
+
     private readonly Color _freezeRender = new Color(127, 127, 255);
     private readonly Color _defaultRender = new Color(255, 255, 255, 255);
     
@@ -22,7 +26,7 @@ public class Freeze(IPlayer? caster, IPlayer target) : BaseEffect(caster, target
         PlaySound(FreezeSoundName);
     }
 
-    public override void DestroyEffect()
+    protected override void DestroyEffect()
     {
         ApplyUnfreezeEffect();
         PlaySound(UnFreezeSoundName);

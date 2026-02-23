@@ -1,20 +1,26 @@
+using CS2ZombiePlague.Data.Abilities.Contracts;
 using CS2ZombiePlague.Data.Managers;
 using CS2ZombiePlague.Di;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Players;
+using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace CS2ZombiePlague.Data.Effects.Contracts;
 
-public abstract class BaseEffect : ISoundPlayable
+public abstract class BaseEffect : IEffect, ISoundPlayable, IParticleRestricted
 {
     private readonly ISwiftlyCore _core = DependencyManager.GetService<ISwiftlyCore>();
     private readonly EffectManager _effectManager = DependencyManager.GetService<EffectManager>();
+    
+    public CParticleSystem? Particle { get; set; }
+    public IPlayer? Caster { get; }
+    public IPlayer Target { get; }
 
-    protected IPlayer? Caster { get; private set; }
-    public IPlayer Target { get; private set; }
+    public abstract float Duration { get; }
 
-    public abstract float Duration { get; set; }
     private CancellationTokenSource? DurationThinker { get; set; }
+
+    public abstract void Destroy();
 
     protected BaseEffect(IPlayer? caster, IPlayer target)
     {
@@ -39,7 +45,7 @@ public abstract class BaseEffect : ISoundPlayable
     /// <summary>
     /// Вызывается в конце жизни эффекта.
     /// </summary>
-    public virtual void DestroyEffect()
+    protected virtual void DestroyEffect()
     {
         DurationThinker?.Cancel();
     }
@@ -55,9 +61,9 @@ public abstract class BaseEffect : ISoundPlayable
         {
             return;
         }
-        
+
         _effectManager.AddEffect(this);
-        
+
         StartDestroyTimer();
 
         ApplyEffect();
@@ -69,6 +75,14 @@ public abstract class BaseEffect : ISoundPlayable
     }
 
     public virtual void PlaySound(string soundName)
+    {
+    }
+
+    public virtual void DestroyParticle()
+    {
+    }
+
+    public virtual void CreateParticle()
     {
     }
 }

@@ -1,4 +1,3 @@
-using CS2ZombiePlague.Data.Abilities.Contracts;
 using CS2ZombiePlague.Data.Effects.Contracts;
 using CS2ZombiePlague.Di;
 using SwiftlyS2.Shared;
@@ -7,14 +6,18 @@ using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace CS2ZombiePlague.Data.Effects;
 
-public class Burn(IPlayer? caster, IPlayer target) : BaseTickEffect(caster, target), IParticleRestricted
+public sealed class Burn(IPlayer? caster, IPlayer target) : BaseTickEffect(caster, target)
 {
     private readonly ISwiftlyCore _core = DependencyManager.GetService<ISwiftlyCore>();
     private const float DamagePerTickInPercent = 1.0f;
     private const float InstantDamageInPercent = 5.0f;
     private const string ParticleName = "particles/inferno_fx/molotov_child_flame01a.vpcf";
-    public CParticleSystem? Particle { get; set; }
-    public override float Duration { get; set; } = 5.0f;
+    public override float Duration { get; } = 5.0f;
+    public override void Destroy()
+    {
+        DestroyEffect();
+    }
+
     public override float TickInterval { get; set; } = 0.5f;
     
     protected override bool CanApply()
@@ -31,7 +34,7 @@ public class Burn(IPlayer? caster, IPlayer target) : BaseTickEffect(caster, targ
         ApplyInstantDamage();
     }
 
-    public override void DestroyEffect()
+    protected override void DestroyEffect()
     {
         DestroyParticle();
         base.DestroyEffect();
@@ -52,7 +55,7 @@ public class Burn(IPlayer? caster, IPlayer target) : BaseTickEffect(caster, targ
         return (int)(Target.PlayerPawn!.MaxHealth * (percent / 100));
     }
 
-    public void CreateParticle()
+    public override void CreateParticle()
     {
         var playerPawn = Target?.PlayerPawn;
         if (playerPawn == null)
@@ -70,7 +73,7 @@ public class Burn(IPlayer? caster, IPlayer target) : BaseTickEffect(caster, targ
         Particle.AcceptInput("SetParentAttachment", "knife", playerPawn);
     }
 
-    public void DestroyParticle()
+    public override void DestroyParticle()
     {
         if (Particle != null && Particle.IsValidEntity)
         {
