@@ -1,5 +1,5 @@
 ﻿using CS2ZombiePlague.Data.Effects.Contracts;
-using CS2ZombiePlague.Di;
+using CS2ZombiePlague.Data.Events;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Misc;
@@ -7,15 +7,21 @@ using SwiftlyS2.Shared.Players;
 
 namespace CS2ZombiePlague.Data.Managers;
 
-public class EffectManager(ISwiftlyCore core)
+public class EffectManager(ISwiftlyCore core, IEffectFactory effectFactory, IEventSubscriber eventSubscriber)
 {
-    private readonly IEffectFactory _effectFactory = DependencyManager.GetService<IEffectFactory>();
     
     private readonly List<IEffect> _effects = [];
     
     public void RegisterHooks()
     {
         core.GameEvent.HookPost<EventRoundStart>(EventRoundStart);
+        
+        eventSubscriber.OnEffectDestroyed += OnEffectDestroyed;
+    }
+
+    private void OnEffectDestroyed(IEffect effect)
+    {
+        _effects.Remove(effect);
     }
     
     private HookResult EventRoundStart(EventRoundStart @event)
@@ -30,7 +36,7 @@ public class EffectManager(ISwiftlyCore core)
     
     public IEffect ApplyEffect<T>(IPlayer? caster, IPlayer target) where T : IEffect
     {
-        return _effectFactory.Create<T>(caster, target);
+        return effectFactory.Create<T>(caster, target);
     }
     
     public void DestroyEffectByPlayer<T>(IPlayer target) where T : IEffect

@@ -163,6 +163,7 @@ namespace CS2ZombiePlague
             @event.AddItem("models/props/crates/cs2_drop_crate_01.vmdl");
             @event.AddItem("characters/nozb1/parachute/parachute_carbon/parachute_open.vmdl");
             @event.AddItem("sounds/cs2/supplybox/supplybox_fly.vsnd");
+            @event.AddItem("particles/inferno_fx/molotov_child_flame01a.vpcf");
         }
     }
 }

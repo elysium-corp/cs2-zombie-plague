@@ -1,4 +1,5 @@
 using CS2ZombiePlague.Data.Abilities.Contracts;
+using CS2ZombiePlague.Data.Events;
 using CS2ZombiePlague.Data.Managers;
 using CS2ZombiePlague.Di;
 using SwiftlyS2.Shared;
@@ -11,6 +12,7 @@ public abstract class BaseEffect : IEffect, ISoundPlayable, IParticleRestricted
 {
     private readonly ISwiftlyCore _core = DependencyManager.GetService<ISwiftlyCore>();
     private readonly EffectManager _effectManager = DependencyManager.GetService<EffectManager>();
+    private readonly IEventPublisher _eventPublisher = DependencyManager.GetService<IEventPublisher>();
     
     public CParticleSystem? Particle { get; set; }
     public IPlayer? Caster { get; }
@@ -48,6 +50,7 @@ public abstract class BaseEffect : IEffect, ISoundPlayable, IParticleRestricted
     protected virtual void DestroyEffect()
     {
         DurationThinker?.Cancel();
+        _eventPublisher.OnEffectDestroyed(this);
     }
 
     private void TryApply()

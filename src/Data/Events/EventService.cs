@@ -1,4 +1,5 @@
-﻿using CS2ZombiePlague.Data.Rounds;
+﻿using CS2ZombiePlague.Data.Effects.Contracts;
+using CS2ZombiePlague.Data.Rounds;
 using CS2ZombiePlague.Data.SupplyBox;
 using SwiftlyS2.Shared.Players;
 
@@ -8,6 +9,7 @@ public sealed class EventService : IEventSubscriber, IEventPublisher
 {
     public event EventDelegates.OnPlayerInfectedBy? OnPlayerInfectedBy;
     public event EventDelegates.OnPlayerInfected? OnPlayerInfected;
+    public event EventDelegates.OnEffectDestroyed? OnEffectDestroyed;
     public event EventDelegates.OnGameRoundStarted? OnGameRoundStarted;
     public event EventDelegates.OnSupplyBoxDropped? OnSupplyBoxDropped;
     public event EventDelegates.OnSupplyBoxPickedUp? OnSupplyBoxPickedUp;
@@ -43,7 +45,23 @@ public sealed class EventService : IEventSubscriber, IEventPublisher
             }
         }
     }
-
+    
+    void IEventPublisher.OnEffectDestroyed(IEffect effect)
+    {
+        var handlers = OnEffectDestroyed;
+        if (handlers == null) return;
+        
+        foreach (var @delegate in handlers.GetInvocationList())
+        {
+            var handler = (EventDelegates.OnEffectDestroyed)@delegate;
+            try { handler(effect); }
+            catch (Exception ex)
+            {
+                // add custom logger
+            }
+        }
+    }
+    
     void IEventPublisher.OnGameRoundStarted(IRound round)
     {
         var handlers = OnGameRoundStarted;
