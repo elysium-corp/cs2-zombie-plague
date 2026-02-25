@@ -3,13 +3,18 @@ using CS2ZombiePlague.Config.models;
 using CS2ZombiePlague.Data;
 using CS2ZombiePlague.Data.Lifecycle;
 using CS2ZombiePlague.Data.Managers;
-using CS2ZombiePlague.Data.SupplyBox;
+using CS2ZombiePlague.Data.Plugins.AdminMenu;
+using CS2ZombiePlague.Data.Plugins.DamageNotify;
+using CS2ZombiePlague.Data.Plugins.ModelChanger;
+using CS2ZombiePlague.Data.Plugins.MoneySystem;
+using CS2ZombiePlague.Data.Plugins.ResourceLoader;
+using CS2ZombiePlague.Data.Plugins.RoundRatingNotify;
+using CS2ZombiePlague.Data.Plugins.ScreenFade;
+using CS2ZombiePlague.Data.Plugins.SupplyBox;
 using CS2ZombiePlague.Di;
 using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;
-using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.Plugins;
-using EventDelegates = SwiftlyS2.Shared.Events.EventDelegates;
 
 namespace CS2ZombiePlague
 {
@@ -17,6 +22,7 @@ namespace CS2ZombiePlague
         Description = "Zombie Plague mode for CS2")]
     public partial class CS2ZombiePlague(ISwiftlyCore core) : BasePlugin(core)
     {
+        private readonly Lazy<IResourceLoader> _resourceLoader = new(DependencyManager.GetService<IResourceLoader>);
         private readonly Lazy<RoundManager> _roundManager = new(DependencyManager.GetService<RoundManager>);
         private readonly Lazy<ZombieManager> _zombieManager = new(DependencyManager.GetService<ZombieManager>);
         private readonly Lazy<HumanManager> _humanManager = new(DependencyManager.GetService<HumanManager>);
@@ -41,7 +47,9 @@ namespace CS2ZombiePlague
             }
 
             DependencyManager.Load(Core);
-
+            
+            _resourceLoader.Value.Initialize();
+            
             _lifecycleManager.Value.Initialize();
             _weaponManager.Value.RegisterWeapons();
 
@@ -96,74 +104,6 @@ namespace CS2ZombiePlague
             {
                 _roundRatingNotify.Value.Start();
             }
-        }
-
-        [EventListener<EventDelegates.OnPrecacheResource>]
-        private void OnPrecacheResource(IOnPrecacheResourceEvent @event)
-        {
-            @event.AddItem("characters/models/s2ze/zombie_frozen/zombie_frozen.vmdl");
-            @event.AddItem("characters/models/kolka/2025/bull/bull.vmdl");
-            @event.AddItem("characters/models/kolka/2025/hazmat/hazmat.vmdl");
-            @event.AddItem("characters/models/kolka/2025/lurker/lurker.vmdl");
-            @event.AddItem("weapons/nozb1/valogun/knife/sovereign_tactical/sovereign_tactical_ag2.vmdl");
-            @event.AddItem("weapons/nozb1/valogun/knife/ejderbicak_cord/ejderbicak_cord_ag2.vmdl");
-            @event.AddItem("weapons/nozb1/valogun/knife/ashen_kukri/ashen_kukri_ag2.vmdl");
-            @event.AddItem("weapons/nozb1/valogun/knife/oni_katana_tactical/oni_katana_tactical_ag2.vmdl");
-            @event.AddItem("characters/models/nozb1/nemesis_player_model/nemesis_player_model.vmdl");
-            @event.AddItem("characters/models/nozb1/zhunter_player_model/zhunter_player_model.vmdl");
-            @event.AddItem("characters/models/nozb1/nanosuit_player_model/nanosuit_player_model.vmdl");
-            @event.AddItem("particles/kolka/part1.vpcf");
-            @event.AddItem("particles/barrier_nade.vpcf");
-            @event.AddItem("particles/kolka/part2.vpcf");
-            @event.AddItem("particles/kolka/part3.vpcf");
-            @event.AddItem("particles/kolka/part4.vpcf");
-            @event.AddItem("particles/kolka/part5.vpcf");
-            @event.AddItem("particles/kolka/part6.vpcf");
-            @event.AddItem("particles/kolka/part7.vpcf");
-            @event.AddItem("particles/kolka/part8.vpcf");
-            @event.AddItem("particles/kolka/part9.vpcf");
-            @event.AddItem("particles/kolka/part10.vpcf");
-            @event.AddItem("particles/kolka/part11.vpcf");
-            @event.AddItem("particles/kolka/part12.vpcf");
-            @event.AddItem("particles/kolka/part13.vpcf");
-            @event.AddItem("particles/kolka/part14.vpcf");
-            @event.AddItem("particles/kolka/part15.vpcf");
-            @event.AddItem("particles/kolka/part16.vpcf");
-            @event.AddItem("particles/kolka/part17.vpcf");
-            @event.AddItem("particles/kolka/part18.vpcf");
-            @event.AddItem("particles/barrier_nade.vpcf");
-            @event.AddItem("soundevents/soundevents_zombieplague.vsndevts");
-            @event.AddItem("particles/explosions_fx/bumpmine_detonate_sparks.vpcf");
-            @event.AddItem("particles/explosions_fx/bumpmine_detonate.vpcf");
-            @event.AddItem("models/de_overpass/decorations/security_camera/security_camera_1_base.vmdl");
-            @event.AddItem("sounds/cs2/countdown/countdown.vsnd");
-            @event.AddItem("sounds/cs2/weapons/frostnade/frostnade_detonate.vsnd");
-            @event.AddItem("sounds/cs2/weapons/frostnade/frostnade_end.vsnd");
-            @event.AddItem("sounds/cs2/weapons/frostnade/frostnade_hit.vsnd");
-            @event.AddItem("sounds/cs2/zombie/zombie_pressure.vsnd");
-            @event.AddItem("characters/models/kolka/2025/lurker/lurker.vmdl");
-            @event.AddItem("particles/ui/rank_carepackage_recieve.vpcf");
-            @event.AddItem("particles/ui/ammohealthcenter/ui_hud_kill_burn_ringfire.vpcf");
-            @event.AddItem("particles/ui/ammohealthcenter/ui_hud_kill_streaks_circle_flash.vpcf");
-            @event.AddItem("particles/ui/hud/ui_mvp_winner_burst.vpcf");
-            @event.AddItem("weapons/nozb1/valogun/araxys_bundle/araxys_sawedoff/araxys_sawedoff_ag2.vmdl");
-            @event.AddItem("particles/weapons/cs_weapon_fx/weapon_tracers_taser.vpcf");
-            @event.AddItem("particles/weapons/cs_weapon_fx/bumpmine_active.vpcf");
-            @event.AddItem("particles/weapons/cs_weapon_fx/weapon_confetti_sparks_2.vpcf");
-            @event.AddItem("particles/ui/ammohealthcenter/ui_hud_kill_elec_innerpoint.vpcf");
-            @event.AddItem("weapons/luci/x3_m4a1/x3_m4a1_ag2.vmdl");
-            @event.AddItem("characters/models/nozb1/chris_walker_player_model/chris_walker_player_model.vmdl");
-            @event.AddItem("characters/models/nozb1/jason_player_model/jason_player_model.vmdl");
-            @event.AddItem("characters/models/nozb1/zombie_stalker_player_model/zombie_stalker_player_model.vmdl");
-            @event.AddItem("weapons/luci/car_ump45/car_ump45_ag2.vmdl");
-            @event.AddItem("weapons/luci/eov_mp5/eov_mp5_ag2.vmdl");
-            @event.AddItem("weapons/luci/parab_ssg/parab_ssg_ag2.vmdl");
-            @event.AddItem("weapons/luci/psd_mp9/psd_mp9_ag2.vmdl");
-            @event.AddItem("particles/burning_fx/env_fire_small_b.vpcf");
-            @event.AddItem("models/props/crates/cs2_drop_crate_01.vmdl");
-            @event.AddItem("characters/nozb1/parachute/parachute_carbon/parachute_open.vmdl");
-            @event.AddItem("sounds/cs2/supplybox/supplybox_fly.vsnd");
-            @event.AddItem("particles/inferno_fx/molotov_child_flame01a.vpcf");
         }
     }
 }

@@ -1,6 +1,6 @@
-﻿using CS2ZombiePlague.Data.Effects.Contracts;
+﻿using CS2ZombiePlague.Data.Plugins.SupplyBox;
+using CS2ZombiePlague.Data.Effects.Contracts;
 using CS2ZombiePlague.Data.Rounds;
-using CS2ZombiePlague.Data.SupplyBox;
 using SwiftlyS2.Shared.Players;
 
 namespace CS2ZombiePlague.Data.Events;

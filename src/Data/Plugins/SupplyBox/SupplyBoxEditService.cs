@@ -1,4 +1,4 @@
-﻿namespace CS2ZombiePlague.Data.SupplyBox;
+﻿namespace CS2ZombiePlague.Data.Plugins.SupplyBox;
 
 public sealed class SupplyBoxEditService(CommonUtils commonUtils, SupplyBoxMapConfigService mapConfigService)
 {

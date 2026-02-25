@@ -10,7 +10,7 @@ using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Players;
 using IEventSubscriber = CS2ZombiePlague.Data.Events.IEventSubscriber;
 
-namespace CS2ZombiePlague.Data.SupplyBox;
+namespace CS2ZombiePlague.Data.Plugins.SupplyBox;
 
 public sealed class SupplyBox
 {

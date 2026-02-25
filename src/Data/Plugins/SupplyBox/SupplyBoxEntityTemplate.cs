@@ -5,7 +5,7 @@ using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
 
-namespace CS2ZombiePlague.Data.SupplyBox;
+namespace CS2ZombiePlague.Data.Plugins.SupplyBox;
 
 public sealed class SupplyBoxEntityTemplate
 {

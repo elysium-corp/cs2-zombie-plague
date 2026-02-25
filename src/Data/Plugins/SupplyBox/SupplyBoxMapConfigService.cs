@@ -3,7 +3,7 @@ using CS2ZombiePlague.Di;
 using Microsoft.Extensions.Logging;
 using SwiftlyS2.Shared;
 
-namespace CS2ZombiePlague.Data.SupplyBox;
+namespace CS2ZombiePlague.Data.Plugins.SupplyBox;
 
 public sealed class SupplyBoxMapConfigService
 {

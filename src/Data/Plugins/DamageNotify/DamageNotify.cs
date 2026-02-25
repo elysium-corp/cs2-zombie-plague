@@ -5,7 +5,7 @@ using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Misc;
 
-namespace CS2ZombiePlague.Data;
+namespace CS2ZombiePlague.Data.Plugins.DamageNotify;
 
 public class DamageNotify(ISwiftlyCore core, IOptions<ZombiePlagueCoreConfig> config)
 {

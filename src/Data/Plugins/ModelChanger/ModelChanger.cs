@@ -11,7 +11,7 @@ using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
 using SwiftlyS2.Shared.Sounds;
 
-namespace CS2ZombiePlague.Data;
+namespace CS2ZombiePlague.Data.Plugins.ModelChanger;
 
 public class ModelChanger(
     ISwiftlyCore core,

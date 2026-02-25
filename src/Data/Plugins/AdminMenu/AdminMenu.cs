@@ -7,7 +7,7 @@ using SwiftlyS2.Shared.Menus;
 using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Players;
 
-namespace CS2ZombiePlague.Data;
+namespace CS2ZombiePlague.Data.Plugins.AdminMenu;
 
 public class AdminMenu(ISwiftlyCore core, RoundManager roundManager, ZombieManager zombieManager)
 {

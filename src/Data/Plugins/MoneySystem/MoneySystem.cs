@@ -8,7 +8,7 @@ using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Players;
 
-namespace CS2ZombiePlague.Data;
+namespace CS2ZombiePlague.Data.Plugins.MoneySystem;
 
 public class MoneySystem(ISwiftlyCore core, IOptions<ZombiePlagueCoreConfig> config, IEventSubscriber eventSubscriber)
 {

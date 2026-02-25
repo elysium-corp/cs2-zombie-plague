@@ -13,8 +13,13 @@ using CS2ZombiePlague.Data.Effects.Contracts;
 using CS2ZombiePlague.Data.Events;
 using CS2ZombiePlague.Data.Lifecycle;
 using CS2ZombiePlague.Data.Managers;
+using CS2ZombiePlague.Data.Plugins.DamageNotify;
+using CS2ZombiePlague.Data.Plugins.MoneySystem;
+using CS2ZombiePlague.Data.Plugins.ResourceLoader;
+using CS2ZombiePlague.Data.Plugins.RoundRatingNotify;
+using CS2ZombiePlague.Data.Plugins.ScreenFade;
+using CS2ZombiePlague.Data.Plugins.SupplyBox;
 using CS2ZombiePlague.Data.Rounds;
-using CS2ZombiePlague.Data.SupplyBox;
 using CS2ZombiePlague.Data.Weapons;
 using CS2ZombiePlague.Data.Weapons.Knifes;
 using CS2ZombiePlague.Data.Zombies;
@@ -87,6 +92,7 @@ public static class DependencyManager
 
         _services
             .AddSwiftly(core)
+            .AddSingleton<IResourceLoader, ResourceLoader>()
             .AddSingleton<IRoundFactory, RoundFactory>()
             .AddSingleton<IZombieFactory, ZombieFactory>()
             .AddSingleton<IKnifeFactory, KnifeFactory>()

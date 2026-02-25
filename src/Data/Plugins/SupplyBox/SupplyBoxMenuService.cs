@@ -4,7 +4,7 @@ using SwiftlyS2.Shared.Menus;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
 
-namespace CS2ZombiePlague.Data.SupplyBox;
+namespace CS2ZombiePlague.Data.Plugins.SupplyBox;
 
 public sealed class SupplyBoxMenuService(ISwiftlyCore core, SupplyBoxMapConfigService mapConfigService, SupplyBoxEditService supplyBoxEditService)
 {

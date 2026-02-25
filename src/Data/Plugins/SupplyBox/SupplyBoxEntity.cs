@@ -8,7 +8,7 @@ using SwiftlyS2.Shared.ProtobufDefinitions;
 using SwiftlyS2.Shared.SchemaDefinitions;
 using SwiftlyS2.Shared.Sounds;
 
-namespace CS2ZombiePlague.Data.SupplyBox;
+namespace CS2ZombiePlague.Data.Plugins.SupplyBox;
 
 public sealed class SupplyBoxEntity
 {

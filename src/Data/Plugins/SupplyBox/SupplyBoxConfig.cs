@@ -1,6 +1,6 @@
 ﻿using SwiftlyS2.Shared.Natives;
 
-namespace CS2ZombiePlague.Data.SupplyBox;
+namespace CS2ZombiePlague.Data.Plugins.SupplyBox;
 
 public sealed class MapSupplyBoxEntityConfig
 {
