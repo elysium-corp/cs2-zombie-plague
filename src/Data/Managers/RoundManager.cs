@@ -11,7 +11,7 @@ using SwiftlyS2.Shared.Sounds;
 
 namespace CS2ZombiePlague.Data.Managers;
 
-public class RoundManager(ISwiftlyCore core, IOptions<ZombiePlagueCoreConfig> coreConfig, IOptions<RoundConfig> roundConfig, IRoundFactory roundFactory, IEventPublisher eventPublisher)
+public class RoundManager(ISwiftlyCore core, IEventPublisher eventPublisher, CommonUtils commonUtils, IRoundFactory roundFactory, IOptions<ZombiePlagueCoreConfig> coreConfig, IOptions<RoundConfig> roundConfig)
     : IRoundManager
 {
     private readonly ZombieManager _zombieManager = DependencyManager.GetService<ZombieManager>();
@@ -210,16 +210,16 @@ public class RoundManager(ISwiftlyCore core, IOptions<ZombiePlagueCoreConfig> co
         var totalWeight = 0;
         foreach (var round in _rounds)
         {
-            totalWeight += round.GetChance();
+            totalWeight += round.Chance;
         }
         
-        var randomizer = new Random();
-        var randomWeight = randomizer.Next(1, totalWeight + 1);
-
+        var randomWeight = commonUtils.RandomNum(1, totalWeight + 1);
         var currentWeight = 0;
+        
         foreach (var round in _rounds)
         {
-            currentWeight += round.GetChance();
+            currentWeight += round.Chance;
+            
             if (randomWeight <= currentWeight)
             {
                 return round;

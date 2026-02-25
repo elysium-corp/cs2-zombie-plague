@@ -15,25 +15,23 @@ public class Infection(
     RoundManager roundManager,
     ZombieManager zombieManager,
     CommonUtils commonUtils,
-    InfectionConfig config) : IRound
+    InfectionConfig config) : BaseRound
 {
-    private Guid _playerDeathEvent = Guid.Empty;
-    private Guid _playerConnect = Guid.Empty;
-
-    public int GetChance()
+    private Guid _onPlayerDeathEvent;
+    private Guid _onPlayerConnectFullEvent;
+    
+    public override int Chance => config.Chance;
+    public override string Name => "Инфекция";
+    
+    public override void Start()
     {
-        return config.Chance;
-    }
-
-    public void Start()
-    {
-        core.Event.OnEntityTakeDamage += TakeDamage;
+        core.Event.OnEntityTakeDamage += OnEntityTakeDamage;
 
         if (config.ZombieRevived)
         {
-            _playerDeathEvent = core.GameEvent.HookPre<EventPlayerDeath>(EventPlayerDeath);
-            _playerConnect = core.GameEvent.HookPre<EventPlayerConnectFull>(EventPlayerConnect);
-        }
+            _onPlayerDeathEvent = core.GameEvent.HookPre<EventPlayerDeath>(OnPlayerDeath);
+            _onPlayerConnectFullEvent = core.GameEvent.HookPre<EventPlayerConnectFull>(OnPlayerConnectFull);
+        } 
 
         var players = core.PlayerManager.GetAlive().ToList();
         IPlayer firstZombie;
@@ -52,25 +50,17 @@ public class Infection(
 
         firstZombie.SetHealth((int)(firstZombie.PlayerPawn!.Health * config.FirstZombieHealthRatio));
 
-        foreach (var player in players)
-        {
-            if (!player.IsInfected())
-            {
-                player.SwitchTeam(Team.CT);
-            }
-        }
-
-        core.PlayerManager.SendCenter("Первый заражённый => " + firstZombie.Controller.PlayerName);
+        core.PlayerManager.SendCenter("Первый заражённый => " + firstZombie.Name);
     }
     
-    public void End()
+    public override void End()
     {
-        core.Event.OnEntityTakeDamage -= TakeDamage;
+        core.Event.OnEntityTakeDamage -= OnEntityTakeDamage;
 
         if (config.ZombieRevived)
         {
-            core.GameEvent.Unhook(_playerDeathEvent);
-            core.GameEvent.Unhook(_playerConnect);
+            core.GameEvent.Unhook(_onPlayerDeathEvent);
+            core.GameEvent.Unhook(_onPlayerConnectFullEvent);
         }
 
         roundManager.SetRound(new None());
@@ -78,82 +68,91 @@ public class Infection(
         core.PlayerManager.SendCenter("Раунд окончен");
     }
 
-    private void TakeDamage(IOnEntityTakeDamageEvent @event)
+    private void OnEntityTakeDamage(IOnEntityTakeDamageEvent @event)
     {
         var attacker = commonUtils.ResolvePlayerFromHandle(@event.Info.Attacker);
         var victim = commonUtils.FindPlayerByPawnAddress(@event.Entity.Address);
-        
-        if (victim == null || !victim.IsValid || attacker == null)
-            return;
 
-        if (!attacker.IsInfected() || victim.IsLastHuman())
+        if (attacker == null || victim == null || victim.PlayerPawn == null)
         {
             return;
         }
-        
-        var zombie = zombieManager.GetZombie(attacker.PlayerID);
-        
-        if (!zombie.Infect(victim))
+
+        if (!CanInfect(attacker, victim))
         {
-            if (!victim.IsLastHuman())
-            {
-                victim.SetArmor(victim.PlayerPawn.ArmorValue - (int)@event.Info.Damage);
-            }
+            return;
         }
+
+        if (victim.PlayerPawn.ArmorValue > 0)
+        {
+            var victimArmor = victim.PlayerPawn.ArmorValue;
+            var finalArmor = (int)(victimArmor - @event.Info.Damage);
+            var armor = finalArmor > 0 ? finalArmor : 0;
+
+            victim.SetArmor(armor);
+            @event.Info.Damage = 0;
+
+            return;
+        }
+
+        zombieManager.CreateZombie(victim, attacker);
 
         @event.Info.Damage = 0;
     }
 
-    private HookResult EventPlayerDeath(EventPlayerDeath @event)
+    protected override bool CanInfect(IPlayer attacker, IPlayer victim)
+    {
+        if (!victim.IsValid || !attacker.IsValid)
+        {
+            return false;
+        }
+        
+        if (!attacker.IsInfected())
+        {
+            return false;
+        }
+
+        if (victim.IsInfected() || victim.IsLastHuman())
+        {
+            return false;
+        }
+        
+        return true;
+    }
+
+    private HookResult OnPlayerDeath(EventPlayerDeath @event)
     {
         var player = @event.UserIdPlayer;
         core.Scheduler.DelayBySeconds(config.ZombieSpawnTime, () =>
         {
-            if (player is not { IsValid: true } || roundManager.GetRound() != this)
+            if (player == null || !player.IsValid || roundManager.GetRound() != this)
             {
                 return;
             }
 
-            if (player.IsInfected())
-            {
-                player.Controller.Respawn();
-                var zombie = zombieManager.GetZombie(player.PlayerID);
-                zombie.Initialize();
-            }
-            else
-            {
-                player.Controller.Respawn();
-                var zombie = zombieManager.CreateZombie(player);
-            }
+            zombieManager.Respawn(player);
         });
 
         return HookResult.Continue;
     }
 
-    private HookResult EventPlayerConnect(EventPlayerConnectFull @event)
+    private HookResult OnPlayerConnectFull(EventPlayerConnectFull @event)
     {
         var player = @event.UserIdPlayer;
         core.Scheduler.DelayBySeconds(config.ZombieSpawnTime, () =>
         {
-            if (player is { IsValid: true } && player.IsInfected() && roundManager.GetRound() == this)
+            if (player == null || !player.IsValid || roundManager.GetRound() != this)
             {
-                player.Controller.Respawn();
-                if (zombieManager.GetZombie(player.PlayerID) != null)
-                {
-                    var zombie = zombieManager.GetZombie(player.PlayerID);
-                    zombie?.Initialize();
-                }
-                else
-                {
-                    zombieManager.CreateZombie(player);
-                }
+                return;
             }
+            
+            zombieManager.Respawn(player);
         });
 
         return HookResult.Continue;
     }
 
-    private bool PlaySound(IPlayer zombie)
+    private void PlaySound(IPlayer zombie)
     {
         using var soundEvent = new SoundEvent()
         {
@@ -161,9 +160,8 @@ public class Infection(
             Name = "ZombiePlagueAbility.Infection",
             SourceEntityIndex = (int)zombie.RequiredPlayerPawn.Index
         };
+        
         soundEvent.Recipients.AddAllPlayers();
         soundEvent.Emit();
-
-        return true;
     }
 }

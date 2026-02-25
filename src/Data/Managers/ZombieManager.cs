@@ -21,8 +21,25 @@ public class ZombieManager(ISwiftlyCore core, IZombieFactory zombieFactory, ZCla
     {
         _onPlayerDisconnectEvent = core.GameEvent.HookPost<EventPlayerDisconnect>(OnPlayerDisconnect);
         core.Event.OnWeaponServicesCanUseHook += OnItemServicesCanAcquireHook;
+        core.Event.OnWeaponServicesDropWeaponHook += OnWeaponServicesDropWeaponHook;
     }
+    
+    private void OnWeaponServicesDropWeaponHook(IOnWeaponServicesDropWeaponHook @event)
+    {
+        var pawn = @event.WeaponServices.Pawn;
+        var player = core.PlayerManager.GetPlayerFromPawn(pawn);
 
+        if (player == null || !player.IsValid)
+        {
+            return;
+        }
+
+        if (player.IsInfected())
+        {
+            @event.Result = HookResult.Stop;
+        }
+    }
+    
     private void OnItemServicesCanAcquireHook(IOnWeaponServicesCanUseHookEvent @event)
     {
         var pawn = @event.WeaponServices.Pawn;
@@ -85,6 +102,26 @@ public class ZombieManager(ISwiftlyCore core, IZombieFactory zombieFactory, ZCla
         var nemesis = DependencyManager.GetService<ZNemesis>();
         return _zombiePlayers[player.PlayerID] =
             zombieFactory.Create(core, this, player, nemesis, true);
+    }
+    
+    public void Respawn(IPlayer player)
+    {
+        if (player.IsAlive)
+        {
+            return;
+        }
+
+        var zombie = player.IsInfected() ? GetZombie(player.PlayerID) : CreateZombie(player);
+
+        if (zombie == null)
+        {
+            return;
+        }
+        
+        zombie.Initialize();
+        
+        player.SwitchTeam(Team.T);
+        player.Respawn();
     }
 
     public void Remove(IPlayer player)

@@ -1,13 +1,14 @@
 ﻿using CS2ZombiePlague.Config;
-using CS2ZombiePlague.Data.Events;
 using CS2ZombiePlague.Data.Extensions;
 using CS2ZombiePlague.Data.Humans;
 using CS2ZombiePlague.Data.Lifecycle;
 using CS2ZombiePlague.Di;
 using SwiftlyS2.Shared;
+using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Players;
+using IEventSubscriber = CS2ZombiePlague.Data.Events.IEventSubscriber;
 
 namespace CS2ZombiePlague.Data.Managers;
 
@@ -26,6 +27,7 @@ public class HumanManager(ISwiftlyCore core, IEventSubscriber eventSubscriber) :
         _onPlayerDisconnectEvent = core.GameEvent.HookPost<EventPlayerDisconnect>(OnPlayerDisconnect);
         _onPlayerDeathEvent = core.GameEvent.HookPost<EventPlayerDeath>(OnPlayerDeath);
         eventSubscriber.OnPlayerInfected += OnPlayerInfected;
+        core.Event.OnWeaponServicesDropWeaponHook += OnWeaponServicesDropWeaponHook;
     }
     
     public void Dispose()
@@ -34,6 +36,7 @@ public class HumanManager(ISwiftlyCore core, IEventSubscriber eventSubscriber) :
         core.GameEvent.Unhook(_onPlayerDisconnectEvent);
         core.GameEvent.Unhook(_onPlayerDeathEvent);
         eventSubscriber.OnPlayerInfected -= OnPlayerInfected;
+        core.Event.OnWeaponServicesDropWeaponHook -= OnWeaponServicesDropWeaponHook;
     }
 
     public List<IPlayer> GetAllHumanPlayers()
@@ -107,6 +110,22 @@ public class HumanManager(ISwiftlyCore core, IEventSubscriber eventSubscriber) :
         itemServices.RemoveItems();
         _knifeManager.GiveKnife(player);
         itemServices.GiveItem("weapon_negev");
+    }
+    
+    private void OnWeaponServicesDropWeaponHook(IOnWeaponServicesDropWeaponHook @event)
+    {
+        var pawn = @event.WeaponServices.Pawn;
+        var player = core.PlayerManager.GetPlayerFromPawn(pawn);
+
+        if (player == null || !player.IsValid)
+        {
+            return;
+        }
+
+        if (player.IsSurvivor())
+        {
+            @event.Result = HookResult.Stop;
+        }
     }
 
     private HookResult OnRoundStart(EventRoundStart @event)

@@ -25,25 +25,13 @@ public class Zombie
         core.Scheduler.NextWorldUpdate(Initialize);
     }
 
-    public bool Infect(IPlayer target)
-    {
-        if (target.PlayerPawn == null)
-        {
-            return false;
-        }
-
-        if (target.IsInfected() || target.IsLastHuman() || target.PlayerPawn.ArmorValue != 0 || _player.IsNemesis())
-        {
-            return false;
-        }
-
-        _zombieManager.CreateZombie(target, _player);
-
-        return true;
-    }
-
     public void Initialize()
     {
+        if (!_player.IsAlive)
+        {
+            return;
+        }
+        
         if (_iZClass != _zombieManager.GetZClassFromMenu(_player.PlayerID) && !IsNemesis)
         {
             _iZClass.Abilities.ForEach(ability => ability.UnHook());
@@ -58,7 +46,7 @@ public class Zombie
         _player.SetModel(_iZClass.Model);
         _player.SwitchTeam(Team.T);
 
-        _iZClass.Abilities.ForEach(zClass => zClass.SetCaster(_player));
+        _iZClass.Abilities.ForEach(zAbility => zAbility.SetCaster(_player));
         
         var itemServices = _player.PlayerPawn?.ItemServices;
         if (itemServices == null)
@@ -72,7 +60,7 @@ public class Zombie
 
     public void UnHookAbilities()
     {
-        _iZClass.Abilities.ForEach(zClass => zClass.UnHook());
+        _iZClass.Abilities.ForEach(zAbility => zAbility.UnHook());
     }
 
     public IPlayer GetPlayer()
@@ -83,10 +71,5 @@ public class Zombie
     public IZClass GetZombieClass()
     {
         return _iZClass;
-    }
-
-    public void AddAbility(IAbility ability)
-    {
-        _iZClass.Abilities.Add(ability);
     }
 }

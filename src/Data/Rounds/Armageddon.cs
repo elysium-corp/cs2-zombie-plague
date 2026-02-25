@@ -11,12 +11,15 @@ public class Armageddon(
     RoundManager roundManager,
     ZombieManager zombieManager,
     HumanManager humanManager,
-    ArmageddonConfig config) : IRound
+    ArmageddonConfig config) : BaseRound
 {
-    public void Start()
+    public override int Chance => config.Chance;
+    public override string Name => "Армагеддон";
+
+    public override void Start()
     {
         var allPlayers = core.PlayerManager.GetAlive().Shuffle().ToList();
-        var countPlayers = allPlayers.Count();
+        var countPlayers = allPlayers.Count;
 
         for (int order = 0; order < countPlayers; order++)
         {
@@ -30,21 +33,16 @@ public class Armageddon(
             }
         }
 
-        core.PlayerManager.SendCenter("Армагеддон");
+        core.PlayerManager.SendCenter(Name);
     }
 
-    public void End()
+    public override void End()
     {
         roundManager.SetRound(new None());
 
         core.PlayerManager.SendCenter("Раунд окончен");
     }
-
-    public int GetChance()
-    {
-        return config.Chance;
-    }
-
+    
     private void InitializeNemesis(IPlayer nemesis)
     {
         zombieManager.CreateNemesis(nemesis);

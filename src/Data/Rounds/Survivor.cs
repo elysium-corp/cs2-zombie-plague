@@ -1,9 +1,6 @@
 ﻿using CS2ZombiePlague.Config;
 using CS2ZombiePlague.Data.Managers;
 using SwiftlyS2.Shared;
-using SwiftlyS2.Shared.Events;
-using SwiftlyS2.Shared.Misc;
-using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.Sounds;
 
 namespace CS2ZombiePlague.Data.Rounds;
@@ -13,12 +10,13 @@ public class Survivor(
     RoundManager roundManager,
     ZombieManager zombieManager,
     HumanManager humanManager,
-    SurvivorConfig config) : IRound
+    SurvivorConfig config) : BaseRound
 {
-    public void Start()
-    {
-        core.Event.OnWeaponServicesDropWeaponHook += OnWeaponServicesDropWeaponHook;
+    public override int Chance => config.Chance;
+    public override string Name => "Выживший";
 
+    public override void Start()
+    {
         var allPlayers = core.PlayerManager.GetAlive().ToList();
         var survivor = allPlayers[Random.Shared.Next(0, allPlayers.Count)];
 
@@ -37,18 +35,11 @@ public class Survivor(
         core.PlayerManager.SendCenter("Выживший => " + survivor.Controller.PlayerName);
     }
 
-    public void End()
+    public override void End()
     {
-        core.Event.OnWeaponServicesDropWeaponHook -= OnWeaponServicesDropWeaponHook;
-
         roundManager.SetRound(new None());
 
         core.PlayerManager.SendCenter("Раунд окончен");
-    }
-
-    public int GetChance()
-    {
-        return config.Chance;
     }
 
     private void PlaySound()
@@ -60,15 +51,5 @@ public class Survivor(
         sound.Volume = 0.5f;
 
         sound.Emit();
-    }
-
-    private void OnWeaponServicesDropWeaponHook(IOnWeaponServicesDropWeaponHook @event)
-    {
-        var pawn = @event.WeaponServices.Pawn;
-
-        if (pawn.Team == Team.CT && !@event.SwappingWeapon)
-        {
-            @event.Result = HookResult.Stop;
-        }
     }
 }

@@ -11,9 +11,12 @@ public class Nemesis(
     ISwiftlyCore core,
     RoundManager roundManager,
     ZombieManager zombieManager,
-    NemesisConfig config) : IRound
+    NemesisConfig config) : BaseRound
 {
-    public void Start()
+    public override int Chance => config.Chance;
+    public override string Name => "Немезида";
+
+    public override void Start()
     {
         var players = core.PlayerManager.GetAlive().ToList();
         var nemesis = players[Random.Shared.Next(0, players.Count)];
@@ -34,16 +37,11 @@ public class Nemesis(
         core.PlayerManager.SendCenter("Немезида => " + nemesis.Controller.PlayerName);
     }
 
-    public void End()
+    public override void End()
     {
         roundManager.SetRound(new None());
 
         core.PlayerManager.SendCenter("Раунд окончен");
-    }
-
-    public int GetChance()
-    {
-        return config.Chance;
     }
 
     private void Initialize(IPlayer nemesis)
