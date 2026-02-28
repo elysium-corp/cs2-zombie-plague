@@ -26,7 +26,6 @@ public sealed class PlagueConfig : IRoundConfig
     public bool ZombieRevived { get; set; } = true;
     public float ZombieSpawnRatio { get; set; } = 0.3f;
     public float ZombieSpawnTime { get; set; } = 5.0f;
-    public int InfectionChance { get; set; } = 10;
 }
 
 public interface INemesisConfig

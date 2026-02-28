@@ -12,7 +12,7 @@ public sealed class Burn(IPlayer? caster, IPlayer target) : BaseTickEffect(caste
     private const float DamagePerTickInPercent = 1.0f;
     private const float InstantDamageInPercent = 5.0f;
     private const string ParticleName = "particles/inferno_fx/molotov_child_flame01a.vpcf";
-    public override float Duration { get; } = 5.0f;
+    public override float Duration => 5.0f;
     public override void Destroy()
     {
         DestroyEffect();

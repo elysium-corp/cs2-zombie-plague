@@ -8,14 +8,14 @@ namespace CS2ZombiePlague.Data.Effects;
 
 public sealed class Freeze(IPlayer? caster, IPlayer target) : BaseEffect(caster, target)
 {
-    public override float Duration { get; } = 5.0f;
+    public override float Duration => 5.0f;
     public override void Destroy()
     {
         DestroyEffect();
     }
 
-    private readonly Color _freezeRender = new Color(127, 127, 255);
-    private readonly Color _defaultRender = new Color(255, 255, 255, 255);
+    private readonly Color _freezeRender = new(127, 127, 255);
+    private readonly Color _defaultRender = new(255, 255, 255, 255);
     
     private const string FreezeSoundName = "FrostNade.hit";
     private const string UnFreezeSoundName = "FrostNade.end";

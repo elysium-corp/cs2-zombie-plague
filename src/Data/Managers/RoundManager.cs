@@ -37,6 +37,42 @@ public class RoundManager(ISwiftlyCore core, IEventPublisher eventPublisher, Com
         _onGameRestartEvent = core.GameEvent.HookPost<EventCsPreRestart>(OnGameRestart);
         _onPlayerConnectEvent = core.GameEvent.HookPost<EventPlayerConnectFull>(OnPlayerConnectFull);
     }
+    
+    public void RegisterRounds()
+    {
+        _rounds.Clear();
+
+        var roundConfigProperties = roundConfig.Value.GetType()
+            .GetProperties();
+        
+        _rounds.Add(roundFactory.Create(null, this));
+        
+        foreach (var property in roundConfigProperties)
+        {
+            var round = (IRoundConfig) property.GetValue(roundConfig.Value);
+            
+            if (round != null && round.Enable)
+            {
+                var instance = roundFactory.Create(round, this);
+                _rounds.Add(instance);
+            }
+        }
+    }
+    
+    public bool IsNoneRound()
+    {
+        return _currentRound is None;
+    }
+    
+    public void SetRound(IRound round)
+    {
+        _currentRound = round;
+    }
+
+    public IRound GetRound()
+    {
+        return _currentRound;
+    }
 
     private HookResult OnPlayerConnectFull(EventPlayerConnectFull @event)
     {
@@ -65,7 +101,7 @@ public class RoundManager(ISwiftlyCore core, IEventPublisher eventPublisher, Com
 
         SetRound(new None());
 
-        if (RoundIsAvailable())
+        if (IsRoundAvailable())
         {
             Start();
         }
@@ -91,30 +127,8 @@ public class RoundManager(ISwiftlyCore core, IEventPublisher eventPublisher, Com
 
         return HookResult.Continue;
     }
-    
-    public void RegisterRounds()
-    {
-        _rounds.Clear();
-        _rounds.Add(roundFactory.Create(null, this));
-        List<IRoundConfig> rounds =
-        [
-            roundConfig.Value.Infection,
-            roundConfig.Value.Plague,
-            roundConfig.Value.Nemesis,
-            roundConfig.Value.Survivor,
-            roundConfig.Value.Armageddon
-        ];
-        foreach (var round in rounds)
-        {
-            var instance = roundFactory.Create(round, this);
-            if (round.Enable && !_rounds.Contains(instance))
-            {
-                _rounds.Add(instance);
-            }
-        }
-    }
 
-    public void Start()
+    private void Start()
     {
         var roundStartTime = coreConfig.Value.PreStartDelay;
         var localTime = 0;
@@ -141,13 +155,13 @@ public class RoundManager(ISwiftlyCore core, IEventPublisher eventPublisher, Com
                 
                 eventPublisher.OnGameRoundStarted(_currentRound);
                 
-                _currentRound!.Start();
+                _currentRound.Start();
                 _token?.Cancel();
             }
         });
     }
 
-    public bool RoundIsAvailable()
+    private bool IsRoundAvailable()
     {
         var players = core.PlayerManager.GetAllPlayers();
 
@@ -159,24 +173,9 @@ public class RoundManager(ISwiftlyCore core, IEventPublisher eventPublisher, Com
         return players.Count() > 1;
     }
 
-    public bool IsNoneRound()
-    {
-        return _currentRound is None;
-    }
-
     private void CancelToken()
     {
         _token?.Cancel();
-    }
-
-    public void SetRound(IRound round)
-    {
-        _currentRound = round;
-    }
-
-    public IRound GetRound()
-    {
-        return _currentRound;
     }
 
     private void StartRoundMusic()
