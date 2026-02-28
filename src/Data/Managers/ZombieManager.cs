@@ -131,10 +131,9 @@ public class ZombieManager(ISwiftlyCore core, HumanManager humanManager, IZombie
             return;
         }
         
-        zombie.Initialize();
-        
         player.SwitchTeam(Team.T);
         player.Respawn();
+        zombie.Initialize();
     }
 
     public void Remove(IPlayer player)

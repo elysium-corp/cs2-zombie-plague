@@ -21,6 +21,8 @@ public sealed class ZHunter(ZombieHunter config, IAbilityFactory abilityFactory)
     public float Knockback { get; set; } = config.Knockback;
 
     public int Gravity { get; set; } = config.Gravity;
+    
+    public List<string> HurtSounds { get; set; } = config.HurtSounds;
 
     public List<IAbility> Abilities { get; set; } = [abilityFactory.Create<Leap>()];
 }

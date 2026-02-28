@@ -19,6 +19,8 @@ public interface IZClass
     public float Knockback { get; set; }
     
     public int Gravity { get; set; }
+
+    public List<string> HurtSounds { get; set; }
     
     public List<IAbility> Abilities { get; set; }
 }

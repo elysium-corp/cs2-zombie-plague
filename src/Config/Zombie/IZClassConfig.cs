@@ -11,5 +11,6 @@ public interface IZClassConfig
     public float Speed { get; set; }
     public float Knockback { get; set; }
     public int Gravity { get; set; }
+    public List<string> HurtSounds { get; set; }
     public List<string> Abilities { get; set; }
 }
