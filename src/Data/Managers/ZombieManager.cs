@@ -1,4 +1,5 @@
-﻿using CS2ZombiePlague.Data.Events;
+﻿using CS2ZombiePlague.Config;
+using CS2ZombiePlague.Data.Events;
 using CS2ZombiePlague.Data.Extensions;
 using CS2ZombiePlague.Data.Zombies;
 using CS2ZombiePlague.Data.Zombies.ZClasses;
@@ -11,7 +12,7 @@ using SwiftlyS2.Shared.Players;
 
 namespace CS2ZombiePlague.Data.Managers;
 
-public class ZombieManager(ISwiftlyCore core, IZombieFactory zombieFactory, ZClassMenu zClassMenu, IEventPublisher eventPublisher)
+public class ZombieManager(ISwiftlyCore core, HumanManager humanManager, IZombieFactory zombieFactory, ZClassMenu zClassMenu, IEventPublisher eventPublisher)
 {
     private readonly Dictionary<int, Zombie> _zombiePlayers = new();
     
@@ -89,19 +90,31 @@ public class ZombieManager(ISwiftlyCore core, IZombieFactory zombieFactory, ZCla
         return _zombiePlayers[player.PlayerID] =
             zombieFactory.Create(core, this, player, zClass);
     }
-
-    public Zombie? CreateNemesis(IPlayer player)
+    
+    public void SetNemesis(IPlayer player, INemesisConfig? roundConfig = null)
     {
-        if (!player.IsValid)
+        var playerPawn = player.PlayerPawn;
+        if ( playerPawn == null || !player.IsAlive)
         {
-            return null;
+            return;
         }
         
         eventPublisher.OnPlayerInfected(player);
         
         var nemesis = DependencyManager.GetService<ZNemesis>();
-        return _zombiePlayers[player.PlayerID] =
-            zombieFactory.Create(core, this, player, nemesis, true);
+        _zombiePlayers[player.PlayerID] = zombieFactory.Create(core, this, player, nemesis, true);
+        
+        var countPlayers = humanManager.GetAllHumanPlayers().Count;
+
+        if (roundConfig == null)
+        {
+            return;
+        }
+        
+        core.Scheduler.NextTick(() =>
+        {
+            player.SetHealth(playerPawn.Health + (roundConfig.NemesisBonusHealthPerPlayer * countPlayers));
+        });
     }
     
     public void Respawn(IPlayer player)

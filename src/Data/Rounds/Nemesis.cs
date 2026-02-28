@@ -21,8 +21,7 @@ public class Nemesis(
         var players = core.PlayerManager.GetAlive().ToList();
         var nemesis = players[Random.Shared.Next(0, players.Count)];
 
-        zombieManager.CreateNemesis(nemesis);
-        core.Scheduler.NextWorldUpdate(()=>Initialize(nemesis));
+        zombieManager.SetNemesis(nemesis, config);
 
         foreach (var player in players)
         {
@@ -34,7 +33,7 @@ public class Nemesis(
 
         PlaySound();
 
-        core.PlayerManager.SendCenter("Немезида => " + nemesis.Controller.PlayerName);
+        core.PlayerManager.SendCenter("Немезида => " + nemesis.Name);
     }
 
     public override void End()
@@ -42,15 +41,6 @@ public class Nemesis(
         roundManager.SetRound(new None());
 
         core.PlayerManager.SendCenter("Раунд окончен");
-    }
-
-    private void Initialize(IPlayer nemesis)
-    {
-        var zombieNemesis = zombieManager.GetZombie(nemesis.PlayerID);
-        var zombieClass = zombieNemesis.GetZombieClass();
-        var countPlayers = core.PlayerManager.GetAlive().Count();
-
-        nemesis.SetHealth(zombieClass.Health + (config.NemesisBonusHealthPerPlayer * countPlayers));
     }
     
     private void PlaySound()
