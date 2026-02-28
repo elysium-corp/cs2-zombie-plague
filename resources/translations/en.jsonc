@@ -1,3 +1,4 @@
 {
-  "DamageNotify.HitMessage": "You hit"
+  "DamageNotify.HitMessage": "You hit",
+  "ResetScore.ResetMessage": "Your score has been successfully reset!"
 }

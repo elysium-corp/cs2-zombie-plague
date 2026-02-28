@@ -1,3 +1,4 @@
 {
-  "DamageNotify.HitMessage": "Вы попали в"
+  "DamageNotify.HitMessage": "Вы попали в",
+  "ResetScore.ChatMessage": "Ваш счёт успешно обнулён!"
 }

@@ -174,18 +174,29 @@ public class ZombieManager(ISwiftlyCore core, HumanManager humanManager, IZombie
 
         if (infector != null)
         {
-            var matchstats = infector.Controller.ActionTrackingServices.MatchStats;
-            matchstats.Kills++;
-            matchstats.KillsUpdated();
+            var matchStats = infector.Controller.ActionTrackingServices?.MatchStats;
+            if (matchStats == null)
+            {
+                return;
+            }
+            
+            matchStats.Kills++;
+            matchStats.KillsUpdated();
+            
             infector.Controller.Score++;
             infector.Controller.ScoreUpdated();
         }
 
         if (victim != null)
         {
-            var matchstats = victim.Controller.ActionTrackingServices.MatchStats;
-            matchstats.Deaths++;
-            matchstats.DeathsUpdated();
+            var matchStats = victim.Controller.ActionTrackingServices?.MatchStats;
+            if (matchStats == null)
+            {
+                return;
+            }
+            
+            matchStats.Deaths++;
+            matchStats.DeathsUpdated();
         }
 
         core.GameEvent.FireAsync<EventPlayerDeath>((@event) =>

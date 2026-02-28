@@ -7,6 +7,7 @@ using CS2ZombiePlague.Data.Plugins.AdminMenu;
 using CS2ZombiePlague.Data.Plugins.DamageNotify;
 using CS2ZombiePlague.Data.Plugins.ModelChanger;
 using CS2ZombiePlague.Data.Plugins.MoneySystem;
+using CS2ZombiePlague.Data.Plugins.ResetScore;
 using CS2ZombiePlague.Data.Plugins.ResourceLoader;
 using CS2ZombiePlague.Data.Plugins.RoundRatingNotify;
 using CS2ZombiePlague.Data.Plugins.ScreenFade;
@@ -60,6 +61,7 @@ namespace CS2ZombiePlague
                 DependencyManager.GetService<IOptions<ModelsConfig>>()).Load();
             new AdminMenu(Core, _roundManager.Value, _zombieManager.Value).Load();
             new SupplyBox().RegisterHooks();
+            new ScoreResetService(Core).Initialize();
         }
 
         public override void Unload()
