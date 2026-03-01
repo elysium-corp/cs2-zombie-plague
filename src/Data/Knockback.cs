@@ -1,13 +1,16 @@
-﻿using CS2ZombiePlague.Data.Extensions;
+﻿using CS2ZombiePlague.Config;
+using CS2ZombiePlague.Data.Extensions;
 using CS2ZombiePlague.Data.Managers;
+using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Natives;
+using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace CS2ZombiePlague.Data;
 
-public class Knockback(ISwiftlyCore core, ZombieManager zombieManager, KnifeManager knifeManager)
+public class Knockback(ISwiftlyCore core, ZombieManager zombieManager, KnifeManager knifeManager, IOptions<ZombiePlagueCoreConfig> config)
 {
     private record KnockbackData(float Recoil, float PickDistance);
 
@@ -20,32 +23,33 @@ public class Knockback(ISwiftlyCore core, ZombieManager zombieManager, KnifeMana
         { "weapon_p250", new KnockbackData(225.0f, 200.0f) },
         { "weapon_fiveseven", new KnockbackData(225.0f, 200.0f) },
         { "weapon_cz75a", new KnockbackData(270.0f, 200.0f) },
-        { "weapon_deagle", new KnockbackData(900.0f, 125.0f) },
-        { "weapon_revolver", new KnockbackData(900.0f, 125.0f) },
-        { "weapon_nova", new KnockbackData(500.0f, 75.0f) },
-        { "weapon_xm1014", new KnockbackData(500.0f, 75.0f) },
-        { "weapon_sawedoff", new KnockbackData(500.0f, 75.0f) },
+        { "weapon_deagle", new KnockbackData(650.0f, 125.0f) },
+        { "weapon_revolver", new KnockbackData(500.0f, 125.0f) },
+        { "weapon_nova", new KnockbackData(400.0f, 75.0f) },
+        { "weapon_xm1014", new KnockbackData(400.0f, 75.0f) },
+        { "weapon_sawedoff", new KnockbackData(400.0f, 75.0f) },
         { "weapon_mag7", new KnockbackData(500.0f, 75.0f) },
-        { "weapon_m249", new KnockbackData(300.0f, 75.0f) },
-        { "weapon_negev", new KnockbackData(300.0f, 150.0f) },
-        { "weapon_mac10", new KnockbackData(300.0f, 150.0f) },
-        { "weapon_mp7", new KnockbackData(300.0f, 150.0f) },
-        { "weapon_mp9", new KnockbackData(300.0f, 150.0f) },
-        { "weapon_mp5sd", new KnockbackData(300.0f, 150.0f) },
-        { "weapon_ump45", new KnockbackData(300.0f, 150.0f) },
-        { "weapon_p90", new KnockbackData(300.0f, 150.0f) },
-        { "weapon_bizon", new KnockbackData(300.0f, 150.0f) },
-        { "weapon_galilar", new KnockbackData(300.0f, 150.0f) },
-        { "weapon_famas", new KnockbackData(300.0f, 150.0f) },
-        { "weapon_ak47", new KnockbackData(600.0f, 150.0f) },
-        { "weapon_m4a4", new KnockbackData(600.0f, 150.0f) },
+        { "weapon_m249", new KnockbackData(225.0f, 75.0f) },
+        { "weapon_negev", new KnockbackData(225.0f, 125.0f) },
+        { "weapon_mac10", new KnockbackData(225.0f, 125.0f) },
+        { "weapon_mp7", new KnockbackData(225.0f, 125.0f) },
+        { "weapon_mp9", new KnockbackData(225.0f, 125.0f) },
+        { "weapon_mp5sd", new KnockbackData(225.0f, 125.0f) },
+        { "weapon_ump45", new KnockbackData(225.0f, 125.0f) },
+        { "weapon_p90", new KnockbackData(225.0f, 125) },
+        { "weapon_bizon", new KnockbackData(225.0f, 125.0f) },
+        { "weapon_galilar", new KnockbackData(225.0f, 125.0f) },
+        { "weapon_famas", new KnockbackData(225.0f, 125.0f) },
+        { "weapon_ak47", new KnockbackData(225.0f, 125.0f) },
+        { "weapon_m4a4", new KnockbackData(225.0f, 125.0f) },
+        { "weapon_m4a1", new KnockbackData(225.0f, 125.0f) },
         { "weapon_m4a1_silencer", new KnockbackData(350.0f, 150.0f) },
-        { "weapon_ssg08", new KnockbackData(300.0f, 150.0f) },
-        { "weapon_sg556", new KnockbackData(300.0f, 150.0f) },
-        { "weapon_aug", new KnockbackData(300.0f, 150.0f) },
+        { "weapon_ssg08", new KnockbackData(225.0f, 150.0f) },
+        { "weapon_sg556", new KnockbackData(225.0f, 150.0f) },
+        { "weapon_aug", new KnockbackData(225.0f, 150.0f) },
         { "weapon_awp", new KnockbackData(1200.0f, 400.0f) },
-        { "weapon_g3sg1", new KnockbackData(300.0f, 150.0f) },
-        { "weapon_scar20", new KnockbackData(300.0f, 150.0f) },
+        { "weapon_g3sg1", new KnockbackData(225.0f, 150.0f) },
+        { "weapon_scar20", new KnockbackData(225.0f, 150.0f) },
         { "weapon_knife", new KnockbackData(450.0f, 25.0f) },
     };
 
@@ -56,35 +60,46 @@ public class Knockback(ISwiftlyCore core, ZombieManager zombieManager, KnifeMana
     
     private HookResult OnPlayerHurtPost(EventPlayerHurt @event)
     {
-        var victim = core.PlayerManager.GetPlayer(@event.UserId);
-        var attacker = core.PlayerManager.GetPlayer(@event.Attacker);
+        var victim = @event.UserIdPlayer;
+        var attacker = @event.AttackerPlayer;
+        
         if (victim == null || attacker == null)
         {
             return HookResult.Continue;
         }
+
+        if (attacker.IsInfected())
+        {
+            return HookResult.Continue;
+        }
         
-        if (!victim.IsInfected() || attacker.IsInfected() ||  victim.IsFrozen())
+        if (!victim.IsInfected() || victim.IsFrozen())
         {
             return HookResult.Continue;
         }
 
         var weaponName = $"weapon_{@event.Weapon}";
         
-        if (!_weaponKnockback.ContainsKey(weaponName))
+        if (!_weaponKnockback.TryGetValue(weaponName, out var knockbackData))
         {
             return  HookResult.Continue;
         }
         
-        var weaponKnockback = _weaponKnockback[weaponName].Recoil;
-        var weaponPickDistance = _weaponKnockback[weaponName].PickDistance;
+        var weaponKnockback = knockbackData.Recoil;
+        var weaponPickDistance = knockbackData.PickDistance;
         
-        if (weaponName == "weapon_knife")
+        if (weaponName.Contains("knife"))
         {
             weaponKnockback = knifeManager.GetPlayerKnife(attacker).Knockback;
         }
 
-        var attackerPawn = attacker.RequiredPlayerPawn;
-        var victimPawn = victim.RequiredPlayerPawn;
+        var attackerPawn = attacker.PlayerPawn;
+        var victimPawn = victim.PlayerPawn;
+
+        if (attackerPawn == null || victimPawn == null)
+        {
+            return HookResult.Continue;
+        }
         
         var victimOrigin = victimPawn.AbsOrigin!.Value;
         var attackerOrigin = attackerPawn.AbsOrigin!.Value;
@@ -95,24 +110,31 @@ public class Knockback(ISwiftlyCore core, ZombieManager zombieManager, KnifeMana
         float recoil = GetGunRecoil(distance, weaponKnockback,
             weaponPickDistance);
 
+        if (recoil < config.Value.MinKnockbackForce)
+        {
+            return HookResult.Continue;
+        }
+        
         var zombie = zombieManager.GetZombie(victim.PlayerID);
+        if (zombie == null)
+        {
+            return HookResult.Continue;
+        }
+        
         var zombieKnockback = zombie.GetZombieClass().Knockback;
-        
-        bool onGround = victimPawn.GroundEntity.Value != null;
-        
-        var zBoost = onGround ? 150f : 25f;
-
+        var onGround = victimPawn.GroundEntity.Value != null;
+        var zBoost = onGround ? config.Value.GroundKnockback : config.Value.AirKnockback;
         var victimVelocity = victimPawn.AbsVelocity;
+
+        var hitGroupKnockback = @event.HitGroup == (int)HitGroup_t.HITGROUP_HEAD ? config.Value.KnockbackHeadMultiply : config.Value.KnockbackBodyMultiply;
         
         Vector newVelocity = new Vector(
-            victimVelocity.X + directionVector.X * recoil * zombieKnockback,
-            victimVelocity.Y + directionVector.Y * recoil * zombieKnockback,
+            victimVelocity.X + directionVector.X * recoil * zombieKnockback * hitGroupKnockback,
+            victimVelocity.Y + directionVector.Y * recoil * zombieKnockback * hitGroupKnockback,
             victimVelocity.Z + zBoost
         );
-
-        victimPawn.GroundEntity.Value = null;
         
-        victim.Teleport(victimOrigin, victimPawn.EyeAngles, newVelocity);
+        victim.Teleport(null, null, newVelocity);
 
         core.Scheduler.Delay(20, () => { victim.SetSpeed(zombie.GetZombieClass().Speed); });
 
