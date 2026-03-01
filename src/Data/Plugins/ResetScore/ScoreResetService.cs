@@ -34,6 +34,9 @@ public class ScoreResetService(ISwiftlyCore core) : IScoreResetService
 
         player.Controller.MVPs = 0;
         player.Controller.MVPsUpdated();
+
+        player.Controller.Score = 0;
+        player.Controller.ScoreUpdated();
         
         ReloadMatchStats(matchStats);
 
