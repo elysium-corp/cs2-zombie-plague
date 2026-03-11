@@ -1,6 +1,9 @@
-﻿using CS2ZombiePlague.Config;
+﻿using System;
+using System.Linq;
+using CS2ZombiePlague.Config;
 using CS2ZombiePlague.Data.Extensions;
 using CS2ZombiePlague.Data.Managers;
+using CS2ZombiePlague.Data.Rounds.Contracts;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.GameEventDefinitions;
@@ -102,7 +105,6 @@ public class Plague(
 
     protected override bool CanInfect(IPlayer attacker, IPlayer victim)
     {
-
         if (!victim.IsValid || !attacker.IsValid)
         {
             return false;

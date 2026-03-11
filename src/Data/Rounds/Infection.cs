@@ -1,6 +1,9 @@
-﻿using CS2ZombiePlague.Config;
+﻿using System;
+using System.Linq;
+using CS2ZombiePlague.Config;
 using CS2ZombiePlague.Data.Extensions;
 using CS2ZombiePlague.Data.Managers;
+using CS2ZombiePlague.Data.Rounds.Contracts;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.GameEventDefinitions;
@@ -19,10 +22,10 @@ public class Infection(
 {
     private Guid _onPlayerDeathEvent;
     private Guid _onPlayerConnectFullEvent;
-    
+
     public override int Chance => config.Chance;
     public override string Name => "Инфекция";
-    
+
     public override void Start()
     {
         core.Event.OnEntityTakeDamage += OnEntityTakeDamage;
@@ -31,7 +34,7 @@ public class Infection(
         {
             _onPlayerDeathEvent = core.GameEvent.HookPre<EventPlayerDeath>(OnPlayerDeath);
             _onPlayerConnectFullEvent = core.GameEvent.HookPre<EventPlayerConnectFull>(OnPlayerConnectFull);
-        } 
+        }
 
         var players = core.PlayerManager.GetAlive().ToList();
         IPlayer firstZombie;
@@ -52,7 +55,7 @@ public class Infection(
 
         core.PlayerManager.SendCenter("Первый заражённый => " + firstZombie.Name);
     }
-    
+
     public override void End()
     {
         core.Event.OnEntityTakeDamage -= OnEntityTakeDamage;
@@ -106,7 +109,7 @@ public class Infection(
         {
             return false;
         }
-        
+
         if (!attacker.IsInfected())
         {
             return false;
@@ -116,7 +119,7 @@ public class Infection(
         {
             return false;
         }
-        
+
         return true;
     }
 
@@ -145,7 +148,7 @@ public class Infection(
             {
                 return;
             }
-            
+
             zombieManager.Respawn(player);
         });
 
@@ -160,7 +163,7 @@ public class Infection(
             Name = "ZombiePlagueAbility.Infection",
             SourceEntityIndex = (int)zombie.RequiredPlayerPawn.Index
         };
-        
+
         soundEvent.Recipients.AddAllPlayers();
         soundEvent.Emit();
     }

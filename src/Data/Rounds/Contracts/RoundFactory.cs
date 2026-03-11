@@ -2,7 +2,7 @@
 using CS2ZombiePlague.Data.Managers;
 using SwiftlyS2.Shared;
 
-namespace CS2ZombiePlague.Data.Rounds;
+namespace CS2ZombiePlague.Data.Rounds.Contracts;
 
 public class RoundFactory(ISwiftlyCore core, ZombieManager zombieManager, HumanManager humanManager, CommonUtils commonUtils) : IRoundFactory
 {
@@ -11,10 +11,10 @@ public class RoundFactory(ISwiftlyCore core, ZombieManager zombieManager, HumanM
         return config switch
         {
             InfectionConfig roundConfig => new Infection(core, roundManager, zombieManager, commonUtils, roundConfig),
-            NemesisConfig roundConfig => new Nemesis(core, roundManager, zombieManager, roundConfig),
+            NemesisConfig roundConfig => new Nemesis(core, roundManager, zombieManager, commonUtils, roundConfig),
             PlagueConfig roundConfig => new Plague(core, roundManager, zombieManager, commonUtils, roundConfig),
             SurvivorConfig roundConfig => new Survivor(core, roundManager, zombieManager, humanManager, roundConfig),
-            ArmageddonConfig roundConfig => new Armageddon(core, roundManager, zombieManager, humanManager, roundConfig),
+            ArmageddonConfig roundConfig => new Armageddon(core, roundManager, zombieManager, humanManager, commonUtils, roundConfig),
             _ => new None()
         };
     }

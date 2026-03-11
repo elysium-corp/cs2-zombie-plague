@@ -19,7 +19,7 @@ using CS2ZombiePlague.Data.Plugins.ResourceLoader;
 using CS2ZombiePlague.Data.Plugins.RoundRatingNotify;
 using CS2ZombiePlague.Data.Plugins.ScreenFade;
 using CS2ZombiePlague.Data.Plugins.SupplyBox;
-using CS2ZombiePlague.Data.Rounds;
+using CS2ZombiePlague.Data.Rounds.Contracts;
 using CS2ZombiePlague.Data.Weapons;
 using CS2ZombiePlague.Data.Weapons.Knifes;
 using CS2ZombiePlague.Data.Zombies;

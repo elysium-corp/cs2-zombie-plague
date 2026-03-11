@@ -1,6 +1,6 @@
 ﻿using SwiftlyS2.Shared.Players;
 
-namespace CS2ZombiePlague.Data.Rounds;
+namespace CS2ZombiePlague.Data.Rounds.Contracts;
 
 public abstract class BaseRound : IRound
 {

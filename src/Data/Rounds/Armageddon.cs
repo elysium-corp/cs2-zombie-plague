@@ -1,6 +1,11 @@
-﻿using CS2ZombiePlague.Config;
+﻿using System.Linq;
+using CS2ZombiePlague.Config;
+using CS2ZombiePlague.Data.Extensions;
 using CS2ZombiePlague.Data.Managers;
+using CS2ZombiePlague.Data.Rounds.Contracts;
 using SwiftlyS2.Shared;
+using SwiftlyS2.Shared.Events;
+using SwiftlyS2.Shared.Sounds;
 
 namespace CS2ZombiePlague.Data.Rounds;
 
@@ -9,6 +14,7 @@ public class Armageddon(
     RoundManager roundManager,
     ZombieManager zombieManager,
     HumanManager humanManager,
+    CommonUtils commonUtils,
     ArmageddonConfig config) : BaseRound
 {
     public override int Chance => config.Chance;
@@ -16,6 +22,8 @@ public class Armageddon(
 
     public override void Start()
     {
+        core.Event.OnEntityTakeDamage += OnEntityTakeDamage;
+        
         var allPlayers = core.PlayerManager.GetAlive().Shuffle().ToList();
         var countPlayers = allPlayers.Count;
 
@@ -31,13 +39,47 @@ public class Armageddon(
             }
         }
 
+        if (config.IsMusicEnabled)
+        {
+            PlaySound();
+        }
+
         core.PlayerManager.SendCenter(Name);
     }
 
     public override void End()
     {
+        core.Event.OnEntityTakeDamage -= OnEntityTakeDamage;
+        
         roundManager.SetRound(new None());
 
         core.PlayerManager.SendCenter("Раунд окончен");
+    }
+    
+    private void OnEntityTakeDamage(IOnEntityTakeDamageEvent @event)
+    {
+        var attacker = commonUtils.ResolvePlayerFromHandle(@event.Info.Attacker);
+        var victim = commonUtils.FindPlayerByPawnAddress(@event.Entity.Address);
+
+        if (attacker == null || victim == null || victim.PlayerPawn == null)
+        {
+            return;
+        }
+
+        if (attacker.IsNemesis())
+        {
+            @event.Info.Damage += config.NemesisExtraDamage;
+        }
+    }
+
+    private void PlaySound()
+    {
+        using var sound = new SoundEvent(config.MusicSoundName);
+
+        sound.Recipients.AddAllPlayers();
+        sound.SourceEntityIndex = -1;
+        sound.Volume = 0.5f;
+
+        sound.Emit();
     }
 }

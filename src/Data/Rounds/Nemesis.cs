@@ -1,7 +1,11 @@
-﻿using CS2ZombiePlague.Config;
+﻿using System;
+using System.Linq;
+using CS2ZombiePlague.Config;
 using CS2ZombiePlague.Data.Extensions;
 using CS2ZombiePlague.Data.Managers;
+using CS2ZombiePlague.Data.Rounds.Contracts;
 using SwiftlyS2.Shared;
+using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.Sounds;
 
@@ -11,6 +15,7 @@ public class Nemesis(
     ISwiftlyCore core,
     RoundManager roundManager,
     ZombieManager zombieManager,
+    CommonUtils commonUtils,
     NemesisConfig config) : BaseRound
 {
     public override int Chance => config.Chance;
@@ -18,6 +23,8 @@ public class Nemesis(
 
     public override void Start()
     {
+        core.Event.OnEntityTakeDamage += OnEntityTakeDamage;
+        
         var players = core.PlayerManager.GetAlive().ToList();
         var nemesis = players[Random.Shared.Next(0, players.Count)];
 
@@ -31,16 +38,37 @@ public class Nemesis(
             }
         }
 
-        PlaySound();
+        if (config.IsMusicEnabled)
+        {
+            PlaySound();
+        }
 
         core.PlayerManager.SendCenter("Немезида => " + nemesis.Name);
     }
 
     public override void End()
     {
+        core.Event.OnEntityTakeDamage -= OnEntityTakeDamage;
+        
         roundManager.SetRound(new None());
 
         core.PlayerManager.SendCenter("Раунд окончен");
+    }
+
+    private void OnEntityTakeDamage(IOnEntityTakeDamageEvent @event)
+    {
+        var attacker = commonUtils.ResolvePlayerFromHandle(@event.Info.Attacker);
+        var victim = commonUtils.FindPlayerByPawnAddress(@event.Entity.Address);
+
+        if (attacker == null || victim == null || victim.PlayerPawn == null)
+        {
+            return;
+        }
+
+        if (attacker.IsNemesis())
+        {
+            @event.Info.Damage += config.NemesisExtraDamage;
+        }
     }
     
     private void PlaySound()

@@ -1,6 +1,7 @@
 using CS2ZombiePlague.Config;
 using CS2ZombiePlague.Data.Events;
 using CS2ZombiePlague.Data.Rounds;
+using CS2ZombiePlague.Data.Rounds.Contracts;
 using CS2ZombiePlague.Di;
 using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;

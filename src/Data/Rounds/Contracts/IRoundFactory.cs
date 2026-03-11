@@ -1,7 +1,7 @@
 ﻿using CS2ZombiePlague.Config;
 using CS2ZombiePlague.Data.Managers;
 
-namespace CS2ZombiePlague.Data.Rounds;
+namespace CS2ZombiePlague.Data.Rounds.Contracts;
 
 public interface IRoundFactory
 {

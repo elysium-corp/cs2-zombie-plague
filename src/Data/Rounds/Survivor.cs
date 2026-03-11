@@ -1,5 +1,8 @@
-﻿using CS2ZombiePlague.Config;
+﻿using System;
+using System.Linq;
+using CS2ZombiePlague.Config;
 using CS2ZombiePlague.Data.Managers;
+using CS2ZombiePlague.Data.Rounds.Contracts;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Sounds;
 
@@ -30,8 +33,11 @@ public class Survivor(
 
         humanManager.SetSurvivor(survivor, config);
 
-        PlaySound();
-
+        if (config.IsMusicEnabled)
+        {
+            PlaySound();
+        }
+        
         core.PlayerManager.SendCenter("Выживший => " + survivor.Controller.PlayerName);
     }
 

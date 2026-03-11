@@ -1,4 +1,4 @@
-﻿namespace CS2ZombiePlague.Data.Rounds;
+﻿namespace CS2ZombiePlague.Data.Rounds.Contracts;
 
 public interface IRound
 {
