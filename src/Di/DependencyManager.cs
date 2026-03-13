@@ -128,7 +128,6 @@ public static class DependencyManager
             .AddSingleton<WeaponService>()
             .AddSingleton<RoundRatingNotify>()
             .AddSingleton<WeaponParticleService>()
-            .AddSingleton<CommonUtils>()
             .AddSingleton<InfoNotifier>()
             .AddSingleton<SupplyBoxMapConfigService>()
             .AddSingleton<SupplyBoxMenuService>()

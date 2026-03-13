@@ -5,6 +5,8 @@ using CS2ZombiePlague.Data.Events;
 using CS2ZombiePlague.Data.Rounds;
 using CS2ZombiePlague.Data.Rounds.Contracts;
 using CS2ZombiePlague.Di;
+using CS2ZombiePlague.Utils;
+using CS2ZombiePlague.Utils.Helpers;
 using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
@@ -14,12 +16,11 @@ using SwiftlyS2.Shared.Sounds;
 
 namespace CS2ZombiePlague.Data.Managers;
 
-public class RoundManager(ISwiftlyCore core, IEventPublisher eventPublisher, CommonUtils commonUtils, IRoundFactory roundFactory, IOptions<ZombiePlagueCoreConfig> coreConfig, IOptions<RoundConfig> roundConfig)
+public class RoundManager(ISwiftlyCore core, IEventPublisher eventPublisher, IRoundFactory roundFactory, IOptions<ZombiePlagueCoreConfig> coreConfig, IOptions<RoundConfig> roundConfig)
     : IRoundManager
 {
     private readonly ZombieManager _zombieManager = DependencyManager.GetService<ZombieManager>();
     private readonly HumanManager _humanManager = DependencyManager.GetService<HumanManager>();
-    private readonly CommonUtils _commonUtils = DependencyManager.GetService<CommonUtils>();
     
     private readonly List<IRound> _rounds = [];
     private IRound _currentRound = new None();
@@ -99,8 +100,8 @@ public class RoundManager(ISwiftlyCore core, IEventPublisher eventPublisher, Com
         _zombieManager.RemoveAll();
         CancelToken();
         
-        _commonUtils.MoveAllPlayersToTeam(Team.CT);
-        _commonUtils.AllResetRenderColor();
+        TeamHelper.MoveAllPlayersToTeam(Team.CT);
+        RenderColorHelper.AllResetRenderColor();
 
         SetRound(new None());
 
@@ -214,8 +215,8 @@ public class RoundManager(ISwiftlyCore core, IEventPublisher eventPublisher, Com
         {
             totalWeight += round.Chance;
         }
-        
-        var randomWeight = commonUtils.RandomNum(1, totalWeight + 1);
+
+        var randomWeight = Numeric.Random(1, ++totalWeight);
         var currentWeight = 0;
         
         foreach (var round in _rounds)

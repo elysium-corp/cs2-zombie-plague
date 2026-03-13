@@ -2,6 +2,7 @@
 using CS2ZombiePlague.Data.Abilities.Contracts;
 using CS2ZombiePlague.Data.Extensions;
 using CS2ZombiePlague.Utils;
+using CS2ZombiePlague.Utils.Extensions;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Misc;

@@ -4,6 +4,7 @@ using CS2ZombiePlague.Config.Round;
 using CS2ZombiePlague.Data.Extensions;
 using CS2ZombiePlague.Data.Managers;
 using CS2ZombiePlague.Data.Rounds.Contracts;
+using CS2ZombiePlague.Utils.Extensions;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.Sounds;
@@ -15,7 +16,6 @@ public class Armageddon(
     RoundManager roundManager,
     ZombieManager zombieManager,
     HumanManager humanManager,
-    CommonUtils commonUtils,
     ArmageddonConfig config) : BaseRound
 {
     public override int Chance => config.Chance;
@@ -59,8 +59,8 @@ public class Armageddon(
     
     private void OnEntityTakeDamage(IOnEntityTakeDamageEvent @event)
     {
-        var attacker = commonUtils.ResolvePlayerFromHandle(@event.Info.Attacker);
-        var victim = commonUtils.FindPlayerByPawnAddress(@event.Entity.Address);
+        var attacker = @event.Info.Attacker.ResolvePlayerFromHandle();
+        var victim = @event.Entity.Address.FindPlayerByPawnAddress();
 
         if (attacker == null || victim == null || victim.PlayerPawn == null)
         {

@@ -4,7 +4,7 @@ using CS2ZombiePlague.Data.Weapons.Mappers;
 using CS2ZombiePlague.Data.Weapons.Utils.Extensions;
 using CS2ZombiePlague.Di;
 using CS2ZombiePlague.Service.Contracts;
-using CS2ZombiePlague.Utils;
+using CS2ZombiePlague.Utils.Extensions;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.Players;

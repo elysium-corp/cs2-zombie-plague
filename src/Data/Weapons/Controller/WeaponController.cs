@@ -32,12 +32,11 @@ public sealed class WeaponController : IWeaponController
     public WeaponController(IPlayer player)
     {
         _core = DependencyManager.GetService<ISwiftlyCore>();
-        var commonUtils = DependencyManager.GetService<CommonUtils>();
         var weaponService = DependencyManager.GetService<WeaponService>();
 
         _inventory = new PlayerInventory(player, weaponService);
         _weaponEffects = new WeaponEffectsDispatcher(player, _inventory);
-        _damageModifier = new DamageModifier(player, _inventory, commonUtils);
+        _damageModifier = new DamageModifier(player, _inventory);
         _grenadeHandler = new GrenadeHandler(player, _core, weaponService);
         
         _guidOnWeaponFireOnEmptyPost = _core.GameEvent.HookPost<EventWeaponFireOnEmpty>(OnWeaponFireOnEmptyPost);
@@ -108,6 +107,7 @@ public sealed class WeaponController : IWeaponController
         _core.GameEvent.Unhook(_guidOnDecoyStartedPre);
         _core.GameEvent.Unhook(_guidOnHegrenadeDetonatePre);
         _core.GameEvent.Unhook(_guidOnMolotovDetonatePre);
+        _core.GameEvent.Unhook(_guidOnSmokegrenadeDetonatePre);
         
         _core.Event.OnEntityTakeDamage -= OnEntityTakeDamage;
         _core.Event.OnWeaponServicesCanUseHook -= OnWeaponServicesCanUseHook;

@@ -1,15 +1,16 @@
 ﻿using CS2ZombiePlague.Data.Weapons.Contracts;
+using CS2ZombiePlague.Utils.Extensions;
 using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.Players;
 
 namespace CS2ZombiePlague.Data.Weapons.Controller;
 
-public class DamageModifier(IPlayer owner, IPlayerInventory inventory, CommonUtils commonUtils) : IDamageModifier
+public class DamageModifier(IPlayer owner, IPlayerInventory inventory) : IDamageModifier
 {
     public void OnEntityTakeDamage(IOnEntityTakeDamageEvent @event)
     {
-        var attacker = commonUtils.ResolvePlayerFromHandle(@event.Info.Attacker);
-        var victim = commonUtils.FindPlayerByPawnAddress(@event.Entity.Address);
+        var attacker = @event.Info.Attacker.ResolvePlayerFromHandle();
+        var victim = @event.Entity.Address.FindPlayerByPawnAddress();
 
         if (attacker is not { IsValid: true } || !attacker.IsAlive) return;
         

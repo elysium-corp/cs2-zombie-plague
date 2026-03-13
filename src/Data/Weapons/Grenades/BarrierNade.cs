@@ -3,6 +3,7 @@ using CS2ZombiePlague.Data.Weapons.Contracts;
 using CS2ZombiePlague.Data.Weapons.Enums;
 using CS2ZombiePlague.Data.Weapons.Utils;
 using CS2ZombiePlague.Di;
+using CS2ZombiePlague.Utils;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
@@ -31,7 +32,6 @@ public sealed class BarrierNade : BaseGrenade, IWeaponPurchasable
     public override void OnDecoyStarted(Vector position)
     {
         var core = DependencyManager.GetService<ISwiftlyCore>();
-        var commonUtils = DependencyManager.GetService<CommonUtils>();
         var startTime = 0f;
         
         var particle = core.EntitySystem.CreateEntity<CParticleSystem>();
@@ -45,7 +45,7 @@ public sealed class BarrierNade : BaseGrenade, IWeaponPurchasable
         {
             startTime += 0.05f;
             
-            var playersInRadius = commonUtils.FindAllPlayersInSphere(175.0f, position);
+            var playersInRadius = MathAlgorithm.FindAllPlayersInSphere(175.0f, position);
 
             foreach (var player in playersInRadius)
             {

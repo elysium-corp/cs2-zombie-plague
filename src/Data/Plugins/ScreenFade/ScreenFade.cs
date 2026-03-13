@@ -1,6 +1,7 @@
 ﻿using CS2ZombiePlague.Config;
 using CS2ZombiePlague.Config.Core;
 using CS2ZombiePlague.Utils;
+using CS2ZombiePlague.Utils.Extensions;
 using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;

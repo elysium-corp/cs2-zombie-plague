@@ -5,6 +5,7 @@ using CS2ZombiePlague.Data.Weapons.Contracts;
 using CS2ZombiePlague.Data.Weapons.Enums;
 using CS2ZombiePlague.Data.Weapons.Utils;
 using CS2ZombiePlague.Di;
+using CS2ZombiePlague.Utils;
 using SwiftlyS2.Shared.Natives;
 
 namespace CS2ZombiePlague.Data.Weapons.Grenades;
@@ -31,9 +32,8 @@ public sealed class FrostNade : BaseGrenade, IWeaponPurchasable
 
     public override void OnHegrenadeDetonate(Vector position)
     {
-        var commonUtils = DependencyManager.GetService<CommonUtils>();
         var effectManager = DependencyManager.GetService<EffectManager>();
-        var playersInRadius = commonUtils.FindAllPlayersInSphere(250.0f, position);
+        var playersInRadius = MathAlgorithm.FindAllPlayersInSphere(250.0f, position);
 
         foreach (var player in playersInRadius)
         {

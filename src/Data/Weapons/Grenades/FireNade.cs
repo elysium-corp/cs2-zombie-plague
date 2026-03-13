@@ -5,6 +5,7 @@ using CS2ZombiePlague.Data.Weapons.Contracts;
 using CS2ZombiePlague.Data.Weapons.Enums;
 using CS2ZombiePlague.Data.Weapons.Utils;
 using CS2ZombiePlague.Di;
+using CS2ZombiePlague.Utils;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
@@ -32,9 +33,8 @@ public sealed class FireNade : BaseGrenade, IWeaponPurchasable
     public override void OnMolotovDetonate(IPlayer attacker, Vector position)
     {
         var effectManager = DependencyManager.GetService<EffectManager>();
-        var commonUtils = DependencyManager.GetService<CommonUtils>();
 
-        var players = commonUtils.FindAllPlayersInSphere(275.0f, position);
+        var players = MathAlgorithm.FindAllPlayersInSphere(275.0f, position);
         
         players.ForEach(player =>
         {

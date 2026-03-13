@@ -5,6 +5,7 @@ using CS2ZombiePlague.Config.Round;
 using CS2ZombiePlague.Data.Extensions;
 using CS2ZombiePlague.Data.Managers;
 using CS2ZombiePlague.Data.Rounds.Contracts;
+using CS2ZombiePlague.Utils.Extensions;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.Players;
@@ -16,7 +17,6 @@ public class Nemesis(
     ISwiftlyCore core,
     RoundManager roundManager,
     ZombieManager zombieManager,
-    CommonUtils commonUtils,
     NemesisConfig config) : BaseRound
 {
     public override int Chance => config.Chance;
@@ -58,8 +58,8 @@ public class Nemesis(
 
     private void OnEntityTakeDamage(IOnEntityTakeDamageEvent @event)
     {
-        var attacker = commonUtils.ResolvePlayerFromHandle(@event.Info.Attacker);
-        var victim = commonUtils.FindPlayerByPawnAddress(@event.Entity.Address);
+        var attacker = @event.Info.Attacker.ResolvePlayerFromHandle();
+        var victim = @event.Entity.Address.FindPlayerByPawnAddress();
 
         if (attacker == null || victim == null || victim.PlayerPawn == null)
         {

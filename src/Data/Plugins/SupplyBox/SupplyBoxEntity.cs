@@ -1,6 +1,7 @@
 ﻿using CS2ZombiePlague.Data.Events;
 using CS2ZombiePlague.Data.Extensions;
 using CS2ZombiePlague.Di;
+using CS2ZombiePlague.Utils;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
@@ -13,7 +14,6 @@ namespace CS2ZombiePlague.Data.Plugins.SupplyBox;
 public sealed class SupplyBoxEntity
 {
     private readonly ISwiftlyCore _core = DependencyManager.GetService<ISwiftlyCore>();
-    private readonly CommonUtils _commonUtils = DependencyManager.GetService<CommonUtils>();
     private readonly IEventPublisher _eventPublisher = DependencyManager.GetService<IEventPublisher>();
     
     private const string BoxModel = "models/props/crates/cs2_drop_crate_01.vmdl";
@@ -111,7 +111,7 @@ public sealed class SupplyBoxEntity
             return;
         }
         
-        var playerAround = _commonUtils.FindAllPlayersInSphere(50f, Entity!.AbsOrigin!.Value);
+        var playerAround = MathAlgorithm.FindAllPlayersInSphere(50f, Entity!.AbsOrigin!.Value);
         foreach (var player in playerAround)
         {
             if (CanPickUp(player))

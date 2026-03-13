@@ -1,6 +1,7 @@
 ﻿using CS2ZombiePlague.Config.Weapon;
 using CS2ZombiePlague.Data.Extensions;
 using CS2ZombiePlague.Data.Weapons.Knifes;
+using CS2ZombiePlague.Utils.Extensions;
 using Microsoft.Extensions.Options;
 using SwiftlyS2.Core.Menus.OptionsBase;
 using SwiftlyS2.Shared;
@@ -13,7 +14,7 @@ using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace CS2ZombiePlague.Data.Managers;
 
-public class KnifeManager(ISwiftlyCore core, CommonUtils commonUtils, IKnifeFactory factory, IOptions<KnifeConfig> config)
+public class KnifeManager(ISwiftlyCore core, IKnifeFactory factory, IOptions<KnifeConfig> config)
 {
     private readonly Dictionary<IPlayer, IKnife> _playerKnifes = [];
     private IMenuAPI _menuApi = null!;
@@ -38,14 +39,14 @@ public class KnifeManager(ISwiftlyCore core, CommonUtils commonUtils, IKnifeFact
     
     private void OnEntityTakeDamage(IOnEntityTakeDamageEvent @event)
     {
-        var attacker = commonUtils.ResolvePlayerFromHandle(@event.Info.Attacker);
+        var attacker = @event.Info.Attacker.ResolvePlayerFromHandle();
 
         if (attacker == null || !attacker.IsValid || !attacker.IsAlive || attacker.IsInfected())
         {
             return;
         }
         
-        var victim = commonUtils.FindPlayerByPawnAddress(@event.Entity.Address);
+        var victim = @event.Entity.Address.FindPlayerByPawnAddress();
 
         if (victim == null || !victim.IsValid || !victim.IsAlive)
         {

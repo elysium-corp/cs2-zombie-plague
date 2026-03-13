@@ -1,6 +1,8 @@
-﻿namespace CS2ZombiePlague.Data.Plugins.SupplyBox;
+﻿using CS2ZombiePlague.Utils;
 
-public sealed class SupplyBoxEditService(CommonUtils commonUtils, SupplyBoxMapConfigService mapConfigService)
+namespace CS2ZombiePlague.Data.Plugins.SupplyBox;
+
+public sealed class SupplyBoxEditService(SupplyBoxMapConfigService mapConfigService)
 {
     public void AddSupplyBoxEntity(SupplyBoxEntityTemplate data)
     {
@@ -42,7 +44,7 @@ public sealed class SupplyBoxEditService(CommonUtils commonUtils, SupplyBoxMapCo
             return null;
         }
         
-        var supplyBoxEntity = new SupplyBoxEntity(mapConfigService.SupplyBoxesData[commonUtils.RandomNum(0, mapConfigService.SupplyBoxesData.Count)]);
+        var supplyBoxEntity = new SupplyBoxEntity(mapConfigService.SupplyBoxesData[Numeric.Random(0, mapConfigService.SupplyBoxesData.Count)]);
         supplyBoxEntity.Spawn();
         
         return supplyBoxEntity;

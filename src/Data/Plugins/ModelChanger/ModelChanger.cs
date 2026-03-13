@@ -1,6 +1,7 @@
 ﻿using CS2ZombiePlague.Config.models;
 using CS2ZombiePlague.Data.Extensions;
 using CS2ZombiePlague.Data.Managers;
+using CS2ZombiePlague.Utils;
 using Microsoft.Extensions.Options;
 using SwiftlyS2.Core.Menus.OptionsBase;
 using SwiftlyS2.Shared;
@@ -17,7 +18,6 @@ public class ModelChanger(
     ISwiftlyCore core,
     ZombieManager zombieManager,
     RoundManager roundManager,
-    CommonUtils utils,
     IOptions<ModelsConfig> modelsConfig)
 {
     private static readonly HashSet<string> RadioArray = new(StringComparer.OrdinalIgnoreCase)
@@ -209,7 +209,7 @@ public class ModelChanger(
             if (_currentModel.ContainsKey(player.PlayerID))
             {
                 _currentModel[player.PlayerID] =
-                    _defaultHumanModelPaths[utils.RandomNum(0, _defaultHumanModelPaths.Count)];
+                    _defaultHumanModelPaths[Numeric.Random(0, _defaultHumanModelPaths.Count)];
                 @args.Player.SendChatAsync("Модель будет убрана в следующем раунде!");
             }
         };
@@ -262,7 +262,7 @@ public class ModelChanger(
 
         if (!HasCustomModels(player))
         {
-            var model = _defaultHumanModelPaths[utils.RandomNum(0, _defaultHumanModelPaths.Count)];
+            var model = _defaultHumanModelPaths[Numeric.Random(0, _defaultHumanModelPaths.Count)];
             SetModel(pawn, model);
             return;
         }

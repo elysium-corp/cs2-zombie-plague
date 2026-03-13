@@ -4,6 +4,7 @@ using CS2ZombiePlague.Data.Extensions;
 using CS2ZombiePlague.Data.Managers;
 using CS2ZombiePlague.Di;
 using CS2ZombiePlague.Utils;
+using CS2ZombiePlague.Utils.Extensions;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.Sounds;

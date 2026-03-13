@@ -4,6 +4,7 @@ using CS2ZombiePlague.Data.Weapons.Utils;
 using CS2ZombiePlague.Data.Weapons.Utils.Extensions;
 using CS2ZombiePlague.Service;
 using CS2ZombiePlague.Utils;
+using CS2ZombiePlague.Utils.Extensions;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Misc;

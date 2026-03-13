@@ -40,7 +40,6 @@ namespace CS2ZombiePlague
         private readonly Lazy<ScreenFade> _screenFade = new(DependencyManager.GetService<ScreenFade>);
         private readonly Lazy<ZClassMenu> _zClassMenu = new(DependencyManager.GetService<ZClassMenu>);
         private readonly Lazy<EffectManager> _effectManager = new(DependencyManager.GetService<EffectManager>);
-        private readonly Lazy<CommonUtils> _utils = new(DependencyManager.GetService<CommonUtils>);
         private readonly Lazy<RoundRatingNotify> _roundRatingNotify = new(DependencyManager.GetService<RoundRatingNotify>);
         private readonly Lazy<LifecycleManager> _lifecycleManager = new(DependencyManager.GetService<LifecycleManager>);
         private readonly Lazy<PlayerLifecycleManager> _playerLifecycleManager = new(DependencyManager.GetService<PlayerLifecycleManager>);
@@ -64,8 +63,7 @@ namespace CS2ZombiePlague
             RegisterHooks();
             LoadFeatures();
 
-            new ModelChanger(Core, _zombieManager.Value, _roundManager.Value, _utils.Value,
-                DependencyManager.GetService<IOptions<ModelsConfig>>()).Load();
+            new ModelChanger(Core, _zombieManager.Value, _roundManager.Value, DependencyManager.GetService<IOptions<ModelsConfig>>()).Load();
             new AdminMenu(Core, _roundManager.Value, _zombieManager.Value).Load();
             new SupplyBox().RegisterHooks();
             new ScoreResetService(Core).Initialize();

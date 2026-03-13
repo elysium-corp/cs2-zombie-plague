@@ -1,6 +1,6 @@
 ﻿using SwiftlyS2.Shared.SchemaDefinitions;
 
-namespace CS2ZombiePlague.Utils;
+namespace CS2ZombiePlague.Utils.Extensions;
 
 public static class WeaponServiceExt
 {

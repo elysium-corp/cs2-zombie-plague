@@ -2,6 +2,7 @@
 using CS2ZombiePlague.Data.Abilities.Contracts;
 using CS2ZombiePlague.Data.Extensions;
 using CS2ZombiePlague.Di;
+using CS2ZombiePlague.Utils;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Events;
 
@@ -11,8 +12,6 @@ public class Leap(ISwiftlyCore core, LeapConfig config) : BaseActiveAbility(core
 {
     public override KeyKind? Key => KeyKind.Ctrl; 
     public override float Cooldown => config.CooldownTime;
-
-    private readonly CommonUtils _commonUtils = DependencyManager.GetService<CommonUtils>();
     
     public override bool IsCooldownNotify => false;
     
@@ -20,7 +19,7 @@ public class Leap(ISwiftlyCore core, LeapConfig config) : BaseActiveAbility(core
     {
         var casterPawn = Caster.RequiredPlayerPawn;
         var viewAngles = casterPawn.EyeAngles;
-        var forward = _commonUtils.ForwardFromAngles(viewAngles);
+        var forward = MathAlgorithm.ForwardFromAngles(viewAngles);
         
         var leapVelocity = forward * config.LeapDistance;
         leapVelocity.Z = config.LeapBoost * (1 / casterPawn.GravityScale );

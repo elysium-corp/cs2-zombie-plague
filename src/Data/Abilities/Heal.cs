@@ -4,6 +4,7 @@ using CS2ZombiePlague.Data.Extensions;
 using CS2ZombiePlague.Data.Managers;
 using CS2ZombiePlague.Di;
 using CS2ZombiePlague.Utils;
+using CS2ZombiePlague.Utils.Extensions;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.Natives;
@@ -21,7 +22,6 @@ public sealed class Heal(ISwiftlyCore core, HealConfig config) : BaseActiveAbili
 
     private const float EyePositionZ = 64f;
 
-    private readonly CommonUtils _commonUtils = DependencyManager.GetService<CommonUtils>();
     private readonly ZombieManager _zombieManager = DependencyManager.GetService<ZombieManager>();
 
     public override void Use()
@@ -34,7 +34,7 @@ public sealed class Heal(ISwiftlyCore core, HealConfig config) : BaseActiveAbili
             return;
         }
 
-        var forward = _commonUtils.ForwardFromAngles(casterPawn.EyeAngles);
+        var forward = MathAlgorithm.ForwardFromAngles(casterPawn.EyeAngles);
         var start = origin.Value + new Vector(0f, 0f, EyePositionZ) + forward*50;
         var end = start + forward * config.MaxHealDistance;
 
@@ -100,7 +100,7 @@ public sealed class Heal(ISwiftlyCore core, HealConfig config) : BaseActiveAbili
         if (entity is null)
             return false;
 
-        var found = _commonUtils.FindPlayerByPawnAddress(entity.Address);
+        var found = entity.Address.FindPlayerByPawnAddress();
         if (found is null || !found.IsValid || !found.Controller.PawnIsAlive)
             return false;
 

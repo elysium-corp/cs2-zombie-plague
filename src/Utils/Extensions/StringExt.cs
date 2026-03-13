@@ -1,4 +1,4 @@
-﻿namespace CS2ZombiePlague.Utils;
+﻿namespace CS2ZombiePlague.Utils.Extensions;
 
 public static class StringExt
 {

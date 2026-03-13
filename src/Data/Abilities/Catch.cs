@@ -2,6 +2,7 @@
 using CS2ZombiePlague.Data.Abilities.Contracts;
 using CS2ZombiePlague.Data.Extensions;
 using CS2ZombiePlague.Di;
+using CS2ZombiePlague.Utils.Extensions;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.Natives;
@@ -14,9 +15,7 @@ public class Catch(ISwiftlyCore core, CatchConfig config) : BaseActiveAbility(co
 {
     public override KeyKind? Key => KeyKind.E;
     public override float Cooldown => config.CooldownTime;
-
-    private readonly CommonUtils _commonUtils = DependencyManager.GetService<CommonUtils>();
-
+    
     private CBeam? _beam;
     private CancellationTokenSource? _thinker;
     private Vector? _oldPosition;
@@ -43,7 +42,7 @@ public class Catch(ISwiftlyCore core, CatchConfig config) : BaseActiveAbility(co
 
         var trace = LaunchTraceFromCaster(casterPawn);
         var entity = trace.Entity;
-        var found = _commonUtils.FindPlayerByPawnAddress(entity.Address);
+        var found = entity.Address.FindPlayerByPawnAddress();
 
         if (found is null || !found.IsValid || !found.Controller.PawnIsAlive)
         {

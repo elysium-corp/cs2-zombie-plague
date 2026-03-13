@@ -1,5 +1,5 @@
 ﻿using System.Text.Json;
-using CS2ZombiePlague.Utils;
+using CS2ZombiePlague.Utils.Extensions;
 using Microsoft.Extensions.Logging;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Events;

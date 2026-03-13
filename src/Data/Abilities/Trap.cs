@@ -2,6 +2,7 @@
 using CS2ZombiePlague.Data.Abilities.Contracts;
 using CS2ZombiePlague.Data.Extensions;
 using CS2ZombiePlague.Di;
+using CS2ZombiePlague.Utils;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.Natives;
@@ -18,9 +19,7 @@ public class Trap(ISwiftlyCore core, TrapConfig config) : BaseActiveAbility(core
 
     private CBaseModelEntity? _trapEntity;
     private CancellationTokenSource? _trapThinker;
-
-    private readonly CommonUtils _utils = DependencyManager.GetService<CommonUtils>();
-
+    
     private const float Delay = 0.1f;
 
     public override void Use()
@@ -94,7 +93,7 @@ public class Trap(ISwiftlyCore core, TrapConfig config) : BaseActiveAbility(core
                 return;
             }
         
-            var foundPlayers = _utils.FindAllPlayersInSphere(config.TriggerRadius, _trapEntity.AbsOrigin.Value);
+            var foundPlayers = MathAlgorithm.FindAllPlayersInSphere(config.TriggerRadius, _trapEntity.AbsOrigin.Value);
             if (foundPlayers.Count > 0)
             {
                 foreach (var foundPlayer in foundPlayers)

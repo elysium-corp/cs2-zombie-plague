@@ -1,4 +1,4 @@
-﻿namespace CS2ZombiePlague.Utils;
+﻿namespace CS2ZombiePlague.Utils.Helpers;
 
 public static class HtmlHelper
 { 

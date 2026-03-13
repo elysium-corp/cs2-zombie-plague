@@ -1,6 +1,7 @@
 ﻿using CS2ZombiePlague.Data.Extensions;
 using CS2ZombiePlague.Di;
 using CS2ZombiePlague.Utils;
+using CS2ZombiePlague.Utils.Extensions;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.GameEvents;
@@ -13,7 +14,6 @@ namespace CS2ZombiePlague.Data.Zombies.Controller;
 public class ZombieSoundController : ISoundController
 {
     private readonly ISwiftlyCore _core = DependencyManager.GetService<ISwiftlyCore>();
-    private readonly CommonUtils _commonUtils = DependencyManager.GetService<CommonUtils>();
     
     private readonly IPlayer _playerOwner;
     private readonly List<string> _hurtSounds;
@@ -80,7 +80,7 @@ public class ZombieSoundController : ISoundController
 
     private bool CanEmitSoundHurtEvent()
     {
-        return _commonUtils.RandomNum(0, 100) < HurtSoundChanceInPercent;
+        return Numeric.Random(0, 100) < HurtSoundChanceInPercent;
     }
 
     private void EmitSound(string soundName)
@@ -103,7 +103,7 @@ public class ZombieSoundController : ISoundController
 
     private string GetRandomSound(List<string> sounds)
     {
-        return sounds.Count == 0 ? "" : sounds[_commonUtils.RandomNum(0, sounds.Count)];
+        return sounds.Count == 0 ? "" : sounds[Numeric.Random(0, sounds.Count)];
     }
     
     public void Dispose()

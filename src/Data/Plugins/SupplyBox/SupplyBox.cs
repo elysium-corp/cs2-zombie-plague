@@ -3,6 +3,7 @@ using CS2ZombiePlague.Data.Events;
 using CS2ZombiePlague.Data.Rounds;
 using CS2ZombiePlague.Data.Rounds.Contracts;
 using CS2ZombiePlague.Di;
+using CS2ZombiePlague.Utils;
 using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Events;
@@ -21,7 +22,6 @@ public sealed class SupplyBox
     private readonly SupplyBoxEditService _editService = DependencyManager.GetService<SupplyBoxEditService>();
     private readonly IEventSubscriber _eventSubscriber = DependencyManager.GetService<IEventSubscriber>();
     private readonly IEventPublisher _eventPublisher = DependencyManager.GetService<IEventPublisher>();
-    private readonly CommonUtils _commonUtils = DependencyManager.GetService<CommonUtils>();
     private readonly ISupplyBoxConfig _config = DependencyManager.GetService<IOptions<SupplyBoxConfig>>().Value;
     
     private readonly List<SupplyBoxEntity> _droppedSupplyBoxes = [];
@@ -83,7 +83,7 @@ public sealed class SupplyBox
 
     private bool IsDropSuccessful()
     {
-        return _commonUtils.RandomNum(0, 100) <= _config.ChanceDrop;
+        return Numeric.Random(0, 100) <= _config.ChanceDrop;
         
     }
     
@@ -104,7 +104,7 @@ public sealed class SupplyBox
     
     private void CreateRespawnTimer(IRound round)
     {
-        var respawnTime = _commonUtils.RandomNum(_config.RespawnTimeBySeconds, _config.RespawnTimeBySeconds+_config.TimeSpreadBySeconds);
+        var respawnTime = Numeric.Random(_config.RespawnTimeBySeconds, _config.RespawnTimeBySeconds+_config.TimeSpreadBySeconds);
         _respawnSupplyBoxThinker = _core.Scheduler.DelayBySeconds(respawnTime, () =>
         {
             TrySpawnSupplyBox(round);

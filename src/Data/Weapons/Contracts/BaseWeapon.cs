@@ -1,7 +1,7 @@
 ﻿using CS2ZombiePlague.Data.Weapons.Enums;
 using CS2ZombiePlague.Di;
 using CS2ZombiePlague.Service;
-using CS2ZombiePlague.Utils;
+using CS2ZombiePlague.Utils.Extensions;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
