@@ -44,8 +44,6 @@ public class WeaponEffectsDispatcher(IPlayer owner, IPlayerInventory inventory) 
         var attacker = @event.UserIdPlayer;
         if (!IsOwner(attacker)) return HookResult.Continue;
         
-        core.PlayerManager.SendChat($"Еблан выстрелил {inventory.Weapons.Count}");
-
         if (inventory.TryGetActiveWeapon(out var weapon) && weapon.HasWeaponFireOnEmpty())
             weapon.OnWeaponFireOnEmpty(attacker);
 

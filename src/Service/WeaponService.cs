@@ -1,7 +1,10 @@
 ﻿using CS2ZombiePlague.Data.Weapons;
 using CS2ZombiePlague.Data.Weapons.Contracts;
+using CS2ZombiePlague.Data.Weapons.Mappers;
+using CS2ZombiePlague.Data.Weapons.Utils.Extensions;
 using CS2ZombiePlague.Di;
 using CS2ZombiePlague.Service.Contracts;
+using CS2ZombiePlague.Utils;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.Players;
@@ -14,11 +17,19 @@ public sealed class WeaponService : IWeaponService
 {
     private readonly List<BaseWeapon> _weapons = [];
 
-    private readonly ISwiftlyCore _core = DependencyManager.GetService<ISwiftlyCore>();
-    private readonly IWeaponFactory _weaponFactory = DependencyManager.GetService<IWeaponFactory>();
+    private readonly ISwiftlyCore _core;
+    private readonly IWeaponFactory _weaponFactory;
+    private readonly IGrenadeFactory _grenadeFactory;
+    private readonly IWeaponRegistrator _weaponRegistrator = DependencyManager.GetService<IWeaponRegistrator>();
 
-    public WeaponService()
+    private const string WeaponPrefix = "weapon_";
+    
+    public WeaponService(ISwiftlyCore core, IWeaponFactory weaponFactory, IGrenadeFactory grenadeFactory)
     {
+        _core = core;
+        _weaponFactory = weaponFactory;
+        _grenadeFactory = grenadeFactory;
+        
         _core.Event.OnEntityDeleted += OnEntityDeleted;
     }
 
@@ -30,7 +41,7 @@ public sealed class WeaponService : IWeaponService
     private void OnEntityDeleted(IOnEntityDeletedEvent @event)
     {
         var entity = @event.Entity;
-        var weapon = _weapons.Find(wp => wp.InheritorWeapon?.Index == entity.Index);
+        var weapon = _weapons.Find(wp => wp.AttachedWeapon?.Index == entity.Index);
 
         if (weapon != null)
         {
@@ -51,12 +62,12 @@ public sealed class WeaponService : IWeaponService
 
     public BaseWeapon? GetWeaponByIndex(int index)
     {
-        return _weapons.Find(wp => wp.InheritorWeapon?.Index == index);
+        return _weapons.Find(wp => wp.AttachedWeapon.Index == index);
     }
     
     public BaseWeapon? GetWeaponByIndex(uint index)
     {
-        return _weapons.Find(wp => wp.InheritorWeapon?.Index == index);
+        return _weapons.Find(wp => wp.AttachedWeapon.Index == index);
     }
 
     /// <summary>
@@ -72,14 +83,11 @@ public sealed class WeaponService : IWeaponService
             createWeapon: () => _weaponFactory.Create<TWeapon>(),
             giveAndResolveWeapon: (itemService, weaponService, customWeapon) =>
             {
-                itemService.GiveItem(customWeapon.InheritorName);
+                var inheritorName = ResolveInheritorName(customWeapon.InheritorName);
+                itemService.GiveItem(inheritorName);
 
                 return weaponService.MyValidWeapons
-                    .FirstOrDefault(w =>
-                    {
-                        _core.PlayerManager.SendChat($"wp.DesignerName = {w.DesignerName}, customWeapon.InheritorName = {customWeapon.InheritorName}");
-                        return w.DesignerName == customWeapon.InheritorName;
-                    });
+                    .FirstOrDefault(w => w.DesignerName == customWeapon.InheritorName);
             }
         );
     }
@@ -91,7 +99,7 @@ public sealed class WeaponService : IWeaponService
     /// <returns>
     /// <b>IWeapon</b>, если удалось создать пушку и выдать игроку <b>player</b>; иначе <b>null</b>.
     /// </returns>
-    public IWeapon? GiveWeapon<TWeapon, TSchemaWeapon>(IPlayer player)
+    public BaseWeapon? GiveWeapon<TWeapon, TSchemaWeapon>(IPlayer player)
         where TWeapon : BaseWeapon
         where TSchemaWeapon : class, ISchemaClass<TSchemaWeapon>, CBasePlayerWeapon
     {
@@ -100,6 +108,98 @@ public sealed class WeaponService : IWeaponService
             createWeapon: () => _weaponFactory.Create<TWeapon>(),
             giveAndResolveWeapon: (itemService, _, _) => itemService.GiveItem<TSchemaWeapon>()
         );
+    }
+
+    public BaseWeapon? GiveWeapon(IPlayer player, string internalName)
+    {
+        var foundWeapon = _weaponRegistrator
+            .GetAllWeapons()
+            .Find(w => w.InternalName.Contains(internalName));
+
+        if (foundWeapon == null)
+        {
+            return null;
+        }
+
+        return GiveWeaponInternal(
+            player: player,
+            createWeapon: () => _weaponFactory.Create(foundWeapon.InternalName),
+            giveAndResolveWeapon: (itemService, weaponService, customWeapon) =>
+            {
+                var slot = customWeapon.Slot.MapToGearSlot();
+                weaponService.DropWeaponBySlot(slot);
+                
+                var inheritorName = ResolveInheritorName(customWeapon.InheritorName);
+                itemService.GiveItem(inheritorName);
+                
+                return weaponService.MyValidWeapons
+                    .FirstOrDefault(w => w.DesignerName.Contains(customWeapon.InheritorName));
+            }
+        );
+    }
+
+    public BaseGrenade? GiveGrenade(IPlayer player, string internalName)
+    {
+        var foundGrenade = _weaponRegistrator
+            .GetAllWeapons()
+            .Find(w => w.InternalName.Contains(internalName))
+            .As<BaseGrenade>();
+
+        if (foundGrenade == null)
+        {
+            return null;
+        }
+
+        return GiveGrenadeInternal(
+            player: player,
+            createGrenade: () => _grenadeFactory.Create(foundGrenade.InternalName),
+            giveAndResolveGrenade: (itemService, weaponService, customGrenade) =>
+            {
+                var inheritorName = ResolveInheritorName(customGrenade.InheritorName);
+                weaponService.DropWeaponByDesignerName(inheritorName);
+                itemService.GiveItem(inheritorName);
+                
+                return weaponService.MyValidWeapons
+                    .FirstOrDefault(w => w.DesignerName.Contains(customGrenade.InheritorName));
+            }
+        );
+    }
+
+    private BaseGrenade? GiveGrenadeInternal(
+        IPlayer player,
+        Func<BaseGrenade> createGrenade,
+        Func<CCSPlayer_ItemServices, CCSPlayer_WeaponServices, IWeapon, CBasePlayerWeapon?> giveAndResolveGrenade)
+    {
+        var pawn = player.RequiredPlayerPawn;
+
+        var itemService = pawn.ItemServices;
+        if (itemService == null)
+        {
+            return null;
+        }
+
+        var weaponService = pawn.WeaponServices;
+        if (weaponService == null)
+        {
+            return null;
+        }
+        
+        var customGrenade = createGrenade();
+        var grenade = giveAndResolveGrenade(itemService, weaponService, customGrenade)?.As<CCSWeaponBase>();
+        
+        if (grenade == null)
+        {
+            return null;
+        } 
+        
+        if (customGrenade.Model.IsNotNullOrEmpty())
+        {
+            grenade.SetModel(customGrenade.Model);
+        }
+        
+        ModifyWeapon(customGrenade, ref grenade);
+        
+        return AddOrReplace(customGrenade).As<BaseGrenade>();
     }
 
     private BaseWeapon? GiveWeaponInternal(
@@ -122,34 +222,42 @@ public sealed class WeaponService : IWeaponService
         }
 
         var customWeapon = createWeapon();
-
-        weaponService.DropWeaponBySlot(customWeapon.Slot);
-
         var weapon = giveAndResolveWeapon(itemService, weaponService, customWeapon)?.As<CCSWeaponBase>();
+        
         if (weapon == null)
         {
             return null;
         } 
         
-        ModifyWeapon(ref customWeapon, ref weapon);
-
+        if (customWeapon.Model.IsNotNullOrEmpty())
+        {
+            weapon.SetModel(customWeapon.Model);
+        }
+        
+        ModifyWeapon(customWeapon, ref weapon); 
+        
         return AddOrReplace(customWeapon);
     }
 
-    private void ModifyWeapon(ref BaseWeapon source, ref CCSWeaponBase weapon)
+    private void ModifyWeapon(BaseWeapon source, ref CCSWeaponBase weapon)
     {
-        weapon.SetModel(source.Model);
+        if (source.Model.IsNotNullOrEmpty())
+        {
+            weapon.SetModel(source.Model);
+        }
 
         weapon.AttributeManager.Item.CustomName = source.DisplayName;
         weapon.AttributeManager.Item.CustomNameOverride = source.DisplayName;
         weapon.AttributeManager.Item.CustomNameUpdated();
         
-        source.InheritorWeapon = weapon;
+        source.AttachedWeapon = weapon;
+        
+        _core.PlayerManager.SendChat($"source = {source.AttachedWeapon.Index}, weapon = {weapon.Index}");
     }
 
     private BaseWeapon AddOrReplace(BaseWeapon weapon)
     {
-        var foundWeapon = _weapons.Find(wp => wp.InheritorWeapon.Index == weapon.InheritorWeapon.Index);
+        var foundWeapon = _weapons.Find(wp => wp.AttachedWeapon.Index == weapon.AttachedWeapon.Index);
 
         if (foundWeapon == null)
         {
@@ -160,5 +268,15 @@ public sealed class WeaponService : IWeaponService
         var index = _weapons.IndexOf(foundWeapon);
         _weapons[index] = foundWeapon;
         return foundWeapon;
+    }
+
+    private string ResolveInheritorName(string inheritorName)
+    {
+        if (inheritorName.Contains(WeaponPrefix))
+        {
+            return inheritorName;
+        }
+
+        return $"{WeaponPrefix}{inheritorName}";
     }
 }

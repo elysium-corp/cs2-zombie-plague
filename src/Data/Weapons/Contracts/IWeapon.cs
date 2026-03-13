@@ -1,18 +1,21 @@
-﻿using SwiftlyS2.Shared.SchemaDefinitions;
+﻿using CS2ZombiePlague.Data.Weapons.Enums;
+using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace CS2ZombiePlague.Data.Weapons.Contracts;
 
 public interface IWeapon
 {
-    CCSWeaponBase InheritorWeapon { get; set; }
-    
-    string DisplayName { get; }
+    CCSWeaponBase AttachedWeapon { get; set; }
     
     string InheritorName { get; }
     
-    gear_slot_t Slot { get; }
+    string DisplayName { get; }
+    
+    string InternalName { get; }
+    
+    WeaponSlot Slot { get; }
     
     string Model { get; }
     
-    float DamageMultiplier { get; }
+    WeaponRarity WeaponRarity { get; }
 }

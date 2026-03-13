@@ -59,6 +59,33 @@ public static class WeaponServiceExt
             
             return null;
         }
+        
+        public CBasePlayerWeapon? FindWeaponByName(string name)
+        {
+            ref var vec  = ref weaponService.MyWeapons;
+
+            foreach (var handle in vec)
+            {
+                if (!handle.IsValid)
+                {
+                    continue;
+                }
+
+                var weapon = handle.Value;
+
+                if (weapon == null)
+                {
+                    continue;
+                }
+
+                if (weapon.DesignerName.Contains(name))
+                {
+                    return weapon;
+                }
+            }
+            
+            return null;
+        }
 
         public HashSet<int> MyWeaponsAsIds()
         {
@@ -70,6 +97,26 @@ public static class WeaponServiceExt
                 if (index.HasValue)
                 {
                     result.Add((int)index.Value);
+                }
+            }
+
+            return result; 
+        }
+        
+        public HashSet<string> MyWeaponsAsNames(Predicate<string>? predicate = null)
+        {
+            var result = new HashSet<string>();
+
+            foreach (var wp in weaponService.MyWeapons)
+            {
+                var weaponName = wp.Value?.DesignerName;
+                if (weaponName != null)
+                {
+                    var condition = predicate?.Invoke(weaponName) ?? true;
+                    if (predicate != null && condition)
+                    {
+                        result.Add(weaponName);
+                    }
                 }
             }
 

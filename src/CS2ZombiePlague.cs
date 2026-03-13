@@ -4,6 +4,7 @@ using CS2ZombiePlague.Config.models;
 using CS2ZombiePlague.Data;
 using CS2ZombiePlague.Data.Lifecycle;
 using CS2ZombiePlague.Data.Managers;
+using CS2ZombiePlague.Data.Menus;
 using CS2ZombiePlague.Data.Plugins.AdminMenu;
 using CS2ZombiePlague.Data.Plugins.DamageNotify;
 using CS2ZombiePlague.Data.Plugins.InfoNotify;
@@ -14,9 +15,11 @@ using CS2ZombiePlague.Data.Plugins.ResourceLoader;
 using CS2ZombiePlague.Data.Plugins.RoundRatingNotify;
 using CS2ZombiePlague.Data.Plugins.ScreenFade;
 using CS2ZombiePlague.Data.Plugins.SupplyBox;
+using CS2ZombiePlague.Data.Weapons;
 using CS2ZombiePlague.Di;
 using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;
+using SwiftlyS2.Shared.Commands;
 using SwiftlyS2.Shared.Plugins;
 
 namespace CS2ZombiePlague
@@ -29,7 +32,6 @@ namespace CS2ZombiePlague
         private readonly Lazy<RoundManager> _roundManager = new(DependencyManager.GetService<RoundManager>);
         private readonly Lazy<ZombieManager> _zombieManager = new(DependencyManager.GetService<ZombieManager>);
         private readonly Lazy<HumanManager> _humanManager = new(DependencyManager.GetService<HumanManager>);
-        private readonly Lazy<WeaponManager> _weaponManager = new(DependencyManager.GetService<WeaponManager>);
         private readonly Lazy<KnifeManager> _knifeManager = new(DependencyManager.GetService<KnifeManager>);
         private readonly Lazy<Knockback> _knockback = new(DependencyManager.GetService<Knockback>);
         private readonly Lazy<DamageNotify> _damageNotify = new(DependencyManager.GetService<DamageNotify>);
@@ -40,6 +42,8 @@ namespace CS2ZombiePlague
         private readonly Lazy<CommonUtils> _utils = new(DependencyManager.GetService<CommonUtils>);
         private readonly Lazy<RoundRatingNotify> _roundRatingNotify = new(DependencyManager.GetService<RoundRatingNotify>);
         private readonly Lazy<LifecycleManager> _lifecycleManager = new(DependencyManager.GetService<LifecycleManager>);
+        private readonly Lazy<PlayerLifecycleManager> _playerLifecycleManager = new(DependencyManager.GetService<PlayerLifecycleManager>);
+        private readonly Lazy<IWeaponRegistrator> _weaponRegistrator = new(DependencyManager.GetService<IWeaponRegistrator>);
 
         public override void Load(bool hotReload)
         {
@@ -53,8 +57,8 @@ namespace CS2ZombiePlague
             
             _resourceLoader.Value.Initialize();
             
+            _weaponRegistrator.Value.Registration();
             _lifecycleManager.Value.Initialize();
-            _weaponManager.Value.RegisterWeapons();
 
             RegisterHooks();
             LoadFeatures();
@@ -109,6 +113,35 @@ namespace CS2ZombiePlague
             {
                 _roundRatingNotify.Value.Start();
             }
+            
+            RegisterCommands();
+        }
+
+        private void RegisterCommands()
+        {
+            Core.Command.RegisterCommand(
+                commandName: "gun",
+                handler: GunHandler,
+                registerRaw: true
+            );
+        }
+        
+        private void GunHandler(ICommandContext context)
+        {
+            var player = context.Sender;
+            
+            if (!context.IsSentByPlayer)
+            {
+                return;
+            }
+
+            if (player == null)
+            {
+                return;
+            }
+
+            var weaponBuyMenu = new WeaponCategoriesMenu(core);
+            weaponBuyMenu.Open(player);
         }
     }
 }

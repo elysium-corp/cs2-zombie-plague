@@ -1,4 +1,5 @@
-﻿using CS2ZombiePlague.Di;
+﻿using CS2ZombiePlague.Data.Weapons.Enums;
+using CS2ZombiePlague.Di;
 using CS2ZombiePlague.Service;
 using CS2ZombiePlague.Utils;
 using SwiftlyS2.Shared.Natives;
@@ -13,20 +14,24 @@ public abstract class BaseWeapon : IWeapon, IWeaponHasParticle, IWeaponHasSound
 {
     private readonly WeaponParticleService _weaponParticleService = DependencyManager.GetService<WeaponParticleService>();
 
-    public virtual CCSWeaponBase InheritorWeapon
+    public virtual CCSWeaponBase AttachedWeapon
     {
         get => field ?? throw new NotAttachedWeaponException();
         set;
     }
 
-    public abstract string DisplayName { get; }
-    
     public abstract string InheritorName { get; }
-    
-    public abstract gear_slot_t Slot { get; }
+
+    public abstract string DisplayName { get; }
+
+    public abstract string InternalName { get; }
+
+    public abstract WeaponSlot Slot { get; }
     
     public abstract string Model { get; }
-    
+
+    public abstract WeaponRarity WeaponRarity { get; }
+
     public virtual float DamageMultiplier => 1.0f;
 
     public virtual string WeaponFireParticle => "";
@@ -96,7 +101,7 @@ public abstract class BaseWeapon : IWeapon, IWeaponHasParticle, IWeaponHasSound
         using var sound = new SoundEvent(soundEvent);
 
         sound.Recipients.AddAllPlayers();
-        sound.SourceEntityIndex = (int)InheritorWeapon.Index;
+        sound.SourceEntityIndex = (int)AttachedWeapon.Index;
         
         sound.Emit();
     }

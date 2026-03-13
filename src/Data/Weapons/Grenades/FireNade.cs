@@ -1,44 +1,47 @@
 ﻿using CS2ZombiePlague.Data.Effects;
 using CS2ZombiePlague.Data.Extensions;
 using CS2ZombiePlague.Data.Managers;
+using CS2ZombiePlague.Data.Weapons.Contracts;
+using CS2ZombiePlague.Data.Weapons.Enums;
+using CS2ZombiePlague.Data.Weapons.Utils;
 using CS2ZombiePlague.Di;
-using SwiftlyS2.Shared;
-using SwiftlyS2.Shared.Events;
+using SwiftlyS2.Shared.Natives;
+using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace CS2ZombiePlague.Data.Weapons.Grenades;
 
-public class FireNade(ISwiftlyCore core, CommonUtils commonUtils) : ICustomWeapon
+public sealed class FireNade : BaseGrenade, IWeaponPurchasable
 {
-    private readonly EffectManager _effectManager = DependencyManager.GetService<EffectManager>();
-    public string OriginalName => "incgrenade_projectile";
-    public string IternalName => "weapon_fire_nade";
-    public string DisplayName => "FireNade";
-    public void Load()
-    {
-        core.Event.OnEntityTakeDamage += OnEntityTakeDamage;
-    }
+    public override string InheritorName => WeaponName.Grenade.Inc;
+    
+    public override string DisplayName => "Fire Nade";
 
-    private void OnEntityTakeDamage(IOnEntityTakeDamageEvent @event)
-    {
-        var attacker = commonUtils.ResolvePlayerFromHandle(@event.Info.Attacker);
-        
-        if (attacker is not { IsValid: true } || !attacker.IsAlive || attacker.IsInfected()) return;
-        
-        var victim = commonUtils.FindPlayerByPawnAddress(@event.Entity.Address);
-        
-        if (victim is not { IsValid: true } || !victim.IsAlive) return;
+    public override string InternalName => "fire_nade";
 
-        if (victim.IsHuman())
+    public override WeaponSlot Slot => WeaponSlot.Grenades;
+    
+    public override string Model => "";
+
+    public override WeaponRarity WeaponRarity => WeaponRarity.Modified;
+
+    public int Coast => 1;
+
+    public WeaponType WeaponType => WeaponType.Equipment;
+
+    public override void OnMolotovDetonate(IPlayer attacker, Vector position)
+    {
+        var effectManager = DependencyManager.GetService<EffectManager>();
+        var commonUtils = DependencyManager.GetService<CommonUtils>();
+
+        var players = commonUtils.FindAllPlayersInSphere(275.0f, position);
+        
+        players.ForEach(player =>
         {
-            @event.Info.Damage = 0;
-            return;
-        }
-        
-        if(@event.Info.DamageType != DamageTypes_t.DMG_BURN) return;
-        
-        if(victim.IsBurn()) return;
-        
-        _effectManager.ApplyEffect<Burn>(attacker, victim);
+            if (player.IsInfected())
+            {
+                effectManager.ApplyEffect<Burn>(attacker, player);
+            }
+        });
     }
 }

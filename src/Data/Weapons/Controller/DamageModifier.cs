@@ -1,6 +1,4 @@
 ﻿using CS2ZombiePlague.Data.Weapons.Contracts;
-using CS2ZombiePlague.Di;
-using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.Players;
 

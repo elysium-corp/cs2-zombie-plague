@@ -5,4 +5,6 @@ namespace CS2ZombiePlague.Data.Weapons;
 public interface IWeaponFactory
 {
     public BaseWeapon Create<T>() where T : BaseWeapon;
+    
+    public BaseWeapon Create(string internalName);
 }

@@ -1,76 +1,46 @@
 ﻿using CS2ZombiePlague.Data.Effects;
 using CS2ZombiePlague.Data.Extensions;
 using CS2ZombiePlague.Data.Managers;
+using CS2ZombiePlague.Data.Weapons.Contracts;
+using CS2ZombiePlague.Data.Weapons.Enums;
+using CS2ZombiePlague.Data.Weapons.Utils;
 using CS2ZombiePlague.Di;
-using SwiftlyS2.Shared;
-using SwiftlyS2.Shared.Events;
-using SwiftlyS2.Shared.GameEventDefinitions;
-using SwiftlyS2.Shared.Misc;
-using SwiftlyS2.Shared.SchemaDefinitions;
-using SwiftlyS2.Shared.Sounds;
-using Vector = SwiftlyS2.Shared.Natives.Vector;
+using SwiftlyS2.Shared.Natives;
 
 namespace CS2ZombiePlague.Data.Weapons.Grenades;
 
-public class FrostNade(ISwiftlyCore core, CommonUtils commonUtils) : ICustomWeapon, IGrenade
+public sealed class FrostNade : BaseGrenade, IWeaponPurchasable
 {
-    public string OriginalName => "hegrenade_projectile";
-    public string IternalName => "weapon_frost_nade";
-    public string DisplayName => "FrostNade";
+    public override string InheritorName => WeaponName.Grenade.He;
     
-    private readonly EffectManager _effectManager = DependencyManager.GetService<EffectManager>();
+    public override string DisplayName => "Frost Nade";
 
-    private const float ExplodeRadius = 250.0f;
+    public override string InternalName => "frost_nade";
 
-    public void Load()
+    public override WeaponSlot Slot => WeaponSlot.Grenades;
+
+    public override float DamageMultiplier => 0.0f;
+
+    public override string Model => "";
+
+    public override WeaponRarity WeaponRarity => WeaponRarity.Modified;
+
+    public int Coast => 1;
+
+    public WeaponType WeaponType => WeaponType.Equipment;
+
+    public override void OnHegrenadeDetonate(Vector position)
     {
-        core.GameEvent.HookPre<EventHegrenadeDetonate>(PreEventGrenadeDetonate);
-        core.Event.OnEntityTakeDamage += TakeDamage;
-    }
-
-    public void Explode(int userid, Vector position, int grenadeIndex)
-    {
-        var playersInRadius = commonUtils.FindAllPlayersInSphere(ExplodeRadius, position);
-        PlaySound("FrostNade.detonate", grenadeIndex);
+        var commonUtils = DependencyManager.GetService<CommonUtils>();
+        var effectManager = DependencyManager.GetService<EffectManager>();
+        var playersInRadius = commonUtils.FindAllPlayersInSphere(250.0f, position);
 
         foreach (var player in playersInRadius)
         {
             if (player.IsInfected() && !player.IsNemesis() && !player.IsFrozen())
             {
-                _effectManager.ApplyEffect<Freeze>(null, player);
+                effectManager.ApplyEffect<Freeze>(null, player);
             }
         }
-    }
-
-    private void TakeDamage(IOnEntityTakeDamageEvent @event)
-    {
-        if (@event.Info.Inflictor.Value != null && @event.Info.Inflictor.Value.DesignerName == OriginalName)
-        {
-            @event.Info.Damage = 0;
-        }
-    }
-    
-    private HookResult PreEventGrenadeDetonate(EventHegrenadeDetonate @event)
-    {
-        var grenade = core.EntitySystem.GetEntityByIndex<CEntityInstance>((uint)@event.EntityID);
-        if (grenade != null && grenade.IsValid)
-        {
-            Explode(@event.UserId, new Vector(@event.X, @event.Y, @event.Z), (int)grenade.Index);
-            grenade.Despawn();
-        }
-
-        return HookResult.Handled;
-    }
-    
-    private void PlaySound(string soundName, int entityIndex)
-    {
-        using var soundEvent = new SoundEvent()
-        {
-            Volume = 3.5f,
-            Name = soundName,
-            SourceEntityIndex = entityIndex
-        };
-        soundEvent.Recipients.AddAllPlayers();
-        soundEvent.Emit();
     }
 }

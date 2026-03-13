@@ -1,52 +1,45 @@
-﻿using SwiftlyS2.Shared;
-using SwiftlyS2.Shared.GameEventDefinitions;
-using SwiftlyS2.Shared.Misc;
+﻿using CS2ZombiePlague.Data.Weapons.Contracts;
+using CS2ZombiePlague.Data.Weapons.Enums;
+using CS2ZombiePlague.Data.Weapons.Utils;
+using CS2ZombiePlague.Di;
 using SwiftlyS2.Shared.Natives;
-using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace CS2ZombiePlague.Data.Weapons.Grenades;
 
-public class JumpNade(ISwiftlyCore core, CommonUtils utils) : ICustomWeapon, IGrenade
+public sealed class JumpNade : BaseGrenade, IWeaponPurchasable
 {
-    public string OriginalName => "weapon_smoke";
-    public string IternalName => "weapon_jump_nade";
-    public string DisplayName => "Jump Nade";
+    public override string InheritorName => WeaponName.Grenade.Smoke;
 
-    private const int ExplodeRadius = 250;
-    private const int ExplodePower = 850;
+    public override string DisplayName => "Jump Nade";
 
-    public void Load()
+    public override string InternalName => "jump_nade";
+
+    public override WeaponSlot Slot => WeaponSlot.Grenades;
+
+    public override string Model => "";
+
+    public override WeaponRarity WeaponRarity => WeaponRarity.Modified;
+
+    public int Coast => 1;
+
+    public WeaponType WeaponType => WeaponType.Equipment;
+
+    public override void OnSmokegrenadeDetonate(Vector position)
     {
-        core.GameEvent.HookPre<EventSmokegrenadeDetonate>(PreEventGrenadeDetonate);
-    }
-
-    public void Explode(int userid, Vector position, int grenadeIndex)
-    {
-        var playersInRadius = utils.FindAllPlayersInSphere(ExplodeRadius, position);
+        var commonUtils = DependencyManager.GetService<CommonUtils>();
+        var playersInRadius = commonUtils.FindAllPlayersInSphere(250.0f, position);
+        
         foreach (var player in playersInRadius)
         {
             var playerPawn = player.RequiredPlayerPawn;
-
             var distance = position.Distance(playerPawn.AbsOrigin!.Value);
-            var speed = ExplodePower * (1.0f - (distance / ExplodeRadius));
-
+            var speed = 850.0f * (1.0f - distance / 250.0f);
             var newVelocity = GetSpeedVector(position, playerPawn.AbsOrigin!.Value, speed);
+            
             playerPawn.AbsVelocity += newVelocity;
         }
     }
-
-    private HookResult PreEventGrenadeDetonate(EventSmokegrenadeDetonate @event)
-    {
-        var grenade = core.EntitySystem.GetEntityByIndex<CBaseEntity>((uint)@event.EntityID);
-        if (grenade is { IsValidEntity: true })
-        {
-            Explode(@event.UserId, new Vector(@event.X, @event.Y, @event.Z), @event.EntityID);
-            grenade.Despawn();
-        }
-
-        return HookResult.Continue;
-    }
-
+    
     private Vector GetSpeedVector(Vector origin1, Vector origin2, float speed)
     {
         Vector direction = (origin2 - origin1).Normalized();
@@ -56,8 +49,7 @@ public class JumpNade(ISwiftlyCore core, CommonUtils utils) : ICustomWeapon, IGr
             direction.Y * direction.Y +
             direction.Z * direction.Z;
 
-        if (lengthSquared <= 0.0001f)
-            return Vector.Zero;
+        if (lengthSquared <= 0.0001f) return Vector.Zero;
 
         float scale = speed / MathF.Sqrt(lengthSquared);
 
@@ -66,6 +58,7 @@ public class JumpNade(ISwiftlyCore core, CommonUtils utils) : ICustomWeapon, IGr
             direction.Y * scale,
             direction.Z * scale
         );
+        
         if (direction.Z < 0 && direction.Z >= -3)
         {
             newVelocity.Z = scale;

@@ -1,9 +1,9 @@
 ﻿using CS2ZombiePlague.Data.Weapons.Contracts;
-using CS2ZombiePlague.Data.Weapons.Shotguns;
+using CS2ZombiePlague.Data.Weapons.Guns;
 
 namespace CS2ZombiePlague.Data.Weapons;
 
-public sealed class WeaponFactory : IWeaponFactory
+public sealed class WeaponFactory(IWeaponRegistrator weaponRegistrator) : IWeaponFactory
 {
     public BaseWeapon Create<T>() where T : BaseWeapon
     {
@@ -17,5 +17,11 @@ public sealed class WeaponFactory : IWeaponFactory
             var t when t == typeof(ReactorLeak) => new ReactorLeak(),
             _ => throw new NotSupportedException("WeaponFactory: type T hasn't supported!")
         };
+    }
+
+    public BaseWeapon Create(string internalName)
+    {
+        return weaponRegistrator.GetAllWeapons().Find(wp => wp.InternalName == internalName) ??
+               throw new NotSupportedException("WeaponFactory: internalName hasn't supported!");
     }
 }

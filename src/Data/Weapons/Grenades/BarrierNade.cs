@@ -1,52 +1,51 @@
 ﻿using CS2ZombiePlague.Data.Extensions;
-using CS2ZombiePlague.Data.Managers;
+using CS2ZombiePlague.Data.Weapons.Contracts;
+using CS2ZombiePlague.Data.Weapons.Enums;
+using CS2ZombiePlague.Data.Weapons.Utils;
+using CS2ZombiePlague.Di;
 using SwiftlyS2.Shared;
-using SwiftlyS2.Shared.GameEventDefinitions;
-using SwiftlyS2.Shared.Misc;
+using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
-using Vector = SwiftlyS2.Shared.Natives.Vector;
 
 namespace CS2ZombiePlague.Data.Weapons.Grenades;
 
-public class BarrierNade(ISwiftlyCore core, RoundManager roundManager, CommonUtils commonUtils) : ICustomWeapon, IGrenade
+public sealed class BarrierNade : BaseGrenade, IWeaponPurchasable
 {
-    public string OriginalName => "decoy_grenade";
-    public string IternalName => "barrier_nade";
-    public string DisplayName => "BarrierNade";
+    public override string InheritorName => WeaponName.Grenade.Decoy;
 
-    private const float ExplodeRadius = 175.0f;
-    private const float LiveTime = 15.0f;
-    private const float KnockbackDistance = 200.0f;
-    private const float Delay = 0.05f;
-    private const float StartTime = 0f;
-    private const float HighZBoost = 150f;
-    private const float LowZBoost = 25f;
-    
-    private const string ParticleEffectName = "particles/barrier_nade.vpcf";
+    public override string DisplayName => "Barrier Nade";
 
-    public void Load()
+    public override string InternalName => "barrier_nade";
+
+    public override WeaponSlot Slot => WeaponSlot.Grenades;
+
+    public override string Model => "";
+
+    public override WeaponRarity WeaponRarity => WeaponRarity.Modified;
+
+    public int Coast => 1;
+
+    public WeaponType WeaponType => WeaponType.Equipment;
+
+    public override void OnDecoyStarted(Vector position)
     {
-        core.GameEvent.HookPre<EventDecoyStarted>(PreEventGrenadeStarted);
-    }
-
-    public void Explode(int userid, Vector position, int grenadeIndex)
-    {
-        var startTime = StartTime;
-
+        var core = DependencyManager.GetService<ISwiftlyCore>();
+        var commonUtils = DependencyManager.GetService<CommonUtils>();
+        var startTime = 0f;
+        
         var particle = core.EntitySystem.CreateEntity<CParticleSystem>();
         particle.StartActive = true;
-        particle.EffectName = ParticleEffectName;
+        particle.EffectName = OnDecoyStartedParticleName;
         particle.Teleport(position, null, null);
         particle.DispatchSpawn();
         
         CancellationTokenSource token = null!;
-
-        token = core.Scheduler.RepeatBySeconds(Delay, () =>
+        token = core.Scheduler.RepeatBySeconds(0.05f, () =>
         {
-            startTime += Delay;
+            startTime += 0.05f;
             
-            var playersInRadius = commonUtils.FindAllPlayersInSphere(ExplodeRadius, position);
+            var playersInRadius = commonUtils.FindAllPlayersInSphere(175.0f, position);
 
             foreach (var player in playersInRadius)
             {
@@ -56,51 +55,43 @@ public class BarrierNade(ISwiftlyCore core, RoundManager roundManager, CommonUti
                 }
             }
 
-            if (startTime >= LiveTime)
+            if (startTime >= 15.0f)
             {
                 if (particle is { IsValidEntity: true })
                 {
                     particle.Despawn();
                 }
 
-                token?.Cancel();
+                token.Cancel();
             }
         });
+        
+        base.OnDecoyStarted(position);
     }
-
-    private HookResult PreEventGrenadeStarted(EventDecoyStarted @event)
-    {
-        var grenade = core.EntitySystem.GetEntityByIndex<CEntityInstance>((uint)@event.EntityID);
-        if (grenade is { IsValid: true })
-        {
-            Explode(@event.UserId, new Vector(@event.X, @event.Y, @event.Z), (int)grenade.Index);
-            grenade.Despawn();
-        }
-
-        return HookResult.Stop;
-    }
-
+    
     private void Knock(IPlayer player, Vector position)
     {
-        var playerPawn = player.PlayerPawn;
-        if (playerPawn == null)
+        var pawn = player.RequiredPlayerPawn;
+
+        if (pawn.AbsOrigin == null)
         {
             return;
         }
-
-        var directionVector = (playerPawn.AbsOrigin.Value - position).Normalized();
-
-        bool onGround = playerPawn.GroundEntity.Value != null;
-        var zBoost = onGround ? HighZBoost : LowZBoost;
-
-        Vector newVelocity = new Vector(
-            playerPawn.AbsVelocity.X + directionVector.X * KnockbackDistance,
-            playerPawn.AbsVelocity.Y + directionVector.Y * KnockbackDistance,
+        
+        var origin = pawn.AbsOrigin.Value;
+        var directionVector = (origin - position).Normalized();
+        var onGround = pawn.GroundEntity.Value != null;
+        var zBoost = onGround ? 150f : 25f;
+        var newVelocity = new Vector(
+            pawn.AbsVelocity.X + directionVector.X * 200.0f,
+            pawn.AbsVelocity.Y + directionVector.Y * 200.0f,
             zBoost
         );
 
-        playerPawn.GroundEntity.Value = null;
+        pawn.GroundEntity.Value = null;
 
-        playerPawn.Teleport(playerPawn.AbsOrigin.Value, playerPawn.EyeAngles, newVelocity);
+        pawn.Teleport(origin, pawn.EyeAngles, newVelocity);
     }
+
+    public override string OnDecoyStartedParticleName => "particles/barrier_nade.vpcf";
 }

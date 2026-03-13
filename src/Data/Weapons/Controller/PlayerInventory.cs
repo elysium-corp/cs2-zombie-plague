@@ -33,7 +33,7 @@ public class PlayerInventory(IPlayer owner, WeaponService weaponService) : IPlay
                 return;
             }
             
-            var flag = Add(weapon);
+            Add(weapon);
         });
     }
 
@@ -54,7 +54,7 @@ public class PlayerInventory(IPlayer owner, WeaponService weaponService) : IPlay
 
             foreach (var weapon in weaponSnapshot)
             {
-                var foundWeaponIndex = weapon.InheritorWeapon.Index;
+                var foundWeaponIndex = weapon.AttachedWeapon.Index;
 
                 if (!weaponIds.Contains((int)foundWeaponIndex))
                 {
@@ -71,7 +71,7 @@ public class PlayerInventory(IPlayer owner, WeaponService weaponService) : IPlay
 
         if (indexCurrentWeapon == null) return false;
 
-        var activeWeapon = Weapons.Find(weapon => weapon.InheritorWeapon.Index == indexCurrentWeapon);
+        var activeWeapon = Weapons.Find(weapon => weapon.AttachedWeapon.Index == indexCurrentWeapon);
 
         if (activeWeapon == null) return false;
         
@@ -81,8 +81,8 @@ public class PlayerInventory(IPlayer owner, WeaponService weaponService) : IPlay
     
     public bool Add(BaseWeapon weapon)
     {
-        var idx = weapon.InheritorWeapon.Index;
-        var foundWeapon = Weapons.Find(w => w.InheritorWeapon.Index == idx);
+        var idx = weapon.AttachedWeapon.Index;
+        var foundWeapon = Weapons.Find(w => w.AttachedWeapon.Index == idx);
 
         if (foundWeapon != null) return false;
         

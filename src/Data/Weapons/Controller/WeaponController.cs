@@ -15,12 +15,19 @@ public sealed class WeaponController : IWeaponController
     private readonly PlayerInventory _inventory;
     private readonly WeaponEffectsDispatcher _weaponEffects;
     private readonly DamageModifier _damageModifier;
+    private readonly GrenadeHandler _grenadeHandler;
     
     private readonly Guid _guidOnWeaponFireOnEmptyPost;
     private readonly Guid _guidOnBulletImpactPost;
     private readonly Guid _guidOnWeaponReloadPost;
     private readonly Guid _guidOnWeaponFirePost;
     private readonly Guid _guidOnWeaponZoomPost;
+
+    private readonly Guid _guidOnGrenadeThrownPre;
+    private readonly Guid _guidOnDecoyStartedPre;
+    private readonly Guid _guidOnHegrenadeDetonatePre;
+    private readonly Guid _guidOnMolotovDetonatePre;
+    private readonly Guid _guidOnSmokegrenadeDetonatePre;
 
     public WeaponController(IPlayer player)
     {
@@ -31,6 +38,7 @@ public sealed class WeaponController : IWeaponController
         _inventory = new PlayerInventory(player, weaponService);
         _weaponEffects = new WeaponEffectsDispatcher(player, _inventory);
         _damageModifier = new DamageModifier(player, _inventory, commonUtils);
+        _grenadeHandler = new GrenadeHandler(player, _core, weaponService);
         
         _guidOnWeaponFireOnEmptyPost = _core.GameEvent.HookPost<EventWeaponFireOnEmpty>(OnWeaponFireOnEmptyPost);
         _guidOnBulletImpactPost = _core.GameEvent.HookPost<EventBulletImpact>(OnBulletImpactPost);
@@ -38,34 +46,55 @@ public sealed class WeaponController : IWeaponController
         _guidOnWeaponFirePost = _core.GameEvent.HookPost<EventWeaponFire>(OnWeaponFirePost);
         _guidOnWeaponZoomPost = _core.GameEvent.HookPost<EventWeaponZoom>(OnWeaponZoomPost);
 
+        _guidOnGrenadeThrownPre = _core.GameEvent.HookPre<EventGrenadeThrown>(OnGrenadeThrownPre);
+        _guidOnDecoyStartedPre = _core.GameEvent.HookPre<EventDecoyStarted>(OnDecoyStartedPre);
+        _guidOnHegrenadeDetonatePre = _core.GameEvent.HookPre<EventHegrenadeDetonate>(OnHegrenadeDetonatePre);
+        _guidOnMolotovDetonatePre = _core.GameEvent.HookPre<EventMolotovDetonate>(OnMolotovDetonatePre);
+        _guidOnSmokegrenadeDetonatePre = _core.GameEvent.HookPre<EventSmokegrenadeDetonate>(OnSmokegrenadeDetonatePre);
+        
         _core.Event.OnWeaponServicesDropWeaponHook += OnWeaponServicesDropWeaponHook;
         _core.Event.OnWeaponServicesCanUseHook += OnWeaponServicesCanUseHook;
         _core.Event.OnEntityTakeDamage += OnEntityTakeDamage;
     }
 
-    private void OnWeaponServicesCanUseHook(IOnWeaponServicesCanUseHookEvent @event) =>
-        _inventory.OnCanUseHook(@event);
+    private void OnWeaponServicesCanUseHook(IOnWeaponServicesCanUseHookEvent gameEvent) =>
+        _inventory.OnCanUseHook(gameEvent);
 
-    private void OnWeaponServicesDropWeaponHook(IOnWeaponServicesDropWeaponHook @event) =>
-        _inventory.OnDropHook(@event);
+    private void OnWeaponServicesDropWeaponHook(IOnWeaponServicesDropWeaponHook gameEvent) =>
+        _inventory.OnDropHook(gameEvent);
 
-    private HookResult OnBulletImpactPost(EventBulletImpact @event) =>
-        _weaponEffects.OnBulletImpactPost(@event);
+    private HookResult OnBulletImpactPost(EventBulletImpact gameEvent) =>
+        _weaponEffects.OnBulletImpactPost(gameEvent);
 
-    private HookResult OnWeaponFirePost(EventWeaponFire @event) =>
-        _weaponEffects.OnWeaponFirePost(@event);
+    private HookResult OnWeaponFirePost(EventWeaponFire gameEvent) =>
+        _weaponEffects.OnWeaponFirePost(gameEvent);
 
-    private HookResult OnWeaponFireOnEmptyPost(EventWeaponFireOnEmpty @event) =>
-        _weaponEffects.OnWeaponFireOnEmptyPost(@event);
+    private HookResult OnWeaponFireOnEmptyPost(EventWeaponFireOnEmpty gameEvent) =>
+        _weaponEffects.OnWeaponFireOnEmptyPost(gameEvent);
 
-    private HookResult OnWeaponReloadPost(EventWeaponReload @event) =>
-        _weaponEffects.OnWeaponReloadPost(@event);
+    private HookResult OnWeaponReloadPost(EventWeaponReload gameEvent) =>
+        _weaponEffects.OnWeaponReloadPost(gameEvent);
 
-    private HookResult OnWeaponZoomPost(EventWeaponZoom @event) =>
-        _weaponEffects.OnWeaponZoomPost(@event);
+    private HookResult OnWeaponZoomPost(EventWeaponZoom gameEvent) =>
+        _weaponEffects.OnWeaponZoomPost(gameEvent);
 
-    private void OnEntityTakeDamage(IOnEntityTakeDamageEvent @event) =>
-        _damageModifier.OnEntityTakeDamage(@event);
+    private void OnEntityTakeDamage(IOnEntityTakeDamageEvent gameEvent) =>
+        _damageModifier.OnEntityTakeDamage(gameEvent);
+
+    private HookResult OnGrenadeThrownPre(EventGrenadeThrown gameEvent) =>
+        _grenadeHandler.OnGrenadeThrownPre(gameEvent);
+    
+    private HookResult OnDecoyStartedPre(EventDecoyStarted gameEvent) =>
+        _grenadeHandler.OnDecoyStartedPre(gameEvent);
+    
+    private HookResult OnHegrenadeDetonatePre(EventHegrenadeDetonate gameEvent) =>
+        _grenadeHandler.OnHegrenadeDetonatePre(gameEvent);
+
+    private HookResult OnMolotovDetonatePre(EventMolotovDetonate gameEvent) =>
+        _grenadeHandler.OnMolotovDetonatePre(gameEvent);
+    
+    private HookResult OnSmokegrenadeDetonatePre(EventSmokegrenadeDetonate gameEvent) =>
+        _grenadeHandler.OnSmokegrenadeDetonatePre(gameEvent);
 
     public void Dispose()
     {
@@ -74,6 +103,11 @@ public sealed class WeaponController : IWeaponController
         _core.GameEvent.Unhook(_guidOnBulletImpactPost);
         _core.GameEvent.Unhook(_guidOnWeaponFirePost);
         _core.GameEvent.Unhook(_guidOnWeaponZoomPost);
+        
+        _core.GameEvent.Unhook(_guidOnGrenadeThrownPre);
+        _core.GameEvent.Unhook(_guidOnDecoyStartedPre);
+        _core.GameEvent.Unhook(_guidOnHegrenadeDetonatePre);
+        _core.GameEvent.Unhook(_guidOnMolotovDetonatePre);
         
         _core.Event.OnEntityTakeDamage -= OnEntityTakeDamage;
         _core.Event.OnWeaponServicesCanUseHook -= OnWeaponServicesCanUseHook;
