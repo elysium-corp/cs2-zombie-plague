@@ -1,6 +1,7 @@
 ﻿using System.Data;
 using CS2ZombiePlague.Config;
 using CS2ZombiePlague.Config.Ability;
+using CS2ZombiePlague.Config.InfoNotify;
 using CS2ZombiePlague.Config.models;
 using CS2ZombiePlague.Config.SupplyBox;
 using CS2ZombiePlague.Config.Weapon;
@@ -14,6 +15,7 @@ using CS2ZombiePlague.Data.Events;
 using CS2ZombiePlague.Data.Lifecycle;
 using CS2ZombiePlague.Data.Managers;
 using CS2ZombiePlague.Data.Plugins.DamageNotify;
+using CS2ZombiePlague.Data.Plugins.InfoNotify;
 using CS2ZombiePlague.Data.Plugins.MoneySystem;
 using CS2ZombiePlague.Data.Plugins.ResourceLoader;
 using CS2ZombiePlague.Data.Plugins.RoundRatingNotify;
@@ -57,6 +59,9 @@ public static class DependencyManager
     
     private const string SupplyBoxConfigName = "supply_box.json";
     private const string SupplyBoxConfigSectionName = "SupplyBox";
+    
+    private const string InfoNotifyConfigName = "info_notify.json";
+    private const string InfoNotifyConfigSectionName = "InfoNotifyConfig";
 
     public static void Load(ISwiftlyCore core)
     {
@@ -87,6 +92,10 @@ public static class DependencyManager
         core.Configuration
             .InitializeJsonWithModel<SupplyBoxConfig>(SupplyBoxConfigName, SupplyBoxConfigSectionName)
             .Configure(builder => { builder.AddJsonFile(SupplyBoxConfigName, optional: false, reloadOnChange: true); });
+        
+        core.Configuration
+            .InitializeJsonWithModel<InfoNotifierConfig>(InfoNotifyConfigName, InfoNotifyConfigSectionName)
+            .Configure(builder => { builder.AddJsonFile(InfoNotifyConfigName, optional: false, reloadOnChange: true); });
 
         _services = new ServiceCollection();
 
@@ -117,6 +126,7 @@ public static class DependencyManager
             .AddSingleton<RoundRatingNotify>()
             .AddSingleton<WeaponParticleService>()
             .AddSingleton<CommonUtils>()
+            .AddSingleton<InfoNotifier>()
             .AddSingleton<SupplyBoxMapConfigService>()
             .AddSingleton<SupplyBoxMenuService>()
             .AddSingleton<SupplyBoxEditService>();
@@ -149,6 +159,10 @@ public static class DependencyManager
         _services
             .AddOptionsWithValidateOnStart<SupplyBoxConfig>()
             .BindConfiguration(SupplyBoxConfigSectionName);
+        
+        _services
+            .AddOptionsWithValidateOnStart<InfoNotifierConfig>()
+            .BindConfiguration(InfoNotifyConfigSectionName);
         
         // EventService Registration 
         _services.AddSingleton<EventService>();
