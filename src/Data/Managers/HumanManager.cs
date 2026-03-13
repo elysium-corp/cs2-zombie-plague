@@ -1,4 +1,5 @@
 ﻿using CS2ZombiePlague.Config;
+using CS2ZombiePlague.Config.Round;
 using CS2ZombiePlague.Data.Extensions;
 using CS2ZombiePlague.Data.Humans;
 using CS2ZombiePlague.Data.Lifecycle;
@@ -99,7 +100,7 @@ public class HumanManager(ISwiftlyCore core, IEventSubscriber eventSubscriber) :
         
         var countPlayers = core.PlayerManager.GetAlive().Count();
         player.SetHealth(playerPawn.Health + (roundSettings.SurvivorBonusHealthPerZombie * countPlayers));
-        player.SetModel(roundSettings.Model);
+        player.SetModel(roundSettings.SurvivorModel);
 
         var itemServices = playerPawn.ItemServices;
         if (itemServices == null)

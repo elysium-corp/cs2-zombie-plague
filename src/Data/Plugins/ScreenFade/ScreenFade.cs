@@ -1,4 +1,5 @@
 ﻿using CS2ZombiePlague.Config;
+using CS2ZombiePlague.Config.Core;
 using CS2ZombiePlague.Utils;
 using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;

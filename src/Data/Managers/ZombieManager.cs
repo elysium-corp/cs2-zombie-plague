@@ -1,4 +1,5 @@
 ﻿using CS2ZombiePlague.Config;
+using CS2ZombiePlague.Config.Round;
 using CS2ZombiePlague.Data.Events;
 using CS2ZombiePlague.Data.Extensions;
 using CS2ZombiePlague.Data.Zombies;

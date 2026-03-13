@@ -2,14 +2,8 @@
 
 namespace CS2ZombiePlague.Data.Humans;
 
-public class Human : IHuman
+public class Human(IPlayer player, bool isSurvivor = false) : IHuman
 {
-    public IPlayer Player { get; set; }
-    public bool IsSurvivor { get; set; } = false;
-
-    public Human(IPlayer player, bool isSurvivor = false)
-    {
-        Player = player;
-        IsSurvivor = isSurvivor;
-    }
+    public IPlayer Player { get; set; } = player;
+    public bool IsSurvivor { get; set; } = isSurvivor;
 }

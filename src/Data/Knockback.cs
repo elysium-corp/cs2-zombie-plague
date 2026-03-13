@@ -1,4 +1,5 @@
 ﻿using CS2ZombiePlague.Config;
+using CS2ZombiePlague.Config.Core;
 using CS2ZombiePlague.Data.Extensions;
 using CS2ZombiePlague.Data.Managers;
 using Microsoft.Extensions.Options;

@@ -1,4 +1,5 @@
 using CS2ZombiePlague.Config;
+using CS2ZombiePlague.Config.Core;
 using CS2ZombiePlague.Config.InfoNotify;
 using CS2ZombiePlague.Config.models;
 using CS2ZombiePlague.Data;

@@ -1,4 +1,4 @@
-﻿namespace CS2ZombiePlague.Config;
+﻿namespace CS2ZombiePlague.Config.Core;
 
 public sealed class ZombiePlagueCoreConfig
 {
