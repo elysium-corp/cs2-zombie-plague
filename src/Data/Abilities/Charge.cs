@@ -26,7 +26,7 @@ public sealed class Charge(ISwiftlyCore core, ChargeConfig config) : BaseActiveA
     {
         PlaySound();
         
-        var startSpeed = _zombieManager.GetZombie(Caster.PlayerID).GetZombieClass().Speed;
+        var startSpeed = _zombieManager.GetZombie(Caster.PlayerID).ZClass.Speed;
         var maxSpeed = config.MaxSpeed;
         var chargeTime = config.ChargeTime;
         var speedUpdatePerTimeTick = config.SpeedUpdatePerTimeTick;

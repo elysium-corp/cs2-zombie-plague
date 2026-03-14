@@ -73,7 +73,7 @@ public static class PlayerExtensions
         
             DependencyManager.GetService<ISwiftlyCore>().Scheduler.NextWorldUpdateAsync(() =>
             {
-                player.Pawn.SetModel(modelPath);
+                player.Pawn?.SetModel(modelPath);
             });
         }
 
@@ -85,14 +85,9 @@ public static class PlayerExtensions
 
         public bool IsNemesis()
         {
-            if (!player.IsInfected())
-            {
-                return false;
-            }
-            
             var zombie = DependencyManager.GetService<ZombieManager>().GetZombie(player.PlayerID);
-            return zombie != null && zombie.IsNemesis;
-        }
+            return zombie?.IsNemesis ?? false;
+    }
         
         public bool IsHuman()
         {

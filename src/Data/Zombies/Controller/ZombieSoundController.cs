@@ -25,8 +25,8 @@ public class ZombieSoundController : ISoundController
 
     public ZombieSoundController(Zombie zombieOwner)
     {
-        _playerOwner = zombieOwner.GetPlayer();
-        _hurtSounds = zombieOwner.GetZombieClass().HurtSounds;
+        _playerOwner = zombieOwner.Player;
+        _hurtSounds = zombieOwner.ZClass.HurtSounds;
         
         _onPlayerHurt = _core.GameEvent.HookPost<EventPlayerHurt>(OnPlayerHurt);
         _onPlayerDeath = _core.GameEvent.HookPost<EventPlayerDeath>(OnPlayerDeath);

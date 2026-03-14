@@ -112,7 +112,7 @@ public sealed class Heal(ISwiftlyCore core, HealConfig config) : BaseActiveAbili
     {
         var currentHp = targetPawn.Health;
         var newHp = currentHp + config.HealAmount;
-        var maxTargetHp = _zombieManager.GetZombie(target.PlayerID).GetZombieClass().Health;
+        var maxTargetHp = _zombieManager.GetZombie(target.PlayerID).ZClass.Health;
 
         if (newHp >= maxTargetHp)
         {

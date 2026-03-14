@@ -42,7 +42,7 @@ public class Infection(
 
         if (zombieManager.GetAllZombies().Any())
         {
-            firstZombie = zombieManager.GetAllZombies().First().Value.GetPlayer();
+            firstZombie = zombieManager.GetAllZombies().First().Value.Player;
         }
         else
         {

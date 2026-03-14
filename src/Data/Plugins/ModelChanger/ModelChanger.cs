@@ -128,7 +128,7 @@ public class ModelChanger(
 
         if (player.IsInfected() && !roundManager.IsNoneRound())
         {
-            var zombieModel = zombieManager.GetZombie(player.PlayerID)?.GetZombieClass().Model;
+            var zombieModel = zombieManager.GetZombie(player.PlayerID)?.ZClass.Model;
             if (zombieModel != null)
             {
                 player.SetModel(zombieModel);
