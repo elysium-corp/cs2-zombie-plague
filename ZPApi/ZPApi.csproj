@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+        <Nullable>enable</Nullable>
+        <ApiVersion>0.1.0</ApiVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="SwiftlyS2.CS2" Version="1.2.2-beta.9" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <VersionFileLines Include="namespace $(AssemblyName).Generated {&#x0D;&#x0A;%09internal static class BuildInfo {&#x0D;&#x0A;%09%09internal const string ApiVersion = %22$(ApiVersion)%22%3B&#x0D;&#x0A;%09}&#x0D;&#x0A;}"/>
+    </ItemGroup>
+
+    <Target Name="GenerateVersionFile" BeforeTargets="CoreCompile">
+        <WriteLinesToFile
+                File="$(IntermediateOutputPath)BuildInfo.cs"
+                Lines="@(VersionFileLines)"
+                Overwrite="true" />
+
+        <ItemGroup>
+            <Compile Include="$(IntermediateOutputPath)BuildInfo.cs" />
+        </ItemGroup>
+    </Target>
+
+</Project>

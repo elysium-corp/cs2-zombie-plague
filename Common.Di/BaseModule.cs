@@ -1,0 +1,34 @@
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using SwiftlyS2.Shared;
+
+namespace Common.Di;
+
+public abstract class BaseModule(ISwiftlyCore core) : IModule
+{
+    public abstract ServiceProvider GetProvider();
+    
+    protected IServiceCollection AddConfig<TConfig>(ServiceCollection service, string name, string section, bool optional = false, bool reloadOnChange = true) where TConfig : class, new()
+    {
+        core.Configuration
+            .InitializeJsonWithModel<TConfig>(name, section)
+            .Configure(builder => { builder.AddJsonFile(name, optional: optional, reloadOnChange: reloadOnChange); });
+        
+        service
+            .AddOptionsWithValidateOnStart<TConfig>()
+            .BindConfiguration(section);
+
+        return service;
+    }
+
+    protected IServiceCollection AddSingleton<TService>(ServiceCollection service) where TService : class
+    {
+        return service.AddSingleton<TService>();
+    }
+
+    protected IServiceCollection AddSingleton<TInterface, TImplementation>(ServiceCollection service)
+        where TInterface : class where TImplementation : class, TInterface
+    {
+        return service.AddSingleton<TInterface, TImplementation>();
+    }
+}
