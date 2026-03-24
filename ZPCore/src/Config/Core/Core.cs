@@ -22,25 +22,4 @@ public sealed class ZombiePlagueCoreConfig
     public int PreStartDelay { get; set; } = 20;
     // Время возрождения зомби
     public int ZombieSpawnDelay { get; set; } = 5;
-    
-    // Включить подсветку экрана после убийства
-    public bool ScreenFadeEnable { get; set; } = true;
-    
-    // Время когда эффект будет появляться и потухать (120 мс тратится на появление эффекта и 120 мс на растворение) 
-    public uint DurationScreenFade { get; set; } = 120;
-
-    // Время сколько эффект задержится на экране (Duration + holdTime + Duration = общее время эффекта на экране)
-    public uint HoldTimeScreenFade { get; set; } = 75;
-
-    // Кол-во красного в цвете эффекта от 0..255
-    public byte RedColorScreenFade { get; set; } = 0;
-    
-    // Кол-во зеленного в цвете эффекта от 0..255
-    public byte GreenColorScreenFade{ get; set; } = 0;
-    
-    // Кол-во синего в цвете эффекта от 0..255
-    public byte BlueColorScreenFade { get; set; } = 255;
-    
-    // Прозрачность эффекта от 0..255
-    public byte AlphaScreenFade { get; set; } = 80;
 }

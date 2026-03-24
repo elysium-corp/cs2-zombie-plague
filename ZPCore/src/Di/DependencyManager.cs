@@ -17,7 +17,6 @@ using ZPCore.Data.Managers;
 using ZPCore.Data.Plugins.InfoNotify;
 using ZPCore.Data.Plugins.ResourceLoader;
 using ZPCore.Data.Plugins.RoundRatingNotify;
-using ZPCore.Data.Plugins.ScreenFade;
 using ZPCore.Data.Plugins.SupplyBox;
 using ZPCore.Data.Rounds.Contracts;
 using ZPCore.Data.Weapons;
@@ -120,7 +119,6 @@ internal static class DependencyManager
             .AddSingleton<RoundManager>()
             .AddSingleton<HumanManager>()
             .AddSingleton<Knockback>()
-            .AddSingleton<ScreenFade>()
             .AddSingleton<WeaponService>()
             .AddSingleton<RoundRatingNotify>()
             .AddSingleton<WeaponParticleService>()

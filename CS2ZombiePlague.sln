@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MSApi", "MSApi\MSApi.csproj
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DamageNotify.Core", "DamageNotify.Core\DamageNotify.Core.csproj", "{46B0A7F4-5314-4D03-813C-61E6BE6AADD2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScreenFade.Core", "ScreenFade.Core\ScreenFade.Core.csproj", "{0C412993-6958-4598-80E7-4C8E447F827F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{46B0A7F4-5314-4D03-813C-61E6BE6AADD2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{46B0A7F4-5314-4D03-813C-61E6BE6AADD2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{46B0A7F4-5314-4D03-813C-61E6BE6AADD2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0C412993-6958-4598-80E7-4C8E447F827F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0C412993-6958-4598-80E7-4C8E447F827F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0C412993-6958-4598-80E7-4C8E447F827F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0C412993-6958-4598-80E7-4C8E447F827F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

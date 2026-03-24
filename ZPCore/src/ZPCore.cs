@@ -18,7 +18,6 @@ using ZPCore.Data.Plugins.ModelChanger;
 using ZPCore.Data.Plugins.ResetScore;
 using ZPCore.Data.Plugins.ResourceLoader;
 using ZPCore.Data.Plugins.RoundRatingNotify;
-using ZPCore.Data.Plugins.ScreenFade;
 using ZPCore.Data.Plugins.SupplyBox;
 using ZPCore.Data.Weapons;
 using ZPCore.Di;
@@ -41,7 +40,6 @@ public sealed partial class ZPCore(ISwiftlyCore core) : BasePlugin(core)
     private readonly Lazy<HumanManager> _humanManager = new(DependencyManager.GetService<HumanManager>);
     private readonly Lazy<KnifeManager> _knifeManager = new(DependencyManager.GetService<KnifeManager>);
     private readonly Lazy<Knockback> _knockback = new(DependencyManager.GetService<Knockback>);
-    private readonly Lazy<ScreenFade> _screenFade = new(DependencyManager.GetService<ScreenFade>);
     private readonly Lazy<ZClassMenu> _zClassMenu = new(DependencyManager.GetService<ZClassMenu>);
     private readonly Lazy<EffectManager> _effectManager = new(DependencyManager.GetService<EffectManager>);
     private readonly Lazy<RoundRatingNotify> _roundRatingNotify = new(DependencyManager.GetService<RoundRatingNotify>);
@@ -105,11 +103,6 @@ public sealed partial class ZPCore(ISwiftlyCore core) : BasePlugin(core)
         if (config.KnockbackEnabled)
         {
             _knockback.Value.Start();
-        }
-
-        if (config.ScreenFadeEnable)
-        {
-            _screenFade.Value.Start();
         }
 
         if (config.RoundRatingNotify)
