@@ -7,54 +7,57 @@ using SwiftlyS2.Shared.Players;
 
 namespace ZPCore.Data.Zombies;
 
-internal class Zombie
+internal class Zombie : IZombie
 {
-    private readonly ZombieManager _zombieManager;
-    private readonly IPlayer _player;
-    
-    private ISoundController? _soundController;
-    private IZClass _zClass;
+    public IPlayer Player { get; }
+    public IZClass ZClass { get; private set; }
     public bool IsNemesis { get; }
+    
+    private readonly ZombieManager _zombieManager;
+    private ISoundController? _soundController;
 
     public Zombie(ISwiftlyCore core, ZombieManager zombieManager, IPlayer player, IZClass zClass,
         bool isNemesis = false)
     {
-        _zombieManager = zombieManager;
-        _player = player;
-        _zClass = zClass;
+        Player = player;
+        ZClass = zClass;
         IsNemesis = isNemesis;
-
+        _zombieManager = zombieManager;
+        
         core.Scheduler.NextWorldUpdate(Initialize);
     }
 
     public void Initialize()
     {
-        if (!_player.IsAlive)
+        if (!Player.IsAlive)
         {
             return;
         }
         
-        if (_zClass != _zombieManager.GetZClassFromMenu(_player.PlayerID) && !IsNemesis)
+        var savedZClass = _zombieManager.GetZClassFromMenu(Player.PlayerID);
+        
+        if (ZClass != savedZClass && !IsNemesis)
         {
-            _zClass.Abilities.ForEach(ability => ability.UnHook());
-            _zClass = _zombieManager.GetZClassFromMenu(_player.PlayerID);
+            ZClass.Abilities.ForEach(ability => ability.UnHook());
+            ZClass = savedZClass;
         }
         
         _soundController = new ZombieSoundController(this);
-        var playerLifecycle = _player.GetLifecycle();
+        
+        var playerLifecycle = Player.GetLifecycle();
         playerLifecycle.SoundController =  _soundController;
         
-        _player.SendAlert("Ваш класс => " + _zClass.DisplayName);
+        Player.SendAlert("Ваш класс => " + ZClass.DisplayName);
 
-        _player.SetHealth(_zClass.Health);
-        _player.SetSpeed(_zClass.Speed);
-        _player.SetGravity(_zClass.Gravity);
-        _player.SetModel(_zClass.Model);
-        _player.SwitchTeam(Team.T);
+        Player.SetHealth(ZClass.Health);
+        Player.SetSpeed(ZClass.Speed);
+        Player.SetGravity(ZClass.Gravity);
+        Player.SetModel(ZClass.Model);
+        Player.SwitchTeam(Team.T);
 
-        _zClass.Abilities.ForEach(zAbility => zAbility.SetCaster(_player));
+        ZClass.Abilities.ForEach(zAbility => zAbility.SetCaster(Player));
         
-        var itemServices = _player.PlayerPawn?.ItemServices;
+        var itemServices = Player.PlayerPawn?.ItemServices;
         if (itemServices == null)
         {
             return;
@@ -66,16 +69,6 @@ internal class Zombie
 
     public void UnHookAbilities()
     {
-        _zClass.Abilities.ForEach(zAbility => zAbility.UnHook());
-    }
-
-    public IPlayer GetPlayer()
-    {
-        return _player;
-    }
-
-    public IZClass GetZombieClass()
-    {
-        return _zClass;
+        ZClass.Abilities.ForEach(zAbility => zAbility.UnHook());
     }
 }

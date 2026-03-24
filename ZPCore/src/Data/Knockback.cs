@@ -122,7 +122,7 @@ internal class Knockback(ISwiftlyCore core, ZombieManager zombieManager, KnifeMa
             return HookResult.Continue;
         }
         
-        var zombieKnockback = zombie.GetZombieClass().Knockback;
+        var zombieKnockback = zombie.ZClass.Knockback;
         var onGround = victimPawn.GroundEntity.Value != null;
         var zBoost = onGround ? config.Value.GroundKnockback : config.Value.AirKnockback;
         var victimVelocity = victimPawn.AbsVelocity;
@@ -137,7 +137,7 @@ internal class Knockback(ISwiftlyCore core, ZombieManager zombieManager, KnifeMa
         
         victim.Teleport(null, null, newVelocity);
 
-        core.Scheduler.Delay(20, () => { victim.SetSpeed(zombie.GetZombieClass().Speed); });
+        core.Scheduler.Delay(20, () => { victim.SetSpeed(zombie.ZClass.Speed); });
 
         return HookResult.Continue;
     }
