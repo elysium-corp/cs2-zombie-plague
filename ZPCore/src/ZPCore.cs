@@ -15,7 +15,6 @@ using ZPCore.Data.Menus;
 using ZPCore.Data.Plugins.AdminMenu;
 using ZPCore.Data.Plugins.InfoNotify;
 using ZPCore.Data.Plugins.ModelChanger;
-using ZPCore.Data.Plugins.ResetScore;
 using ZPCore.Data.Plugins.ResourceLoader;
 using ZPCore.Data.Plugins.RoundRatingNotify;
 using ZPCore.Data.Plugins.SupplyBox;
@@ -77,7 +76,6 @@ public sealed partial class ZPCore(ISwiftlyCore core) : BasePlugin(core)
             DependencyManager.GetService<IOptions<ModelsConfig>>()).Load();
         new AdminMenu(Core, _roundManager.Value, _zombieManager.Value).Load();
         new SupplyBox().RegisterHooks();
-        new ScoreResetService(Core).Initialize();
         new InfoNotifier(Core, DependencyManager.GetService<IOptions<InfoNotifierConfig>>()).Initialize();
     }
 

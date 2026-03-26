@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DamageNotify.Core", "Damage
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScreenFade.Core", "ScreenFade.Core\ScreenFade.Core.csproj", "{0C412993-6958-4598-80E7-4C8E447F827F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ResetScore.Core", "ResetScore.Core\ResetScore.Core.csproj", "{3A04F94B-82DC-40AB-AB2B-1980EE8D257C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{0C412993-6958-4598-80E7-4C8E447F827F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0C412993-6958-4598-80E7-4C8E447F827F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0C412993-6958-4598-80E7-4C8E447F827F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A04F94B-82DC-40AB-AB2B-1980EE8D257C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A04F94B-82DC-40AB-AB2B-1980EE8D257C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A04F94B-82DC-40AB-AB2B-1980EE8D257C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A04F94B-82DC-40AB-AB2B-1980EE8D257C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

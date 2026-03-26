@@ -1,13 +1,22 @@
-﻿using SwiftlyS2.Shared;
+using Common.Di;
+using ResetScore.Di;
+using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Commands;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
 
-namespace ZPCore.Data.Plugins.ResetScore;
+namespace ResetScore;
 
-internal class ScoreResetService(ISwiftlyCore core) : IScoreResetService
+[PluginMetadata(
+    Id = "ResetScore.Core",
+    Version = "0.1.0",
+    Name = "[ZP] ResetScore",
+    Author = "illusion & fdrinv",
+    Description = "Allows a player to reset their score"
+)]
+internal sealed partial class ResetScore(ISwiftlyCore core) : Plugin<ResetScoreModule>(core)
 {
-    public void Initialize()
+    protected override void OnReady()
     {
         core.Command.RegisterCommand(
             commandName: "reset",
@@ -17,7 +26,7 @@ internal class ScoreResetService(ISwiftlyCore core) : IScoreResetService
         
         core.Command.RegisterCommandAlias("reset", "rs");
     }
-
+    
     public void ResetScoreHandler(ICommandContext context)
     {
         var player = context.Sender;
@@ -58,7 +67,7 @@ internal class ScoreResetService(ISwiftlyCore core) : IScoreResetService
     private void NotifyPlayer(IPlayer player)
     {
         var localizer = core.Translation.GetPlayerLocalizer(player);
-        var message = localizer["ResetScore.ChatMessage"];
+        var message = localizer["ResetScore.ResetMessage"];
         
         switch (player.Controller.Team)
         {
