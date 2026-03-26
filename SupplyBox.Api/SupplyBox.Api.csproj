@@ -5,14 +5,12 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+        <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
         <OutputPath>$(MSBuildThisFileDirectory)build/</OutputPath>
-        <PublishDir>$(OutputPath)publish/MoneySystem</PublishDir>
-        <PackageId>MS</PackageId>
-        <RootNamespace>MoneySystem</RootNamespace>
-        <PluginVersion>0.1.0</PluginVersion>
-        <AssemblyName>MSCore</AssemblyName>
+        <PublishDir>$(OutputPath)publish/SupplyBox</PublishDir>
+        <PackageId>SupplyBox.Api</PackageId>
+        <RootNamespace>SupplyBox</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
@@ -22,7 +20,7 @@
         <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.0" ExcludeAssets="runtime" PrivateAssets="all"/>
         <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.0" ExcludeAssets="runtime" PrivateAssets="all"/>
         <PackageReference Include="SwiftlyS2.CS2" Version="1.2.3-beta.4" ExcludeAssets="runtime" PrivateAssets="all">
-            <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+          <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
     </ItemGroup>
 
@@ -36,33 +34,12 @@
         <Compile Remove="examples\**\*.cs"/>
     </ItemGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\Common.Di\Common.Di.csproj" />
-      <ProjectReference Include="..\MSApi\MSApi.csproj" />
-      <ProjectReference Include="..\ZPApi\ZPApi.csproj" />
-    </ItemGroup>
-
     <Target Name="CreateZip" AfterTargets="Publish">
         <ItemGroup>
             <PublishFiles Include="$(PublishDir)**\*.*"/>
         </ItemGroup>
 
         <ZipDirectory SourceDirectory="$(PublishDir)../" DestinationFile="$(OutputPath)../$(AssemblyName).zip" Overwrite="true"/>
-    </Target>
-
-    <ItemGroup>
-        <VersionFileLines Include="namespace $(AssemblyName).Generated {&#x0D;&#x0A;%09internal static class BuildInfo {&#x0D;&#x0A;%09%09internal const string Version = %22$(PluginVersion)%22%3B&#x0D;&#x0A;%09}&#x0D;&#x0A;}"/>
-    </ItemGroup>
-
-    <Target Name="GenerateVersionFile" BeforeTargets="CoreCompile">
-        <WriteLinesToFile
-                File="$(IntermediateOutputPath)BuildInfo.cs"
-                Lines="@(VersionFileLines)"
-                Overwrite="true" />
-
-        <ItemGroup>
-            <Compile Include="$(IntermediateOutputPath)BuildInfo.cs" />
-        </ItemGroup>
     </Target>
 
 </Project> 

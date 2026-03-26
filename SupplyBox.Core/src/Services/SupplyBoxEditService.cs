@@ -1,6 +1,9 @@
-﻿using ZPCore.Utils;
+﻿using Common.Di;
+using SupplyBox.Data.Configs;
+using SupplyBox.Data.Entity;
+using SupplyBox.Utils;
 
-namespace ZPCore.Data.Plugins.SupplyBox;
+namespace SupplyBox.Services;
 
 internal sealed class SupplyBoxEditService(SupplyBoxMapConfigService mapConfigService)
 {
@@ -44,8 +47,10 @@ internal sealed class SupplyBoxEditService(SupplyBoxMapConfigService mapConfigSe
             return null;
         }
         
-        var supplyBoxEntity = new SupplyBoxEntity(mapConfigService.SupplyBoxesData[Numeric.Random(0, mapConfigService.SupplyBoxesData.Count)]);
-        supplyBoxEntity.Spawn();
+        var supplyBoxData = mapConfigService.SupplyBoxesData[Numeric.Random(0, mapConfigService.SupplyBoxesData.Count)];
+        
+        var supplyBoxEntity = DependencyResolver.GetRequiredService<SupplyBoxEntity>();
+        supplyBoxEntity.Spawn(supplyBoxData);
         
         return supplyBoxEntity;
     }
@@ -70,9 +75,10 @@ internal sealed class SupplyBoxEditService(SupplyBoxMapConfigService mapConfigSe
         
         var supplyBoxesDataSnapshot = mapConfigService.SupplyBoxesData.Shuffle().ToList();
         var data = supplyBoxesDataSnapshot.Find(box => !spawnedSupplyBoxIndex.Contains(box.Index));
-        var supplyBoxEntity = data == null ? new SupplyBoxEntity(supplyBoxesDataSnapshot.First()) : new SupplyBoxEntity(data);
+        var newData = data == null ? supplyBoxesDataSnapshot.First() : data;
         
-        supplyBoxEntity.Spawn();
+        var supplyBoxEntity = DependencyResolver.GetRequiredService<SupplyBoxEntity>();
+        supplyBoxEntity.Spawn(newData);
         
         return supplyBoxEntity;
     }

@@ -17,7 +17,6 @@ using ZPCore.Data.Plugins.InfoNotify;
 using ZPCore.Data.Plugins.ModelChanger;
 using ZPCore.Data.Plugins.ResourceLoader;
 using ZPCore.Data.Plugins.RoundRatingNotify;
-using ZPCore.Data.Plugins.SupplyBox;
 using ZPCore.Data.Weapons;
 using ZPCore.Di;
 using ZPCore.Generated;
@@ -75,7 +74,6 @@ public sealed partial class ZPCore(ISwiftlyCore core) : BasePlugin(core)
         new ModelChanger(Core, _zombieManager.Value, _roundManager.Value,
             DependencyManager.GetService<IOptions<ModelsConfig>>()).Load();
         new AdminMenu(Core, _roundManager.Value, _zombieManager.Value).Load();
-        new SupplyBox().RegisterHooks();
         new InfoNotifier(Core, DependencyManager.GetService<IOptions<InfoNotifierConfig>>()).Initialize();
     }
 

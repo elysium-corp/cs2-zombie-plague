@@ -1,14 +1,12 @@
 ﻿using System.Text.Json;
-using ZPCore.Di;
 using Microsoft.Extensions.Logging;
+using SupplyBox.Data.Configs;
 using SwiftlyS2.Shared;
 
-namespace ZPCore.Data.Plugins.SupplyBox;
+namespace SupplyBox.Services;
 
-internal sealed class SupplyBoxMapConfigService
+internal sealed class SupplyBoxMapConfigService(ISwiftlyCore core)
 {
-    private readonly ISwiftlyCore _core = DependencyManager.GetService<ISwiftlyCore>();
-
     private readonly JsonSerializerOptions _jsonOptions = new()
     {
         WriteIndented = true,
@@ -47,7 +45,7 @@ internal sealed class SupplyBoxMapConfigService
         }
         catch (Exception ex)
         {
-            _core.Logger.LogError($"Error loading map config '{configPath}': {ex}");
+            LoggerExtensions.LogError(core.Logger, $"Error loading map config '{configPath}': {ex}");
         }
     }
 
@@ -63,13 +61,13 @@ internal sealed class SupplyBoxMapConfigService
         }
         catch (Exception ex)
         {
-            _core.Logger.LogError($"Error save map config: {ex.Message}");
+            LoggerExtensions.LogError(core.Logger, $"Error save map config: {ex.Message}");
         }
     }
 
     private string GetConfigPath()
     {
-        return Path.Combine(_core.PluginPath, PluginFolderName, _configFileName);
+        return Path.Combine(core.PluginPath, PluginFolderName, _configFileName);
     }
 
     private void EnsureDirectoryForFile(string configPath)

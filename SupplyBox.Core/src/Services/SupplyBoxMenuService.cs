@@ -1,10 +1,12 @@
-﻿using SwiftlyS2.Core.Menus.OptionsBase;
+﻿using Common.Di;
+using SupplyBox.Data.Entity;
+using SwiftlyS2.Core.Menus.OptionsBase;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Menus;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
 
-namespace ZPCore.Data.Plugins.SupplyBox;
+namespace SupplyBox.Services;
 
 internal sealed class SupplyBoxMenuService(ISwiftlyCore core, SupplyBoxMapConfigService mapConfigService, SupplyBoxEditService supplyBoxEditService)
 {
@@ -30,8 +32,8 @@ internal sealed class SupplyBoxMenuService(ISwiftlyCore core, SupplyBoxMapConfig
 
     private IMenuAPI GetAddSupplyBoxMenu(IPlayer player)
     {
-        var container = new SupplyBoxEntityTemplate(player);
-        core.Scheduler.NextWorldUpdateAsync(() => container.Spawn());
+        var container = DependencyResolver.GetRequiredService<SupplyBoxEntityTemplate>();
+        core.Scheduler.NextWorldUpdateAsync(() => container.Spawn(player));
         
         var button1 = new ButtonMenuOption("Повернуть вправо на 10°");
         button1.Click += async (sender, args) =>
@@ -115,6 +117,11 @@ internal sealed class SupplyBoxMenuService(ISwiftlyCore core, SupplyBoxMapConfig
 
         button.Click += async (_, args) =>
         {
+            if (!args.Player.IsAlive)
+            {
+                return;
+            }
+            
             core.MenusAPI.CloseActiveMenu(args.Player);
             core.MenusAPI.OpenMenuForPlayer(args.Player, GetAddSupplyBoxMenu(args.Player));
         };

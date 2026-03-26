@@ -1,66 +1,75 @@
-﻿using ZPCore.Data.Extensions;
-using ZPCore.Di;
-using ZPCore.Utils;
+﻿using Microsoft.Extensions.Options;
+using SupplyBox.Data.Configs;
+using SupplyBox.Events;
+using SupplyBox.Utils;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.ProtobufDefinitions;
 using SwiftlyS2.Shared.SchemaDefinitions;
 using SwiftlyS2.Shared.Sounds;
+using ZPApi;
 
-namespace ZPCore.Data.Plugins.SupplyBox;
+namespace SupplyBox.Data.Entity;
 
-internal sealed class SupplyBoxEntity
+public sealed class SupplyBoxEntity : ISupplyBoxEntity
 {
-    private readonly ISwiftlyCore _core = DependencyManager.GetService<ISwiftlyCore>();
-    // private readonly IEventPublisher _eventPublisher = DependencyManager.GetService<IEventPublisher>();
+    private readonly ISwiftlyCore _core;
+    private readonly IZServiceApi _api;
+    private readonly IEventPublisher _eventPublisher;
     
-    private const string BoxModel = "models/props/crates/cs2_drop_crate_01.vmdl";
-    private const string ParachuteModel = "characters/nozb1/parachute/parachute_carbon/parachute_open.vmdl";
-    private const string FallSound = "ZombiePlagueSupplyBox.SupplyboxFly";
+    private readonly string _parachuteSound;
     
-    private readonly SupplyBoxEntityConfig _data;
-    private CBaseModelEntity? _entityParachute;
+    private readonly CBaseModelEntity? _entityParachute;
     private CancellationTokenSource? _pickUpThinker;
     private CancellationTokenSource? _dropThinker;
+    
+    private SupplyBoxEntityConfig? _data;
     private uint _soundGuid;
     
     public CDynamicProp? Entity { get; }
-    public int Index { get; }
+    public int Index { get; private set; }
 
-    public SupplyBoxEntity(SupplyBoxEntityConfig config)
+    public SupplyBoxEntity(ISwiftlyCore core, IEventPublisher eventPublisher, IOptions<SupplyBoxConfig> config)
     {
-        Index = config.Index;
+        _core = core;
+        _eventPublisher = eventPublisher;
+        _api = SupplyBox.ZServiceApi;
         
-        _data = config;
+        var boxModel = config.Value.SupplyBoxModel;
+        var parachuteModel = config.Value.ParachuteModel;
+        _parachuteSound = config.Value.ParachuteSound;
         
-        Entity = _core.EntitySystem.CreateEntity<CDynamicProp>();
+        Entity = core.EntitySystem.CreateEntity<CDynamicProp>();
         
-        _entityParachute = _core.EntitySystem.CreateEntity<CBaseModelEntity>();
+        _entityParachute = core.EntitySystem.CreateEntity<CBaseModelEntity>();
         
-        _core.Scheduler.NextWorldUpdate(()=>
+        core.Scheduler.NextWorldUpdate(()=>
         {
-            Entity.SetModel(BoxModel);
+            Entity.SetModel(boxModel);
             
-            _entityParachute.SetModel(ParachuteModel);
+            _entityParachute.SetModel(parachuteModel);
             _entityParachute.SetScale(0.9f);
             _entityParachute.AcceptInput<string>("SetParent", "!activator", activator: Entity, caller: _entityParachute);
         });
     }
-
-    public void Spawn()
+    
+    public void Spawn(SupplyBoxEntityConfig config)
     {
         if (Entity == null)
         {
             return;
         }
         
+        _data = config;
+        Index = config.Index;
+        
         Entity.DispatchSpawn();
         Entity.Teleport(_data.Position + new Vector(0,0,1000), ToQAngles(_data.Rotation), null);
         
         if (_entityParachute != null)
         {
-            _soundGuid = PlaySound(FallSound);
+            _soundGuid = PlaySound(_parachuteSound);
             _entityParachute.DispatchSpawn();
             _entityParachute.Teleport(Entity.AbsOrigin + new Vector(-10,-5,-40), Entity.AbsRotation, null);
         }
@@ -126,7 +135,7 @@ internal sealed class SupplyBoxEntity
 
     private bool CanPickUp(IPlayer player)
     {
-        if (player.IsInfected())
+        if (_api.IsInfected(player))
         {
             return false;
         }
@@ -136,7 +145,7 @@ internal sealed class SupplyBoxEntity
 
     private void PickUp(IPlayer player)
     {
-        // _eventPublisher.OnSupplyBoxPickedUp(player, this);
+        _eventPublisher.OnSupplyBoxPickedUp(player, this);
         
         Destroy();
     }

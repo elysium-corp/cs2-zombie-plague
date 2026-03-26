@@ -1,10 +1,14 @@
 ﻿using System.Data;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using SwiftlyS2.Shared;
+using ZPApi.Events;
 using ZPCore.Config.Ability;
 using ZPCore.Config.Core;
 using ZPCore.Config.InfoNotify;
 using ZPCore.Config.models;
 using ZPCore.Config.Round;
-using ZPCore.Config.SupplyBox;
 using ZPCore.Config.Weapon;
 using ZPCore.Config.Zombie;
 using ZPCore.Data;
@@ -17,18 +21,12 @@ using ZPCore.Data.Managers;
 using ZPCore.Data.Plugins.InfoNotify;
 using ZPCore.Data.Plugins.ResourceLoader;
 using ZPCore.Data.Plugins.RoundRatingNotify;
-using ZPCore.Data.Plugins.SupplyBox;
 using ZPCore.Data.Rounds.Contracts;
 using ZPCore.Data.Weapons;
 using ZPCore.Data.Weapons.Knifes;
 using ZPCore.Data.Zombies;
 using ZPCore.Data.Zombies.ZClasses;
 using ZPCore.Service;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
-using SwiftlyS2.Shared;
-using ZPApi.Events;
 
 namespace ZPCore.Di;
 
@@ -55,9 +53,6 @@ internal static class DependencyManager
     
     private const string ModelConfigName = "models.json";
     private const string ModelConfigSectionName = "ModelConfig";
-    
-    private const string SupplyBoxConfigName = "supply_box.json";
-    private const string SupplyBoxConfigSectionName = "SupplyBox";
     
     private const string InfoNotifyConfigName = "info_notify.json";
     private const string InfoNotifyConfigSectionName = "InfoNotifyConfig";
@@ -89,15 +84,11 @@ internal static class DependencyManager
             .Configure(builder => { builder.AddJsonFile(ModelConfigName, optional: false, reloadOnChange: true); });
         
         core.Configuration
-            .InitializeJsonWithModel<SupplyBoxConfig>(SupplyBoxConfigName, SupplyBoxConfigSectionName)
-            .Configure(builder => { builder.AddJsonFile(SupplyBoxConfigName, optional: false, reloadOnChange: true); });
-        
-        core.Configuration
             .InitializeJsonWithModel<InfoNotifierConfig>(InfoNotifyConfigName, InfoNotifyConfigSectionName)
             .Configure(builder => { builder.AddJsonFile(InfoNotifyConfigName, optional: false, reloadOnChange: true); });
 
         _services = new ServiceCollection();
-        
+
         _services
             .AddSwiftly(core)
             .AddSingleton<IResourceLoader, ResourceLoader>()
@@ -122,11 +113,7 @@ internal static class DependencyManager
             .AddSingleton<WeaponService>()
             .AddSingleton<RoundRatingNotify>()
             .AddSingleton<WeaponParticleService>()
-            .AddSingleton<InfoNotifier>()
-            .AddSingleton<SupplyBoxMapConfigService>()
-            .AddSingleton<SupplyBoxMenuService>()
-            .AddSingleton<SupplyBoxEditService>();
-        
+            .AddSingleton<InfoNotifier>();
         
         _services
             .AddOptionsWithValidateOnStart<RoundConfig>()
@@ -151,10 +138,6 @@ internal static class DependencyManager
         _services
             .AddOptionsWithValidateOnStart<ModelsConfig>()
             .BindConfiguration(ModelConfigSectionName);
-        
-        _services
-            .AddOptionsWithValidateOnStart<SupplyBoxConfig>()
-            .BindConfiguration(SupplyBoxConfigSectionName);
         
         _services
             .AddOptionsWithValidateOnStart<InfoNotifierConfig>()

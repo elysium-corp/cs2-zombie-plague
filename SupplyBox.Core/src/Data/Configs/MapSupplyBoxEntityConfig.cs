@@ -1,6 +1,6 @@
 ﻿using SwiftlyS2.Shared.Natives;
 
-namespace ZPCore.Data.Plugins.SupplyBox;
+namespace SupplyBox.Data.Configs;
 
 internal sealed class MapSupplyBoxEntityConfig
 {

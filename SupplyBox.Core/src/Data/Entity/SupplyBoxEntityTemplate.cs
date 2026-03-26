@@ -1,39 +1,45 @@
-﻿using ZPCore.Di;
+﻿using Microsoft.Extensions.Options;
+using SupplyBox.Data.Configs;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Menus;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
 
-namespace ZPCore.Data.Plugins.SupplyBox;
+namespace SupplyBox.Data.Entity;
 
-internal sealed class SupplyBoxEntityTemplate
+internal sealed class SupplyBoxEntityTemplate : ISupplyBoxEntity
 {
-    private readonly ISwiftlyCore _core = DependencyManager.GetService<ISwiftlyCore>();
-    private readonly IPlayer _player;
+    private readonly ISwiftlyCore _core;
+    private readonly string _boxModel;
+    
     private IMenuAPI? _editMenu;
     private CancellationTokenSource? _thinker;
-    private const string BoxModel = "models/props/crates/cs2_drop_crate_01.vmdl";
-        
+    private IPlayer _player;
+    
     public CDynamicProp? Entity { get; }
+    public int Index { get; }
     public Vector Rotation { get; set; }
     public Vector Position { get; set; }
     
-    public SupplyBoxEntityTemplate(IPlayer player)
+    public SupplyBoxEntityTemplate(ISwiftlyCore core, IOptions<SupplyBoxConfig> config)
     {
-        _player =  player;
+        _core = core;
+        _boxModel = config.Value.SupplyBoxModel;
         
         Entity = _core.EntitySystem.CreateEntity<CDynamicProp>();
         
         _core.Scheduler.NextWorldUpdate(()=>
         {
-            Entity.SetModel(BoxModel);
+            Entity.SetModel(_boxModel);
             Entity.Render = new Color(255, 255, 255, 100);
         });
     }
 
-    public void Spawn()
+    public void Spawn(IPlayer player)
     {
+        _player =  player;
+        
         if (Entity == null || !_player.IsValid)
         {
             return;

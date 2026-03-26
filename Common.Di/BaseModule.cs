@@ -25,10 +25,21 @@ public abstract class BaseModule(ISwiftlyCore core) : IModule
     {
         return service.AddSingleton<TService>();
     }
+    
+    protected IServiceCollection AddTransient<TService>(ServiceCollection service) where TService : class
+    {
+        return service.AddTransient<TService>();
+    }
 
     protected IServiceCollection AddSingleton<TInterface, TImplementation>(ServiceCollection service)
         where TInterface : class where TImplementation : class, TInterface
     {
         return service.AddSingleton<TInterface, TImplementation>();
+    }
+    
+    protected IServiceCollection AddSingleton<TService>(ServiceCollection service, Func<IServiceProvider, TService> factory)
+        where TService : class
+    {
+        return service.AddSingleton(factory);
     }
 }
