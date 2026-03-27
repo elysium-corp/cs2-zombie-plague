@@ -1,18 +1,20 @@
-﻿using ZPCore.Config.Round;
-using ZPCore.Data.Extensions;
-using ZPCore.Data.Humans;
-using ZPCore.Data.Lifecycle;
-using ZPCore.Di;
+﻿using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Players;
+using ZPCore.Config.Core;
+using ZPCore.Config.Round;
+using ZPCore.Data.Extensions;
+using ZPCore.Data.Humans;
+using ZPCore.Data.Lifecycle;
+using ZPCore.Di;
 using IEventSubscriber = ZPApi.Events.IEventSubscriber;
 
 namespace ZPCore.Data.Managers;
 
-internal class HumanManager(ISwiftlyCore core, IEventSubscriber eventSubscriber) : ILifecycle
+internal class HumanManager(ISwiftlyCore core, IEventSubscriber eventSubscriber, IOptions<ZombiePlagueCoreConfig> config) : ILifecycle
 {
     private readonly KnifeManager _knifeManager = DependencyManager.GetService<KnifeManager>();
     private readonly Dictionary<IPlayer, Human> _humans = new();
@@ -23,7 +25,7 @@ internal class HumanManager(ISwiftlyCore core, IEventSubscriber eventSubscriber)
     
     public void RegisterHooks()
     {
-        _onRoundStartEvent = core.GameEvent.HookPost<EventRoundStart>(OnRoundStart);
+        _onRoundStartEvent = core.GameEvent.HookPre<EventRoundStart>(OnRoundStart);
         _onPlayerDisconnectEvent = core.GameEvent.HookPost<EventPlayerDisconnect>(OnPlayerDisconnect);
         _onPlayerDeathEvent = core.GameEvent.HookPost<EventPlayerDeath>(OnPlayerDeath);
         eventSubscriber.OnPlayerInfected += OnPlayerInfected;
@@ -74,6 +76,7 @@ internal class HumanManager(ISwiftlyCore core, IEventSubscriber eventSubscriber)
         
         player.SwitchTeam(Team.CT);
         player.Respawn();
+        ApplyPlayerHumanModel(player);
     }
 
     public int GetHumanCount()
@@ -112,6 +115,12 @@ internal class HumanManager(ISwiftlyCore core, IEventSubscriber eventSubscriber)
         itemServices.GiveItem("weapon_negev");
     }
     
+    public void ApplyPlayerHumanModel(IPlayer player)
+    {
+        var players = core.PlayerManager.GetAlive();
+        player.SetModel(config.Value.DefaultHumanModel);
+    }
+    
     private void OnWeaponServicesDropWeaponHook(IOnWeaponServicesDropWeaponHook @event)
     {
         var pawn = @event.WeaponServices.Pawn;
@@ -131,6 +140,7 @@ internal class HumanManager(ISwiftlyCore core, IEventSubscriber eventSubscriber)
     private HookResult OnRoundStart(EventRoundStart @event)
     {
         ClearAndAddHumans();
+        ApplyAllPlayerHumanModel();
         
         return HookResult.Continue;
     }
@@ -180,6 +190,15 @@ internal class HumanManager(ISwiftlyCore core, IEventSubscriber eventSubscriber)
                 var human = new Human(player);
                 _humans.Add(player, human);
             }
+        }
+    }
+
+    private void ApplyAllPlayerHumanModel()
+    {
+        var alivePlayers = core.PlayerManager.GetAlive();
+        foreach (var player in alivePlayers)
+        {
+            ApplyPlayerHumanModel(player);
         }
     }
 }

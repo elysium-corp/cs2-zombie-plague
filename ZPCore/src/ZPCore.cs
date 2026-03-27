@@ -6,15 +6,11 @@ using ZPApi;
 using ZPApi.Events;
 using ZPCore.Api;
 using ZPCore.Config.Core;
-using ZPCore.Config.InfoNotify;
-using ZPCore.Config.models;
 using ZPCore.Data;
 using ZPCore.Data.Lifecycle;
 using ZPCore.Data.Managers;
 using ZPCore.Data.Menus;
 using ZPCore.Data.Plugins.AdminMenu;
-using ZPCore.Data.Plugins.InfoNotify;
-using ZPCore.Data.Plugins.ModelChanger;
 using ZPCore.Data.Plugins.ResourceLoader;
 using ZPCore.Data.Plugins.RoundRatingNotify;
 using ZPCore.Data.Weapons;
@@ -71,10 +67,7 @@ public sealed partial class ZPCore(ISwiftlyCore core) : BasePlugin(core)
         RegisterHooks();
         LoadFeatures();
 
-        new ModelChanger(Core, _zombieManager.Value, _roundManager.Value,
-            DependencyManager.GetService<IOptions<ModelsConfig>>()).Load();
         new AdminMenu(Core, _roundManager.Value, _zombieManager.Value).Load();
-        new InfoNotifier(Core, DependencyManager.GetService<IOptions<InfoNotifierConfig>>()).Initialize();
     }
 
     public override void Unload()

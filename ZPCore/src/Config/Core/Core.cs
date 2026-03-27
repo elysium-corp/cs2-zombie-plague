@@ -22,4 +22,7 @@ public sealed class ZombiePlagueCoreConfig
     public int PreStartDelay { get; set; } = 20;
     // Время возрождения зомби
     public int ZombieSpawnDelay { get; set; } = 5;
+    
+    // Стандартная модель человека
+    public string DefaultHumanModel { get; set; } = "characters/models/ctm_sas/ctm_sas.vmdl";
 }

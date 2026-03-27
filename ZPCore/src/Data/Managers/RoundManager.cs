@@ -1,10 +1,3 @@
-using ZPCore.Config.Core;
-using ZPCore.Config.Round;
-using ZPCore.Data.Rounds;
-using ZPCore.Data.Rounds.Contracts;
-using ZPCore.Di;
-using ZPCore.Utils;
-using ZPCore.Utils.Helpers;
 using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
@@ -13,6 +6,13 @@ using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.Sounds;
 using ZPApi.Data;
 using ZPApi.Events;
+using ZPCore.Config.Core;
+using ZPCore.Config.Round;
+using ZPCore.Data.Rounds;
+using ZPCore.Data.Rounds.Contracts;
+using ZPCore.Di;
+using ZPCore.Utils;
+using ZPCore.Utils.Helpers;
 
 namespace ZPCore.Data.Managers;
 

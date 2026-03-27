@@ -6,8 +6,6 @@ using SwiftlyS2.Shared;
 using ZPApi.Events;
 using ZPCore.Config.Ability;
 using ZPCore.Config.Core;
-using ZPCore.Config.InfoNotify;
-using ZPCore.Config.models;
 using ZPCore.Config.Round;
 using ZPCore.Config.Weapon;
 using ZPCore.Config.Zombie;
@@ -18,7 +16,6 @@ using ZPCore.Data.Effects;
 using ZPCore.Data.Effects.Contracts;
 using ZPCore.Data.Lifecycle;
 using ZPCore.Data.Managers;
-using ZPCore.Data.Plugins.InfoNotify;
 using ZPCore.Data.Plugins.ResourceLoader;
 using ZPCore.Data.Plugins.RoundRatingNotify;
 using ZPCore.Data.Rounds.Contracts;
@@ -50,12 +47,6 @@ internal static class DependencyManager
     
     private const string CoreConfigName = "core.json";
     private const string CoreConfigSectionName = "CoreConfig";
-    
-    private const string ModelConfigName = "models.json";
-    private const string ModelConfigSectionName = "ModelConfig";
-    
-    private const string InfoNotifyConfigName = "info_notify.json";
-    private const string InfoNotifyConfigSectionName = "InfoNotifyConfig";
 
     public static void Load(ISwiftlyCore core)
     {
@@ -78,14 +69,6 @@ internal static class DependencyManager
         core.Configuration
             .InitializeJsonWithModel<ZombiePlagueCoreConfig>(CoreConfigName, CoreConfigSectionName)
             .Configure(builder => { builder.AddJsonFile(CoreConfigName, optional: false, reloadOnChange: true); });
-        
-        core.Configuration
-            .InitializeJsonWithModel<ModelsConfig>(ModelConfigName, ModelConfigSectionName)
-            .Configure(builder => { builder.AddJsonFile(ModelConfigName, optional: false, reloadOnChange: true); });
-        
-        core.Configuration
-            .InitializeJsonWithModel<InfoNotifierConfig>(InfoNotifyConfigName, InfoNotifyConfigSectionName)
-            .Configure(builder => { builder.AddJsonFile(InfoNotifyConfigName, optional: false, reloadOnChange: true); });
 
         _services = new ServiceCollection();
 
@@ -112,8 +95,7 @@ internal static class DependencyManager
             .AddSingleton<Knockback>()
             .AddSingleton<WeaponService>()
             .AddSingleton<RoundRatingNotify>()
-            .AddSingleton<WeaponParticleService>()
-            .AddSingleton<InfoNotifier>();
+            .AddSingleton<WeaponParticleService>();
         
         _services
             .AddOptionsWithValidateOnStart<RoundConfig>()
@@ -134,14 +116,6 @@ internal static class DependencyManager
         _services
             .AddOptionsWithValidateOnStart<ZombiePlagueCoreConfig>()
             .BindConfiguration(CoreConfigSectionName);
-        
-        _services
-            .AddOptionsWithValidateOnStart<ModelsConfig>()
-            .BindConfiguration(ModelConfigSectionName);
-        
-        _services
-            .AddOptionsWithValidateOnStart<InfoNotifierConfig>()
-            .BindConfiguration(InfoNotifyConfigSectionName);
         
         _services
             .AddSingleton<EventService>()
