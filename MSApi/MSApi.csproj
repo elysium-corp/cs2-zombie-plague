@@ -7,7 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="SwiftlyS2.CS2" Version="1.2.3-beta.4" />
+      <PackageReference Include="SwiftlyS2.CS2" Version="1.2.3-beta.5" />
     </ItemGroup>
 
 </Project>
