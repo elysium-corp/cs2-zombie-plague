@@ -12,7 +12,6 @@ using ZPCore.Data.Managers;
 using ZPCore.Data.Menus;
 using ZPCore.Data.Plugins.AdminMenu;
 using ZPCore.Data.Plugins.ResourceLoader;
-using ZPCore.Data.Plugins.RoundRatingNotify;
 using ZPCore.Data.Weapons;
 using ZPCore.Di;
 using ZPCore.Generated;
@@ -36,7 +35,6 @@ public sealed partial class ZPCore(ISwiftlyCore core) : BasePlugin(core)
     private readonly Lazy<Knockback> _knockback = new(DependencyManager.GetService<Knockback>);
     private readonly Lazy<ZClassMenu> _zClassMenu = new(DependencyManager.GetService<ZClassMenu>);
     private readonly Lazy<EffectManager> _effectManager = new(DependencyManager.GetService<EffectManager>);
-    private readonly Lazy<RoundRatingNotify> _roundRatingNotify = new(DependencyManager.GetService<RoundRatingNotify>);
     private readonly Lazy<LifecycleManager> _lifecycleManager = new(DependencyManager.GetService<LifecycleManager>);
 
     private readonly Lazy<IWeaponRegistrator>
@@ -93,12 +91,7 @@ public sealed partial class ZPCore(ISwiftlyCore core) : BasePlugin(core)
         {
             _knockback.Value.Start();
         }
-
-        if (config.RoundRatingNotify)
-        {
-            _roundRatingNotify.Value.Start();
-        }
-
+        
         RegisterCommands();
     }
 

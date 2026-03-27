@@ -1,28 +1,54 @@
-﻿using ZPCore.Data.Extensions;
+using Common.Di;
+using RoundRatingNotify.Di;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Players;
-using ZPApi.Events;
+using ZPApi;
 
-namespace ZPCore.Data.Plugins.RoundRatingNotify;
+namespace RoundRatingNotify;
 
-internal class RoundRatingNotify(ISwiftlyCore core, IEventSubscriber eventSubscriber)
+[PluginMetadata(
+    Id = "RoundRatingNotify.Core",
+    Version = "0.1.0",
+    Name = "[ZP] RoundRatingNotify",
+    Author = "illusion & fdrinv",
+    Description = "Print the best player of the round"
+)]
+internal sealed partial class RoundRatingNotify(ISwiftlyCore core) : Plugin<RoundRatingNotifyModule>(core)
 {
     private readonly Dictionary<IPlayer, int> _playersDamage = new();
     private readonly Dictionary<IPlayer, int> _playersInfect = new();
 
-    public void Start()
+    private Guid _guidOnEventRoundEndPost = Guid.Empty;
+    private Guid _guidOnEvEventPlayerHurtPost = Guid.Empty;
+    
+    private IZServiceApi _zServiceApi = null!;
+    
+    public override void UseSharedInterface(IInterfaceManager interfaceManager)
     {
-        core.GameEvent.HookPost<EventRoundEnd>(OnEventRoundEnd);
-        core.GameEvent.HookPost<EventPlayerHurt>(OnEventPlayerHurt);
-        eventSubscriber.OnPlayerInfectedBy += OnPlayerInfectedBy;
+        _zServiceApi = interfaceManager.GetSharedInterface<IZServiceApi>(IZServiceApi.SharedApiKey);
+    }
+    
+    protected override void OnReady()
+    {
+        _guidOnEventRoundEndPost = core.GameEvent.HookPost<EventRoundEnd>(OnEventRoundEnd);
+        _guidOnEvEventPlayerHurtPost = core.GameEvent.HookPost<EventPlayerHurt>(OnEventPlayerHurt);
+        _zServiceApi.EventSubscriber.OnPlayerInfectedBy += OnPlayerInfectedBy;
+    }
+
+    protected override void OnUnload()
+    {
+        core.GameEvent.Unhook(_guidOnEventRoundEndPost);
+        core.GameEvent.Unhook(_guidOnEvEventPlayerHurtPost);
+        _zServiceApi.EventSubscriber.OnPlayerInfectedBy -= OnPlayerInfectedBy;
     }
 
     private HookResult OnEventPlayerHurt(EventPlayerHurt @event)
     {
         var player = @event.AttackerPlayer;
-        if (player == null || !player.IsValid || player.IsInfected())
+        
+        if (player == null || !player.IsValid || _zServiceApi.IsInfected(player))
         {
             return HookResult.Continue;
         }
@@ -38,7 +64,9 @@ internal class RoundRatingNotify(ISwiftlyCore core, IEventSubscriber eventSubscr
     private HookResult OnEventRoundEnd(EventRoundEnd @event)
     {
         SendNotifyInChat();
-        ClearDictionaries();
+        
+        Clear();
+        
         return HookResult.Continue;
     }
 
@@ -70,6 +98,7 @@ internal class RoundRatingNotify(ISwiftlyCore core, IEventSubscriber eventSubscr
 
         var humanName = humanPlayer.Name;
         var humanDamage = humanKeyValuesPair.Value;
+        
         core.PlayerManager.SendChat($"[blue]Лучший игрок за людей: {humanName} — нанес {humanDamage} [blue]урона.");
 
         var zombiePlayer = zombieKeyValuePair.Key;
@@ -80,10 +109,11 @@ internal class RoundRatingNotify(ISwiftlyCore core, IEventSubscriber eventSubscr
 
         var zombieName = zombiePlayer.Name;
         var zombieInfect = zombieKeyValuePair.Value;
+        
         core.PlayerManager.SendChat($"[red]Лучший игрок за зомби: {zombieName} — заразил {zombieInfect} [red]игроков.");
     }
 
-    private void ClearDictionaries()
+    private void Clear()
     {
         _playersDamage.Clear();
         _playersInfect.Clear();

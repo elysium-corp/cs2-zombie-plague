@@ -17,7 +17,6 @@ using ZPCore.Data.Effects.Contracts;
 using ZPCore.Data.Lifecycle;
 using ZPCore.Data.Managers;
 using ZPCore.Data.Plugins.ResourceLoader;
-using ZPCore.Data.Plugins.RoundRatingNotify;
 using ZPCore.Data.Rounds.Contracts;
 using ZPCore.Data.Weapons;
 using ZPCore.Data.Weapons.Knifes;
@@ -94,7 +93,6 @@ internal static class DependencyManager
             .AddSingleton<HumanManager>()
             .AddSingleton<Knockback>()
             .AddSingleton<WeaponService>()
-            .AddSingleton<RoundRatingNotify>()
             .AddSingleton<WeaponParticleService>();
         
         _services

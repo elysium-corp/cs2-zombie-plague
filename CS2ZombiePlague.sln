@@ -25,6 +25,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SupplyBox.Api", "SupplyBox.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InfoNotify.Core", "InfoNotify.Core\InfoNotify.Core.csproj", "{B30C39BB-FBCE-4396-BF4D-1662EF01354D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoundRatingNotify.Core", "RoundRatingNotify\RoundRatingNotify.Core.csproj", "{50860648-D3E1-49A6-93D7-BA02FD48319F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -75,6 +77,10 @@ Global
 		{B30C39BB-FBCE-4396-BF4D-1662EF01354D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B30C39BB-FBCE-4396-BF4D-1662EF01354D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B30C39BB-FBCE-4396-BF4D-1662EF01354D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{50860648-D3E1-49A6-93D7-BA02FD48319F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{50860648-D3E1-49A6-93D7-BA02FD48319F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{50860648-D3E1-49A6-93D7-BA02FD48319F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{50860648-D3E1-49A6-93D7-BA02FD48319F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
