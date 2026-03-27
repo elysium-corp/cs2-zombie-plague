@@ -1,20 +1,19 @@
-﻿using ZPCore.Config;
-using ZPCore.Config.Core;
-using ZPCore.Data.Extensions;
-using ZPCore.Data.Managers;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Natives;
+using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
+using ZPApi.Data;
+using ZPCore.Config.Core;
+using ZPCore.Data.Extensions;
+using ZPCore.Data.Managers;
 
 namespace ZPCore.Data;
 
-internal class Knockback(ISwiftlyCore core, ZombieManager zombieManager, KnifeManager knifeManager, IOptions<ZombiePlagueCoreConfig> config)
+internal class Knockback(ISwiftlyCore core, ZombieManager zombieManager, IOptions<ZombiePlagueCoreConfig> config)
 {
-    private record KnockbackData(float Recoil, float PickDistance);
-
     private readonly Dictionary<string, KnockbackData> _weaponKnockback = new()
     {
         { "weapon_glock", new KnockbackData(150.0f, 200.0f) },
@@ -61,45 +60,89 @@ internal class Knockback(ISwiftlyCore core, ZombieManager zombieManager, KnifeMa
     
     private HookResult OnPlayerHurtPost(EventPlayerHurt @event)
     {
+
+        TryApplyKnockback(@event, null);
+        
+        return HookResult.Continue;
+    }
+
+    public bool TryApplyKnockback(EventPlayerHurt @event, KnockbackData? knockbackData)
+    {
         var victim = @event.UserIdPlayer;
-        var attacker = @event.AttackerPlayer;
+        var attacker = @event.AttackerPlayer;   
         
         if (victim == null || attacker == null)
         {
-            return HookResult.Continue;
+            return false;
         }
 
         if (attacker.IsInfected())
         {
-            return HookResult.Continue;
+            return false;
         }
         
         if (!victim.IsInfected() || victim.IsFrozen())
         {
-            return HookResult.Continue;
+            return false;
         }
 
+        var isHeadShot = @event.HitGroup == (int)HitGroup_t.HITGROUP_HEAD;
+
+        if (knockbackData != null)
+        {
+            var newRecoil = CalculateRecoil(attacker, victim, isHeadShot, knockbackData);
+            
+            ApplyKnockback(victim, newRecoil);
+            
+            return true;
+        }
+        
         var weaponName = $"weapon_{@event.Weapon}";
         
-        if (!_weaponKnockback.TryGetValue(weaponName, out var knockbackData))
+        if (!_weaponKnockback.TryGetValue(weaponName, out var data))
         {
-            return  HookResult.Continue;
+            return false;
         }
         
+        var recoil = CalculateRecoil(attacker, victim, isHeadShot, data);
+        
+        ApplyKnockback(victim, recoil);
+
+        return true;
+    }
+
+    private void ApplyKnockback(IPlayer victim, Vector newVelocity)
+    {
+        victim.Teleport(null, null, newVelocity);
+
+        if (!victim.IsInfected())
+        {
+            return;
+        }
+        
+        var zombie = zombieManager.GetZombie(victim.PlayerID);
+            
+        core.Scheduler.Delay(20, () =>
+        {
+            if (zombie != null)
+            {
+                victim.SetSpeed(zombie.ZClass.Speed);
+            }
+        }); 
+
+    }
+
+    private Vector CalculateRecoil(IPlayer attacker, IPlayer victim, bool isHeadShot, KnockbackData knockbackData)
+    {
         var weaponKnockback = knockbackData.Recoil;
         var weaponPickDistance = knockbackData.PickDistance;
-        
-        if (weaponName.Contains("knife"))
-        {
-            weaponKnockback = knifeManager.GetPlayerKnife(attacker).Knockback;
-        }
 
         var attackerPawn = attacker.PlayerPawn;
         var victimPawn = victim.PlayerPawn;
 
         if (attackerPawn == null || victimPawn == null)
         {
-            return HookResult.Continue;
+            return Vector.Zero;
         }
         
         var victimOrigin = victimPawn.AbsOrigin!.Value;
@@ -113,13 +156,13 @@ internal class Knockback(ISwiftlyCore core, ZombieManager zombieManager, KnifeMa
 
         if (recoil < config.Value.MinKnockbackForce)
         {
-            return HookResult.Continue;
+            return Vector.Zero;
         }
         
         var zombie = zombieManager.GetZombie(victim.PlayerID);
         if (zombie == null)
         {
-            return HookResult.Continue;
+            return Vector.Zero;
         }
         
         var zombieKnockback = zombie.ZClass.Knockback;
@@ -127,21 +170,15 @@ internal class Knockback(ISwiftlyCore core, ZombieManager zombieManager, KnifeMa
         var zBoost = onGround ? config.Value.GroundKnockback : config.Value.AirKnockback;
         var victimVelocity = victimPawn.AbsVelocity;
 
-        var hitGroupKnockback = @event.HitGroup == (int)HitGroup_t.HITGROUP_HEAD ? config.Value.KnockbackHeadMultiply : config.Value.KnockbackBodyMultiply;
+        var hitGroupKnockback = isHeadShot ? config.Value.KnockbackHeadMultiply : config.Value.KnockbackBodyMultiply;
         
-        Vector newVelocity = new Vector(
+        return new Vector(
             victimVelocity.X + directionVector.X * recoil * zombieKnockback * hitGroupKnockback,
             victimVelocity.Y + directionVector.Y * recoil * zombieKnockback * hitGroupKnockback,
             victimVelocity.Z + zBoost
         );
-        
-        victim.Teleport(null, null, newVelocity);
-
-        core.Scheduler.Delay(20, () => { victim.SetSpeed(zombie.ZClass.Speed); });
-
-        return HookResult.Continue;
     }
-
+    
     private float GetDistance(Vector vector1, Vector vector2)
     {
         return (float)Math.Sqrt(Math.Pow(vector1.X - vector2.X, 2) + Math.Pow(vector1.Y - vector2.Y, 2) +

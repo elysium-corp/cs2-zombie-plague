@@ -1,9 +1,12 @@
-﻿using SwiftlyS2.Shared.Players;
+﻿using SwiftlyS2.Shared.GameEventDefinitions;
+using SwiftlyS2.Shared.Players;
 using ZPApi;
 using ZPApi.Data;
 using ZPApi.Events;
+using ZPCore.Data;
 using ZPCore.Data.Extensions;
 using ZPCore.Data.Rounds;
+using ZPCore.Di;
 
 namespace ZPCore.Api;
 
@@ -22,6 +25,12 @@ public sealed class ZServiceApi(IEventSubscriber eventSubscriber) : IZServiceApi
     public bool IsSurvivorRound(IRound round) => round is Survivor;
     
     public bool IsInfectionRound(IRound round) => round is Infection;
+    
+    public void ApplyKnockBack(EventPlayerHurt @event, KnockbackData data)
+    {
+        var knockbackSystem = DependencyManager.GetService<Knockback>();
+        knockbackSystem.TryApplyKnockback(@event, data);
+    }
 
     public bool IsNoneRound(IRound round) => round is None;
 }

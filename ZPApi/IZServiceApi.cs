@@ -1,4 +1,5 @@
-﻿using SwiftlyS2.Shared.Players;
+﻿using SwiftlyS2.Shared.GameEventDefinitions;
+using SwiftlyS2.Shared.Players;
 using ZPApi.Data;
 using ZPApi.Events;
 using ZPApi.Generated;
@@ -22,6 +23,8 @@ public interface IZServiceApi
     public bool IsSurvivorRound(IRound round);
     
     public bool IsInfectionRound(IRound round);
+
+    public void ApplyKnockBack(EventPlayerHurt @event, KnockbackData data);
 
     public static readonly string VersionApi = BuildInfo.ApiVersion;
 

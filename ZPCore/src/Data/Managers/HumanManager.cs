@@ -9,14 +9,12 @@ using ZPCore.Config.Round;
 using ZPCore.Data.Extensions;
 using ZPCore.Data.Humans;
 using ZPCore.Data.Lifecycle;
-using ZPCore.Di;
 using IEventSubscriber = ZPApi.Events.IEventSubscriber;
 
 namespace ZPCore.Data.Managers;
 
 internal class HumanManager(ISwiftlyCore core, IEventSubscriber eventSubscriber, IOptions<ZombiePlagueCoreConfig> config) : ILifecycle
 {
-    private readonly KnifeManager _knifeManager = DependencyManager.GetService<KnifeManager>();
     private readonly Dictionary<IPlayer, Human> _humans = new();
     
     private Guid _onRoundStartEvent;
@@ -111,7 +109,6 @@ internal class HumanManager(ISwiftlyCore core, IEventSubscriber eventSubscriber,
         }
 
         itemServices.RemoveItems();
-        _knifeManager.GiveKnife(player);
         itemServices.GiveItem("weapon_negev");
     }
     

@@ -27,6 +27,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InfoNotify.Core", "InfoNoti
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoundRatingNotify.Core", "RoundRatingNotify\RoundRatingNotify.Core.csproj", "{50860648-D3E1-49A6-93D7-BA02FD48319F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomKnife.Core", "CustomKnife.Core\CustomKnife.Core.csproj", "{E440E235-0310-4B87-8607-EB59FF94ACA4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -81,6 +83,10 @@ Global
 		{50860648-D3E1-49A6-93D7-BA02FD48319F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{50860648-D3E1-49A6-93D7-BA02FD48319F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{50860648-D3E1-49A6-93D7-BA02FD48319F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E440E235-0310-4B87-8607-EB59FF94ACA4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E440E235-0310-4B87-8607-EB59FF94ACA4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E440E235-0310-4B87-8607-EB59FF94ACA4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E440E235-0310-4B87-8607-EB59FF94ACA4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

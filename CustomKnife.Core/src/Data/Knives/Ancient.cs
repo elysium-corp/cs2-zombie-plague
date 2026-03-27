@@ -1,15 +1,17 @@
-﻿using ZPCore.Config.Weapon;
+﻿using CustomKnife.Data.Configs;
+using CustomKnife.Data.Models;
+using ZPApi.Data;
 
-namespace ZPCore.Data.Weapons.Knifes;
+namespace CustomKnife.Data.Knifes;
 
-internal sealed class KnockbackKnifeWeapon(IKnifeConfig config) : IKnife
+internal sealed class Ancient(AncientConfig config) : IKnife
 {
-    public string InternalName { get; set; } = config.InternalName;
+    public byte Index { get; set; } = config.Index;
     public string DisplayName { get; set; } = config.DisplayName;
     public string Model { get; set; } = config.Model;
     public string Description { get; set; } = config.Description;
     public float Speed { get; set; } = config.Speed;
-    public float Knockback { get; set; } = config.Knockback;
+    public KnockbackData KnockbackData { get; set; } = config.KnockbackData;
     public int Gravity { get; set; } = config.Gravity;
     public float DamageMultiplier { get; set; } = config.DamageMultiplier;
 }

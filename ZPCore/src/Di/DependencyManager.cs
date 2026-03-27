@@ -7,7 +7,6 @@ using ZPApi.Events;
 using ZPCore.Config.Ability;
 using ZPCore.Config.Core;
 using ZPCore.Config.Round;
-using ZPCore.Config.Weapon;
 using ZPCore.Config.Zombie;
 using ZPCore.Data;
 using ZPCore.Data.Abilities;
@@ -19,7 +18,6 @@ using ZPCore.Data.Managers;
 using ZPCore.Data.Plugins.ResourceLoader;
 using ZPCore.Data.Rounds.Contracts;
 using ZPCore.Data.Weapons;
-using ZPCore.Data.Weapons.Knifes;
 using ZPCore.Data.Zombies;
 using ZPCore.Data.Zombies.ZClasses;
 using ZPCore.Service;
@@ -62,10 +60,6 @@ internal static class DependencyManager
             .Configure(builder => { builder.AddJsonFile(ZClassConfigName, optional: false, reloadOnChange: true); });
         
         core.Configuration
-            .InitializeJsonWithModel<KnifeConfig>(KnifeConfigName, KnifeConfigSectionName)
-            .Configure(builder => { builder.AddJsonFile(KnifeConfigName, optional: false, reloadOnChange: true); });
-        
-        core.Configuration
             .InitializeJsonWithModel<ZombiePlagueCoreConfig>(CoreConfigName, CoreConfigSectionName)
             .Configure(builder => { builder.AddJsonFile(CoreConfigName, optional: false, reloadOnChange: true); });
 
@@ -76,7 +70,6 @@ internal static class DependencyManager
             .AddSingleton<IResourceLoader, ResourceLoader>()
             .AddSingleton<IRoundFactory, RoundFactory>()
             .AddSingleton<IZombieFactory, ZombieFactory>()
-            .AddSingleton<IKnifeFactory, KnifeFactory>()
             .AddSingleton<IAbilityFactory, AbilityFactory>()
             .AddSingleton<IEffectFactory, EffectFactory>()
             .AddSingleton<IWeaponFactory, WeaponFactory>()
@@ -88,7 +81,6 @@ internal static class DependencyManager
             .AddSingleton<ZClassMenu>()
             .AddSingleton<ZombieManager>()
             .AddSingleton<EffectManager>()
-            .AddSingleton<KnifeManager>()
             .AddSingleton<RoundManager>()
             .AddSingleton<HumanManager>()
             .AddSingleton<Knockback>()
@@ -108,10 +100,6 @@ internal static class DependencyManager
             .BindConfiguration(ZClassConfigSectionName);
         
         _services
-            .AddOptionsWithValidateOnStart<KnifeConfig>()
-            .BindConfiguration(KnifeConfigSectionName);
-        
-        _services
             .AddOptionsWithValidateOnStart<ZombiePlagueCoreConfig>()
             .BindConfiguration(CoreConfigSectionName);
         
@@ -121,7 +109,6 @@ internal static class DependencyManager
             .AddSingleton<IEventPublisher>(sp => sp.GetRequiredService<EventService>());
 
         RegisterZClasses();
-        RegisterKnifes();
         
         _provider = _services.BuildServiceProvider();
     }
@@ -138,44 +125,7 @@ internal static class DependencyManager
             ? throw new NoNullAllowedException(Tag + " _provider is null!")
             : _provider.GetRequiredService<T>();
     }
-
-    private static void RegisterKnifes()
-    {
-        if (_services == null)
-        {
-            throw new NoNullAllowedException(Tag + " _services is null!");
-        }
-        
-        _services
-            .AddTransient<KnockbackKnifeWeapon>(sp =>
-            {
-                var knifeConfig = sp.GetRequiredService<IOptions<KnifeConfig>>().Value;
-                var config = knifeConfig.Knockback;
-                return new KnockbackKnifeWeapon(config);
-            });
-        _services
-            .AddTransient<SpeedKnifeWeapon>(sp =>
-            {
-                var knifeConfig = sp.GetRequiredService<IOptions<KnifeConfig>>().Value;
-                var config = knifeConfig.Speed;
-                return new SpeedKnifeWeapon(config);
-            });
-        _services
-            .AddTransient<GravityKnifeWeapon>(sp =>
-            {
-                var knifeConfig = sp.GetRequiredService<IOptions<KnifeConfig>>().Value;
-                var config = knifeConfig.Gravity;
-                return new GravityKnifeWeapon(config);
-            });
-        _services
-            .AddTransient<VipKnifeWeapon>(sp =>
-            {
-                var knifeConfig = sp.GetRequiredService<IOptions<KnifeConfig>>().Value;
-                var config = knifeConfig.Vip;
-                return new VipKnifeWeapon(config);
-            });
-        
-    }
+    
     private static void RegisterZClasses()
     {
         if (_services == null)
