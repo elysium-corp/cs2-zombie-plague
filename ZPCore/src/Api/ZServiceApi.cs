@@ -5,6 +5,7 @@ using ZPApi.Data;
 using ZPApi.Events;
 using ZPCore.Data;
 using ZPCore.Data.Extensions;
+using ZPCore.Data.Managers;
 using ZPCore.Data.Rounds;
 using ZPCore.Di;
 
@@ -15,6 +16,18 @@ public sealed class ZServiceApi(IEventSubscriber eventSubscriber) : IZServiceApi
     public IEventSubscriber EventSubscriber => eventSubscriber;
 
     public bool IsInfected(IPlayer player) => player.IsInfected();
+    
+    public bool IsSurvivor(IPlayer player)
+    {
+        var humanManager =  DependencyManager.GetService<HumanManager>();
+        return humanManager.IsSurvivor(player);
+    }
+
+    public bool IsNemesis(IPlayer player)
+    {
+        var zombieManager =  DependencyManager.GetService<ZombieManager>();
+        return zombieManager.IsNemesis(player);
+    }
 
     public bool IsNemesisRound(IRound round) => round is Nemesis;
 

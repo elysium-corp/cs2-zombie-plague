@@ -117,6 +117,16 @@ internal class HumanManager(ISwiftlyCore core, IEventSubscriber eventSubscriber,
         var players = core.PlayerManager.GetAlive();
         player.SetModel(config.Value.DefaultHumanModel);
     }
+
+    public bool IsSurvivor(IPlayer player)
+    {
+        if (_humans.TryGetValue(player, out var human))
+        {
+            return human.IsSurvivor;
+        }
+
+        return false;
+    }
     
     private void OnWeaponServicesDropWeaponHook(IOnWeaponServicesDropWeaponHook @event)
     {

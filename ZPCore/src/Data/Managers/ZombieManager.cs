@@ -1,20 +1,20 @@
-﻿using ZPCore.Config.Round;
-using ZPCore.Data.Extensions;
-using ZPCore.Data.Zombies;
-using ZPCore.Data.Zombies.ZClasses;
-using ZPCore.Di;
-using SwiftlyS2.Shared;
+﻿using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Players;
 using ZPApi.Events;
+using ZPCore.Config.Round;
+using ZPCore.Data.Extensions;
+using ZPCore.Data.Zombies;
+using ZPCore.Data.Zombies.ZClasses;
+using ZPCore.Di;
 
 namespace ZPCore.Data.Managers;
 
 internal class ZombieManager(ISwiftlyCore core, HumanManager humanManager, IZombieFactory zombieFactory, ZClassMenu zClassMenu, IEventPublisher eventPublisher)
 {
-    private readonly Dictionary<int, Zombie> _zombiePlayers = new();
+    private readonly Dictionary<int, Zombie> _zombies = new();
     
     private Guid _onPlayerDisconnectEvent;
     
@@ -65,7 +65,7 @@ internal class ZombieManager(ISwiftlyCore core, HumanManager humanManager, IZomb
         var zombie = GetZombie(playerId);
         if (zombie != null)
         {
-            _zombiePlayers.Remove(playerId);
+            _zombies.Remove(playerId);
         }
         
         return HookResult.Continue;
@@ -87,7 +87,7 @@ internal class ZombieManager(ISwiftlyCore core, HumanManager humanManager, IZomb
         eventPublisher.OnPlayerInfected(player);
 
         var zClass = GetZClassFromMenu(player.PlayerID);
-        return _zombiePlayers[player.PlayerID] =
+        return _zombies[player.PlayerID] =
             zombieFactory.Create(core, this, player, zClass);
     }
     
@@ -102,7 +102,7 @@ internal class ZombieManager(ISwiftlyCore core, HumanManager humanManager, IZomb
         eventPublisher.OnPlayerInfected(player);
         
         var nemesis = DependencyManager.GetService<ZNemesis>();
-        _zombiePlayers[player.PlayerID] = zombieFactory.Create(core, this, player, nemesis, true);
+        _zombies[player.PlayerID] = zombieFactory.Create(core, this, player, nemesis, true);
         
         var countPlayers = humanManager.GetAllHumanPlayers().Count;
 
@@ -115,6 +115,16 @@ internal class ZombieManager(ISwiftlyCore core, HumanManager humanManager, IZomb
         {
             player.SetHealth(playerPawn.Health + (roundConfig.NemesisBonusHealthPerPlayer * countPlayers));
         });
+    }
+
+    public bool IsNemesis(IPlayer player)
+    {
+        if (_zombies.TryGetValue(player.PlayerID, out var zombie))
+        {
+            return zombie.IsNemesis;
+        }
+
+        return false;
     }
     
     public void Respawn(IPlayer player)
@@ -138,28 +148,28 @@ internal class ZombieManager(ISwiftlyCore core, HumanManager humanManager, IZomb
 
     public void Remove(IPlayer player)
     {
-        _zombiePlayers[player.PlayerID].UnHookAbilities();
-        _zombiePlayers.Remove(player.PlayerID);
+        _zombies[player.PlayerID].UnHookAbilities();
+        _zombies.Remove(player.PlayerID);
     }
 
     public void RemoveAll()
     {
-        foreach (var zPlayer in _zombiePlayers.Values)
+        foreach (var zPlayer in _zombies.Values)
         {
             zPlayer.UnHookAbilities();
         }
 
-        _zombiePlayers.Clear();
+        _zombies.Clear();
     }
 
     public Zombie? GetZombie(int playerId)
     {
-        return _zombiePlayers.GetValueOrDefault(playerId);
+        return _zombies.GetValueOrDefault(playerId);
     }
 
     public Dictionary<int, Zombie> GetAllZombies()
     {
-        return _zombiePlayers;
+        return _zombies;
     }
 
     public IZClass GetZClassFromMenu(int playerId)

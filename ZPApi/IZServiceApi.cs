@@ -12,6 +12,10 @@ public interface IZServiceApi
 
     public bool IsInfected(IPlayer player);
     
+    public bool IsSurvivor(IPlayer player);
+    
+    public bool IsNemesis(IPlayer player);
+    
     public bool IsNoneRound(IRound round);
     
     public bool IsNemesisRound(IRound round);
