@@ -12,9 +12,9 @@ internal class Zombie : IZombie
     public IPlayer Player { get; }
     public IZClass ZClass { get; private set; }
     public bool IsNemesis { get; }
+    public ISoundController? SoundController {get; private set;}
     
     private readonly ZombieManager _zombieManager;
-    private ISoundController? _soundController;
 
     public Zombie(ISwiftlyCore core, ZombieManager zombieManager, IPlayer player, IZClass zClass,
         bool isNemesis = false)
@@ -34,28 +34,27 @@ internal class Zombie : IZombie
             return;
         }
         
-        var savedZClass = _zombieManager.GetZClassFromMenu(Player.PlayerID);
+        TryChangeZClass();
+        SetProperties();
         
-        if (ZClass != savedZClass && !IsNemesis)
-        {
-            ZClass.Abilities.ForEach(ability => ability.UnHook());
-            ZClass = savedZClass;
-        }
-        
-        _soundController = new ZombieSoundController(this);
-        
-        var playerLifecycle = Player.GetLifecycle();
-        playerLifecycle.SoundController =  _soundController;
+        ZClass.Abilities.ForEach(zAbility => zAbility.SetCaster(Player));
+        SoundController = new ZombieSoundController(this);
         
         Player.SendAlert("Ваш класс => " + ZClass.DisplayName);
+    }
 
+    public void UnHookAbilities()
+    {
+        ZClass.Abilities.ForEach(zAbility => zAbility.UnHook());
+    }
+
+    private void SetProperties()
+    {
         Player.SetHealth(ZClass.Health);
         Player.SetSpeed(ZClass.Speed);
         Player.SetGravity(ZClass.Gravity);
         Player.SetModel(ZClass.Model);
         Player.SwitchTeam(Team.T);
-
-        ZClass.Abilities.ForEach(zAbility => zAbility.SetCaster(Player));
         
         var itemServices = Player.PlayerPawn?.ItemServices;
         if (itemServices == null)
@@ -67,8 +66,18 @@ internal class Zombie : IZombie
         itemServices.GiveItem("weapon_knife_t");
     }
 
-    public void UnHookAbilities()
+    private bool TryChangeZClass()
     {
-        ZClass.Abilities.ForEach(zAbility => zAbility.UnHook());
+        var savedZClass = _zombieManager.GetZClassFromMenu(Player.PlayerID);
+
+        if (ZClass == savedZClass || IsNemesis)
+        {
+            return false;
+        }
+        
+        ZClass.Abilities.ForEach(ability => ability.UnHook());
+        ZClass = savedZClass;
+
+        return true;
     }
 }

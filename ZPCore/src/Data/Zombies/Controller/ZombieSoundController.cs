@@ -31,16 +31,22 @@ internal class ZombieSoundController : ISoundController
         _onPlayerHurt = _core.GameEvent.HookPost<EventPlayerHurt>(OnPlayerHurt);
         _onPlayerDeath = _core.GameEvent.HookPost<EventPlayerDeath>(OnPlayerDeath);
     }
+    
+    public void Dispose()
+    {
+        _core.GameEvent.Unhook(_onPlayerHurt);
+        _core.GameEvent.Unhook(_onPlayerDeath);
+    }
 
     private HookResult OnPlayerDeath(EventPlayerDeath @event)
     {
-        if (@event.UserIdPlayer != null && !@event.UserIdPlayer.Equals(_playerOwner))
+        var player = @event.UserIdPlayer;
+        
+        if (player != null && !player.Equals(_playerOwner))
         {
-            return  HookResult.Continue;
+            return HookResult.Continue;
         }
-
-        var playerLifecycle = _playerOwner.GetLifecycle();
-        playerLifecycle.SoundController = null;
+        
         Dispose();
         
         return HookResult.Continue;
@@ -49,9 +55,10 @@ internal class ZombieSoundController : ISoundController
     private HookResult OnPlayerHurt(EventPlayerHurt @event)
     {
         var player = @event.UserIdPlayer;
+        
         if (player != null && !player.Equals(_playerOwner))
         {
-            return  HookResult.Continue;
+            return HookResult.Continue;
         }
         
         if (CanEmitSound<EventPlayerHurt>())
@@ -104,11 +111,5 @@ internal class ZombieSoundController : ISoundController
     private string GetRandomSound(List<string> sounds)
     {
         return sounds.Count == 0 ? "" : sounds[Numeric.Random(0, sounds.Count)];
-    }
-    
-    public void Dispose()
-    {
-        _core.GameEvent.Unhook(_onPlayerHurt);
-        _core.GameEvent.Unhook(_onPlayerDeath);
     }
 }

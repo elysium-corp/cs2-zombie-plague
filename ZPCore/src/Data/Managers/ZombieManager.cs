@@ -149,6 +149,7 @@ internal class ZombieManager(ISwiftlyCore core, HumanManager humanManager, IZomb
     public void Remove(IPlayer player)
     {
         _zombies[player.PlayerID].UnHookAbilities();
+        _zombies[player.PlayerID].SoundController?.Dispose();
         _zombies.Remove(player.PlayerID);
     }
 
@@ -157,6 +158,7 @@ internal class ZombieManager(ISwiftlyCore core, HumanManager humanManager, IZomb
         foreach (var zPlayer in _zombies.Values)
         {
             zPlayer.UnHookAbilities();
+            zPlayer.SoundController?.Dispose();
         }
 
         _zombies.Clear();
