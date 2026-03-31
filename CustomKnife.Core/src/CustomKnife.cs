@@ -9,6 +9,7 @@ using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Players;
 using ZPApi;
+using ZPApi.Data;
 
 namespace CustomKnife;
 
@@ -51,6 +52,7 @@ internal sealed partial class CustomKnife(ISwiftlyCore core) : Plugin<CustomKnif
         _guidOnPlayerHurtEventPost = core.GameEvent.HookPost<EventPlayerHurt>(PlayerHurtEvent);
         _guidOnRoundStartEventPost = core.GameEvent.HookPost<EventRoundStart>(EventRoundStart);
         core.Event.OnEntityTakeDamage += OnEntityTakeDamage;
+        ZServiceApi.EventSubscriber.OnGameRoundStarted += OnGameRoundStarted;
         
         core.Command.RegisterCommand(
             commandName: "knife",
@@ -66,6 +68,23 @@ internal sealed partial class CustomKnife(ISwiftlyCore core) : Plugin<CustomKnif
         Core.GameEvent.Unhook(_guidOnPlayerHurtEventPost);
         Core.GameEvent.Unhook(_guidOnRoundStartEventPost);
         core.Event.OnEntityTakeDamage -= OnEntityTakeDamage;
+        ZServiceApi.EventSubscriber.OnGameRoundStarted -= OnGameRoundStarted;
+    }
+
+    private void OnGameRoundStarted(IRound round)
+    {
+        if (ZServiceApi.IsSurvivorRound(round) || ZServiceApi.IsArmageddonRound(round))
+        {
+            var alivePlayers = core.PlayerManager.GetAlive();
+
+            foreach (var player in alivePlayers)
+            {
+                if (ZServiceApi.IsSurvivor(player))
+                {
+                    _knifeService.Value.TryGiveKnife(player);
+                }
+            }
+        }
     }
     
     private void OnEntityTakeDamage(IOnEntityTakeDamageEvent @event)

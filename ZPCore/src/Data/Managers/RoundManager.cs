@@ -41,6 +41,11 @@ internal class RoundManager(ISwiftlyCore core, IEventPublisher eventPublisher, I
         _onGameRestartEvent = core.GameEvent.HookPost<EventCsPreRestart>(OnGameRestart);
         _onPlayerConnectEvent = core.GameEvent.HookPost<EventPlayerConnectFull>(OnPlayerConnectFull);
     }
+
+    public List<IRound> GetRegisteredRounds()
+    {
+        return _rounds;
+    }
     
     public void RegisterRounds()
     {
@@ -120,14 +125,14 @@ internal class RoundManager(ISwiftlyCore core, IEventPublisher eventPublisher, I
     
     private HookResult OnRoundEnd(EventRoundEnd @event)
     {
-        _currentRound?.End();
+        _currentRound.End();
 
         return HookResult.Continue;
     }
     
     private HookResult OnGameRestart(EventCsPreRestart @event)
     {
-        _currentRound?.End();
+        _currentRound.End();
 
         return HookResult.Continue;
     }
@@ -152,15 +157,19 @@ internal class RoundManager(ISwiftlyCore core, IEventPublisher eventPublisher, I
 
             if (localTime >= roundStartTime)
             {
-                if (_currentRound is None)
+                if (IsNoneRound())
                 {
                     SetRound(RandomRound());
                 }
-                
-                eventPublisher.OnGameRoundStarted(_currentRound);
+                else
+                {
+                    SetRound(_currentRound);
+                }
                 
                 _currentRound.Start();
                 _token?.Cancel();
+                
+                eventPublisher.OnGameRoundStarted(_currentRound);
             }
         });
     }

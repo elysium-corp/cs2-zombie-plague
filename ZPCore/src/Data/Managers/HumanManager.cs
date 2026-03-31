@@ -23,7 +23,7 @@ internal class HumanManager(ISwiftlyCore core, IEventSubscriber eventSubscriber,
     
     public void RegisterHooks()
     {
-        _onRoundStartEvent = core.GameEvent.HookPre<EventRoundStart>(OnRoundStart);
+        _onRoundStartEvent = core.GameEvent.HookPost<EventRoundStart>(OnRoundStart);
         _onPlayerDisconnectEvent = core.GameEvent.HookPost<EventPlayerDisconnect>(OnPlayerDisconnect);
         _onPlayerDeathEvent = core.GameEvent.HookPost<EventPlayerDeath>(OnPlayerDeath);
         eventSubscriber.OnPlayerInfected += OnPlayerInfected;
@@ -84,7 +84,7 @@ internal class HumanManager(ISwiftlyCore core, IEventSubscriber eventSubscriber,
 
     public void SetSurvivor(IPlayer player, ISurvivorConfig roundSettings)
     {
-        var playerPawn =  player.PlayerPawn;
+        var playerPawn = player.PlayerPawn;
         if (playerPawn == null)
         {
             return;
@@ -110,6 +110,7 @@ internal class HumanManager(ISwiftlyCore core, IEventSubscriber eventSubscriber,
 
         itemServices.RemoveItems();
         itemServices.GiveItem("weapon_negev");
+        itemServices.GiveItem("weapon_knife");
     }
     
     public void ApplyPlayerHumanModel(IPlayer player)
