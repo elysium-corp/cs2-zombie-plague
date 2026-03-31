@@ -32,7 +32,6 @@ public sealed partial class ZPCore(ISwiftlyCore core) : BasePlugin(core)
     private readonly Lazy<ZombieManager> _zombieManager = new(DependencyManager.GetService<ZombieManager>);
     private readonly Lazy<HumanManager> _humanManager = new(DependencyManager.GetService<HumanManager>);
     private readonly Lazy<Knockback> _knockback = new(DependencyManager.GetService<Knockback>);
-    private readonly Lazy<ZClassMenu> _zClassMenu = new(DependencyManager.GetService<ZClassMenu>);
     private readonly Lazy<EffectManager> _effectManager = new(DependencyManager.GetService<EffectManager>);
     private readonly Lazy<LifecycleManager> _lifecycleManager = new(DependencyManager.GetService<LifecycleManager>);
 
@@ -74,7 +73,6 @@ public sealed partial class ZPCore(ISwiftlyCore core) : BasePlugin(core)
     private void RegisterHooks()
     {
         _roundManager.Value.RegisterRounds();
-        _zClassMenu.Value.RegisterHooks();
         _zombieManager.Value.RegisterHooks();
         _humanManager.Value.RegisterHooks();
         _effectManager.Value.RegisterHooks();

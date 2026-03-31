@@ -2,7 +2,7 @@
 
 namespace ZPCore.Data.Zombies.ZClasses;
 
-internal interface IZClass
+public interface IZClass
 {
     public string InternalName { get; set; }
     

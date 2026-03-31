@@ -1,9 +1,9 @@
-﻿using ZPCore.Data.Extensions;
+﻿using SwiftlyS2.Shared;
+using SwiftlyS2.Shared.Players;
+using ZPCore.Data.Extensions;
 using ZPCore.Data.Managers;
 using ZPCore.Data.Zombies.Controller;
 using ZPCore.Data.Zombies.ZClasses;
-using SwiftlyS2.Shared;
-using SwiftlyS2.Shared.Players;
 
 namespace ZPCore.Data.Zombies;
 
@@ -34,6 +34,13 @@ internal class Zombie : IZombie
             return;
         }
         
+        var savedZClass = _zombieManager.GetZClassFromMenu(Player);
+        
+        if (ZClass != savedZClass && !IsNemesis)
+        {
+            ZClass.Abilities.ForEach(ability => ability.UnHook());
+            ZClass = savedZClass;
+        }
         TryChangeZClass();
         SetProperties();
         
@@ -68,7 +75,7 @@ internal class Zombie : IZombie
 
     private bool TryChangeZClass()
     {
-        var savedZClass = _zombieManager.GetZClassFromMenu(Player.PlayerID);
+        var savedZClass = _zombieManager.GetZClassFromMenu(Player);
 
         if (ZClass == savedZClass || IsNemesis)
         {

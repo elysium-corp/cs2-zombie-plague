@@ -13,8 +13,10 @@ using ZPCore.Data.Abilities;
 using ZPCore.Data.Abilities.Contracts;
 using ZPCore.Data.Effects;
 using ZPCore.Data.Effects.Contracts;
+using ZPCore.Data.Events;
 using ZPCore.Data.Lifecycle;
 using ZPCore.Data.Managers;
+using ZPCore.Data.Menus;
 using ZPCore.Data.Plugins.ResourceLoader;
 using ZPCore.Data.Rounds.Contracts;
 using ZPCore.Data.Weapons;
@@ -75,6 +77,7 @@ internal static class DependencyManager
             .AddSingleton<IWeaponFactory, WeaponFactory>()
             .AddSingleton<IGrenadeFactory, GrenadeFactory>()
             .AddSingleton<IWeaponRegistrator, WeaponRegistrator>()
+            .AddSingleton<ICustomEventService, CustomEventsService>()
             .AddSingleton<LifecycleManager>()
             .AddSingleton<PlayerLifecycleManager>()
             .AddSingleton<ServiceLifecycleManager>()

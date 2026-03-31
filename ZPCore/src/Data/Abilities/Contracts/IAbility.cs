@@ -2,7 +2,7 @@
 
 namespace ZPCore.Data.Abilities.Contracts;
 
-internal interface IAbility
+public interface IAbility
 {
     public bool IsActive { get; set; }
     public void Use();
