@@ -1,14 +1,13 @@
-using ZPCore.Data.Effects.Contracts;
-using ZPCore.Di;
+using Common.Effects.Effects.Contracts;
+using Common.Effects.Events;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
 
-namespace ZPCore.Data.Effects;
+namespace Common.Effects.Effects;
 
-internal sealed class Burn(IPlayer? caster, IPlayer target) : BaseTickEffect(caster, target)
+internal sealed class Burn(ISwiftlyCore core, IEventPublisher eventPublisher, IPlayer? caster, IPlayer target) : BaseTickEffect(core, eventPublisher, caster, target)
 {
-    private readonly ISwiftlyCore _core = DependencyManager.GetService<ISwiftlyCore>();
     private const float DamagePerTickInPercent = 1.0f;
     private const float InstantDamageInPercent = 5.0f;
     private const string ParticleName = "particles/inferno_fx/molotov_child_flame01a.vpcf";
@@ -63,7 +62,7 @@ internal sealed class Burn(IPlayer? caster, IPlayer target) : BaseTickEffect(cas
             return;
         }
 
-        Particle = _core.EntitySystem.CreateEntity<CParticleSystem>();
+        Particle = Core.EntitySystem.CreateEntity<CParticleSystem>();
         Particle.EffectName = ParticleName;
         Particle.StartActive = true;
         Particle.DispatchSpawn();

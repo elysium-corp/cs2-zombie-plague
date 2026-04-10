@@ -7,7 +7,6 @@ public sealed class EventService : IEventSubscriber, IEventPublisher
 {
     public event EventDelegates.OnPlayerInfectedBy? OnPlayerInfectedBy;
     public event EventDelegates.OnPlayerInfected? OnPlayerInfected;
-    public event EventDelegates.OnEffectDestroyed? OnEffectDestroyed;
     public event EventDelegates.OnGameRoundStarted? OnGameRoundStarted;
 
     void IEventPublisher.OnPlayerInfectedBy(IPlayer infector, IPlayer victim)
@@ -32,18 +31,6 @@ public sealed class EventService : IEventSubscriber, IEventPublisher
         {
             var handler = (EventDelegates.OnPlayerInfected)@delegate;
             handler(victim);
-        }
-    }
-    
-    void IEventPublisher.OnEffectDestroyed(IEffect effect)
-    {
-        var handlers = OnEffectDestroyed;
-        if (handlers == null) return;
-        
-        foreach (var @delegate in handlers.GetInvocationList())
-        {
-            var handler = (EventDelegates.OnEffectDestroyed)@delegate;
-            handler(effect);
         }
     }
     

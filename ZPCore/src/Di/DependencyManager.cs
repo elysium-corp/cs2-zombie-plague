@@ -11,8 +11,6 @@ using ZPCore.Config.Zombie;
 using ZPCore.Data;
 using ZPCore.Data.Abilities;
 using ZPCore.Data.Abilities.Contracts;
-using ZPCore.Data.Effects;
-using ZPCore.Data.Effects.Contracts;
 using ZPCore.Data.Events;
 using ZPCore.Data.Lifecycle;
 using ZPCore.Data.Managers;
@@ -73,17 +71,13 @@ internal static class DependencyManager
             .AddSingleton<IRoundFactory, RoundFactory>()
             .AddSingleton<IZombieFactory, ZombieFactory>()
             .AddSingleton<IAbilityFactory, AbilityFactory>()
-            .AddSingleton<IEffectFactory, EffectFactory>()
             .AddSingleton<IWeaponFactory, WeaponFactory>()
-            .AddSingleton<IGrenadeFactory, GrenadeFactory>()
-            .AddSingleton<IWeaponRegistrator, WeaponRegistrator>()
             .AddSingleton<ICustomEventService, CustomEventsService>()
             .AddSingleton<LifecycleManager>()
             .AddSingleton<PlayerLifecycleManager>()
             .AddSingleton<ServiceLifecycleManager>()
             .AddSingleton<ZClassMenu>()
             .AddSingleton<ZombieManager>()
-            .AddSingleton<EffectManager>()
             .AddSingleton<RoundManager>()
             .AddSingleton<HumanManager>()
             .AddSingleton<Knockback>()

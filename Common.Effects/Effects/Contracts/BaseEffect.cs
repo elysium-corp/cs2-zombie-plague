@@ -1,19 +1,15 @@
-using ZPCore.Data.Abilities.Contracts;
-using ZPCore.Data.Managers;
-using ZPCore.Di;
+using Common.Effects.Events;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
-using ZPApi.Data;
-using ZPApi.Events;
 
-namespace ZPCore.Data.Effects.Contracts;
+namespace Common.Effects.Effects.Contracts;
 
-internal abstract class BaseEffect : IEffect, ISoundPlayable, IParticleRestricted
+internal abstract class BaseEffect : IEffect
 {
-    private readonly ISwiftlyCore _core = DependencyManager.GetService<ISwiftlyCore>();
-    private readonly EffectManager _effectManager = DependencyManager.GetService<EffectManager>();
-    private readonly IEventPublisher _eventPublisher = DependencyManager.GetService<IEventPublisher>();
+    protected ISwiftlyCore Core { get; private init; }
+    
+    protected IEventPublisher EventPublisher { get; private init; }
     
     public CParticleSystem? Particle { get; set; }
     public IPlayer? Caster { get; }
@@ -25,8 +21,11 @@ internal abstract class BaseEffect : IEffect, ISoundPlayable, IParticleRestricte
 
     public abstract void Destroy();
 
-    protected BaseEffect(IPlayer? caster, IPlayer target)
+    protected BaseEffect(ISwiftlyCore core, IEventPublisher eventPublisher, IPlayer? caster, IPlayer target)
     {
+        Core = core;
+        EventPublisher = eventPublisher;
+        
         Caster = caster;
         Target = target;
 
@@ -51,7 +50,7 @@ internal abstract class BaseEffect : IEffect, ISoundPlayable, IParticleRestricte
     protected virtual void DestroyEffect()
     {
         DurationThinker?.Cancel();
-        _eventPublisher.OnEffectDestroyed(this);
+        EventPublisher.OnEffectDestroyed(this);
     }
 
     private void TryApply()
@@ -65,8 +64,8 @@ internal abstract class BaseEffect : IEffect, ISoundPlayable, IParticleRestricte
         {
             return;
         }
-
-        _effectManager.AddEffect(this);
+        
+        EventPublisher.OnEffectCreated(this);
 
         StartDestroyTimer();
 
@@ -75,7 +74,7 @@ internal abstract class BaseEffect : IEffect, ISoundPlayable, IParticleRestricte
 
     private void StartDestroyTimer()
     {
-        DurationThinker = _core.Scheduler.DelayBySeconds(Duration, DestroyEffect);
+        DurationThinker = Core.Scheduler.DelayBySeconds(Duration, DestroyEffect);
     }
 
     public virtual void PlaySound(string soundName)

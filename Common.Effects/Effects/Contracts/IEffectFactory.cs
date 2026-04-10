@@ -1,9 +1,8 @@
 ﻿using SwiftlyS2.Shared.Players;
-using ZPApi.Data;
 
-namespace ZPCore.Data.Effects.Contracts;
+namespace Common.Effects.Effects.Contracts;
 
-internal interface IEffectFactory
+public interface IEffectFactory
 {
     public IEffect Create<T>(IPlayer? caster, IPlayer target) where T : IEffect;
 }

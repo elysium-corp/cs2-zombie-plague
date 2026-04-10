@@ -1,16 +1,15 @@
-using ZPCore.Di;
+using Common.Effects.Events;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Players;
 
-namespace ZPCore.Data.Effects.Contracts;
+namespace Common.Effects.Effects.Contracts;
 
 internal abstract class BaseTickEffect : BaseEffect
 {
-    private readonly ISwiftlyCore _core = DependencyManager.GetService<ISwiftlyCore>();
     public abstract float TickInterval { get; set; }
     private CancellationTokenSource? ThinkerToken { get; set; }
 
-    protected BaseTickEffect(IPlayer? caster, IPlayer target) : base(caster, target)
+    protected BaseTickEffect(ISwiftlyCore core, IEventPublisher eventPublisher, IPlayer? caster, IPlayer target) : base(core, eventPublisher, caster, target)
     {
         CreateTickThinker();
     }
@@ -33,7 +32,7 @@ internal abstract class BaseTickEffect : BaseEffect
 
     private void CreateTickThinker()
     {
-        ThinkerToken = _core.Scheduler.DelayAndRepeatBySeconds(TickInterval, TickInterval, TryTick);
+        ThinkerToken = Core.Scheduler.DelayAndRepeatBySeconds(TickInterval, TickInterval, TryTick);
     }
     
     /// <summary>

@@ -1,12 +1,14 @@
-﻿using ZPCore.Data.Effects.Contracts;
+﻿using Common.Effects.Effects.Contracts;
+using Common.Effects.Events;
+using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
 using SwiftlyS2.Shared.Sounds;
 
-namespace ZPCore.Data.Effects;
+namespace Common.Effects.Effects;
 
-internal sealed class Freeze(IPlayer? caster, IPlayer target) : BaseEffect(caster, target)
+internal sealed class Freeze(ISwiftlyCore core, IEventPublisher eventPublisher, IPlayer? caster, IPlayer target) : BaseEffect(core, eventPublisher, caster, target)
 {
     public override float Duration => 5.0f;
     public override void Destroy()

@@ -1,6 +1,6 @@
 ﻿using SwiftlyS2.Shared.Players;
 
-namespace ZPApi.Data;
+namespace Common.Effects.Effects.Contracts;
 
 public interface IEffect
 {
