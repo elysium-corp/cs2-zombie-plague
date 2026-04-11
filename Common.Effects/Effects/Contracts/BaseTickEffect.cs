@@ -1,17 +1,19 @@
-using Common.Effects.Events;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Players;
 
 namespace Common.Effects.Effects.Contracts;
 
-internal abstract class BaseTickEffect : BaseEffect
+public abstract class BaseTickEffect(ISwiftlyCore core, IPlayer? caster, IPlayer target) : BaseEffect(core, caster, target)
 {
-    public abstract float TickInterval { get; set; }
-    private CancellationTokenSource? ThinkerToken { get; set; }
+    protected abstract float TickInterval { get; }
+    
+    private CancellationTokenSource? Token { get; set; }
 
-    protected BaseTickEffect(ISwiftlyCore core, IEventPublisher eventPublisher, IPlayer? caster, IPlayer target) : base(core, eventPublisher, caster, target)
+    public override void Start()
     {
-        CreateTickThinker();
+        CreateTickTimer();
+        
+        base.Start();
     }
     
     protected override void DestroyEffect()
@@ -30,9 +32,9 @@ internal abstract class BaseTickEffect : BaseEffect
         TickEffect();
     }
 
-    private void CreateTickThinker()
+    private void CreateTickTimer()
     {
-        ThinkerToken = Core.Scheduler.DelayAndRepeatBySeconds(TickInterval, TickInterval, TryTick);
+        Token = Core.Scheduler.DelayAndRepeatBySeconds(TickInterval, TickInterval, TryTick);
     }
     
     /// <summary>
@@ -44,6 +46,6 @@ internal abstract class BaseTickEffect : BaseEffect
 
     private void DestroyThinker()
     {
-        ThinkerToken?.Cancel();
+        Token?.Cancel();
     }
 }

@@ -5,13 +5,11 @@ namespace Common.Effects.Contracts;
 
 public interface IEffectService
 {
-    public void Initialize();
+    public IEffect ApplyEffect<TEffect>(IPlayer? caster, IPlayer target) where TEffect : IEffect;
     
-    public void Dispose();
-    
-    public IEffect ApplyEffect<T>(IPlayer? caster, IPlayer target) where T : IEffect;
-    
-    public void DestroyEffectByPlayer<T>(IPlayer target) where T : IEffect;
+    public void DestroyEffect<TEffect>(IPlayer target) where TEffect : IEffect;
 
-    public bool PlayerHasEffect<T>(IPlayer player) where T : IEffect;
+    public bool HasEffect<TEffect>(IPlayer player) where TEffect : IEffect;
+
+    public void DestroyAllEffects();
 }

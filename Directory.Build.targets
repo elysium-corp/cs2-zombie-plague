@@ -1,0 +1,116 @@
+﻿<Project>
+    <PropertyGroup>
+        <RepoRoot>$(MSBuildThisFileDirectory)</RepoRoot>
+        <ModulePrefix>$([System.Text.RegularExpressions.Regex]::Replace('$(MSBuildProjectName)', '(\.Core|Core)$', ''))</ModulePrefix>
+
+        <IsZombiePlagueCoreProject Condition="'$(MSBuildProjectName)' == 'ZombiePlague.Core'">True</IsZombiePlagueCoreProject>
+    </PropertyGroup>
+
+    <!-- Автокопирование resources/** для проектов, где такая папка есть -->
+    <ItemGroup Condition="Exists('$(MSBuildProjectDirectory)\resources')">
+        <Content Include="$(MSBuildProjectDirectory)\resources\**\*">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <TargetPath>resources\%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
+        </Content>
+    </ItemGroup>
+
+    <!-- Оставляем в output Core только:
+         - свою dll
+         - свой deps.json
+         - свои .resources.dll
+         - resources/**
+    -->
+    <Target Name="KeepOnlyOwnAssemblyDepsAndResources"
+            AfterTargets="Build"
+            Condition="'$(IsCoreProject)' == 'True'">
+
+        <ItemGroup>
+            <FilesToKeep Include="$(TargetPath)" />
+            <FilesToKeep Include="$(OutDir)$(TargetName).deps.json" />
+            <FilesToKeep Include="$(OutDir)**\$(TargetName).resources.dll" />
+            <FilesToKeep Include="$(OutDir)resources\**\*" />
+        </ItemGroup>
+
+        <ItemGroup>
+            <FilesToDelete Include="$(OutDir)**\*.*" />
+            <FilesToDelete Remove="@(FilesToKeep)" />
+        </ItemGroup>
+
+        <Delete Files="@(FilesToDelete)" />
+        <RemoveDir Directories="$(OutDir)runtimes"
+                   Condition="Exists('$(OutDir)runtimes')" />
+    </Target>
+
+    <!-- Для обычного Core: копируем только соответствующий Api -->
+    <Target Name="ExportMatchingApiToCore"
+            AfterTargets="KeepOnlyOwnAssemblyDepsAndResources"
+            Condition="'$(IsCoreProject)' == 'True' and '$(IsZombiePlagueCoreProject)' != 'True'">
+
+        <RemoveDir Directories="$(OutDir)resources\exports"
+                   Condition="Exists('$(OutDir)resources\exports')" />
+
+        <MakeDir Directories="$(OutDir)resources\exports" />
+
+        <ItemGroup>
+            <!-- Ищем только Api с тем же префиксом -->
+            <MatchingApiProjects Include="$(RepoRoot)**\$(ModulePrefix).Api.csproj" />
+            <MatchingApiProjects Include="$(RepoRoot)**\$(ModulePrefix)Api.csproj" />
+        </ItemGroup>
+
+        <MSBuild Projects="@(MatchingApiProjects)"
+                 Targets="GetTargetPath"
+                 BuildInParallel="true"
+                 Properties="Configuration=$(Configuration);TargetFramework=$(TargetFramework)">
+            <Output TaskParameter="TargetOutputs" ItemName="MatchingApiAssemblies" />
+        </MSBuild>
+
+        <Copy SourceFiles="@(MatchingApiAssemblies)"
+              DestinationFolder="$(OutDir)resources\exports\"
+              SkipUnchangedFiles="true"
+              Condition="'@(MatchingApiAssemblies)' != ''" />
+    </Target>
+
+    <!-- Для ZombiePlague.Core: копируем все Common.* + только свой Api -->
+    <Target Name="ExportAllCommonAndOwnApiToZombiePlagueCore"
+            AfterTargets="KeepOnlyOwnAssemblyDepsAndResources"
+            Condition="'$(IsZombiePlagueCoreProject)' == 'True'">
+
+        <RemoveDir Directories="$(OutDir)resources\exports"
+                   Condition="Exists('$(OutDir)resources\exports')" />
+
+        <MakeDir Directories="$(OutDir)resources\exports" />
+
+        <ItemGroup>
+            <!-- Все Common проекты -->
+            <AllCommonProjects Include="$(RepoRoot)**\Common.*.csproj" />
+
+            <!-- Только ZombiePlague.Api -->
+            <ZombieApiProjects Include="$(RepoRoot)**\ZombiePlague.Api.csproj" />
+            <ZombieApiProjects Include="$(RepoRoot)**\ZombiePlagueApi.csproj" />
+        </ItemGroup>
+
+        <MSBuild Projects="@(AllCommonProjects)"
+                 Targets="GetTargetPath"
+                 BuildInParallel="true"
+                 Properties="Configuration=$(Configuration);TargetFramework=$(TargetFramework)">
+            <Output TaskParameter="TargetOutputs" ItemName="AllCommonAssemblies" />
+        </MSBuild>
+
+        <MSBuild Projects="@(ZombieApiProjects)"
+                 Targets="GetTargetPath"
+                 BuildInParallel="true"
+                 Properties="Configuration=$(Configuration);TargetFramework=$(TargetFramework)">
+            <Output TaskParameter="TargetOutputs" ItemName="ZombieApiAssemblies" />
+        </MSBuild>
+
+        <Copy SourceFiles="@(AllCommonAssemblies)"
+              DestinationFolder="$(OutDir)resources\exports\"
+              SkipUnchangedFiles="true"
+              Condition="'@(AllCommonAssemblies)' != ''" />
+
+        <Copy SourceFiles="@(ZombieApiAssemblies)"
+              DestinationFolder="$(OutDir)resources\exports\"
+              SkipUnchangedFiles="true"
+              Condition="'@(ZombieApiAssemblies)' != ''" />
+    </Target>
+</Project>

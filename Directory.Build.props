@@ -1,0 +1,31 @@
+﻿<Project>
+    <PropertyGroup>
+        <IsCoreProject>$([System.Text.RegularExpressions.Regex]::IsMatch('$(MSBuildProjectName)', '(\.Core|Core)$'))</IsCoreProject>
+        <IsApiProject>$([System.Text.RegularExpressions.Regex]::IsMatch('$(MSBuildProjectName)', '(\.Api|Api)$'))</IsApiProject>
+        <IsCommonProject>$([System.Text.RegularExpressions.Regex]::IsMatch('$(MSBuildProjectName)', '^Common\.'))</IsCommonProject>
+
+        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+        <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+
+        <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+        <GenerateDependencyFile>true</GenerateDependencyFile>
+        <GenerateDocumentationFile>false</GenerateDocumentationFile>
+        <DebugSymbols>false</DebugSymbols>
+        <DebugType>none</DebugType>
+    </PropertyGroup>
+
+    <!-- Папка output создаётся только для Core -->
+    <PropertyGroup Condition="'$(IsCoreProject)' == 'True'">
+        <OutDir>$(MSBuildThisFileDirectory)output\$(MSBuildProjectName)\</OutDir>
+    </PropertyGroup>
+
+    <ItemDefinitionGroup>
+        <ProjectReference>
+            <Private>false</Private>
+        </ProjectReference>
+
+        <Reference>
+            <Private>false</Private>
+        </Reference>
+    </ItemDefinitionGroup>
+</Project>

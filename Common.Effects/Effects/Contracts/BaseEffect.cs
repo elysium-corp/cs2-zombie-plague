@@ -1,34 +1,27 @@
-using Common.Effects.Events;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace Common.Effects.Effects.Contracts;
 
-internal abstract class BaseEffect : IEffect
+public abstract class BaseEffect(ISwiftlyCore core, IPlayer? caster, IPlayer target) : IEffect
 {
-    protected ISwiftlyCore Core { get; private init; }
+    protected ISwiftlyCore Core => core;
+
+    public IPlayer? Caster => caster;
+
+    public IPlayer Target => target;
     
-    protected IEventPublisher EventPublisher { get; private init; }
-    
-    public CParticleSystem? Particle { get; set; }
-    public IPlayer? Caster { get; }
-    public IPlayer Target { get; }
+    protected CParticleSystem? Particle { get; set; }
 
     public abstract float Duration { get; }
 
-    private CancellationTokenSource? DurationThinker { get; set; }
+    private CancellationTokenSource? DurationToken { get; set; }
 
     public abstract void Destroy();
 
-    protected BaseEffect(ISwiftlyCore core, IEventPublisher eventPublisher, IPlayer? caster, IPlayer target)
+    public virtual void Start()
     {
-        Core = core;
-        EventPublisher = eventPublisher;
-        
-        Caster = caster;
-        Target = target;
-
         TryApply();
     }
 
@@ -49,8 +42,7 @@ internal abstract class BaseEffect : IEffect
     /// </summary>
     protected virtual void DestroyEffect()
     {
-        DurationThinker?.Cancel();
-        EventPublisher.OnEffectDestroyed(this);
+        DurationToken?.Cancel();
     }
 
     private void TryApply()
@@ -65,8 +57,6 @@ internal abstract class BaseEffect : IEffect
             return;
         }
         
-        EventPublisher.OnEffectCreated(this);
-
         StartDestroyTimer();
 
         ApplyEffect();
@@ -74,7 +64,7 @@ internal abstract class BaseEffect : IEffect
 
     private void StartDestroyTimer()
     {
-        DurationThinker = Core.Scheduler.DelayBySeconds(Duration, DestroyEffect);
+        DurationToken = Core.Scheduler.DelayBySeconds(Duration, DestroyEffect);
     }
 
     public virtual void PlaySound(string soundName)

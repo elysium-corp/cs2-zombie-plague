@@ -1,5 +1,4 @@
 ﻿using Common.Effects.Effects.Contracts;
-using Common.Effects.Events;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
@@ -8,7 +7,7 @@ using SwiftlyS2.Shared.Sounds;
 
 namespace Common.Effects.Effects;
 
-internal sealed class Freeze(ISwiftlyCore core, IEventPublisher eventPublisher, IPlayer? caster, IPlayer target) : BaseEffect(core, eventPublisher, caster, target)
+public sealed class Freeze(ISwiftlyCore core, IPlayer? caster, IPlayer target) : BaseEffect(core, caster, target)
 {
     public override float Duration => 5.0f;
     public override void Destroy()

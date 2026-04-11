@@ -8,8 +8,8 @@ using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Players;
-using ZPApi;
-using ZPApi.Data;
+using ZombiePlague.Api;
+using ZombiePlague.Api.Data;
 
 namespace CustomKnife;
 
@@ -30,14 +30,14 @@ internal sealed partial class CustomKnife(ISwiftlyCore core) : Plugin<CustomKnif
     private Guid _guidOnPlayerHurtEventPost = Guid.Empty;
     private Guid _guidOnRoundStartEventPost = Guid.Empty;
 
-    public static IZServiceApi ZServiceApi = null!;
+    public static IZombiePlagueApi ZombiePlagueApi = null!;
     
     public static readonly Dictionary<IPlayer, IKnife> PlayerKnifes = [];
     public static readonly List<IKnife> RegisteredKnifes = [];
     
     public override void UseSharedInterface(IInterfaceManager interfaceManager)
     {
-        ZServiceApi = interfaceManager.GetSharedInterface<IZServiceApi>(IZServiceApi.SharedApiKey);
+        ZombiePlagueApi = interfaceManager.GetSharedInterface<IZombiePlagueApi>(IZombiePlagueApi.SharedApiKey);
     }
     
     protected override void OnReady()
@@ -52,7 +52,7 @@ internal sealed partial class CustomKnife(ISwiftlyCore core) : Plugin<CustomKnif
         _guidOnPlayerHurtEventPost = core.GameEvent.HookPost<EventPlayerHurt>(PlayerHurtEvent);
         _guidOnRoundStartEventPost = core.GameEvent.HookPost<EventRoundStart>(EventRoundStart);
         core.Event.OnEntityTakeDamage += OnEntityTakeDamage;
-        ZServiceApi.EventSubscriber.OnGameRoundStarted += OnGameRoundStarted;
+        ZombiePlagueApi.EventSubscriber.OnGameRoundStarted += OnGameRoundStarted;
         
         core.Command.RegisterCommand(
             commandName: "knife",
@@ -68,18 +68,18 @@ internal sealed partial class CustomKnife(ISwiftlyCore core) : Plugin<CustomKnif
         Core.GameEvent.Unhook(_guidOnPlayerHurtEventPost);
         Core.GameEvent.Unhook(_guidOnRoundStartEventPost);
         core.Event.OnEntityTakeDamage -= OnEntityTakeDamage;
-        ZServiceApi.EventSubscriber.OnGameRoundStarted -= OnGameRoundStarted;
+        ZombiePlagueApi.EventSubscriber.OnGameRoundStarted -= OnGameRoundStarted;
     }
 
     private void OnGameRoundStarted(IRound round)
     {
-        if (ZServiceApi.IsSurvivorRound(round) || ZServiceApi.IsArmageddonRound(round))
+        if (ZombiePlagueApi.IsSurvivorRound(round) || ZombiePlagueApi.IsArmageddonRound(round))
         {
             var alivePlayers = core.PlayerManager.GetAlive();
 
             foreach (var player in alivePlayers)
             {
-                if (ZServiceApi.IsSurvivor(player))
+                if (ZombiePlagueApi.IsSurvivor(player))
                 {
                     _knifeService.Value.TryGiveKnife(player);
                 }

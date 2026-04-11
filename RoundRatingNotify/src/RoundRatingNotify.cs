@@ -4,7 +4,7 @@ using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Players;
-using ZPApi;
+using ZombiePlague.Api;
 
 namespace RoundRatingNotify;
 
@@ -23,32 +23,32 @@ internal sealed partial class RoundRatingNotify(ISwiftlyCore core) : Plugin<Roun
     private Guid _guidOnEventRoundEndPost = Guid.Empty;
     private Guid _guidOnEvEventPlayerHurtPost = Guid.Empty;
     
-    private IZServiceApi _zServiceApi = null!;
+    private IZombiePlagueApi _zombiePlagueApi = null!;
     
     public override void UseSharedInterface(IInterfaceManager interfaceManager)
     {
-        _zServiceApi = interfaceManager.GetSharedInterface<IZServiceApi>(IZServiceApi.SharedApiKey);
+        _zombiePlagueApi = interfaceManager.GetSharedInterface<IZombiePlagueApi>(IZombiePlagueApi.SharedApiKey);
     }
     
     protected override void OnReady()
     {
         _guidOnEventRoundEndPost = core.GameEvent.HookPost<EventRoundEnd>(OnEventRoundEnd);
         _guidOnEvEventPlayerHurtPost = core.GameEvent.HookPost<EventPlayerHurt>(OnEventPlayerHurt);
-        _zServiceApi.EventSubscriber.OnPlayerInfectedBy += OnPlayerInfectedBy;
+        _zombiePlagueApi.EventSubscriber.OnPlayerInfectedBy += OnPlayerInfectedBy;
     }
 
     protected override void OnUnload()
     {
         core.GameEvent.Unhook(_guidOnEventRoundEndPost);
         core.GameEvent.Unhook(_guidOnEvEventPlayerHurtPost);
-        _zServiceApi.EventSubscriber.OnPlayerInfectedBy -= OnPlayerInfectedBy;
+        _zombiePlagueApi.EventSubscriber.OnPlayerInfectedBy -= OnPlayerInfectedBy;
     }
 
     private HookResult OnEventPlayerHurt(EventPlayerHurt @event)
     {
         var player = @event.AttackerPlayer;
         
-        if (player == null || !player.IsValid || _zServiceApi.IsInfected(player))
+        if (player == null || !player.IsValid || _zombiePlagueApi.IsInfected(player))
         {
             return HookResult.Continue;
         }

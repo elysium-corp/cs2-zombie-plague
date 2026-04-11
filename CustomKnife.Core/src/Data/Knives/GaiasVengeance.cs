@@ -1,8 +1,8 @@
 ﻿using CustomKnife.Data.Configs;
 using CustomKnife.Data.Models;
-using ZPApi.Data;
+using ZombiePlague.Api.Data;
 
-namespace CustomKnife.Data.Knifes;
+namespace CustomKnife.Data.Knives;
 
 internal sealed class GaiasVengeance(GaiasVengeanceConfig config) : IKnife
 {

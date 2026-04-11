@@ -39,7 +39,7 @@ public class KnifeService(ISwiftlyCore core) : IKnifeService
 
     public bool TryApplyProperties(IPlayer? player)
     {
-        if (player == null || !player.IsValid || !player.IsAlive || CustomKnife.ZServiceApi.IsInfected(player))
+        if (player == null || !player.IsValid || !player.IsAlive || CustomKnife.ZombiePlagueApi.IsInfected(player))
         {
             return false;
         }
@@ -82,7 +82,7 @@ public class KnifeService(ISwiftlyCore core) : IKnifeService
         
         var attackerKnife = GetKnife(attacker);
         
-        CustomKnife.ZServiceApi.ApplyKnockBack(@event, attackerKnife.KnockbackData);
+        CustomKnife.ZombiePlagueApi.ApplyKnockBack(@event, attackerKnife.KnockbackData);
 
         return true;
     }
@@ -101,7 +101,7 @@ public class KnifeService(ISwiftlyCore core) : IKnifeService
     {
         var attacker = @event.Info.Attacker.ResolvePlayerFromHandle();
 
-        if (attacker == null || !attacker.IsValid || !attacker.IsAlive || CustomKnife.ZServiceApi.IsInfected(attacker))
+        if (attacker == null || !attacker.IsValid || !attacker.IsAlive || CustomKnife.ZombiePlagueApi.IsInfected(attacker))
         {
             return false;
         }
@@ -138,7 +138,7 @@ public class KnifeService(ISwiftlyCore core) : IKnifeService
         
         if (CustomKnife.RegisteredKnifes.Count != 0)
             return CustomKnife.RegisteredKnifes;
-
+        
         var knives = DependencyResolver
             .GetRequiredService<IEnumerable<IKnife>>()
             .OrderBy(k => k.Index)
@@ -172,7 +172,7 @@ public class KnifeService(ISwiftlyCore core) : IKnifeService
             return false;
         }
         
-        if (CustomKnife.ZServiceApi.IsInfected(player))
+        if (CustomKnife.ZombiePlagueApi.IsInfected(player))
         {
             return false;
         }

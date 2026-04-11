@@ -9,7 +9,7 @@ internal sealed class InfoNotifyModule(ISwiftlyCore core) : BaseModule(core)
 {
     private readonly ISwiftlyCore _core = core;
 
-    public override ServiceProvider GetProvider()
+    public override (ServiceProvider, ServiceCollection) GetProvider()
     {
         var service = new ServiceCollection();
         
@@ -17,7 +17,7 @@ internal sealed class InfoNotifyModule(ISwiftlyCore core) : BaseModule(core)
 
         BuildConfigs(service);
         
-        return service.BuildServiceProvider();
+        return (service.BuildServiceProvider(), service);
     }
 
     private void BuildConfigs(ServiceCollection service)

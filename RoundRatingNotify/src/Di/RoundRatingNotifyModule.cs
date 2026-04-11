@@ -6,12 +6,12 @@ namespace RoundRatingNotify.Di;
 
 internal class RoundRatingNotifyModule(ISwiftlyCore core) : BaseModule(core)
 {
-    public override ServiceProvider GetProvider()
+    public override (ServiceProvider, ServiceCollection) GetProvider()
     {
         var service = new ServiceCollection();
 
         service.AddSwiftly(core);
 
-        return service.BuildServiceProvider();
+        return (service.BuildServiceProvider(), service);
     }
 }

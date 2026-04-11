@@ -4,5 +4,5 @@ namespace Common.Di;
 
 public interface IModule
 {
-    public ServiceProvider GetProvider();
+    public (ServiceProvider, ServiceCollection) GetProvider();
 }

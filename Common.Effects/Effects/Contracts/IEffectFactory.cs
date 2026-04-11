@@ -2,7 +2,7 @@
 
 namespace Common.Effects.Effects.Contracts;
 
-public interface IEffectFactory
+internal interface IEffectFactory
 {
     public IEffect Create<T>(IPlayer? caster, IPlayer target) where T : IEffect;
 }

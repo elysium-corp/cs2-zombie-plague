@@ -10,7 +10,7 @@ namespace SupplyBox.Di;
 
 internal sealed class SupplyBoxModule(ISwiftlyCore core) : BaseModule(core)
 {
-    public override ServiceProvider GetProvider()
+    public override (ServiceProvider, ServiceCollection) GetProvider()
     {
         var service = new ServiceCollection();
         
@@ -20,7 +20,7 @@ internal sealed class SupplyBoxModule(ISwiftlyCore core) : BaseModule(core)
         BuildSingletons(service);
         BuildTransients(service);
             
-        return service.BuildServiceProvider();
+        return (service.BuildServiceProvider(), service);
     }
 
     private void BuildConfigs(ServiceCollection service)

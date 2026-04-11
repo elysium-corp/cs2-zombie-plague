@@ -1,23 +1,24 @@
 using Common.Effects.Effects.Contracts;
-using Common.Effects.Events;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace Common.Effects.Effects;
 
-internal sealed class Burn(ISwiftlyCore core, IEventPublisher eventPublisher, IPlayer? caster, IPlayer target) : BaseTickEffect(core, eventPublisher, caster, target)
+public sealed class Burn(ISwiftlyCore core, IPlayer? caster, IPlayer target) : BaseTickEffect(core, caster, target)
 {
     private const float DamagePerTickInPercent = 1.0f;
     private const float InstantDamageInPercent = 5.0f;
     private const string ParticleName = "particles/inferno_fx/molotov_child_flame01a.vpcf";
+
     public override float Duration => 5.0f;
+    
     public override void Destroy()
     {
         DestroyEffect();
     }
 
-    public override float TickInterval { get; set; } = 0.5f;
+    protected override float TickInterval => 0.5f;
     
     protected override bool CanApply()
     {

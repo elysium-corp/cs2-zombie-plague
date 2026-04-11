@@ -128,4 +128,11 @@ public abstract class Plugin<TModule>(ISwiftlyCore core) : BasePlugin(core) wher
         
         OnStop();
     }
+
+    public override void OnAllPluginsLoaded()
+    {
+        if (DependencyManager.Loaded) return;
+        
+        DependencyManager.GetAllDependencies();
+    }
 }

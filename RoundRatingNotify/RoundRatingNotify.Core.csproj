@@ -7,7 +7,6 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-        <OutputPath>$(MSBuildThisFileDirectory)build/</OutputPath>
         <PublishDir>$(OutputPath)publish/RoundRatingNotify</PublishDir>
         <PackageId>RoundRatingNotify.Core</PackageId>
         <RootNamespace>RoundRatingNotify</RootNamespace>
@@ -19,7 +18,7 @@
         <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.0" ExcludeAssets="runtime" PrivateAssets="all"/>
         <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.0" ExcludeAssets="runtime" PrivateAssets="all"/>
         <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.0" ExcludeAssets="runtime" PrivateAssets="all"/>
-        <PackageReference Include="SwiftlyS2.CS2" Version="1.2.3-beta.5" ExcludeAssets="runtime" PrivateAssets="all">
+        <PackageReference Include="SwiftlyS2.CS2" Version="1.2.3-beta.11" ExcludeAssets="runtime" PrivateAssets="all">
           <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
     </ItemGroup>
@@ -36,7 +35,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Common.Di\Common.Di.csproj" />
-      <ProjectReference Include="..\ZPApi\ZPApi.csproj" />
+      <ProjectReference Include="..\ZombiePlague.Api\ZombiePlague.Api.csproj" />
     </ItemGroup>
 
     <Target Name="CreateZip" AfterTargets="Publish">

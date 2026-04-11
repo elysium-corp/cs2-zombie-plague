@@ -7,7 +7,7 @@ namespace ScreenFade.Di;
 
 internal class ScreenFadeModule(ISwiftlyCore core) : BaseModule(core)
 {
-    public override ServiceProvider GetProvider()
+    public override (ServiceProvider, ServiceCollection) GetProvider()
     {
         var service = new ServiceCollection();
 
@@ -19,6 +19,6 @@ internal class ScreenFadeModule(ISwiftlyCore core) : BaseModule(core)
             section: "ScreenFadeConfig"
         );
 
-        return service.BuildServiceProvider();
+        return (service.BuildServiceProvider(), service);
     }
 }

@@ -6,26 +6,48 @@ namespace Common.Di;
 
 internal static class DependencyManager
 {
-    private static readonly Dictionary<Type, ServiceProvider> Providers = [];
+    private static readonly Dictionary<Type, (ServiceProvider, ServiceCollection)> Providers = [];
 
+    internal static bool Loaded = false;
+    
+    internal static void GetAllDependencies()
+    {
+        Loaded = true;
+        Console.WriteLine($"=================== DEPENDENCIES ===================\n");
+        foreach (var provider in Providers)
+        {
+            var module = provider.Key.Name;
+            var dependencies = provider.Value.Item2.Count;
+            var ix = 1;
+            Console.WriteLine($"Module: {module} [{dependencies} dependencies]\n");
+            foreach (var dependency in provider.Value.Item2)
+            {
+                Console.WriteLine($"{ix}.\t[{dependency.Lifetime}]\t{dependency.ServiceType.Name}");
+                ix++;
+            }
+            Console.WriteLine($"\n");
+        }
+        Console.WriteLine($"======================= END ========================");
+    }
+    
     internal static List<ServiceProvider> GetProviders()
     {
-        return Providers.Values.ToList();
+        return Providers.Values.Select(pair => pair.Item1).ToList();
     }
 
     internal static ServiceProvider GetRequiredProvider<TModule>() where TModule : IModule
     {
         if (!Providers.TryGetValue(typeof(TModule), out var provider)) throw new ServiceNotFoundException($"Provider for module '{typeof(TModule).Name}' not found");
         
-        return provider;
+        return provider.Item1;
     }
 
     internal static TModule BuildModule<TModule>(ISwiftlyCore core) where TModule : IModule
     {
         var module = CreateModule<TModule>(core);
-        var provider = module.GetProvider();
+        var (provider, service) = module.GetProvider();
 
-        Providers[typeof(TModule)] = provider;
+        Providers[typeof(TModule)] = (provider, service);
         
         return module;
     }
@@ -34,7 +56,7 @@ internal static class DependencyManager
     {
         if (!Providers.Remove(typeof(TModule), out var provider)) return false;
 
-        provider.Dispose();
+        provider.Item1.Dispose();
 
         return true;
     }

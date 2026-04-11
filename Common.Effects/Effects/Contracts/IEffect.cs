@@ -14,4 +14,6 @@ public interface IEffect
     /// Немедленно удаляет эффект, игнорируя его оставшееся время действия.
     /// </summary>
     public void Destroy();
+
+    public void Start();
 }

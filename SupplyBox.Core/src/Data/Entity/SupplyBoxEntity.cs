@@ -8,14 +8,14 @@ using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.ProtobufDefinitions;
 using SwiftlyS2.Shared.SchemaDefinitions;
 using SwiftlyS2.Shared.Sounds;
-using ZPApi;
+using ZombiePlague.Api;
 
 namespace SupplyBox.Data.Entity;
 
 public sealed class SupplyBoxEntity : ISupplyBoxEntity
 {
     private readonly ISwiftlyCore _core;
-    private readonly IZServiceApi _api;
+    private readonly IZombiePlagueApi _api;
     private readonly IEventPublisher _eventPublisher;
     
     private readonly string _parachuteSound;
@@ -34,7 +34,7 @@ public sealed class SupplyBoxEntity : ISupplyBoxEntity
     {
         _core = core;
         _eventPublisher = eventPublisher;
-        _api = SupplyBox.ZServiceApi;
+        _api = SupplyBox.ZombiePlagueApi;
         
         var boxModel = config.Value.SupplyBoxModel;
         var parachuteModel = config.Value.ParachuteModel;

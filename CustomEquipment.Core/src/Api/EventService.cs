@@ -1,0 +1,75 @@
+﻿using CustomEquipment.Data.Equipments.Contracts;
+using SwiftlyS2.Shared.Natives;
+using SwiftlyS2.Shared.Players;
+using SwiftlyS2.Shared.SchemaDefinitions;
+
+namespace CustomEquipment.Api;
+
+public class EventService : IEventSubscriber, IEventPublisher
+{
+    public event EventDelegates.OnItemGiven? OnItemGiven;
+    public event EventDelegates.OnGrenadeGiven? OnGrenadeGiven;
+    public event EventDelegates.OnWeaponGiven? OnWeaponGiven;
+    public event EventDelegates.OnGrenadeThrown? OnGrenadeThrown;
+    public event EventDelegates.OnGrenadeDetonated? OnGrenadeDetonated;
+
+    void IEventPublisher.OnItemGiven(IPlayer player, IItem item)
+    {
+        var handlers = OnItemGiven;
+        if (handlers == null) return;
+        
+        foreach (var @delegate in handlers.GetInvocationList())
+        {
+            var handler = (EventDelegates.OnItemGiven)@delegate;
+            handler(player, item);
+        }
+    }
+    
+    void IEventPublisher.OnGrenadeGiven(IPlayer player, IGrenade grenade)
+    {
+        var handlers = OnGrenadeGiven;
+        if (handlers == null) return;
+        
+        foreach (var @delegate in handlers.GetInvocationList())
+        {
+            var handler = (EventDelegates.OnGrenadeGiven)@delegate;
+            handler(player, grenade);
+        }
+    }
+    
+    void IEventPublisher.OnWeaponGiven(IPlayer player, IWeapon weapon)
+    {
+        var handlers = OnWeaponGiven;
+        if (handlers == null) return;
+        
+        foreach (var @delegate in handlers.GetInvocationList())
+        {
+            var handler = (EventDelegates.OnWeaponGiven)@delegate;
+            handler(player, weapon);
+        }
+    }
+    
+    void IEventPublisher.OnGrenadeThrown(IGrenade grenade, CBaseCSGrenadeProjectile projectile)
+    {
+        var handlers = OnGrenadeThrown;
+        if (handlers == null) return;
+        
+        foreach (var @delegate in handlers.GetInvocationList())
+        {
+            var handler = (EventDelegates.OnGrenadeThrown)@delegate;
+            handler(grenade, projectile);
+        }
+    }
+    
+    void IEventPublisher.OnGrenadeDetonated(IGrenade grenade, CBaseCSGrenadeProjectile projectile, Vector position)
+    {
+        var handlers = OnGrenadeDetonated;
+        if (handlers == null) return;
+        
+        foreach (var @delegate in handlers.GetInvocationList())
+        {
+            var handler = (EventDelegates.OnGrenadeDetonated)@delegate;
+            handler(grenade, projectile, position);
+        }
+    }
+}

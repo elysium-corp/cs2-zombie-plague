@@ -15,8 +15,8 @@ using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Players;
-using ZPApi;
-using ZPApi.Data;
+using ZombiePlague.Api;
+using ZombiePlague.Api.Data;
 using IEventSubscriber = SupplyBox.Events.IEventSubscriber;
 
 namespace SupplyBox;
@@ -43,7 +43,7 @@ internal sealed partial class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxMod
     private readonly List<SupplyBoxEntity> _droppedSupplyBoxes = [];
     private CancellationTokenSource? _respawnSupplyBoxThinker;
     
-    public static IZServiceApi ZServiceApi = null!;
+    public static IZombiePlagueApi ZombiePlagueApi = null!;
     
     public override void ConfigureSharedInterface(IInterfaceManager interfaceManager)
     {
@@ -53,14 +53,14 @@ internal sealed partial class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxMod
     
     public override void UseSharedInterface(IInterfaceManager interfaceManager)
     {
-        ZServiceApi = interfaceManager.GetSharedInterface<IZServiceApi>(IZServiceApi.SharedApiKey);
+        ZombiePlagueApi = interfaceManager.GetSharedInterface<IZombiePlagueApi>(IZombiePlagueApi.SharedApiKey);
     }
 
     protected override void OnReady()
     {
         _guidOnEventRoundEndPost = core.GameEvent.HookPost<EventRoundEnd>(OnRoundEnd);
         _guidOnEventCsPreRestartPost = core.GameEvent.HookPost<EventCsPreRestart>(OnGameRestart);
-        ZServiceApi.EventSubscriber.OnGameRoundStarted += OnGameRoundStarted;
+        ZombiePlagueApi.EventSubscriber.OnGameRoundStarted += OnGameRoundStarted;
         _eventSubscriber.Value.OnSupplyBoxPickedUp += OnSupplyBoxPickedUp;
         core.Event.OnMapLoad += OnMapLoad;
         
@@ -178,7 +178,7 @@ internal sealed partial class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxMod
     
     private bool CanDrop(IRound round)
     {
-        if (ZServiceApi.IsNoneRound(round)|| ZServiceApi.IsArmageddonRound(round) || ZServiceApi.IsSurvivorRound(round) || ZServiceApi.IsNemesisRound(round))
+        if (ZombiePlagueApi.IsNoneRound(round)|| ZombiePlagueApi.IsArmageddonRound(round) || ZombiePlagueApi.IsSurvivorRound(round) || ZombiePlagueApi.IsNemesisRound(round))
         {
             return false;
         }

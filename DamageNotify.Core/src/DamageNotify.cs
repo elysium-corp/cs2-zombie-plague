@@ -6,7 +6,7 @@ using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Misc;
-using ZPApi;
+using ZombiePlague.Api;
 
 namespace DamageNotify.Core;
 
@@ -21,13 +21,13 @@ internal partial class DamageNotify(ISwiftlyCore core) : Plugin<DamageNotifyModu
 {
     private Guid _guidOnPlayerHurtPost = Guid.Empty;
     
-    private IZServiceApi _zServiceApi = null!;
+    private IZombiePlagueApi _zombiePlagueApi = null!;
     
     private readonly Lazy<IOptions<DamageNotifyConfig>> _config = GetRequiredServiceLazy<IOptions<DamageNotifyConfig>>();
     
     public override void UseSharedInterface(IInterfaceManager interfaceManager)
     {
-        _zServiceApi = interfaceManager.GetSharedInterface<IZServiceApi>(IZServiceApi.SharedApiKey);
+        _zombiePlagueApi = interfaceManager.GetSharedInterface<IZombiePlagueApi>(IZombiePlagueApi.SharedApiKey);
     }
 
     protected override void OnReady()
@@ -49,7 +49,7 @@ internal partial class DamageNotify(ISwiftlyCore core) : Plugin<DamageNotifyModu
 
         if (player.IsFakeClient) return HookResult.Continue;
         
-        if (_zServiceApi.IsInfected(player) || victim.Controller.Team == player.Controller.Team)
+        if (_zombiePlagueApi.IsInfected(player) || victim.Controller.Team == player.Controller.Team)
         {
             return HookResult.Continue;
         }

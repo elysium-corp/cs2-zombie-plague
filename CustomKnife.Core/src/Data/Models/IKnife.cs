@@ -1,4 +1,4 @@
-﻿using ZPApi.Data;
+﻿using ZombiePlague.Api.Data;
 
 namespace CustomKnife.Data.Models;
 
