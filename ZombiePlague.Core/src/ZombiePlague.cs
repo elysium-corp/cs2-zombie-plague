@@ -1,5 +1,10 @@
+using Menu.Api;
+using Menu.Api.Data.Contracts;
 using Microsoft.Extensions.Options;
+using SwiftlyS2.Core.Menus.OptionsBase;
 using SwiftlyS2.Shared;
+using SwiftlyS2.Shared.Commands;
+using SwiftlyS2.Shared.Menus;
 using SwiftlyS2.Shared.Plugins;
 using ZombiePlague.Api;
 using ZombiePlague.Api.Events;
@@ -11,6 +16,7 @@ using ZombiePlague.Core.Data.Plugins.ResourceLoader;
 using ZombiePlague.Core.Di;
 using ZombiePlague.Core.Generated;
 using ZPCore.Config.Core;
+using EventDelegates = Menu.Api.Events.EventDelegates;
 
 namespace ZombiePlague.Core;
 
@@ -29,11 +35,20 @@ public sealed partial class ZombiePlague(ISwiftlyCore core) : BasePlugin(core)
     private readonly Lazy<HumanManager> _humanManager = new(DependencyManager.GetService<HumanManager>);
     private readonly Lazy<Knockback> _knockback = new(DependencyManager.GetService<Knockback>);
 
+    private IMenuApi _menuApi = null!;
+    
     public override void ConfigureSharedInterface(IInterfaceManager interfaceManager)
     {
         var eventSubscriber = DependencyManager.GetService<IEventSubscriber>();
         var zServiceApi = new ZombiePlagueApi(eventSubscriber);
         interfaceManager.AddSharedInterface<IZombiePlagueApi, ZombiePlagueApi>(IZombiePlagueApi.SharedApiKey, zServiceApi);
+    }
+
+    public override void OnSharedInterfaceInjected(IInterfaceManager interfaceManager)
+    {
+        _menuApi = interfaceManager.GetSharedInterface<IMenuApi>(IMenuApi.SharedApiKey);
+        
+        _menuApi.EventSubscriber.OnMenuAddOption += OnMenuAddOption;
     }
 
     public override void Load(bool hotReload)
@@ -51,6 +66,17 @@ public sealed partial class ZombiePlague(ISwiftlyCore core) : BasePlugin(core)
         LoadFeatures();
 
         new AdminMenu(Core, _roundManager.Value, _zombieManager.Value).Load();
+    }
+
+    private void OnMenuAddOption(Type menuType, DynamicOptionsMenu.MenuOptionsHolder holder)
+    {
+        var option1 = new ButtonMenuOption();
+        option1.Text = "zpOption 1 [priority 1]";
+        var option2 = new ButtonMenuOption();
+        option2.Text = "zpOption 2 [priority 5]";
+        
+        holder.Add(option1, 1);
+        holder.Add(option2, 5);
     }
 
     public override void Unload()

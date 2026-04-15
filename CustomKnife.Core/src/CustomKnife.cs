@@ -34,8 +34,8 @@ internal sealed partial class CustomKnife(ISwiftlyCore core) : Plugin<CustomKnif
     
     public static readonly Dictionary<IPlayer, IKnife> PlayerKnifes = [];
     public static readonly List<IKnife> RegisteredKnifes = [];
-    
-    public override void UseSharedInterface(IInterfaceManager interfaceManager)
+
+    public override void OnSharedInterfaceInjected(IInterfaceManager interfaceManager)
     {
         ZombiePlagueApi = interfaceManager.GetSharedInterface<IZombiePlagueApi>(IZombiePlagueApi.SharedApiKey);
     }

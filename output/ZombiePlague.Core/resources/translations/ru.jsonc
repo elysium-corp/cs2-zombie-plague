@@ -1,10 +1,3 @@
 {
-  "Menu.WeaponCategories.Title": "Меню оружия",
-  "Menu.WeaponCategories.Category.Pistols": "Пистолеты",
-  "Menu.WeaponCategories.Category.SubmachineGuns": "Пистолеты-пулеметы",
-  "Menu.WeaponCategories.Category.Rifles": "Штурмовые винтовки",
-  "Menu.WeaponCategories.Category.Shotguns": "Дробовики",
-  "Menu.WeaponCategories.Category.SniperRifles": "Снайперские винтовки",
-  "Menu.WeaponCategories.Category.MachineGuns": "Пулеметы",
-  "Menu.WeaponCategories.Category.Equipment": "Экипировка"
+  "Menu.Main.Title": "Меню сервера"
 }

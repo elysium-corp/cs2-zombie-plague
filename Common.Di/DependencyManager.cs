@@ -8,7 +8,7 @@ internal static class DependencyManager
 {
     private static readonly Dictionary<Type, (ServiceProvider, ServiceCollection)> Providers = [];
 
-    internal static bool Loaded = false;
+    internal static bool Loaded;
     
     internal static void GetAllDependencies()
     {
