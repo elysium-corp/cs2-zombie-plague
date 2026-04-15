@@ -113,7 +113,7 @@ internal sealed partial class CustomKnife(ISwiftlyCore core) : Plugin<CustomKnif
     
     private HookResult PlayerHurtEvent(EventPlayerHurt @event)
     {
-        _knifeService.Value.TryApplyProperties(@event.UserIdPlayer);
+        core.Scheduler.NextTick(() => _knifeService.Value.TryApplyProperties(@event.UserIdPlayer));
         
         _knifeService.Value.TryApplyKnifeKnockback(@event);
         

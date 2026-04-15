@@ -39,7 +39,7 @@ public sealed class EffectService : IEffectService
     
     public IEffect ApplyEffect<TEffect>(IPlayer? caster, IPlayer target) where TEffect : IEffect
     {
-        var effect = _effectFactory.Create<TEffect>(caster, target);
+        var effect = _effectFactory.Create<TEffect>(RemoveEffectCallback, caster, target);
 
         effect.Start();
         _allEffects.Add(effect);
@@ -72,6 +72,11 @@ public sealed class EffectService : IEffectService
     private void Remove(IEffect effect)
     {
         effect.Destroy();
+        _allEffects.Remove(effect);
+    }
+
+    private void RemoveEffectCallback(IEffect effect)
+    {
         _allEffects.Remove(effect);
     }
 }

@@ -4,7 +4,7 @@ using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace Common.Effects.Effects.Contracts;
 
-public abstract class BaseEffect(ISwiftlyCore core, IPlayer? caster, IPlayer target) : IEffect
+public abstract class BaseEffect(ISwiftlyCore core, Action<IEffect> callback, IPlayer? caster, IPlayer target) : IEffect
 {
     protected ISwiftlyCore Core => core;
 
@@ -16,7 +16,7 @@ public abstract class BaseEffect(ISwiftlyCore core, IPlayer? caster, IPlayer tar
 
     public abstract float Duration { get; }
 
-    private CancellationTokenSource? DurationToken { get; set; }
+    private CancellationTokenSource? DestroyDurationToken { get; set; }
 
     public abstract void Destroy();
 
@@ -42,7 +42,8 @@ public abstract class BaseEffect(ISwiftlyCore core, IPlayer? caster, IPlayer tar
     /// </summary>
     protected virtual void DestroyEffect()
     {
-        DurationToken?.Cancel();
+        callback.Invoke(this);
+        DestroyDurationToken?.Cancel();
     }
 
     private void TryApply()
@@ -64,10 +65,10 @@ public abstract class BaseEffect(ISwiftlyCore core, IPlayer? caster, IPlayer tar
 
     private void StartDestroyTimer()
     {
-        DurationToken = Core.Scheduler.DelayBySeconds(Duration, DestroyEffect);
+        DestroyDurationToken = Core.Scheduler.DelayBySeconds(Duration, DestroyEffect);
     }
 
-    public virtual void PlaySound(string soundName)
+    protected virtual void PlaySound(string soundName)
     {
     }
 

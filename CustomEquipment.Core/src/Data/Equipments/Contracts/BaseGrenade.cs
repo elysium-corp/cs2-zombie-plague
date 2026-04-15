@@ -1,8 +1,6 @@
-﻿using Common.Di;
-using CustomEquipment.Data.Equipments.Enums;
+﻿using CustomEquipment.Data.Equipments.Enums;
 using CustomEquipment.Exceptions;
 using CustomEquipment.Utils;
-using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
@@ -28,7 +26,7 @@ public abstract class BaseGrenade : BaseItem, IGrenade
     private CBaseCSGrenade AttachBaseGrenadeVData(CBaseCSGrenade grenade)
     {
         AttachedEntity = grenade;
-        
+           
         if (Model.IsNotNullOrEmpty()) grenade.SetModel(Model);
         
         grenade.AttributeManager.Item.CustomName = DisplayName;

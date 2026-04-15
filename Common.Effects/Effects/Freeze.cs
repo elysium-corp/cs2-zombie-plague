@@ -7,7 +7,7 @@ using SwiftlyS2.Shared.Sounds;
 
 namespace Common.Effects.Effects;
 
-public sealed class Freeze(ISwiftlyCore core, IPlayer? caster, IPlayer target) : BaseEffect(core, caster, target)
+public sealed class Freeze(ISwiftlyCore core, Action<IEffect> callback, IPlayer? caster, IPlayer target) : BaseEffect(core, callback, caster, target)
 {
     public override float Duration => 5.0f;
     public override void Destroy()
@@ -23,19 +23,8 @@ public sealed class Freeze(ISwiftlyCore core, IPlayer? caster, IPlayer target) :
 
     protected override void ApplyEffect()
     {
-        ApplyFreezeEffect();
         PlaySound(FreezeSoundName);
-    }
-
-    protected override void DestroyEffect()
-    {
-        ApplyUnfreezeEffect();
-        PlaySound(UnFreezeSoundName);
-        base.DestroyEffect();
-    }
-
-    private void ApplyFreezeEffect()
-    {
+        
         var targetPawn = Target.PlayerPawn;
         targetPawn?.MoveType = MoveType_t.MOVETYPE_FLY;
         targetPawn?.ActualMoveType = MoveType_t.MOVETYPE_FLY;
@@ -47,7 +36,14 @@ public sealed class Freeze(ISwiftlyCore core, IPlayer? caster, IPlayer target) :
         targetPawn?.RenderUpdated();
     }
 
-    private void ApplyUnfreezeEffect()
+    protected override void DestroyEffect()
+    {
+        RemoveEffect();
+        PlaySound(UnFreezeSoundName);
+        base.DestroyEffect();
+    }
+
+    private void RemoveEffect()
     {
         var targetPawn = Target.PlayerPawn;
         targetPawn?.MoveType = MoveType_t.MOVETYPE_WALK;
@@ -58,7 +54,7 @@ public sealed class Freeze(ISwiftlyCore core, IPlayer? caster, IPlayer target) :
         targetPawn?.RenderUpdated();
     }
     
-    public override void PlaySound(string soundName)
+    protected override void PlaySound(string soundName)
     {
         using var soundEvent = new SoundEvent()
         {

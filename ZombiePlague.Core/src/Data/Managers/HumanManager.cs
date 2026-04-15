@@ -12,7 +12,7 @@ using IEventSubscriber = ZombiePlague.Api.Events.IEventSubscriber;
 
 namespace ZombiePlague.Core.Data.Managers;
 
-internal class HumanManager(ISwiftlyCore core, IEventSubscriber eventSubscriber, IOptions<ZombiePlagueCoreConfig> config)
+internal sealed class HumanManager(ISwiftlyCore core, IEventSubscriber eventSubscriber, IOptions<ZombiePlagueCoreConfig> config)
 {
     private readonly Dictionary<IPlayer, Human> _humans = new();
     

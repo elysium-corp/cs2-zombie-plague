@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;
+using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Players;
@@ -16,8 +17,7 @@ using ZPCore.Config.Round;
 
 namespace ZombiePlague.Core.Data.Managers;
 
-internal class RoundManager(ISwiftlyCore core, IEventPublisher eventPublisher, IRoundFactory roundFactory, IOptions<ZombiePlagueCoreConfig> coreConfig, IOptions<RoundConfig> roundConfig)
-    : IRoundManager
+internal sealed class RoundManager(ISwiftlyCore core, IEventPublisher eventPublisher, IRoundFactory roundFactory, IOptions<ZombiePlagueCoreConfig> coreConfig, IOptions<RoundConfig> roundConfig)
 {
     private readonly ZombieManager _zombieManager = DependencyManager.GetService<ZombieManager>();
     private readonly HumanManager _humanManager = DependencyManager.GetService<HumanManager>();
@@ -40,6 +40,7 @@ internal class RoundManager(ISwiftlyCore core, IEventPublisher eventPublisher, I
         _onPlayerHurtEvent = core.GameEvent.HookPre<EventPlayerHurt>(OnPlayerHurt);
         _onGameRestartEvent = core.GameEvent.HookPost<EventCsPreRestart>(OnGameRestart);
         _onPlayerConnectEvent = core.GameEvent.HookPost<EventPlayerConnectFull>(OnPlayerConnectFull);
+        core.Event.OnEntityTakeDamage += OnEntityTakeDamage;
     }
 
     public List<IRound> GetRegisteredRounds()
@@ -118,6 +119,14 @@ internal class RoundManager(ISwiftlyCore core, IEventPublisher eventPublisher, I
         return HookResult.Continue;
     }
 
+    private void OnEntityTakeDamage(IOnEntityTakeDamageEvent @event)
+    {
+        if (IsNoneRound())
+        {
+            @event.Info.Damage = 0;
+        }
+    }
+
     private HookResult OnPlayerHurt(EventPlayerHurt @event)
     {
         return IsNoneRound() ? HookResult.Stop : HookResult.Continue;
@@ -159,7 +168,7 @@ internal class RoundManager(ISwiftlyCore core, IEventPublisher eventPublisher, I
             {
                 if (IsNoneRound())
                 {
-                    SetRound(RandomRound());
+                    SetRound(ResolveRandomRound());
                 }
                 else
                 {
@@ -217,7 +226,7 @@ internal class RoundManager(ISwiftlyCore core, IEventPublisher eventPublisher, I
         return true;
     }
 
-    private IRound RandomRound()
+    private IRound ResolveRandomRound()
     {
         var totalWeight = 0;
         foreach (var round in _rounds)

@@ -2,6 +2,7 @@
 using CustomKnife.Data.Models;
 using CustomKnife.Data.Services.Contracts;
 using CustomKnife.Data.Utils.Extensions;
+using CustomKnife.Di;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.GameEventDefinitions;
@@ -140,10 +141,10 @@ public class KnifeService(ISwiftlyCore core) : IKnifeService
             return CustomKnife.RegisteredKnifes;
         
         var knives = DependencyResolver
-            .GetRequiredService<IEnumerable<IKnife>>()
+            .GetRequiredService<CustomKnifeModule, IEnumerable<IKnife>>()
             .OrderBy(k => k.Index)
             .ToList();
-
+        
         foreach (var knife in knives)
         {
             registeredKnifes.Add(knife);
@@ -205,6 +206,7 @@ public class KnifeService(ISwiftlyCore core) : IKnifeService
         var playerKnife = weaponService?.MyValidWeapons.ToList().Find(w => w.DesignerName.Contains("knife"));
         var attributeManager = playerKnife?.AttributeManager;
         
+        playerKnife?.AcceptInput("ChangeSubclass", "59");
         playerKnife?.SetModel(knife.Model);
 
         attributeManager?.Item.CustomName = knife.DisplayName;

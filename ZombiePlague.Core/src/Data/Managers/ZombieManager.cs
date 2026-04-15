@@ -11,11 +11,10 @@ using ZombiePlague.Core.Data.Zombies.ZClasses;
 using ZombiePlague.Core.Di;
 using ZombiePlague.Core.Utils.Extensions;
 using ZPCore.Config.Round;
-using ZPCore.Data.Zombies;
 
 namespace ZombiePlague.Core.Data.Managers;
 
-internal class ZombieManager(
+internal sealed class ZombieManager(
     ISwiftlyCore core,
     HumanManager humanManager,
     IZombieFactory zombieFactory,

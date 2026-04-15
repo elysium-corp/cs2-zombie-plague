@@ -5,7 +5,7 @@ using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace Common.Effects.Effects;
 
-public sealed class Burn(ISwiftlyCore core, IPlayer? caster, IPlayer target) : BaseTickEffect(core, caster, target)
+public sealed class Burn(ISwiftlyCore core, Action<IEffect> callback, IPlayer? caster, IPlayer target) : BaseTickEffect(core, callback, caster, target)
 {
     private const float DamagePerTickInPercent = 1.0f;
     private const float InstantDamageInPercent = 5.0f;

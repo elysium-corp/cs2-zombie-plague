@@ -3,7 +3,7 @@ using SwiftlyS2.Shared.Players;
 
 namespace Common.Effects.Effects.Contracts;
 
-public abstract class BaseTickEffect(ISwiftlyCore core, IPlayer? caster, IPlayer target) : BaseEffect(core, caster, target)
+public abstract class BaseTickEffect(ISwiftlyCore core, Action<IEffect> callback, IPlayer? caster, IPlayer target) : BaseEffect(core, callback, caster, target)
 {
     protected abstract float TickInterval { get; }
     

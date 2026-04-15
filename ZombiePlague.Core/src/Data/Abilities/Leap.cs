@@ -21,7 +21,8 @@ internal class Leap(ISwiftlyCore core, LeapConfig config) : BaseActiveAbility(co
         var forward = MathAlgorithm.ForwardFromAngles(viewAngles);
         
         var leapVelocity = forward * config.LeapDistance;
-        leapVelocity.Z = config.LeapBoost * (1 / casterPawn.GravityScale );
+        var leapScale = Math.Min(1.9f, 1 / casterPawn.GravityScale);
+        leapVelocity.Z = config.LeapBoost * leapScale;
         
         Caster.Teleport(casterPawn.AbsOrigin, viewAngles, leapVelocity);
         
@@ -49,17 +50,15 @@ internal class Leap(ISwiftlyCore core, LeapConfig config) : BaseActiveAbility(co
         {
             return false;
         }
-        
-        var pawn = Caster.PlayerPawn;
 
-        var deltaTime = core.Engine.GlobalVars.TickCount - Caster.RequiredPlayerPawn?.MovementServices?.LastJumpTick.Value;
+        var deltaTime = core.Engine.GlobalVars.TickCount - Caster.RequiredPlayerPawn.MovementServices?.LastJumpTick.Value;
   
         if (Caster.PlayerPawn?.GroundEntity.Value != null)
         {
             return false;
         }
         
-        if (Caster.PlayerPawn?.GroundEntity.Value == null && deltaTime > 60)
+        if (Caster.PlayerPawn?.GroundEntity.Value == null && deltaTime > 45)
         {
             return false;
         }

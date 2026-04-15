@@ -60,6 +60,7 @@ public sealed partial class ZombiePlague(ISwiftlyCore core) : BasePlugin(core)
     private void RegisterHooks()
     {
         _roundManager.Value.RegisterRounds();
+        
         _zombieManager.Value.RegisterHooks();
         _humanManager.Value.RegisterHooks();
         _roundManager.Value.RegisterHooks();

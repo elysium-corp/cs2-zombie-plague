@@ -1,5 +1,4 @@
-﻿using Common.Di;
-using CustomEquipment.Api;
+﻿using CustomEquipment.Api;
 using CustomEquipment.Data.Equipments.Contracts;
 using CustomEquipment.Data.Equipments.Enums;
 using CustomEquipment.Services;
@@ -65,6 +64,8 @@ internal sealed class WeaponController(
         var thrower = projectile.OriginalThrower.Value?.ToPlayer();
 
         if (thrower == null) return;
+
+        projectile.Despawn();
         
         baseGrenade.OnDetonate(thrower, position);
     }

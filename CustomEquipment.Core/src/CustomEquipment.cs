@@ -1,6 +1,7 @@
 using Common.Di;
 using CustomEquipment.Controllers;
 using CustomEquipment.Data.Equipments.Weapons.Grenades;
+using CustomEquipment.Data.Equipments.Weapons.Guns;
 using CustomEquipment.Di;
 using CustomEquipment.Services;
 using SwiftlyS2.Shared;
@@ -98,12 +99,13 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
 
         var equipmentService = _equipmentService.Value;
 
-        /*equipmentService.GiveWeapon<Omega>(player);
+        equipmentService.GiveWeapon<Omega>(player);
         equipmentService.GiveWeapon<Elite>(player);
         equipmentService.GiveWeapon<ReactorLeak>(player);
         equipmentService.GiveWeapon<Frostbyte>(player);
         equipmentService.GiveWeapon<Blackline>(player);
-        equipmentService.GiveWeapon<X3>(player);*/
+        equipmentService.GiveWeapon<X3>(player);
+        equipmentService.GiveGrenade<BarrierNade>(player);
         equipmentService.GiveGrenade<FrostNade>(player);
         equipmentService.GiveGrenade<FireNade>(player);
     }

@@ -101,7 +101,7 @@ public sealed class SupplyBoxEntity : ISupplyBoxEntity
         
         if (entityPosition.Z > _data.Position.Z)
         {
-            Entity.Teleport(Entity.AbsOrigin + new Vector(0,0,-5), Entity.AbsRotation, null);
+            Entity.Teleport(Entity.AbsOrigin + new Vector(0,0,-4), Entity.AbsRotation, null);
         }
         else
         {

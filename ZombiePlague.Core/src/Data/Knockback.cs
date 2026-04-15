@@ -60,7 +60,6 @@ internal class Knockback(ISwiftlyCore core, ZombieManager zombieManager, IOption
     
     private HookResult OnPlayerHurtPost(EventPlayerHurt @event)
     {
-
         TryApplyKnockback(@event, null);
         
         return HookResult.Continue;
