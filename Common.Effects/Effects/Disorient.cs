@@ -1,4 +1,5 @@
 ﻿using Common.Effects.Effects.Contracts;
+using Common.Effects.Effects.Settings;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
@@ -6,10 +7,12 @@ using SwiftlyS2.Shared.ProtobufDefinitions;
 
 namespace Common.Effects.Effects;
 
-public class Disorient(ISwiftlyCore core, Action<IEffect> callback, IPlayer? caster, IPlayer target)
+public sealed class Disorient(ISwiftlyCore core, Action<IEffect> callback, IPlayer? caster, IPlayer target, DisorientSettings? settings)
     : BaseTickEffect(core, callback, caster, target)
 {
-    public override float Duration => 12.0f;
+    public DisorientSettings Settings { get; } = settings ?? new DisorientSettings();
+    
+    public override float Duration => Settings.Duration;
     protected override float TickInterval => 0.3f;
     private const float Amplitude = 10f;
     private const float Frequency = 12f;
@@ -52,7 +55,7 @@ public class Disorient(ISwiftlyCore core, Action<IEffect> callback, IPlayer? cas
 
     private void ApplyScreenEffect()
     {
-        core.NetMessage.Send<CUserMessageFade>(msg =>
+        Core.NetMessage.Send<CUserMessageFade>(msg =>
         {
             msg.Duration = 1000;
             msg.HoldTime = (uint)Duration * 1000 / 2;
@@ -64,7 +67,7 @@ public class Disorient(ISwiftlyCore core, Action<IEffect> callback, IPlayer? cas
 
     private void ApplyShakeEffect()
     {
-        core.NetMessage.Send<CUserMessageShake>(msg =>
+        Core.NetMessage.Send<CUserMessageShake>(msg =>
         {
             msg.Command = Command;
             msg.Amplitude = Amplitude;

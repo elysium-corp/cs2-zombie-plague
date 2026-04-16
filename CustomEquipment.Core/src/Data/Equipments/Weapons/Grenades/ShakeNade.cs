@@ -1,6 +1,7 @@
 ﻿using Common.Di;
 using Common.Effects;
 using Common.Effects.Effects;
+using Common.Effects.Effects.Settings;
 using Common.Math;
 using CustomEquipment.Data.Equipments.Contracts;
 using CustomEquipment.Data.Equipments.Enums;
@@ -22,6 +23,8 @@ public class ShakeNade : BaseGrenade
 
     public override string Model => "weapons/luci/sifi_hegrenade/sifi_hegrenade_ag2.vmdl";
 
+    private readonly DisorientSettings _settings = new DisorientSettings(10.0f);
+    
     private const float ShakeRadius = 250.0f;
     
     public override void OnDetonate(IPlayer thrower, Vector position)
@@ -34,7 +37,7 @@ public class ShakeNade : BaseGrenade
         
         foreach (var player in players)
         {
-            effectService.ApplyEffect<Disorient>(thrower, player);
+            effectService.ApplyEffect<Disorient>(thrower, player, _settings);
         }
     }
 }

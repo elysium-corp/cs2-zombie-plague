@@ -1,17 +1,16 @@
 using Common.Effects.Effects.Contracts;
+using Common.Effects.Effects.Settings;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace Common.Effects.Effects;
 
-public sealed class Burn(ISwiftlyCore core, Action<IEffect> callback, IPlayer? caster, IPlayer target) : BaseTickEffect(core, callback, caster, target)
+public sealed class Burn(ISwiftlyCore core, Action<IEffect> callback, IPlayer? caster, IPlayer target, BurnSettings? settings) : BaseTickEffect(core, callback, caster, target)
 {
-    private const float DamagePerTickInPercent = 1.0f;
-    private const float InstantDamageInPercent = 5.0f;
     private const string ParticleName = "particles/inferno_fx/molotov_child_flame01a.vpcf";
-
-    public override float Duration => 5.0f;
+    public BurnSettings Settings { get; } = settings ?? new BurnSettings();
+    public override float Duration => Settings.Duration;
     
     public override void Destroy()
     {
@@ -43,7 +42,7 @@ public sealed class Burn(ISwiftlyCore core, Action<IEffect> callback, IPlayer? c
     protected override void TickEffect()
     {
         Target.PlayerPawn?.TakeDamage(
-            GetFireDamage(DamagePerTickInPercent),
+            GetFireDamage(Settings.DamagePerTickInPercent),
             DamageTypes_t.DMG_ACID,
             inflictor: null,
             attacker: Caster?.PlayerPawn
@@ -57,7 +56,7 @@ public sealed class Burn(ISwiftlyCore core, Action<IEffect> callback, IPlayer? c
 
     public override void CreateParticle()
     {
-        var playerPawn = Target?.PlayerPawn;
+        var playerPawn = Target.PlayerPawn;
         if (playerPawn == null)
         {
             return;
@@ -84,7 +83,7 @@ public sealed class Burn(ISwiftlyCore core, Action<IEffect> callback, IPlayer? c
     private void ApplyInstantDamage()
     {
         Target.PlayerPawn?.TakeDamage(
-            GetFireDamage(InstantDamageInPercent),
+            GetFireDamage(Settings.InstantDamageInPercent),
             DamageTypes_t.DMG_ACID,
             inflictor: null,
             attacker: Caster?.PlayerPawn

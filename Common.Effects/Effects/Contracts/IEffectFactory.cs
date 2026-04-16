@@ -4,5 +4,6 @@ namespace Common.Effects.Effects.Contracts;
 
 internal interface IEffectFactory
 {
-    public IEffect Create<T>(Action<IEffect> callback, IPlayer? caster, IPlayer target) where T : IEffect;
+    public TEffect? Create<TEffect>(Action<IEffect> callback, IPlayer? caster, IPlayer target,
+        IEffectSettings? settings = null) where TEffect : class, IEffect;
 }

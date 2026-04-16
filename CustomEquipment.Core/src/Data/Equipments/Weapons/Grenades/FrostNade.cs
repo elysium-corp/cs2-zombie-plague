@@ -1,6 +1,7 @@
 ﻿using Common.Di;
 using Common.Effects;
 using Common.Effects.Effects;
+using Common.Effects.Effects.Settings;
 using Common.Math;
 using CustomEquipment.Data.Equipments.Contracts;
 using CustomEquipment.Data.Equipments.Enums;
@@ -22,6 +23,8 @@ internal sealed class FrostNade : BaseGrenade
 
     public override string Model => "weapons/luci/sifi_hegrenade/sifi_hegrenade_ag2.vmdl";
 
+    private readonly FreezeSettings _freezeSettings = new FreezeSettings(5.0f);
+    
     private const float FreezeRadius = 250.0f;
     
     public override void OnDetonate(IPlayer thrower, Vector position)
@@ -34,7 +37,7 @@ internal sealed class FrostNade : BaseGrenade
         
         foreach (var player in players)
         {
-            effectService.ApplyEffect<Freeze>(thrower, player);
+            effectService.ApplyEffect<Freeze>(thrower, player, _freezeSettings);
         }
     }
 }
