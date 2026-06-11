@@ -2,7 +2,7 @@
 
 namespace ZombiePlague.Core.Data.Rounds;
 
-internal class None : IRound
+internal sealed class None : IRound
 {
     public int Chance => 0;
     

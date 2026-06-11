@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;
 using ZombiePlague.Api.Events;
 using ZombiePlague.Core.Config.Ability;
+using ZombiePlague.Core.Config.Round;
 using ZombiePlague.Core.Data;
 using ZombiePlague.Core.Data.Abilities;
 using ZombiePlague.Core.Data.Abilities.Contracts;
@@ -16,7 +17,6 @@ using ZombiePlague.Core.Data.Rounds.Contracts;
 using ZombiePlague.Core.Data.Zombies;
 using ZombiePlague.Core.Data.Zombies.ZClasses;
 using ZPCore.Config.Core;
-using ZPCore.Config.Round;
 using ZPCore.Config.Zombie;
 
 namespace ZombiePlague.Core.Di;

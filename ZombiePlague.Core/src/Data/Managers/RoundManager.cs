@@ -7,6 +7,7 @@ using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.Sounds;
 using ZombiePlague.Api.Data;
 using ZombiePlague.Api.Events;
+using ZombiePlague.Core.Config.Round;
 using ZombiePlague.Core.Data.Rounds;
 using ZombiePlague.Core.Data.Rounds.Contracts;
 using ZombiePlague.Core.Di;

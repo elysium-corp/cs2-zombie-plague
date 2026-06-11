@@ -1,7 +1,6 @@
 ﻿using Common.Effects.Effects.Contracts;
 using Common.Effects.Effects.Settings;
 using SwiftlyS2.Shared;
-using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.ProtobufDefinitions;
 
@@ -48,9 +47,6 @@ public sealed class Disorient(ISwiftlyCore core, Action<IEffect> callback, IPlay
 
         float pitch = (Random.Shared.NextSingle() - 0.5f) * 0.18f;
         float yaw = (Random.Shared.NextSingle() - 0.5f) * 0.30f;
-
-        pawn.AimPunchAngle += new QAngle(pitch, yaw, 0f);
-        pawn.AimPunchAngleVel += new QAngle(pitch * 2.0f, yaw * 2.5f, 0f);
     }
 
     private void ApplyScreenEffect()

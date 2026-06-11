@@ -4,13 +4,13 @@ using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Players;
 using ZombiePlague.Api.Events;
+using ZombiePlague.Core.Config.Round;
 using ZombiePlague.Core.Data.Events;
 using ZombiePlague.Core.Data.Menus;
 using ZombiePlague.Core.Data.Zombies;
 using ZombiePlague.Core.Data.Zombies.ZClasses;
 using ZombiePlague.Core.Di;
 using ZombiePlague.Core.Utils.Extensions;
-using ZPCore.Config.Round;
 
 namespace ZombiePlague.Core.Data.Managers;
 

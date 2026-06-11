@@ -1,6 +1,6 @@
 ﻿using CustomKnife.Data.Models;
-using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.GameEventDefinitions;
+using SwiftlyS2.Shared.GameHooks;
 using SwiftlyS2.Shared.Players;
 
 namespace CustomKnife.Data.Services.Contracts;
@@ -10,7 +10,7 @@ public interface IKnifeService
     /// <summary>
     /// Пытается выдать нож игроку.
     /// </summary>
-    public bool TryGiveKnife(IPlayer? player);
+    public bool TryGiveKnife(IPlayer player);
     
     /// <summary>
     /// Пытается применить бонусы ножа к игроку.
@@ -20,7 +20,7 @@ public interface IKnifeService
     /// <summary>
     /// Пытается нанести дополнительный урон жертве.
     /// </summary>
-    public bool TryApplyKnifeDamage(IOnEntityTakeDamageEvent @event);
+    public bool TryApplyKnifeDamage(ref TakeDamageEntityPreContext @event);
     
     /// <summary>
     /// Пытается применить отдачу к жертве.

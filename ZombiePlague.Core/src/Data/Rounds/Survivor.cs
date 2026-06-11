@@ -1,31 +1,31 @@
 ﻿using SwiftlyS2.Shared;
-using SwiftlyS2.Shared.Sounds;
+using ZombiePlague.Core.Config.Round;
 using ZombiePlague.Core.Data.Managers;
 using ZombiePlague.Core.Data.Rounds.Contracts;
-using ZPCore.Config.Round;
+using ZombiePlague.Core.Utils.Extensions;
 
 namespace ZombiePlague.Core.Data.Rounds;
 
-internal class Survivor(
+internal sealed class Survivor(
     ISwiftlyCore core,
     RoundManager roundManager,
     ZombieManager zombieManager,
     HumanManager humanManager,
-    SurvivorConfig config) : BaseRound
+    SurvivorConfig config) : BaseRound(core, roundManager, zombieManager)
 {
     public override int Chance => config.Chance;
     public override string Name => "Выживший";
 
-    public override void Start()
+    protected override void OnStart()
     {
-        var allPlayers = core.PlayerManager.GetAlive().ToList();
+        var allPlayers = Core.PlayerManager.GetAlive().ToList();
         var survivor = allPlayers[Random.Shared.Next(0, allPlayers.Count)];
 
         foreach (var player in allPlayers)
         {
             if (!player.Equals(survivor))
             {
-                zombieManager.CreateZombie(player);
+                ZombieManager.CreateZombie(player);
             }
         }
 
@@ -33,27 +33,9 @@ internal class Survivor(
 
         if (config.IsMusicEnabled)
         {
-            PlaySound();
+            SoundExt.PlayGlobal(config.MusicSoundName);
         }
         
-        core.PlayerManager.SendCenter("Выживший => " + survivor.Controller.PlayerName);
-    }
-
-    public override void End()
-    {
-        roundManager.SetRound(new None());
-
-        core.PlayerManager.SendCenter("Раунд окончен");
-    }
-
-    private void PlaySound()
-    {
-        using var sound = new SoundEvent(config.MusicSoundName);
-
-        sound.Recipients.AddAllPlayers();
-        sound.SourceEntityIndex = -1;
-        sound.Volume = 0.5f;
-
-        sound.Emit();
+        Core.PlayerManager.SendCenter("Выживший => " + survivor.Controller.PlayerName);
     }
 }

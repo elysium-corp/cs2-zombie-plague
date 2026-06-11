@@ -1,5 +1,6 @@
 ﻿using SwiftlyS2.Shared;
 using ZombiePlague.Api.Data;
+using ZombiePlague.Core.Config.Round;
 using ZombiePlague.Core.Data.Managers;
 using ZPCore.Config.Round;
 

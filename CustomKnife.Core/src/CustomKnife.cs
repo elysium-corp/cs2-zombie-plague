@@ -4,8 +4,8 @@ using CustomKnife.Data.Services.Contracts;
 using CustomKnife.Di;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Commands;
-using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.GameEventDefinitions;
+using SwiftlyS2.Shared.GameHooks;
 using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Players;
 using ZombiePlague.Api;
@@ -23,38 +23,40 @@ namespace CustomKnife;
 internal sealed partial class CustomKnife(ISwiftlyCore core) : Plugin<CustomKnifeModule>(core)
 {
     private readonly Lazy<IKnifeService> _knifeService = DependencyResolver.GetRequiredServiceLazy<IKnifeService>();
-    private readonly Lazy<IKnifeMenuService> _knifeMenuService = DependencyResolver.GetRequiredServiceLazy<IKnifeMenuService>();
-    
+
+    private readonly Lazy<IKnifeMenuService> _knifeMenuService =
+        DependencyResolver.GetRequiredServiceLazy<IKnifeMenuService>();
+
     private Guid _guidOnPlayerEquipEventPost = Guid.Empty;
     private Guid _guidOnPlayerSpawnEventPost = Guid.Empty;
     private Guid _guidOnPlayerHurtEventPost = Guid.Empty;
     private Guid _guidOnRoundStartEventPost = Guid.Empty;
 
     public static IZombiePlagueApi ZombiePlagueApi = null!;
-    
+
     public static readonly Dictionary<IPlayer, IKnife> PlayerKnifes = [];
     public static readonly List<IKnife> RegisteredKnifes = [];
 
-    public override void OnSharedInterfaceInjected(IInterfaceManager interfaceManager)
+    public override void UseSharedInterface(IInterfaceManager interfaceManager)
     {
         ZombiePlagueApi = interfaceManager.GetSharedInterface<IZombiePlagueApi>(IZombiePlagueApi.SharedApiKey);
     }
-    
+
     protected override void OnReady()
     {
         foreach (var knife in _knifeService.Value.GetRegisteredKnives())
         {
             RegisteredKnifes.Add(knife);
         }
-        
-        _guidOnPlayerEquipEventPost = core.GameEvent.HookPost<EventItemEquip>(PlayerEquipEvent);
-        _guidOnPlayerSpawnEventPost = core.GameEvent.HookPost<EventPlayerSpawn>(PlayerSpawnEvent);
-        _guidOnPlayerHurtEventPost = core.GameEvent.HookPost<EventPlayerHurt>(PlayerHurtEvent);
-        _guidOnRoundStartEventPost = core.GameEvent.HookPost<EventRoundStart>(EventRoundStart);
-        core.Event.OnEntityTakeDamage += OnEntityTakeDamage;
+
+        _guidOnPlayerEquipEventPost = Core.GameEvent.HookPost<EventItemEquip>(PlayerEquipEvent);
+        _guidOnPlayerSpawnEventPost = Core.GameEvent.HookPost<EventPlayerSpawn>(PlayerSpawnEvent);
+        _guidOnPlayerHurtEventPost = Core.GameEvent.HookPost<EventPlayerHurt>(PlayerHurtEvent);
+        _guidOnRoundStartEventPost = Core.GameEvent.HookPost<EventRoundStart>(EventRoundStart);
+        Core.GameHooks.Entities.TakeDamage.Pre += OnEntityTakeDamage;
         ZombiePlagueApi.EventSubscriber.OnGameRoundStarted += OnGameRoundStarted;
-        
-        core.Command.RegisterCommand(
+
+        Core.Command.RegisterCommand(
             commandName: "knife",
             handler: KnifeMenuHandler,
             registerRaw: true
@@ -67,7 +69,7 @@ internal sealed partial class CustomKnife(ISwiftlyCore core) : Plugin<CustomKnif
         Core.GameEvent.Unhook(_guidOnPlayerSpawnEventPost);
         Core.GameEvent.Unhook(_guidOnPlayerHurtEventPost);
         Core.GameEvent.Unhook(_guidOnRoundStartEventPost);
-        core.Event.OnEntityTakeDamage -= OnEntityTakeDamage;
+        Core.GameHooks.Entities.TakeDamage.Pre -= OnEntityTakeDamage;
         ZombiePlagueApi.EventSubscriber.OnGameRoundStarted -= OnGameRoundStarted;
     }
 
@@ -75,7 +77,7 @@ internal sealed partial class CustomKnife(ISwiftlyCore core) : Plugin<CustomKnif
     {
         if (ZombiePlagueApi.IsSurvivorRound(round) || ZombiePlagueApi.IsArmageddonRound(round))
         {
-            var alivePlayers = core.PlayerManager.GetAlive();
+            var alivePlayers = Core.PlayerManager.GetAlive();
 
             foreach (var player in alivePlayers)
             {
@@ -86,37 +88,45 @@ internal sealed partial class CustomKnife(ISwiftlyCore core) : Plugin<CustomKnif
             }
         }
     }
-    
-    private void OnEntityTakeDamage(IOnEntityTakeDamageEvent @event)
+
+    private void OnEntityTakeDamage(ref TakeDamageEntityPreContext @event)
     {
-        _knifeService.Value.TryApplyKnifeDamage(@event);
+        _knifeService.Value.TryApplyKnifeDamage(ref @event);
     }
-    
+
     private HookResult PlayerSpawnEvent(EventPlayerSpawn @event)
     {
-        _knifeService.Value.TryGiveKnife(@event.UserIdPlayer);
-        
+        var player = @event.UserIdPlayer;
+        if (player == null)
+        {
+            return HookResult.Continue;
+        }
+
+        _knifeService.Value.TryGiveKnife(player);
+
         return HookResult.Continue;
     }
-    
+
     private HookResult EventRoundStart(EventRoundStart @event)
     {
-        var alivePlayers = core.PlayerManager.GetAlive();
+        var alivePlayers = Core.PlayerManager.GetAlive();
 
         foreach (var player in alivePlayers)
         {
-            core.Scheduler.NextWorldUpdate(()=> _knifeService.Value.TryGiveKnife(player));
+            Core.Scheduler.NextWorldUpdate(() => _knifeService.Value.TryGiveKnife(player));
         }
-        
+
         return HookResult.Continue;
     }
-    
+
     private HookResult PlayerHurtEvent(EventPlayerHurt @event)
     {
-        core.Scheduler.NextTick(() => _knifeService.Value.TryApplyProperties(@event.UserIdPlayer));
+        var player = @event.UserIdPlayer;
         
+        Core.Scheduler.NextTick(() => _knifeService.Value.TryApplyProperties(player));
+
         _knifeService.Value.TryApplyKnifeKnockback(@event);
-        
+
         return HookResult.Continue;
     }
 
@@ -130,12 +140,12 @@ internal sealed partial class CustomKnife(ISwiftlyCore core) : Plugin<CustomKnif
     private void KnifeMenuHandler(ICommandContext context)
     {
         var player = context.Sender;
-        
+
         if (player == null)
         {
             return;
         }
-        
+
         _knifeMenuService.Value.Show(player);
     }
 }

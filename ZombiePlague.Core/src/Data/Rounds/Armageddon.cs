@@ -1,28 +1,27 @@
 ﻿using SwiftlyS2.Shared;
-using SwiftlyS2.Shared.Events;
-using SwiftlyS2.Shared.Sounds;
+using SwiftlyS2.Shared.GameHooks;
+using ZombiePlague.Core.Config.Round;
 using ZombiePlague.Core.Data.Managers;
 using ZombiePlague.Core.Data.Rounds.Contracts;
 using ZombiePlague.Core.Utils.Extensions;
-using ZPCore.Config.Round;
 
 namespace ZombiePlague.Core.Data.Rounds;
 
-internal class Armageddon(
+internal sealed class Armageddon(
     ISwiftlyCore core,
     RoundManager roundManager,
     ZombieManager zombieManager,
     HumanManager humanManager,
-    ArmageddonConfig config) : BaseRound
+    ArmageddonConfig config) : BaseRound(core, roundManager, zombieManager)
 {
     public override int Chance => config.Chance;
     public override string Name => "Армагеддон";
 
-    public override void Start()
+    protected override void OnStart()
     {
-        core.Event.OnEntityTakeDamage += OnEntityTakeDamage;
-        
-        var allPlayers = core.PlayerManager.GetAlive().Shuffle().ToList();
+        Core.GameHooks.Entities.TakeDamage.Pre += OnEntityTakeDamage;
+
+        var allPlayers = Core.PlayerManager.GetAlive().Shuffle().ToList();
         var countPlayers = allPlayers.Count;
 
         for (int order = 0; order < countPlayers; order++)
@@ -33,51 +32,23 @@ internal class Armageddon(
             }
             else
             {
-                zombieManager.SetNemesis(allPlayers[order], config);
+                ZombieManager.SetNemesis(allPlayers[order], config);
             }
         }
 
         if (config.IsMusicEnabled)
         {
-            PlaySound();
+            SoundExt.PlayGlobal(config.MusicSoundName);
         }
 
-        core.PlayerManager.SendCenter(Name);
+        Core.PlayerManager.SendCenter(Name);
     }
 
-    public override void End()
+    protected override void OnEnd()
     {
-        core.Event.OnEntityTakeDamage -= OnEntityTakeDamage;
-        
-        roundManager.SetRound(new None());
-
-        core.PlayerManager.SendCenter("Раунд окончен");
-    }
-    
-    private void OnEntityTakeDamage(IOnEntityTakeDamageEvent @event)
-    {
-        var attacker = @event.Info.Attacker.ResolvePlayerFromHandle();
-        var victim = @event.Entity.Address.FindPlayerByPawnAddress();
-
-        if (attacker == null || victim == null || victim.PlayerPawn == null)
-        {
-            return;
-        }
-
-        if (attacker.IsNemesis())
-        {
-            @event.Info.Damage += config.NemesisExtraDamage;
-        }
+        Core.GameHooks.Entities.TakeDamage.Pre -= OnEntityTakeDamage;
     }
 
-    private void PlaySound()
-    {
-        using var sound = new SoundEvent(config.MusicSoundName);
-
-        sound.Recipients.AddAllPlayers();
-        sound.SourceEntityIndex = -1;
-        sound.Volume = 0.5f;
-
-        sound.Emit();
-    }
+    private void OnEntityTakeDamage(ref TakeDamageEntityPreContext @event)
+        => @event.ApplyNemesisExtraDamage(config.NemesisExtraDamage);
 }

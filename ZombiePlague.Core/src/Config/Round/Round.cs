@@ -1,4 +1,6 @@
-﻿namespace ZPCore.Config.Round;
+﻿using ZPCore.Config.Round;
+
+namespace ZombiePlague.Core.Config.Round;
 
 public sealed class RoundConfig
 {
@@ -29,6 +31,8 @@ public sealed class InfectionConfig : IRoundConfig
     
     // Время возрождения зомби.
     public float ZombieSpawnTime { get; set; } = 5.0f;
+    // Звук первого заражённого.
+    public string MusicSoundName { get; set; } = "ZombiePlagueAbility.Infection";
 }
 
 public sealed class PlagueConfig : IRoundConfig

@@ -11,13 +11,12 @@ namespace CustomKnife.Di;
 
 internal sealed class CustomKnifeModule(ISwiftlyCore core) : BaseModule(core)
 {
-    private readonly ISwiftlyCore _core = core;
 
     public override (ServiceProvider, ServiceCollection) GetProvider()
     {
         var service = new ServiceCollection();
 
-        service.AddSwiftly(_core);
+        service.AddSwiftly(core);
 
         BuildConfigs(service);
         BuildSingletons(service);
