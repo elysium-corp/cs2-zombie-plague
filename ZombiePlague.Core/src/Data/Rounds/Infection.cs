@@ -1,4 +1,7 @@
-﻿using SwiftlyS2.Shared;
+﻿using Common.Effects;
+using Common.Effects.Effects;
+using Common.Effects.Effects.Settings;
+using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Players;
 using ZombiePlague.Core.Config.Round;
 using ZombiePlague.Core.Data.Managers;
@@ -32,6 +35,12 @@ internal sealed class Infection(
         {
             firstZombie = players[Random.Shared.Next(0, players.Count)];
             ZombieManager.CreateZombie(firstZombie);
+        }
+
+        if (config.FirstZombieIsInvisible)
+        {
+            var effectService = EffectService.Provide(Core);
+            effectService.ApplyEffect<Vanish>(null, firstZombie, new VanishSettings(config.InvisibleDuration));
         }
         
         SoundExt.PlayAt(firstZombie, config.MusicSoundName, 2);

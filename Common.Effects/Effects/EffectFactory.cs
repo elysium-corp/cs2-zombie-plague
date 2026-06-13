@@ -18,6 +18,8 @@ internal sealed class EffectFactory(ISwiftlyCore core) : IEffectFactory
                 new Freeze(core, callback, caster, target, settings as FreezeSettings) as TEffect,
             var t when t == typeof(Disorient) => new Disorient(core, callback, caster, target,
                 settings as DisorientSettings) as TEffect,
+            var t when t == typeof(Vanish) => new Vanish(core, callback, caster, target,
+                settings as VanishSettings) as TEffect,
             _ => throw new NotSupportedException("EffectFactory: type T hasn't supported!")
         };
     }

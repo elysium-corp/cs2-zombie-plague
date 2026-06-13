@@ -20,7 +20,6 @@ internal abstract class InfectiousRound(ISwiftlyCore core, RoundManager roundMan
     protected sealed override void OnStart()
     {
         Core.GameHooks.Entities.TakeDamage.Pre += OnEntityTakeDamage;
-
         if (ZombieRevived)
         {
             _onPlayerDeathEvent = Core.GameEvent.HookPre<EventPlayerDeath>(OnPlayerDeath);

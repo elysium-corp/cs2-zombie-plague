@@ -14,128 +14,233 @@ public sealed class RoundConfig
 
 public sealed class InfectionConfig : IRoundConfig
 {
-    // Включить раунд инфекции.
+    /// <summary>
+    /// Включён ли раунд «Инфекция» в пуле доступных раундов.
+    /// Если <c>false</c>, раунд не будет зарегистрирован и не выпадет.
+    /// </summary>
     public bool Enable { get; set; } = true;
-    
-    // Вероятность выпадения раунда.
+
+    /// <summary>
+    /// Относительный вес раунда при случайном выборе.
+    /// Чем больше значение, тем выше шанс выпадения относительно других
+    /// включённых раундов (это вес, а не процент).
+    /// </summary>
     public int Chance { get; set; } = 20;
-    
-    // Включить возрождение зомби в течении раунда.
+
+    /// <summary>
+    /// Разрешено ли возрождение зомби в течение раунда.
+    /// Если <c>true</c>, умершие/подключившиеся игроки возрождаются зомби
+    /// (через <see cref="ZombieSpawnTime"/>).
+    /// </summary>
     public bool ZombieRevived { get; set; } = true;
-    
-    // Включен ли рывок у первого зомби.
+
+    /// <summary>
+    /// Доступен ли рывок (Leap) первому зомби в этом раунде.
+    /// </summary>
     public bool FirstZombieLeap { get; set; } = true;
-    
-    // Коэффициент стартового здоровья первого зомби.
+
+    /// <summary>
+    /// Множитель стартового здоровья первого зомби относительно базового HP.
+    /// <c>1.0</c> — без изменений, <c>1.5</c> — +50%, <c>0.5</c> — половина.
+    /// </summary>
     public float FirstZombieHealthRatio { get; set; } = 1.0f;
-    
-    // Время возрождения зомби.
+
+    /// <summary>
+    /// Задержка в секундах перед возрождением игрока зомби.
+    /// Применяется, когда <see cref="ZombieRevived"/> равно <c>true</c>.
+    /// </summary>
     public float ZombieSpawnTime { get; set; } = 5.0f;
-    // Звук первого заражённого.
+
+    /// <summary>
+    /// Имя звукового события, проигрываемого при появлении первого заражённого.
+    /// Должно совпадать с записью в soundevents (например, "ZombiePlagueAbility.Infection").
+    /// </summary>
     public string MusicSoundName { get; set; } = "ZombiePlagueAbility.Infection";
+
+    /// <summary>
+    /// Получает ли первый зомби невидимость в начале раунда.
+    /// Длительность задаётся в <see cref="InvisibleDuration"/>.
+    /// </summary>
+    public bool FirstZombieIsInvisible { get; set; } = true;
+
+    /// <summary>
+    /// Длительность невидимости первого зомби в секундах.
+    /// Учитывается только при <see cref="FirstZombieIsInvisible"/> = <c>true</c>.
+    /// </summary>
+    public float InvisibleDuration { get; set; } = 10.0f;
 }
 
 public sealed class PlagueConfig : IRoundConfig
 {
-    // Включить раунд массового заражения.
+    /// <summary>
+    /// Включён ли раунд «Чума» (массовое заражение) в пуле доступных раундов.
+    /// Если <c>false</c>, раунд не будет зарегистрирован и не выпадет.
+    /// </summary>
     public bool Enable { get; set; } = true;
-    
-    // Вероятность выпадения раунда.
+
+    /// <summary>
+    /// Относительный вес раунда при случайном выборе.
+    /// Чем больше значение, тем выше шанс выпадения относительно других
+    /// включённых раундов (это вес, а не процент).
+    /// </summary>
     public int Chance { get; set; } = 4;
-    
-    // Включить возрождение зомби в течении раунда.
+
+    /// <summary>
+    /// Разрешено ли возрождение зомби в течение раунда.
+    /// Если <c>true</c>, умершие/подключившиеся игроки возрождаются зомби
+    /// (через <see cref="ZombieSpawnTime"/>).
+    /// </summary>
     public bool ZombieRevived { get; set; } = true;
-    
-    // Процент игроков, которые будут заражены в начале раунда.
+
+    /// <summary>
+    /// Доля игроков, заражаемых в начале раунда, от 0 до 1.
+    /// Например, <c>0.3</c> — 30% игроков становятся зомби на старте
+    /// (число округляется вверх).
+    /// </summary>
     public float ZombieSpawnRatio { get; set; } = 0.3f;
-    
-    // Время возрождения зомби.
+
+    /// <summary>
+    /// Задержка в секундах перед возрождением игрока зомби.
+    /// Применяется, когда <see cref="ZombieRevived"/> равно <c>true</c>.
+    /// </summary>
     public float ZombieSpawnTime { get; set; } = 5.0f;
 }
 
 public interface INemesisConfig
 {
-    // Количество дополнительного здоровья немезиды, за каждого игрока.
+    /// <summary>
+    /// Дополнительное здоровье немезиды за каждого игрока на сервере.
+    /// Итоговый бонус = значение × количество игроков.
+    /// </summary>
     public int NemesisBonusHealthPerPlayer { get; set; }
 }
 
 public interface ISurvivorConfig
 {
-    // Модель выжившего.
+    /// <summary>
+    /// Путь к модели (.vmdl), которая выдаётся выжившему.
+    /// </summary>
     public string SurvivorModel { get; set; }
-    
-    // Количество дополнительного здоровья выжившего, за каждого игрока.
+
+    /// <summary>
+    /// Дополнительное здоровье выжившего за каждого зомби.
+    /// Итоговый бонус = значение × количество зомби.
+    /// </summary>
     public int SurvivorBonusHealthPerZombie { get; set; }
 }
 
 public sealed class NemesisConfig : IRoundConfig, INemesisConfig
 {
-    // Включить раунд массового заражения.
+    /// <summary>
+    /// Включён ли раунд «Немезида» в пуле доступных раундов.
+    /// Если <c>false</c>, раунд не будет зарегистрирован и не выпадет.
+    /// </summary>
     public bool Enable { get; set; } = true;
-    
-    // Включить музыку, которая будет проигрываться в начале раунда.
+
+    /// <summary>
+    /// Проигрывать ли музыку (<see cref="MusicSoundName"/>) в начале раунда.
+    /// </summary>
     public bool IsMusicEnabled { get; set; } = true;
-    
-    // Вероятность выпадения раунда.
+
+    /// <summary>
+    /// Относительный вес раунда при случайном выборе.
+    /// Чем больше значение, тем выше шанс выпадения относительно других
+    /// включённых раундов (это вес, а не процент).
+    /// </summary>
     public int Chance { get; set; } = 1;
-    
-    // Название музыкального ивента.
+
+    /// <summary>
+    /// Имя звукового события, проигрываемого в начале раунда.
+    /// Учитывается только при <see cref="IsMusicEnabled"/> = <c>true</c>.
+    /// </summary>
     public string MusicSoundName { get; set; } = "ZombiePlagueAbility.Nemesis";
-    
-    // Включить рывок у немезиды.
+
+    /// <summary>
+    /// Доступен ли рывок (Leap) немезиде.
+    /// </summary>
     public bool NemesisLeap { get; set; } = true;
-    
-    // Количество дополнительного здоровья выжившего, за каждого игрока.
+
+    /// <inheritdoc cref="INemesisConfig.NemesisBonusHealthPerPlayer"/>
     public int NemesisBonusHealthPerPlayer { get; set; } = 1500;
-    
-    // Дополнительный урон, который наносит немезида.
-    public int NemesisExtraDamage  { get; set; } = 125;
+
+    /// <summary>
+    /// Дополнительный урон, наносимый немезидой по людям.
+    /// </summary>
+    public int NemesisExtraDamage { get; set; } = 125;
 }
 
 public sealed class SurvivorConfig : IRoundConfig, ISurvivorConfig
 {
-    // Включить раунд выжившего.
+    /// <summary>
+    /// Включён ли раунд «Выживший» в пуле доступных раундов.
+    /// Если <c>false</c>, раунд не будет зарегистрирован и не выпадет.
+    /// </summary>
     public bool Enable { get; set; } = true;
-    
-    // Включить музыку, которая будет проигрываться в начале раунда.
+
+    /// <summary>
+    /// Проигрывать ли музыку (<see cref="MusicSoundName"/>) в начале раунда.
+    /// </summary>
     public bool IsMusicEnabled { get; set; } = true;
-    
-    // Вероятность выпадения раунда.
+
+    /// <summary>
+    /// Относительный вес раунда при случайном выборе.
+    /// Чем больше значение, тем выше шанс выпадения относительно других
+    /// включённых раундов (это вес, а не процент).
+    /// </summary>
     public int Chance { get; set; } = 1;
-    
-    // Название музыкального ивента.
+
+    /// <summary>
+    /// Имя звукового события, проигрываемого в начале раунда.
+    /// Учитывается только при <see cref="IsMusicEnabled"/> = <c>true</c>.
+    /// </summary>
     public string MusicSoundName { get; set; } = "ZombiePlagueAbility.Survivor";
-    
-    // Модель выжившего.
-    public string SurvivorModel { get; set; } = "characters/models/nozb1/nanosuit_player_model/nanosuit_player_model.vmdl";
-    
-    // Количество дополнительного здоровья выжившего, за каждого игрока.
+
+    /// <inheritdoc cref="ISurvivorConfig.SurvivorModel"/>
+    public string SurvivorModel { get; set; } =
+        "characters/models/nozb1/nanosuit_player_model/nanosuit_player_model.vmdl";
+
+    /// <inheritdoc cref="ISurvivorConfig.SurvivorBonusHealthPerZombie"/>
     public int SurvivorBonusHealthPerZombie { get; set; } = 150;
 }
 
 public sealed class ArmageddonConfig : IRoundConfig, ISurvivorConfig, INemesisConfig
 {
-    // Включить раунд армагеддон.
+    /// <summary>
+    /// Включён ли раунд «Армагеддон» в пуле доступных раундов.
+    /// Если <c>false</c>, раунд не будет зарегистрирован и не выпадет.
+    /// </summary>
     public bool Enable { get; set; } = true;
-    
-    // Включить музыку, которая будет проигрываться в начале раунда.
+
+    /// <summary>
+    /// Проигрывать ли музыку (<see cref="MusicSoundName"/>) в начале раунда.
+    /// </summary>
     public bool IsMusicEnabled { get; set; } = true;
-    
-    // Вероятность выпадения раунда.
+
+    /// <summary>
+    /// Относительный вес раунда при случайном выборе.
+    /// Чем больше значение, тем выше шанс выпадения относительно других
+    /// включённых раундов (это вес, а не процент).
+    /// </summary>
     public int Chance { get; set; } = 2;
-    
-    // Количество дополнительного здоровья немезиды, за каждого игрока.
+
+    /// <inheritdoc cref="INemesisConfig.NemesisBonusHealthPerPlayer"/>
     public int NemesisBonusHealthPerPlayer { get; set; } = 1000;
-    
-    // Название музыкального ивента.
+
+    /// <summary>
+    /// Имя звукового события, проигрываемого в начале раунда.
+    /// Учитывается только при <see cref="IsMusicEnabled"/> = <c>true</c>.
+    /// </summary>
     public string MusicSoundName { get; set; } = "ZombiePlagueAbility.Armageddon";
 
-    // Модель выжившего.
-    public string SurvivorModel { get; set; } = "characters/models/nozb1/nanosuit_player_model/nanosuit_player_model.vmdl";
+    /// <inheritdoc cref="ISurvivorConfig.SurvivorModel"/>
+    public string SurvivorModel { get; set; } =
+        "characters/models/nozb1/nanosuit_player_model/nanosuit_player_model.vmdl";
 
-    // Количество дополнительного здоровья выжившего, за каждого игрока.
+    /// <inheritdoc cref="ISurvivorConfig.SurvivorBonusHealthPerZombie"/>
     public int SurvivorBonusHealthPerZombie { get; set; } = 100;
-    
-    // Дополнительный урон, который наносит немезида.
-    public int NemesisExtraDamage  { get; set; } = 125;
+
+    /// <summary>
+    /// Дополнительный урон, наносимый немезидой по людям.
+    /// </summary>
+    public int NemesisExtraDamage { get; set; } = 125;
 }
