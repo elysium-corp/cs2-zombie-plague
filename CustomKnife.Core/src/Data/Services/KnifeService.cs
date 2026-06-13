@@ -110,7 +110,7 @@ public class KnifeService(ISwiftlyCore core) : IKnifeService
 
         var victim = @event.Params.Entity.Address.FindPlayerByPawnAddress();
 
-        if (victim == null || !victim.IsValid || !victim.IsAlive)
+        if (victim == null || victim.PlayerPawn ==  null || !victim.PlayerPawn.IsValid || !victim.IsAlive)
         {
             return false;
         }

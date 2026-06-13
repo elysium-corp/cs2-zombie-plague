@@ -21,7 +21,7 @@ public class ZombieCleric : IZClassConfig
     public float Speed { get; set; } = 260f;
     public float Knockback { get; set; } = 0.9f;
     public int Gravity { get; set; } = 600;
-    public List<string> HurtSounds { get; set; } = ["ZombiePlagueSounds.zombie_hurt_1"];
+    public List<string> HurtSounds { get; set; } = ["ZombiePlagueSounds.zombie_pain_1"];
     public List<string> Abilities { get; set; } = ["heal"];
 }
 
@@ -36,7 +36,7 @@ public class ZombieHunter : IZClassConfig
     public float Speed { get; set; } = 260f;
     public float Knockback { get; set; } = 0.9f;
     public int Gravity { get; set; } = 600;
-    public List<string> HurtSounds { get; set; } = ["ZombiePlagueSounds.zombie_hurt_1"];
+    public List<string> HurtSounds { get; set; } = ["ZombiePlagueSounds.zombie_hurt_2"];
     public List<string> Abilities { get; set; } = [];
 }
 
@@ -51,7 +51,7 @@ public class ZombieAssassin : IZClassConfig
     public float Speed { get; set; } = 280f;
     public float Knockback { get; set; } = 0.9f;
     public int Gravity { get; set; } = 600;
-    public List<string> HurtSounds { get; set; } = ["ZombiePlagueSounds.zombie_hurt_1"];
+    public List<string> HurtSounds { get; set; } = ["ZombiePlagueSounds.zombie_hurt_3"];
     public List<string> Abilities { get; set; } = [];
 }
 
@@ -66,7 +66,7 @@ public class ZombieHeavy : IZClassConfig
     public float Speed { get; set; } = 250f;
     public float Knockback { get; set; } = 0.9f;
     public int Gravity { get; set; } = 700;
-    public List<string> HurtSounds { get; set; } = ["ZombiePlagueSounds.zombie_hurt_1"];
+    public List<string> HurtSounds { get; set; } = ["ZombiePlagueSounds.zombie_hurt_4"];
     public List<string> Abilities { get; set; } = [];
 }
 
@@ -81,7 +81,7 @@ public class ZombieSmoker : IZClassConfig
     public float Speed { get; set; } = 250f;
     public float Knockback { get; set; } = 0.9f;
     public int Gravity { get; set; } = 800;
-    public List<string> HurtSounds { get; set; } = ["ZombiePlagueSounds.zombie_hurt_1"];
+    public List<string> HurtSounds { get; set; } = ["ZombiePlagueSounds.zombie_hurt_5"];
     public List<string> Abilities { get; set; } = [];
 }
 
@@ -96,6 +96,6 @@ public class ZombieNemesis : IZClassConfig
     public float Speed { get; set; } = 280f;
     public float Knockback { get; set; } = 1f;
     public int Gravity { get; set; } = 400;
-    public List<string> HurtSounds { get; set; } = ["ZombiePlagueSounds.zombie_hurt_1"];
+    public List<string> HurtSounds { get; set; } = ["ZombiePlagueSounds.zombie_hurt_2"];
     public List<string> Abilities { get; set; } = [];
 }

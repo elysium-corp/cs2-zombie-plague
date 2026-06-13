@@ -42,7 +42,6 @@
 
     <ItemGroup>
         <Folder Include="resources\exports\"/>
-        <Folder Include="src\Data\Rounds\Behaviors\" />
     </ItemGroup>
 
     <Target Name="CreateZip" AfterTargets="Publish">

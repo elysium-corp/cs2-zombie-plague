@@ -90,6 +90,7 @@ internal sealed class ZombieManager(
         {
             customEventService.FireFakeDeath(infector, player);
             eventPublisher.OnPlayerInfectedBy(infector, player);
+            SoundExt.PlayAt(player, "ZombiePlagueSounds.zombie_transformation_1", 1);
         }
 
         eventPublisher.OnPlayerInfected(player);

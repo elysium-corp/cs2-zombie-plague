@@ -1,10 +1,9 @@
 using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;
-using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.GameEventDefinitions;
+using SwiftlyS2.Shared.GameHooks;
 using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Players;
-using SwiftlyS2.Shared.Sounds;
 using ZombiePlague.Api.Data;
 using ZombiePlague.Api.Events;
 using ZombiePlague.Core.Config.Round;
@@ -12,69 +11,67 @@ using ZombiePlague.Core.Data.Rounds;
 using ZombiePlague.Core.Data.Rounds.Contracts;
 using ZombiePlague.Core.Di;
 using ZombiePlague.Core.Utils;
+using ZombiePlague.Core.Utils.Extensions;
 using ZombiePlague.Core.Utils.Helpers;
 using ZPCore.Config.Core;
 using ZPCore.Config.Round;
 
 namespace ZombiePlague.Core.Data.Managers;
 
-internal sealed class RoundManager(ISwiftlyCore core, IEventPublisher eventPublisher, IRoundFactory roundFactory, IOptions<ZombiePlagueCoreConfig> coreConfig, IOptions<RoundConfig> roundConfig)
+internal sealed class RoundManager(
+    ISwiftlyCore core,
+    IEventPublisher eventPublisher,
+    IRoundFactory roundFactory,
+    IOptions<ZombiePlagueCoreConfig> coreConfig,
+    IOptions<RoundConfig> roundConfig)
 {
     private readonly ZombieManager _zombieManager = DependencyManager.GetService<ZombieManager>();
     private readonly HumanManager _humanManager = DependencyManager.GetService<HumanManager>();
-    
+
     private readonly List<IRound> _rounds = [];
     private IRound _currentRound = new None();
 
     private CancellationTokenSource? _token;
-    
-    private Guid _onRoundStartEvent;
-    private Guid _onRoundEndEvent;
-    private Guid _onGameRestartEvent;
-    private Guid _onPlayerHurtEvent;
-    private Guid _onPlayerConnectEvent;
-    
+    private int _preRoundTime;
+    private bool _countdownSoundActive;
+
     public void RegisterHooks()
     {
-        _onRoundStartEvent = core.GameEvent.HookPre<EventRoundStart>(OnRoundStart);
-        _onRoundEndEvent = core.GameEvent.HookPost<EventRoundEnd>(OnRoundEnd);
-        _onPlayerHurtEvent = core.GameEvent.HookPre<EventPlayerHurt>(OnPlayerHurt);
-        _onGameRestartEvent = core.GameEvent.HookPost<EventCsPreRestart>(OnGameRestart);
-        _onPlayerConnectEvent = core.GameEvent.HookPost<EventPlayerConnectFull>(OnPlayerConnectFull);
-        core.Event.OnEntityTakeDamage += OnEntityTakeDamage;
+        core.GameEvent.HookPre<EventRoundStart>(OnRoundStart);
+        core.GameEvent.HookPost<EventRoundEnd>(OnRoundEnd);
+        core.GameEvent.HookPost<EventCsPreRestart>(OnGameRestart);
+        core.GameEvent.HookPost<EventPlayerConnectFull>(OnPlayerConnectFull);
+        core.GameHooks.Entities.TakeDamage.Pre += OnEntityTakeDamage;
     }
 
     public List<IRound> GetRegisteredRounds()
     {
         return _rounds;
     }
-    
+
     public void RegisterRounds()
     {
         _rounds.Clear();
 
         var roundConfigProperties = roundConfig.Value.GetType()
             .GetProperties();
-        
+
         _rounds.Add(roundFactory.Create(null, this));
-        
+
         foreach (var property in roundConfigProperties)
         {
-            var round = (IRoundConfig) property.GetValue(roundConfig.Value);
-            
-            if (round != null && round.Enable)
+            if (property.GetValue(roundConfig.Value) is IRoundConfig { Enable: true } round)
             {
-                var instance = roundFactory.Create(round, this);
-                _rounds.Add(instance);
+                _rounds.Add(roundFactory.Create(round, this));
             }
         }
     }
-    
+
     public bool IsNoneRound()
     {
         return _currentRound is None;
     }
-    
+
     public void SetRound(IRound round)
     {
         _currentRound = round;
@@ -100,13 +97,12 @@ internal sealed class RoundManager(ISwiftlyCore core, IEventPublisher eventPubli
 
         return HookResult.Continue;
     }
-    
+
     private HookResult OnRoundStart(EventRoundStart @event)
     {
-
         _zombieManager.RemoveAll();
         CancelToken();
-        
+
         TeamHelper.MoveAllPlayersToTeam(Team.CT);
         RenderColorHelper.AllResetRenderColor();
 
@@ -114,32 +110,27 @@ internal sealed class RoundManager(ISwiftlyCore core, IEventPublisher eventPubli
 
         if (IsRoundAvailable())
         {
-            Start();
+            StartPreRound();
         }
 
         return HookResult.Continue;
     }
 
-    private void OnEntityTakeDamage(IOnEntityTakeDamageEvent @event)
+    private void OnEntityTakeDamage(ref TakeDamageEntityPreContext @event)
     {
         if (IsNoneRound())
         {
-            @event.Info.Damage = 0;
+            @event.Params.Info.Damage = 0;
         }
     }
 
-    private HookResult OnPlayerHurt(EventPlayerHurt @event)
-    {
-        return IsNoneRound() ? HookResult.Stop : HookResult.Continue;
-    }
-    
     private HookResult OnRoundEnd(EventRoundEnd @event)
     {
         _currentRound.End();
 
         return HookResult.Continue;
     }
-    
+
     private HookResult OnGameRestart(EventCsPreRestart @event)
     {
         _currentRound.End();
@@ -147,41 +138,47 @@ internal sealed class RoundManager(ISwiftlyCore core, IEventPublisher eventPubli
         return HookResult.Continue;
     }
 
-    private void Start()
+    private void StartPreRound()
     {
+        _preRoundTime = 0;
+        _countdownSoundActive = false;
+
+        SoundExt.PlayGlobal("ZombiePlagueSounds.round_start", 2f);
+
         var roundStartTime = coreConfig.Value.PreStartDelay;
-        var localTime = 0;
-        bool soundIsActive = false;
+        _token = core.Scheduler.RepeatBySeconds(1, () => OnPreRoundTick(roundStartTime));
+    }
 
-        StartRoundMusic();
-            
-        _token = core.Scheduler.RepeatBySeconds(1, () =>
+    private void OnPreRoundTick(int roundStartTime)
+    {
+        _preRoundTime += 1;
+
+        core.PlayerManager.SendCenterAsync("До заражения " + (roundStartTime - _preRoundTime) + " секунд");
+
+        if (roundStartTime - _preRoundTime <= 11 && !_countdownSoundActive)
         {
-            localTime += 1;
-            core.PlayerManager.SendCenterAsync("До заражения " + (roundStartTime - localTime) + " секунд");
+            SoundExt.PlayGlobal("ZombiePlagueSounds.countdown", 3f);
+            _countdownSoundActive = true;
+        }
 
-            if (roundStartTime - localTime <= 11 && !soundIsActive)
-            {
-                soundIsActive = StartCountdownSound();
-            }
+        if (_preRoundTime < roundStartTime)
+        {
+            return;
+        }
 
-            if (localTime >= roundStartTime)
-            {
-                if (IsNoneRound())
-                {
-                    SetRound(ResolveRandomRound());
-                }
-                else
-                {
-                    SetRound(_currentRound);
-                }
-                
-                _currentRound.Start();
-                _token?.Cancel();
-                
-                eventPublisher.OnGameRoundStarted(_currentRound);
-            }
-        });
+        if (IsNoneRound())
+        {
+            SetRound(ResolveRandomRound());
+        }
+        else
+        {
+            SetRound(_currentRound);
+        }
+
+        _currentRound.Start();
+        _token?.Cancel();
+
+        eventPublisher.OnGameRoundStarted(_currentRound);
     }
 
     private bool IsRoundAvailable()
@@ -201,32 +198,6 @@ internal sealed class RoundManager(ISwiftlyCore core, IEventPublisher eventPubli
         _token?.Cancel();
     }
 
-    private void StartRoundMusic()
-    {
-        using var soundEvent = new SoundEvent()
-        {
-            Volume = 2,
-            Name = "ZombiePlagueSounds.round_start",
-            SourceEntityIndex = -1
-        };
-        soundEvent.Recipients.AddAllPlayers();
-        soundEvent.Emit();
-    }
-    
-    private bool StartCountdownSound()
-    {
-        using var soundEvent = new SoundEvent()
-        {
-            Volume = 3,
-            Name = "ZombiePlagueSounds.countdown",
-            SourceEntityIndex = -1
-        };
-        soundEvent.Recipients.AddAllPlayers();
-        soundEvent.Emit();
-
-        return true;
-    }
-
     private IRound ResolveRandomRound()
     {
         var totalWeight = 0;
@@ -237,11 +208,11 @@ internal sealed class RoundManager(ISwiftlyCore core, IEventPublisher eventPubli
 
         var randomWeight = Numeric.Random(1, ++totalWeight);
         var currentWeight = 0;
-        
+
         foreach (var round in _rounds)
         {
             currentWeight += round.Chance;
-            
+
             if (randomWeight <= currentWeight)
             {
                 return round;
