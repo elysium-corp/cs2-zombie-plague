@@ -1,0 +1,57 @@
+name: Build
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - develop
+      - master
+  push:
+    branches:
+      - develop
+      - master
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  DOTNET_NOLOGO: "1"
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "1"
+
+jobs:
+  build:
+    name: Build .NET 10 solution
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Show .NET information
+        run: dotnet --info
+
+      - name: Restore dependencies
+        run: dotnet restore CS2ZombiePlague.sln
+
+      - name: Build solution
+        run: dotnet build CS2ZombiePlague.sln --configuration Release --no-restore
+
+      - name: Upload plugin artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: cs2-zombie-plague-${{ github.sha }}
+          path: output/**
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 6
