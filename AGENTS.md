@@ -8,7 +8,7 @@ contracts and shared infrastructure.
 
 ## Build and validation
 
-Use the following commands from the repository root:
+Run these commands from the repository root:
 
 ```bash
 dotnet restore CS2ZombiePlague.sln
@@ -24,79 +24,45 @@ from `bin/`, `obj/` or `output/`.
   depend on `*.Core` projects or implementation details.
 - `*.Core` projects contain plugin entry points, DI registrations, services,
   configuration and game-server integrations.
-- A Core plugin may consume another plugin only through its public shared API.
-  Do not introduce dependencies on another Core plugin's internal services.
-- `Common.*` projects contain reusable infrastructure and must not acquire
-  feature-specific business dependencies.
-- Preserve nullable annotations and backward compatibility of public API
-  contracts unless a breaking change is explicitly requested.
+- A Core plugin consumes another plugin only through its public shared API.
+- `Common.*` contains reusable infrastructure without feature-specific business
+  dependencies.
+- Preserve nullable annotations and backward compatibility of public contracts
+  unless a breaking change is explicitly requested.
 
-## SwiftlyS2 lifecycle
+## Lifecycle conventions
 
-The expected lifecycle is:
-
-1. `OnLoad` performs early setup without resolving DI services.
-2. The module builds its isolated `ServiceProvider`.
-3. `OnStart` initializes services that only need local dependencies.
-4. Shared APIs are published and consumed.
-5. `OnReady` subscribes to external events and starts game logic.
-6. `OnUnload` unsubscribes hooks and events while dependencies are available.
-7. The module destroys and disposes its DI container.
-8. `OnStop` performs final cleanup without resolving disposed services.
-
-Every subscription must have a matching unsubscription. Timers, callbacks and
-background work must not access plugin state after unload. Disposable services
-and the module `ServiceProvider` must be released exactly once.
+`OnLoad` performs early setup, then the module builds its isolated DI container.
+`OnStart` initializes local services. Shared APIs are published and consumed
+before `OnReady` subscribes to external events and starts gameplay logic.
+`OnUnload` must stop background work and unsubscribe hooks while dependencies are
+still available. The DI container is then destroyed and `OnStop` performs final
+cleanup without resolving disposed services.
 
 ## Code Review Rules
 
-Write review comments in Russian. Keep reviews concise and report only concrete,
-actionable defects with meaningful correctness, reliability, security or
-compatibility impact. Do not report formatting preferences, naming nits or
-speculative improvements as defects. If the change is safe, do not invent a
-finding.
+Write review comments in Russian. Report only concrete, actionable defects with
+meaningful correctness, reliability, security or compatibility impact. Do not
+report formatting, naming preferences or speculative improvements. If the
+change is safe, return no finding. Every finding must state the failing runtime
+condition, its impact and the smallest reasonable correction direction.
 
-### Public contracts and module boundaries
+### Contracts and module boundaries
 
-- Flag breaking changes to public interfaces, DTOs, events, nullability or
-  shared-interface behavior when consumers are not migrated in the same change.
-- Flag `Api -> Core` dependencies and access to another Core plugin's internal
-  implementation.
-- Check that new project references preserve the intended dependency direction
-  and do not introduce circular dependencies.
+Flag a change only when it breaks a public API/DTO/event/nullability contract
+without migrating consumers, introduces an `Api -> Core` dependency, accesses
+another Core plugin's internals, or creates a dependency cycle.
 
-### Lifecycle and resources
+### Plugin lifecycle and runtime safety
 
-- Flag event or hook registrations without symmetric cleanup.
-- Flag DI access before module creation or after container destruction.
-- Flag callbacks, timers or asynchronous work that can execute after unload or
-  use disposed services.
-- Check reload behavior for duplicate handlers, leaked state and cleanup that is
-  not idempotent.
+Flag subscriptions without symmetric cleanup, DI access outside the container
+lifetime, callbacks/timers/tasks that can run after unload, duplicate handlers
+on reload, or unsafe shared state. For gameplay changes, identify the concrete
+player, round or infection state that becomes stale or invalid.
 
-### Gameplay correctness
+### Build, resources and live-server impact
 
-- Check player validity and connection state before accessing player entities.
-- Check round transitions, infection state and delayed callbacks for races or
-  stale state.
-- Treat shared mutable collections, singleton state and static state as
-  potentially concurrent; flag unsafe mutation when callbacks may overlap.
-- Flag unbounded loops, timers, allocations or per-tick work that can degrade a
-  live game server.
-
-### Configuration and packaging
-
-- Check JSON configuration, gamedata, templates and translations against their
-  C# models, required fields and default behavior.
-- Ensure required resources are copied into Core plugin output and path casing
-  works on Linux.
-- Flag changes that compile locally but omit files required by the packaged
-  plugin.
-
-### Verification expectations
-
-- Ensure the entire `CS2ZombiePlague.sln` remains buildable on .NET 10.
-- For behavior changes, expect focused tests when the code is testable without a
-  live CS2 server, or request a concrete manual verification scenario.
-- Each finding must explain the failing condition, its impact and the smallest
-  reasonable correction direction.
+Flag changes that break the .NET 10 solution build, omit required configuration,
+gamedata, templates or translations from plugin output, depend on incorrect
+path casing on Linux, or introduce unbounded per-tick work that can degrade the
+live CS2 server.
