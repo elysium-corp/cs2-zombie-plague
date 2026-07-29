@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Options;
-using SwiftlyS2.Shared;
+﻿using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Misc;
@@ -7,12 +6,11 @@ using SwiftlyS2.Shared.Players;
 using ZombiePlague.Core.Config.Round;
 using ZombiePlague.Core.Data.Humans;
 using ZombiePlague.Core.Utils.Extensions;
-using ZPCore.Config.Core;
 using IEventSubscriber = ZombiePlague.Api.Events.IEventSubscriber;
 
 namespace ZombiePlague.Core.Data.Managers;
 
-internal sealed class HumanManager(ISwiftlyCore core, IEventSubscriber eventSubscriber, IOptions<ZombiePlagueCoreConfig> config)
+internal sealed class HumanManager(ISwiftlyCore core, IEventSubscriber eventSubscriber) : IHumanManager
 {
     private readonly Dictionary<IPlayer, Human> _humans = new();
     

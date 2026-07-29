@@ -13,7 +13,7 @@ namespace ZombiePlague.Core.Data.Rounds;
 internal sealed class Infection(
     ISwiftlyCore core,
     RoundManager roundManager,
-    ZombieManager zombieManager,
+    IZombieManager zombieManager,
     InfectionConfig config) : InfectiousRound(core, roundManager, zombieManager)
 {
     public override int Chance => config.Chance;
@@ -27,14 +27,14 @@ internal sealed class Infection(
         var players = Core.PlayerManager.GetAlive().ToList();
         IPlayer firstZombie;
 
-        if (ZombieManager.GetAllZombies().Any())
+        if (zombieManager.GetAllZombies().Any())
         {
-            firstZombie = ZombieManager.GetAllZombies().First().Value.Player;
+            firstZombie = zombieManager.GetAllZombies().First().Value.Player;
         }
         else
         {
             firstZombie = players[Random.Shared.Next(0, players.Count)];
-            ZombieManager.CreateZombie(firstZombie);
+            zombieManager.CreateZombie(firstZombie);
         }
 
         if (config.FirstZombieIsInvisible)

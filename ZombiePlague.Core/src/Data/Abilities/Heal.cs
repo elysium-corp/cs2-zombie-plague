@@ -7,22 +7,19 @@ using SwiftlyS2.Shared.Sounds;
 using ZombiePlague.Core.Config.Ability;
 using ZombiePlague.Core.Data.Abilities.Contracts;
 using ZombiePlague.Core.Data.Managers;
-using ZombiePlague.Core.Di;
 using ZombiePlague.Core.Utils;
 using ZombiePlague.Core.Utils.Extensions;
 
 namespace ZombiePlague.Core.Data.Abilities;
 
-internal sealed class Heal(ISwiftlyCore core, HealConfig config) : BaseActiveAbility(core)
+internal sealed class Heal(ISwiftlyCore core, HealConfig config, IZombieManager zombieManager) : BaseActiveAbility(core)
 {
     public override KeyKind? Key => KeyKind.E;
 
     public override float Cooldown => config.CooldownTime;
 
     private const float EyePositionZ = 64f;
-
-    private readonly ZombieManager _zombieManager = DependencyManager.GetService<ZombieManager>();
-
+    
     public override void Use()
     {
         var casterPawn = Caster.RequiredPlayerPawn;
@@ -111,7 +108,7 @@ internal sealed class Heal(ISwiftlyCore core, HealConfig config) : BaseActiveAbi
     {
         var currentHp = targetPawn.Health;
         var newHp = currentHp + config.HealAmount;
-        var maxTargetHp = _zombieManager.GetZombie(target.PlayerID).ZClass.Health;
+        var maxTargetHp = zombieManager.GetZombie(target).ZClass.Health;
 
         if (newHp >= maxTargetHp)
         {

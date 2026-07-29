@@ -8,13 +8,15 @@ namespace ZombiePlague.Core.Data.Rounds;
 internal sealed class Plague(
     ISwiftlyCore core,
     RoundManager roundManager,
-    ZombieManager zombieManager,
+    IZombieManager zombieManager,
     PlagueConfig config) : InfectiousRound(core, roundManager, zombieManager)
 {
     public override int Chance => config.Chance;
     public override string Name => "Чума";
     protected override bool ZombieRevived => config.ZombieRevived;
     protected override float ZombieSpawnTime => config.ZombieSpawnTime;
+    
+    private readonly IZombieManager _zombieManager = zombieManager;
 
     protected override void OnInfectiousStart()
     {
@@ -26,7 +28,7 @@ internal sealed class Plague(
         {
             if (player.IsValid)
             {
-                ZombieManager.CreateZombie(player);
+                _zombieManager.CreateZombie(player);
                 countZombies--;
             }
 

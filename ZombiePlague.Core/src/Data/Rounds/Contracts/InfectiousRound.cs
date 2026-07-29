@@ -8,8 +8,8 @@ using ZombiePlague.Core.Utils.Extensions;
 
 namespace ZombiePlague.Core.Data.Rounds.Contracts;
 
-internal abstract class InfectiousRound(ISwiftlyCore core, RoundManager roundManager, ZombieManager zombieManager)
-    : BaseRound(core, roundManager, zombieManager)
+internal abstract class InfectiousRound(ISwiftlyCore core, RoundManager roundManager, IZombieManager zombieManager)
+    : BaseRound(core, roundManager)
 {
     private Guid _onPlayerDeathEvent;
     private Guid _onPlayerConnectFullEvent;
@@ -38,15 +38,10 @@ internal abstract class InfectiousRound(ISwiftlyCore core, RoundManager roundMan
             Core.GameEvent.Unhook(_onPlayerDeathEvent);
             Core.GameEvent.Unhook(_onPlayerConnectFullEvent);
         }
-
-        OnInfectiousEnd();
     }
 
     protected abstract void OnInfectiousStart();
-
-    protected virtual void OnInfectiousEnd()
-    {
-    }
+    
 
     private void OnEntityTakeDamage(ref TakeDamageEntityPreContext @event)
     {
@@ -81,7 +76,7 @@ internal abstract class InfectiousRound(ISwiftlyCore core, RoundManager roundMan
         && !victim.IsInfected() && !victim.IsLastHuman();
 
     protected virtual void Infect(IPlayer attacker, IPlayer victim) =>
-        ZombieManager.CreateZombie(victim, attacker);
+        zombieManager.CreateZombie(victim, attacker);
 
     protected virtual HookResult OnPlayerDeath(EventPlayerDeath @event)
     {
@@ -93,7 +88,7 @@ internal abstract class InfectiousRound(ISwiftlyCore core, RoundManager roundMan
                 return;
             }
 
-            ZombieManager.Respawn(player);
+            zombieManager.Respawn(player);
         });
 
         return HookResult.Continue;
@@ -109,7 +104,7 @@ internal abstract class InfectiousRound(ISwiftlyCore core, RoundManager roundMan
                 return;
             }
 
-            ZombieManager.Respawn(player);
+            zombieManager.Respawn(player);
         });
 
         return HookResult.Continue;

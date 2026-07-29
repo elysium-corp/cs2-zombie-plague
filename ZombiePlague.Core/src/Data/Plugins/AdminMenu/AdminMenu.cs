@@ -9,7 +9,7 @@ using ZombiePlague.Core.Utils.Extensions;
 
 namespace ZombiePlague.Core.Data.Plugins.AdminMenu;
 
-internal class AdminMenu(ISwiftlyCore core, RoundManager roundManager, ZombieManager zombieManager)
+internal class AdminMenu(ISwiftlyCore core, RoundManager roundManager, IZombieManager zombieManager)
 {
     public void Load()
     {

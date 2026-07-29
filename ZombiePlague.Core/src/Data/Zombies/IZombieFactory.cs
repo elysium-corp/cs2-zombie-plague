@@ -1,13 +1,11 @@
-﻿using SwiftlyS2.Shared;
-using SwiftlyS2.Shared.Players;
-using ZombiePlague.Core.Data.Managers;
+﻿using SwiftlyS2.Shared.Players;
 using ZombiePlague.Core.Data.Zombies.ZClasses;
-using ZPCore.Data.Zombies;
 
 namespace ZombiePlague.Core.Data.Zombies;
 
 internal interface IZombieFactory
 {
-    public Zombie Create(ISwiftlyCore core, ZombieManager zombieManager, IPlayer player, IZClass izClass,
-        bool isNemesis = false);
+    public Zombie Create(IPlayer player, IZClass izClass, bool isNemesis = false);
+
+    public Zombie Create<TClass>(IPlayer player, bool isNemesis = false) where TClass : IZClass;
 }

@@ -6,7 +6,7 @@ using ZPCore.Config.Round;
 
 namespace ZombiePlague.Core.Data.Rounds.Contracts;
 
-internal class RoundFactory(ISwiftlyCore core, ZombieManager zombieManager, HumanManager humanManager) : IRoundFactory
+internal class RoundFactory(ISwiftlyCore core, IZombieManager zombieManager, HumanManager humanManager) : IRoundFactory
 {
     public IRound Create(IRoundConfig? config, RoundManager roundManager)
     {

@@ -4,7 +4,6 @@ using Common.Effects.Effects;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Players;
 using ZombiePlague.Core.Data.Managers;
-using ZombiePlague.Core.Di;
 
 namespace ZombiePlague.Core.Utils.Extensions;
 
@@ -71,8 +70,10 @@ internal static class PlayerExtensions
             {
                 return;
             }
+            
+            var core = DependencyResolver.GetRequiredService<ISwiftlyCore>();
         
-            DependencyManager.GetService<ISwiftlyCore>().Scheduler.NextWorldUpdateAsync(() =>
+            core.Scheduler.NextWorldUpdateAsync(() =>
             {
                 player.Pawn?.SetModel(modelPath);
             });
@@ -80,31 +81,36 @@ internal static class PlayerExtensions
 
         public bool IsInfected()
         {
-            var allZombies = DependencyManager.GetService<ZombieManager>().GetAllZombies();
+            var zombieManager = DependencyResolver.GetRequiredService<IZombieManager>();
+            var allZombies = zombieManager.GetAllZombies();
             return allZombies.ContainsKey(player.PlayerID);
         }
 
         public bool IsNemesis()
         {
-            var zombie = DependencyManager.GetService<ZombieManager>().GetZombie(player.PlayerID);
+            var zombieManager = DependencyResolver.GetRequiredService<IZombieManager>();
+            var zombie = zombieManager.GetZombie(player);
             return zombie?.IsNemesis ?? false;
     }
         
         public bool IsHuman()
         {
-            var allHumans = DependencyManager.GetService<HumanManager>().GetAllHumanPlayers();
+            var humanManager = DependencyResolver.GetRequiredService<HumanManager>();
+            var allHumans = humanManager.GetAllHumanPlayers();
             return allHumans.Contains(player);
         }
 
         public bool IsLastHuman()
         {
-            var humanCount = DependencyManager.GetService<HumanManager>().GetHumanCount();
+            var humanManager = DependencyResolver.GetRequiredService<HumanManager>();
+            var humanCount = humanManager.GetHumanCount();
             return player.IsHuman() && humanCount == 1;
         }
 
         public bool IsSurvivor()
         {
-            var human = DependencyManager.GetService<HumanManager>().GetHuman(player);
+            var humanManager = DependencyResolver.GetRequiredService<HumanManager>();
+            var human = humanManager.GetHuman(player);
             return human?.IsSurvivor ?? false;
         }
 

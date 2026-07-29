@@ -4,7 +4,6 @@ using ZombiePlague.Core.Data.Managers;
 using ZombiePlague.Core.Data.Zombies.Controller;
 using ZombiePlague.Core.Data.Zombies.ZClasses;
 using ZombiePlague.Core.Utils.Extensions;
-using ZPCore.Data.Zombies.Controller;
 
 namespace ZombiePlague.Core.Data.Zombies;
 
@@ -13,17 +12,19 @@ internal class Zombie : IZombie
     public IPlayer Player { get; }
     public IZClass ZClass { get; private set; }
     public bool IsNemesis { get; }
-    public ISoundController? SoundController {get; private set;}
+    public ISoundController? SoundController { get; private set; }
     
-    private readonly ZombieManager _zombieManager;
+    private readonly IZombieManager _zombieManager;
+    private readonly ISwiftlyCore _core;
 
-    public Zombie(ISwiftlyCore core, ZombieManager zombieManager, IPlayer player, IZClass zClass,
+    public Zombie(ISwiftlyCore core, IZombieManager zombieManager, IPlayer player, IZClass zClass,
         bool isNemesis = false)
     {
         Player = player;
         ZClass = zClass;
         IsNemesis = isNemesis;
         _zombieManager = zombieManager;
+        _core = core;
         
         core.Scheduler.NextWorldUpdate(Initialize);
     }
@@ -46,7 +47,7 @@ internal class Zombie : IZombie
         SetProperties();
         
         ZClass.Abilities.ForEach(zAbility => zAbility.SetCaster(Player));
-        SoundController = new ZombieSoundController(this);
+        SoundController = new ZombieSoundController(_core, this);
         
         Player.SendAlert("Ваш класс => " + ZClass.DisplayName);
     }

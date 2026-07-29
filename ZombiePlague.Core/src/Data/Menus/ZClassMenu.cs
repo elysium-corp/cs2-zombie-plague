@@ -3,13 +3,13 @@ using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Menus;
 using SwiftlyS2.Shared.Players;
 using ZombiePlague.Core.Data.Menus.Contracts;
+using ZombiePlague.Core.Data.Zombies;
 using ZombiePlague.Core.Data.Zombies.ZClasses;
-using ZombiePlague.Core.Di;
 using ZombiePlague.Core.Utils.Helpers;
 
 namespace ZombiePlague.Core.Data.Menus;
 
-internal class ZClassMenu(ISwiftlyCore core) : IZClassMenu
+internal class ZClassMenu(ISwiftlyCore core, IZClassFactory zClassFactory) : IZClassMenu
 {
     private readonly Dictionary<IPlayer, IZClass> _playersZClass = new();
 
@@ -37,7 +37,7 @@ internal class ZClassMenu(ISwiftlyCore core) : IZClassMenu
             return zClass;
         }
 
-        return _playersZClass[player] = DependencyManager.GetService<ZCleric>();
+        return _playersZClass[player] = zClassFactory.Create<ZCleric>();
     }
 
     private IMenuAPI CreateMenu()
@@ -55,9 +55,9 @@ internal class ZClassMenu(ISwiftlyCore core) : IZClassMenu
         return builder.Build();
     }
     
-    private void AddZClassOption<T>(IMenuBuilderAPI builder) where T : IZClass
+    private void AddZClassOption<TClass>(IMenuBuilderAPI builder) where TClass : IZClass
     {
-        var zClass = DependencyManager.GetService<T>();
+        var zClass = zClassFactory.Create<TClass>();
         var button = new ButtonMenuOption($"{zClass.DisplayName} {HtmlHelper.TextWithColor(zClass.Description, "#FFFF00")}");
 
         button.Click += (_, args) =>
@@ -66,7 +66,7 @@ internal class ZClassMenu(ISwiftlyCore core) : IZClassMenu
             
             _playersZClass[player] = zClass;
             
-            core.MenusAPI.CloseActiveMenu(@args.Player);
+            core.MenusAPI.CloseActiveMenu(args.Player);
             
             core.PlayerManager.SendCenterAsync($"{zClass.DisplayName} успешно выбран!");
             

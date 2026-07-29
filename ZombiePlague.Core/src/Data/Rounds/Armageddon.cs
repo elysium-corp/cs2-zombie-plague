@@ -10,9 +10,9 @@ namespace ZombiePlague.Core.Data.Rounds;
 internal sealed class Armageddon(
     ISwiftlyCore core,
     RoundManager roundManager,
-    ZombieManager zombieManager,
-    HumanManager humanManager,
-    ArmageddonConfig config) : BaseRound(core, roundManager, zombieManager)
+    IZombieManager zombieManager,
+    IHumanManager humanManager,
+    ArmageddonConfig config) : BaseRound(core, roundManager)
 {
     public override int Chance => config.Chance;
     public override string Name => "Армагеддон";
@@ -32,7 +32,7 @@ internal sealed class Armageddon(
             }
             else
             {
-                ZombieManager.SetNemesis(allPlayers[order], config);
+                zombieManager.SetNemesis(allPlayers[order], config);
             }
         }
 

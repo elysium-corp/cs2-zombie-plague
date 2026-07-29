@@ -7,12 +7,13 @@ using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
 using ZombiePlague.Api.Data;
 using ZombiePlague.Core.Data.Managers;
+using ZombiePlague.Core.Data.Zombies;
 using ZombiePlague.Core.Utils.Extensions;
 using ZPCore.Config.Core;
 
 namespace ZombiePlague.Core.Data;
 
-internal class Knockback(ISwiftlyCore core, ZombieManager zombieManager, IOptions<ZombiePlagueCoreConfig> config)
+internal class Knockback(ISwiftlyCore core, IZombieManager zombieManager, IOptions<ZombiePlagueCoreConfig> config) : IKnockback
 {
     private readonly Dictionary<string, KnockbackData> _weaponKnockback = new()
     {

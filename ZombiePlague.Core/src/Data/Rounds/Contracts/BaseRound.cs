@@ -4,12 +4,10 @@ using ZombiePlague.Core.Data.Managers;
 
 namespace ZombiePlague.Core.Data.Rounds.Contracts;
 
-internal abstract class BaseRound(ISwiftlyCore core, RoundManager roundManager, ZombieManager zombieManager)
-    : IRound
+internal abstract class BaseRound(ISwiftlyCore core, RoundManager roundManager) : IRound
 {
     protected readonly ISwiftlyCore Core = core;
     protected readonly RoundManager RoundManager = roundManager;
-    protected readonly ZombieManager ZombieManager = zombieManager;
 
     public abstract int Chance { get; }
     public abstract string Name { get; }

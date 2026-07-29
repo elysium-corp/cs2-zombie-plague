@@ -9,7 +9,6 @@ using ZombiePlague.Api.Events;
 using ZombiePlague.Core.Config.Round;
 using ZombiePlague.Core.Data.Rounds;
 using ZombiePlague.Core.Data.Rounds.Contracts;
-using ZombiePlague.Core.Di;
 using ZombiePlague.Core.Utils;
 using ZombiePlague.Core.Utils.Extensions;
 using ZombiePlague.Core.Utils.Helpers;
@@ -23,11 +22,11 @@ internal sealed class RoundManager(
     IEventPublisher eventPublisher,
     IRoundFactory roundFactory,
     IOptions<ZombiePlagueCoreConfig> coreConfig,
-    IOptions<RoundConfig> roundConfig)
+    IOptions<RoundConfig> roundConfig,
+    IZombieManager zombieManager,
+    HumanManager humanManager
+    )
 {
-    private readonly ZombieManager _zombieManager = DependencyManager.GetService<ZombieManager>();
-    private readonly HumanManager _humanManager = DependencyManager.GetService<HumanManager>();
-
     private readonly List<IRound> _rounds = [];
     private IRound _currentRound = new None();
 
@@ -92,7 +91,7 @@ internal sealed class RoundManager(
 
         if (IsNoneRound())
         {
-            _humanManager.Respawn(player);
+            humanManager.Respawn(player);
         }
 
         return HookResult.Continue;
@@ -100,7 +99,7 @@ internal sealed class RoundManager(
 
     private HookResult OnRoundStart(EventRoundStart @event)
     {
-        _zombieManager.RemoveAll();
+        zombieManager.RemoveAll();
         CancelToken();
 
         TeamHelper.MoveAllPlayersToTeam(Team.CT);

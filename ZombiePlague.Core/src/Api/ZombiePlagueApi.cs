@@ -6,13 +6,17 @@ using ZombiePlague.Api.Events;
 using ZombiePlague.Core.Data;
 using ZombiePlague.Core.Data.Managers;
 using ZombiePlague.Core.Data.Rounds;
-using ZombiePlague.Core.Di;
+using ZombiePlague.Core.Data.Zombies;
 using ZombiePlague.Core.Utils.Extensions;
-using ZPCore.Data;
 
 namespace ZombiePlague.Core.Api;
 
-public sealed class ZombiePlagueApi(IEventSubscriber eventSubscriber) : IZombiePlagueApi
+public sealed class ZombiePlagueApi(
+    IEventSubscriber eventSubscriber,
+    IZombieManager zombieManager,
+    IHumanManager humanManager,
+    IKnockback knockback
+    ) : IZombiePlagueApi
 {
     public IEventSubscriber EventSubscriber => eventSubscriber;
 
@@ -20,13 +24,11 @@ public sealed class ZombiePlagueApi(IEventSubscriber eventSubscriber) : IZombieP
     
     public bool IsSurvivor(IPlayer player)
     {
-        var humanManager =  DependencyManager.GetService<HumanManager>();
         return humanManager.IsSurvivor(player);
     }
 
     public bool IsNemesis(IPlayer player)
     {
-        var zombieManager =  DependencyManager.GetService<ZombieManager>();
         return zombieManager.IsNemesis(player);
     }
 
@@ -42,8 +44,7 @@ public sealed class ZombiePlagueApi(IEventSubscriber eventSubscriber) : IZombieP
     
     public void ApplyKnockBack(EventPlayerHurt @event, KnockbackData data)
     {
-        var knockbackSystem = DependencyManager.GetService<Knockback>();
-        knockbackSystem.TryApplyKnockback(@event, data);
+        knockback.TryApplyKnockback(@event, data);
     }
 
     public bool IsNoneRound(IRound round) => round is None;

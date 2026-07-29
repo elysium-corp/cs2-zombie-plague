@@ -11,8 +11,8 @@ namespace ZombiePlague.Core.Data.Rounds;
 internal sealed class Nemesis(
     ISwiftlyCore core,
     RoundManager roundManager,
-    ZombieManager zombieManager,
-    NemesisConfig config) : BaseRound(core, roundManager, zombieManager)
+    IZombieManager zombieManager,
+    NemesisConfig config) : BaseRound(core, roundManager)
 {
     public override int Chance => config.Chance;
     public override string Name => "Немезида";
@@ -24,7 +24,7 @@ internal sealed class Nemesis(
         var players = Core.PlayerManager.GetAlive().ToList();
         var nemesis = players[Random.Shared.Next(0, players.Count)];
 
-        ZombieManager.SetNemesis(nemesis, config);
+        zombieManager.SetNemesis(nemesis, config);
 
         foreach (var player in players)
         {

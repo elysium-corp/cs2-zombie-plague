@@ -1,22 +1,19 @@
+using Common.Di;
+using Common.Di.Utils;
 using Menu.Api;
 using Menu.Api.Data.Contracts;
 using Microsoft.Extensions.Options;
 using SwiftlyS2.Core.Menus.OptionsBase;
 using SwiftlyS2.Shared;
-using SwiftlyS2.Shared.Commands;
-using SwiftlyS2.Shared.Menus;
-using SwiftlyS2.Shared.Plugins;
 using ZombiePlague.Api;
 using ZombiePlague.Api.Events;
 using ZombiePlague.Core.Api;
-using ZombiePlague.Core.Data;
 using ZombiePlague.Core.Data.Managers;
-using ZombiePlague.Core.Data.Plugins.AdminMenu;
 using ZombiePlague.Core.Data.Plugins.ResourceLoader;
+using ZombiePlague.Core.Data.Zombies;
 using ZombiePlague.Core.Di;
 using ZombiePlague.Core.Generated;
 using ZPCore.Config.Core;
-using EventDelegates = Menu.Api.Events.EventDelegates;
 
 namespace ZombiePlague.Core;
 
@@ -27,45 +24,39 @@ namespace ZombiePlague.Core;
     Author = "illusion & fdrinv",
     Description = "Zombie Plague Core for CS2"
 )]
-public sealed partial class ZombiePlague(ISwiftlyCore core) : BasePlugin(core)
+public sealed partial class ZombiePlague(ISwiftlyCore core) : Plugin<ZombiePlagueModule>(core)
 {
-    private readonly Lazy<IResourceLoader> _resourceLoader = new(DependencyManager.GetService<IResourceLoader>);
-    private readonly Lazy<RoundManager> _roundManager = new(DependencyManager.GetService<RoundManager>);
-    private readonly Lazy<ZombieManager> _zombieManager = new(DependencyManager.GetService<ZombieManager>);
-    private readonly Lazy<HumanManager> _humanManager = new(DependencyManager.GetService<HumanManager>);
-    private readonly Lazy<Knockback> _knockback = new(DependencyManager.GetService<Knockback>);
+    private readonly Lazy<IOptions<ZombiePlagueCoreConfig>> _config = GetRequiredServiceLazy<IOptions<ZombiePlagueCoreConfig>>();
+    private readonly Lazy<IResourceLoader> _resourceLoader = GetRequiredServiceLazy<IResourceLoader>();
+    private readonly Lazy<RoundManager> _roundManager = GetRequiredServiceLazy<RoundManager>();
+    private readonly Lazy<IZombieManager> _zombieManager = GetRequiredServiceLazy<IZombieManager>();
+    private readonly Lazy<IHumanManager> _humanManager = GetRequiredServiceLazy<IHumanManager>();
+    private readonly Lazy<IKnockback> _knockback = GetRequiredServiceLazy<IKnockback>();
+    private readonly Lazy<IEventSubscriber> _eventSubscriber = GetRequiredServiceLazy<IEventSubscriber>();
 
     private IMenuApi _menuApi = null!;
     
     public override void ConfigureSharedInterface(IInterfaceManager interfaceManager)
     {
-        var eventSubscriber = DependencyManager.GetService<IEventSubscriber>();
-        var zServiceApi = new ZombiePlagueApi(eventSubscriber);
+        var zombieManager = _zombieManager.Value;
+        var humanManager = _humanManager.Value;
+        var knockback = _knockback.Value;
+        var zServiceApi = new ZombiePlagueApi(_eventSubscriber.Value, zombieManager, humanManager, knockback);
         interfaceManager.AddSharedInterface<IZombiePlagueApi, ZombiePlagueApi>(IZombiePlagueApi.SharedApiKey, zServiceApi);
     }
 
     public override void OnSharedInterfaceInjected(IInterfaceManager interfaceManager)
     {
         _menuApi = interfaceManager.GetSharedInterface<IMenuApi>(IMenuApi.SharedApiKey);
-        
         _menuApi.EventSubscriber.OnMenuAddOption += OnMenuAddOption;
     }
 
-    public override void Load(bool hotReload)
+    protected override void OnStart()
     {
-        if (hotReload)
-        {
-            DependencyManager.Dispose();
-        }
-
-        DependencyManager.Load(Core);
-
         _resourceLoader.Value.Initialize();
         
         RegisterHooks();
         LoadFeatures();
-
-        new AdminMenu(Core, _roundManager.Value, _zombieManager.Value).Load();
     }
 
     private void OnMenuAddOption(Type menuType, DynamicOptionsMenu.MenuOptionsHolder holder)
@@ -79,10 +70,6 @@ public sealed partial class ZombiePlague(ISwiftlyCore core) : BasePlugin(core)
         holder.Add(option2, 5);
     }
 
-    public override void Unload()
-    {
-    }
-
     private void RegisterHooks()
     {
         _roundManager.Value.RegisterRounds();
@@ -94,7 +81,12 @@ public sealed partial class ZombiePlague(ISwiftlyCore core) : BasePlugin(core)
 
     private void LoadFeatures()
     {
-        var config = DependencyManager.GetService<IOptions<ZombiePlagueCoreConfig>>().Value;
+        var config = _config.GetOrNull();
+
+        if (config == null)
+        {
+            return;
+        }
 
         if (config.KnockbackEnabled)
         {

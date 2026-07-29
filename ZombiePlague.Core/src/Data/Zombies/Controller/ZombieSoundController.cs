@@ -4,32 +4,30 @@ using SwiftlyS2.Shared.GameEvents;
 using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.Sounds;
-using ZombiePlague.Core.Di;
 using ZombiePlague.Core.Utils;
 using ZombiePlague.Core.Utils.Extensions;
-using ZPCore.Data.Zombies.Controller;
 
 namespace ZombiePlague.Core.Data.Zombies.Controller;
 
 internal class ZombieSoundController : ISoundController
 {
-    private readonly ISwiftlyCore _core = DependencyManager.GetService<ISwiftlyCore>();
-    
     private readonly IPlayer _playerOwner;
     private readonly List<string> _hurtSounds;
+    private readonly ISwiftlyCore _core;
     
     private readonly Guid _onPlayerHurt;
     private readonly Guid _onPlayerDeath;
 
     private const int HurtSoundChanceInPercent = 50; 
 
-    public ZombieSoundController(Zombie zombieOwner)
+    public ZombieSoundController(ISwiftlyCore core, Zombie zombieOwner)
     {
+        _core = core;
         _playerOwner = zombieOwner.Player;
         _hurtSounds = zombieOwner.ZClass.HurtSounds;
         
-        _onPlayerHurt = _core.GameEvent.HookPost<EventPlayerHurt>(OnPlayerHurt);
-        _onPlayerDeath = _core.GameEvent.HookPost<EventPlayerDeath>(OnPlayerDeath);
+        _onPlayerHurt = core.GameEvent.HookPost<EventPlayerHurt>(OnPlayerHurt);
+        _onPlayerDeath = core.GameEvent.HookPost<EventPlayerDeath>(OnPlayerDeath);
     }
     
     public void Dispose()

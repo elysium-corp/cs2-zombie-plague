@@ -4,19 +4,17 @@ using SwiftlyS2.Shared.Sounds;
 using ZombiePlague.Core.Config.Ability;
 using ZombiePlague.Core.Data.Abilities.Contracts;
 using ZombiePlague.Core.Data.Managers;
-using ZombiePlague.Core.Di;
 using ZombiePlague.Core.Utils.Extensions;
 
 namespace ZombiePlague.Core.Data.Abilities;
 
-internal sealed class Charge(ISwiftlyCore core, ChargeConfig config) : BaseActiveAbility(core)
+internal sealed class Charge(ISwiftlyCore core, ChargeConfig config, IZombieManager zombieManager) : BaseActiveAbility(core)
 {
     public override KeyKind? Key => KeyKind.E;
     
     public override float Cooldown => config.CooldownTime;
     
     private CancellationTokenSource _chargeToken = null!;
-    private readonly ZombieManager _zombieManager = DependencyManager.GetService<ZombieManager>();
 
     private const uint DurationEffectAbility = 500;
 
@@ -24,7 +22,7 @@ internal sealed class Charge(ISwiftlyCore core, ChargeConfig config) : BaseActiv
     {
         PlaySound();
         
-        var startSpeed = _zombieManager.GetZombie(Caster.PlayerID).ZClass.Speed;
+        var startSpeed = zombieManager.GetZombie(Caster).ZClass.Speed;
         var maxSpeed = config.MaxSpeed;
         var chargeTime = config.ChargeTime;
         var speedUpdatePerTimeTick = config.SpeedUpdatePerTimeTick;
