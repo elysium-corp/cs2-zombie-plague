@@ -8,10 +8,9 @@ namespace ZombiePlague.Core.Data.Rounds;
 
 internal sealed class Survivor(
     ISwiftlyCore core,
-    RoundManager roundManager,
     IZombieManager zombieManager,
     IHumanManager humanManager,
-    SurvivorConfig config) : BaseRound(core, roundManager)
+    SurvivorConfig config) : BaseRound(core)
 {
     public override int Chance => config.Chance;
     public override string Name => "Выживший";

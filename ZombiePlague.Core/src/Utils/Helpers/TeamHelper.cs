@@ -1,15 +1,12 @@
-﻿using Common.Di;
-using SwiftlyS2.Shared;
+﻿using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Players;
-using ZombiePlague.Core.Di;
 
 namespace ZombiePlague.Core.Utils.Helpers;
 
 internal static class TeamHelper
 {
-    public static void MoveAllPlayersToTeam(Team team)
+    public static void MoveAllPlayersToTeam(ISwiftlyCore core, Team team)
     {
-        var core = DependencyResolver.GetRequiredService<ISwiftlyCore>();
         var players = core.PlayerManager.GetAllValidPlayers();
         
         foreach (var player in players)

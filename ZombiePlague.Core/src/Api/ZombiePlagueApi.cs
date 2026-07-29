@@ -3,15 +3,13 @@ using SwiftlyS2.Shared.Players;
 using ZombiePlague.Api;
 using ZombiePlague.Api.Data;
 using ZombiePlague.Api.Events;
-using ZombiePlague.Core.Data;
 using ZombiePlague.Core.Data.Managers;
 using ZombiePlague.Core.Data.Rounds;
 using ZombiePlague.Core.Data.Zombies;
-using ZombiePlague.Core.Utils.Extensions;
 
 namespace ZombiePlague.Core.Api;
 
-public sealed class ZombiePlagueApi(
+internal sealed class ZombiePlagueApi(
     IEventSubscriber eventSubscriber,
     IZombieManager zombieManager,
     IHumanManager humanManager,
@@ -20,7 +18,7 @@ public sealed class ZombiePlagueApi(
 {
     public IEventSubscriber EventSubscriber => eventSubscriber;
 
-    public bool IsInfected(IPlayer player) => player.IsInfected();
+    public bool IsInfected(IPlayer player) => zombieManager.GetZombie(player) != null;
     
     public bool IsSurvivor(IPlayer player)
     {

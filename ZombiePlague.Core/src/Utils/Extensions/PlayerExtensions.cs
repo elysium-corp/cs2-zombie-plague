@@ -1,9 +1,7 @@
-﻿using Common.Di;
-using Common.Effects;
+﻿using Common.Effects;
 using Common.Effects.Effects;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Players;
-using ZombiePlague.Core.Data.Managers;
 
 namespace ZombiePlague.Core.Utils.Extensions;
 
@@ -64,59 +62,26 @@ internal static class PlayerExtensions
             pawn.GravityScaleUpdated();
         }
 
-        public void SetModel(string modelPath)
+        public void SetModel(ISwiftlyCore core, string modelPath)
         {
             if (player.PlayerPawn == null || !player.IsAlive)
             {
                 return;
             }
-            
-            var core = DependencyResolver.GetRequiredService<ISwiftlyCore>();
-        
+
             core.Scheduler.NextWorldUpdateAsync(() =>
             {
                 player.Pawn?.SetModel(modelPath);
             });
         }
 
-        public bool IsInfected()
+        public bool IsOnZombieTeam()
         {
-            var zombieManager = DependencyResolver.GetRequiredService<IZombieManager>();
-            var allZombies = zombieManager.GetAllZombies();
-            return allZombies.ContainsKey(player.PlayerID);
+            return player.Controller.Team == Team.T;
         }
 
-        public bool IsNemesis()
+        public bool IsFrozen(ISwiftlyCore core)
         {
-            var zombieManager = DependencyResolver.GetRequiredService<IZombieManager>();
-            var zombie = zombieManager.GetZombie(player);
-            return zombie?.IsNemesis ?? false;
-    }
-        
-        public bool IsHuman()
-        {
-            var humanManager = DependencyResolver.GetRequiredService<HumanManager>();
-            var allHumans = humanManager.GetAllHumanPlayers();
-            return allHumans.Contains(player);
-        }
-
-        public bool IsLastHuman()
-        {
-            var humanManager = DependencyResolver.GetRequiredService<HumanManager>();
-            var humanCount = humanManager.GetHumanCount();
-            return player.IsHuman() && humanCount == 1;
-        }
-
-        public bool IsSurvivor()
-        {
-            var humanManager = DependencyResolver.GetRequiredService<HumanManager>();
-            var human = humanManager.GetHuman(player);
-            return human?.IsSurvivor ?? false;
-        }
-
-        public bool IsFrozen()
-        {
-            var core = DependencyResolver.GetRequiredService<ISwiftlyCore>();
             var effectService = EffectService.Provide(core);
 
             return effectService.HasEffect<Freeze>(player);

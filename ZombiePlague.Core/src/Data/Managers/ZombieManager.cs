@@ -6,7 +6,7 @@ using SwiftlyS2.Shared.Players;
 using ZombiePlague.Api.Events;
 using ZombiePlague.Core.Config.Round;
 using ZombiePlague.Core.Data.Events;
-using ZombiePlague.Core.Data.Menus;
+using ZombiePlague.Core.Data.Menus.Contracts;
 using ZombiePlague.Core.Data.Zombies;
 using ZombiePlague.Core.Data.Zombies.ZClasses;
 using ZombiePlague.Core.Utils.Extensions;
@@ -15,20 +15,43 @@ namespace ZombiePlague.Core.Data.Managers;
 
 internal sealed class ZombieManager(
     ISwiftlyCore core,
-    HumanManager humanManager,
+    IHumanManager humanManager,
     IZombieFactory zombieFactory,
-    ZClassMenu zClassMenu,
+    IZClassMenu zClassMenu,
     ICustomEventService customEventService,
     IEventPublisher eventPublisher) : IZombieManager
 {
-    private readonly Dictionary<int, IZombie> _zombies = new();
+    private readonly Dictionary<int, IZombie> _zombies = [];
+    private Guid _onPlayerDisconnectEvent;
+    private bool _hooksRegistered;
 
     public void RegisterHooks()
     {
-        core.GameEvent.HookPost<EventPlayerDisconnect>(OnPlayerDisconnect);
+        if (_hooksRegistered)
+        {
+            return;
+        }
+
+        _onPlayerDisconnectEvent = core.GameEvent.HookPost<EventPlayerDisconnect>(OnPlayerDisconnect);
         core.Event.OnWeaponServicesCanUseHook += OnItemServicesCanAcquireHook;
         core.Event.OnWeaponServicesDropWeaponHook += OnWeaponServicesDropWeaponHook;
         zClassMenu.RegisterMenu();
+        _hooksRegistered = true;
+    }
+
+    public void UnregisterHooks()
+    {
+        if (!_hooksRegistered)
+        {
+            return;
+        }
+
+        core.GameEvent.Unhook(_onPlayerDisconnectEvent);
+        core.Event.OnWeaponServicesCanUseHook -= OnItemServicesCanAcquireHook;
+        core.Event.OnWeaponServicesDropWeaponHook -= OnWeaponServicesDropWeaponHook;
+        RemoveAll();
+        zClassMenu.Clear();
+        _hooksRegistered = false;
     }
 
     private void OnWeaponServicesDropWeaponHook(IOnWeaponServicesDropWeaponHook @event)
@@ -40,7 +63,7 @@ internal sealed class ZombieManager(
             return;
         }
 
-        if (player.IsInfected())
+        if (GetZombie(player) != null)
         {
             @event.Result = HookResult.Stop;
         }
@@ -55,15 +78,14 @@ internal sealed class ZombieManager(
             return;
         }
 
-        if (!player.IsInfected())
+        if (GetZombie(player) == null)
         {
             return;
         }
 
         var weaponName = @event.Weapon.DesignerName;
 
-        if (player.IsInfected() && !weaponName.Contains("knife")
-                                && !weaponName.Contains("smoke"))
+        if (!weaponName.Contains("knife") && !weaponName.Contains("smoke"))
         {
             @event.SetResult(false);
         }
@@ -73,7 +95,12 @@ internal sealed class ZombieManager(
     {
         var playerId = @event.PlayerID;
 
-        _zombies.Remove(playerId);
+        if (_zombies.Remove(playerId, out var zombie))
+        {
+            zombie.Dispose();
+        }
+
+        zClassMenu.RemovePlayer(playerId);
 
         return HookResult.Continue;
     }
@@ -85,6 +112,9 @@ internal sealed class ZombieManager(
             return null;
         }
 
+        var zombie = zombieFactory.Create(player, GetZClassFromMenu(player));
+        StoreZombie(zombie);
+
         if (infector != null)
         {
             customEventService.FireFakeDeath(infector, player);
@@ -93,10 +123,7 @@ internal sealed class ZombieManager(
         }
 
         eventPublisher.OnPlayerInfected(player);
-
-        var zClass = GetZClassFromMenu(player);
-        var zombie = zombieFactory.Create(player, zClass);
-        _zombies[player.PlayerID] = zombie;
+        core.Scheduler.NextWorldUpdate(zombie.Initialize);
 
         return zombie;
     }
@@ -114,16 +141,17 @@ internal sealed class ZombieManager(
             return;
         }
 
+        var zombie = zombieFactory.Create<ZNemesis>(player, true);
+        StoreZombie(zombie);
         eventPublisher.OnPlayerInfected(player);
-        
-        _zombies[player.PlayerID] = zombieFactory.Create<ZNemesis>(player, true);
+        core.Scheduler.NextWorldUpdate(zombie.Initialize);
 
         if (roundConfig == null)
         {
             return;
         }
 
-        var bonusHealth = roundConfig.NemesisBonusHealthPerPlayer * humanManager.GetAllHumanPlayers().Count;
+        var bonusHealth = roundConfig.NemesisBonusHealthPerPlayer * humanManager.GetHumanCount();
 
         core.Scheduler.NextTick(() =>
         {
@@ -138,7 +166,23 @@ internal sealed class ZombieManager(
             return;
         }
 
-        var zombie = player.IsInfected() ? GetZombie(player) : CreateZombie(player);
+        var zombie = GetZombie(player);
+        var createdNow = false;
+
+        if (zombie == null)
+        {
+            zombie = CreateZombie(player);
+            createdNow = true;
+        }
+        else if (!zombie.IsNemesis)
+        {
+            var selectedZClass = GetZClassFromMenu(player);
+            if (!ReferenceEquals(zombie.ZClass, selectedZClass))
+            {
+                zombie = zombieFactory.Create(player, selectedZClass);
+                StoreZombie(zombie);
+            }
+        }
 
         if (zombie == null)
         {
@@ -147,15 +191,18 @@ internal sealed class ZombieManager(
 
         player.SwitchTeam(Team.T);
         player.Respawn();
-        zombie.Initialize();
+
+        if (!createdNow)
+        {
+            core.Scheduler.NextWorldUpdate(zombie.Initialize);
+        }
     }
 
     public void RemoveAll()
     {
         foreach (var zombie in _zombies.Values)
         {
-            zombie.UnHookAbilities();
-            zombie.SoundController?.Dispose();
+            zombie.Dispose();
         }
 
         _zombies.Clear();
@@ -166,13 +213,23 @@ internal sealed class ZombieManager(
         return _zombies.GetValueOrDefault(player.PlayerID);
     }
 
-    public Dictionary<int, IZombie> GetAllZombies()
+    public IReadOnlyDictionary<int, IZombie> GetAllZombies()
     {
         return _zombies;
     }
 
-    public IZClass GetZClassFromMenu(IPlayer player)
+    private IZClass GetZClassFromMenu(IPlayer player)
     {
         return zClassMenu.GetPlayerZClass(player);
+    }
+
+    private void StoreZombie(IZombie zombie)
+    {
+        if (_zombies.Remove(zombie.Player.PlayerID, out var previous))
+        {
+            previous.Dispose();
+        }
+
+        _zombies[zombie.Player.PlayerID] = zombie;
     }
 }

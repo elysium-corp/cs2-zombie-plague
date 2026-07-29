@@ -34,7 +34,9 @@ public sealed partial class ZombiePlague(ISwiftlyCore core) : Plugin<ZombiePlagu
     private readonly Lazy<IKnockback> _knockback = GetRequiredServiceLazy<IKnockback>();
     private readonly Lazy<IEventSubscriber> _eventSubscriber = GetRequiredServiceLazy<IEventSubscriber>();
 
-    private IMenuApi _menuApi = null!;
+    private IMenuApi? _menuApi;
+    private bool _menuHookRegistered;
+    private bool _knockbackStarted;
     
     public override void ConfigureSharedInterface(IInterfaceManager interfaceManager)
     {
@@ -47,8 +49,23 @@ public sealed partial class ZombiePlague(ISwiftlyCore core) : Plugin<ZombiePlagu
 
     public override void OnSharedInterfaceInjected(IInterfaceManager interfaceManager)
     {
+        UnregisterMenuHook();
         _menuApi = interfaceManager.GetSharedInterface<IMenuApi>(IMenuApi.SharedApiKey);
-        _menuApi.EventSubscriber.OnMenuAddOption += OnMenuAddOption;
+        base.OnSharedInterfaceInjected(interfaceManager);
+    }
+
+    protected override void OnReady()
+    {
+        var menuApi = _menuApi ??
+                      throw new InvalidOperationException("Menu API must be injected before the plugin becomes ready.");
+
+        if (_menuHookRegistered)
+        {
+            return;
+        }
+
+        menuApi.EventSubscriber.OnMenuAddOption += OnMenuAddOption;
+        _menuHookRegistered = true;
     }
 
     protected override void OnStart()
@@ -91,6 +108,35 @@ public sealed partial class ZombiePlague(ISwiftlyCore core) : Plugin<ZombiePlagu
         if (config.KnockbackEnabled)
         {
             _knockback.Value.Start();
+            _knockbackStarted = true;
         }
+    }
+
+    protected override void OnUnload()
+    {
+        UnregisterMenuHook();
+
+        _roundManager.Value.UnregisterHooks();
+        _zombieManager.Value.UnregisterHooks();
+        _humanManager.Value.UnregisterHooks();
+
+        if (_knockbackStarted)
+        {
+            _knockback.Value.Stop();
+            _knockbackStarted = false;
+        }
+
+        _resourceLoader.Value.Dispose();
+    }
+
+    private void UnregisterMenuHook()
+    {
+        if (_menuApi != null && _menuHookRegistered)
+        {
+            _menuApi.EventSubscriber.OnMenuAddOption -= OnMenuAddOption;
+        }
+
+        _menuHookRegistered = false;
+        _menuApi = null;
     }
 }

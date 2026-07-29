@@ -17,13 +17,32 @@ internal sealed class ResourceLoader(ISwiftlyCore core) : IResourceLoader
     private const string ConfigFileName = "resources.json";
 
     private List<PrecacheItem> _resourcesToPrecache = [];
+    private bool _initialized;
 
     public void Initialize()
     {
+        if (_initialized)
+        {
+            return;
+        }
+
         var config = LoadConfig();
         _resourcesToPrecache = config.PrecacheResources;
 
         core.Event.OnPrecacheResource += OnPrecacheResources;
+        _initialized = true;
+    }
+
+    public void Dispose()
+    {
+        if (!_initialized)
+        {
+            return;
+        }
+
+        core.Event.OnPrecacheResource -= OnPrecacheResources;
+        _resourcesToPrecache.Clear();
+        _initialized = false;
     }
 
     private void OnPrecacheResources(IOnPrecacheResourceEvent @event)
@@ -48,11 +67,10 @@ internal sealed class ResourceLoader(ISwiftlyCore core) : IResourceLoader
         
         EnsureDirectoryForFile(configPath);
 
-        ResourcePrecacheConfig config = null!;
+        var config = new ResourcePrecacheConfig();
         
         if (!File.Exists(configPath))
         {
-            config = new ResourcePrecacheConfig();
             config.PrecacheResources.Add(GetResourceConfigTemplate());
             
             SaveConfig(config);
@@ -112,12 +130,12 @@ internal sealed class ResourceLoader(ISwiftlyCore core) : IResourceLoader
     }
 }
 
-public sealed class ResourcePrecacheConfig
+internal sealed class ResourcePrecacheConfig
 {
     public List<PrecacheItem> PrecacheResources { get; set; } = [];
 }
 
-public sealed class PrecacheItem
+internal sealed class PrecacheItem
 {
-    public string Item { get; set; }
+    public string Item { get; set; } = string.Empty;
 }

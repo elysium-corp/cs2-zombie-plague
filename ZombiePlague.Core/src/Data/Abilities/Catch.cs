@@ -40,7 +40,7 @@ internal class Catch(ISwiftlyCore core, CatchConfig config) : BaseActiveAbility(
 
         var trace = LaunchTraceFromCaster(casterPawn);
         var entity = trace.Entity;
-        var found = entity.Address.FindPlayerByPawnAddress();
+        var found = entity.Address.FindPlayerByPawnAddress(core);
 
         if (found is null || !found.IsValid || !found.Controller.PawnIsAlive)
         {
@@ -70,12 +70,18 @@ internal class Catch(ISwiftlyCore core, CatchConfig config) : BaseActiveAbility(
             return false;
         }
 
-        if (!Caster.IsInfected())
+        if (!Caster.IsOnZombieTeam())
         {
             return false;
         }
 
         return true;
+    }
+
+    public override void UnHook()
+    {
+        CancelCatching();
+        base.UnHook();
     }
 
     private CBeam CreateCatchingBeam(CCSPlayerPawn casterPawn)
@@ -122,13 +128,13 @@ internal class Catch(ISwiftlyCore core, CatchConfig config) : BaseActiveAbility(
             var playerPawn = Caster.PlayerPawn;
             var playerPosition = playerPawn?.AbsOrigin;
             if (playerPawn == null || !playerPawn.IsValid || _oldPosition!.Value != playerPosition!.Value ||
-                !Caster.IsInfected())
+                !Caster.IsOnZombieTeam())
             {
                 CancelCatching();
                 return;
             }
 
-            if (Target == null || !Target.IsValid || Target.IsInfected())
+            if (Target == null || !Target.IsValid || Target.IsOnZombieTeam())
             {
                 CancelCatching();
                 return;

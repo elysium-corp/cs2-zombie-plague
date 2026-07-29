@@ -4,19 +4,23 @@ using ZombiePlague.Core.Data.Zombies;
 
 namespace ZombiePlague.Core.Data.Managers;
 
-public interface IZombieManager
+internal interface IZombieManager
 {
     bool IsNemesis(IPlayer player);
 
-    public void SetNemesis(IPlayer player, INemesisConfig? roundConfig = null);
+    void SetNemesis(IPlayer player, INemesisConfig? roundConfig = null);
 
-    public Dictionary<int, IZombie> GetAllZombies();
+    IReadOnlyDictionary<int, IZombie> GetAllZombies();
 
-    public void Respawn(IPlayer player);
+    void Respawn(IPlayer player);
 
-    public IZombie? CreateZombie(IPlayer player, IPlayer? infector = null);
+    IZombie? CreateZombie(IPlayer player, IPlayer? infector = null);
 
     IZombie? GetZombie(IPlayer player);
 
     void RegisterHooks();
+
+    void UnregisterHooks();
+
+    void RemoveAll();
 }

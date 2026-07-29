@@ -4,36 +4,30 @@ using SwiftlyS2.Shared.Players;
 
 namespace ZombiePlague.Core.Data.Events;
 
-public class CustomEventsService(ISwiftlyCore core) : ICustomEventService
+internal sealed class CustomEventsService(ISwiftlyCore core) : ICustomEventService
 {
-    public void FireFakeDeath(IPlayer attacker, IPlayer? victim)
+    public void FireFakeDeath(IPlayer attacker, IPlayer victim)
     {
-        if (attacker != null)
+        var attackerMatchStats = attacker.Controller.ActionTrackingServices?.MatchStats;
+        if (attackerMatchStats == null)
         {
-            var matchStats = attacker.Controller.ActionTrackingServices?.MatchStats;
-            if (matchStats == null)
-            {
-                return;
-            }
-            
-            matchStats.Kills++;
-            matchStats.KillsUpdated();
-            
-            attacker.Controller.Score++;
-            attacker.Controller.ScoreUpdated();
+            return;
         }
 
-        if (victim != null)
+        attackerMatchStats.Kills++;
+        attackerMatchStats.KillsUpdated();
+
+        attacker.Controller.Score++;
+        attacker.Controller.ScoreUpdated();
+
+        var victimMatchStats = victim.Controller.ActionTrackingServices?.MatchStats;
+        if (victimMatchStats == null)
         {
-            var matchStats = victim.Controller.ActionTrackingServices?.MatchStats;
-            if (matchStats == null)
-            {
-                return;
-            }
-            
-            matchStats.Deaths++;
-            matchStats.DeathsUpdated();
+            return;
         }
+
+        victimMatchStats.Deaths++;
+        victimMatchStats.DeathsUpdated();
 
         core.GameEvent.FireAsync<EventPlayerDeath>((@event) =>
         {

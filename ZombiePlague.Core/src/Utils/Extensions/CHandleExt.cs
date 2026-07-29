@@ -1,9 +1,7 @@
-﻿using Common.Di;
-using SwiftlyS2.Shared;
+﻿using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
-using ZombiePlague.Core.Di;
 
 namespace ZombiePlague.Core.Utils.Extensions;
 
@@ -11,15 +9,13 @@ internal static class CHandleExt
 {
     extension(CHandle<CEntityInstance> handle)
     {
-        public IPlayer? ResolvePlayerFromHandle()
+        public IPlayer? ResolvePlayerFromHandle(ISwiftlyCore core)
         {
             if (!handle.IsValid) return null;
 
             var address = handle.Value?.Address;
             
             if (address == null) return null;
-
-            var core = DependencyResolver.GetRequiredService<ISwiftlyCore>();
 
             foreach (var player in core.PlayerManager.GetAllPlayers())
             {

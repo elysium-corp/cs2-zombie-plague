@@ -7,9 +7,9 @@ namespace ZombiePlague.Core.Data.Rounds;
 
 internal sealed class Plague(
     ISwiftlyCore core,
-    RoundManager roundManager,
     IZombieManager zombieManager,
-    PlagueConfig config) : InfectiousRound(core, roundManager, zombieManager)
+    IHumanManager humanManager,
+    PlagueConfig config) : InfectiousRound(core, zombieManager, humanManager)
 {
     public override int Chance => config.Chance;
     public override string Name => "Чума";

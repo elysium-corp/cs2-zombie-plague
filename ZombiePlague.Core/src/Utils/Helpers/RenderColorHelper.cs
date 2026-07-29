@@ -1,5 +1,4 @@
-﻿using Common.Di;
-using SwiftlyS2.Shared;
+﻿using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Natives;
 
 namespace ZombiePlague.Core.Utils.Helpers;
@@ -10,9 +9,8 @@ internal static class RenderColorHelper
     /// Сбрасывает цвет визуализации (Render color) у всех валидных игроков
     /// до стандартного белого значения (255, 255, 255).
     /// </summary>
-    public static void AllResetRenderColor()
+    public static void AllResetRenderColor(ISwiftlyCore core)
     {
-        var core = DependencyResolver.GetRequiredService<ISwiftlyCore>();
         var players = core.PlayerManager.GetAllValidPlayers();
         
         foreach (var player in players)

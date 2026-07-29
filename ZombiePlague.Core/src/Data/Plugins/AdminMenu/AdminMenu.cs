@@ -5,7 +5,6 @@ using SwiftlyS2.Shared.Menus;
 using SwiftlyS2.Shared.Players;
 using ZombiePlague.Core.Data.Managers;
 using ZombiePlague.Core.Data.Rounds;
-using ZombiePlague.Core.Utils.Extensions;
 
 namespace ZombiePlague.Core.Data.Plugins.AdminMenu;
 
@@ -51,19 +50,16 @@ internal class AdminMenu(ISwiftlyCore core, RoundManager roundManager, IZombieMa
         
         foreach (var p in allPlayers)
         {
-            if (!p.IsInfected())
+            if (zombieManager.GetZombie(p) == null)
             {
                 var option = new ButtonMenuOption(p.Controller.PlayerName);
                 
-                option.Click += async (sender, args) =>
+                option.Click += async (_, _) =>
                 {
-                    
-                    core.Scheduler.NextTickAsync(() =>
+                    await core.Scheduler.NextTickAsync(() =>
                     {
                         zombieManager.CreateZombie(p);
                     });
-                    
-                    await Task.CompletedTask;
                 };
                 
                 menu.AddOption(option);
@@ -152,7 +148,7 @@ internal class AdminMenu(ISwiftlyCore core, RoundManager roundManager, IZombieMa
     {
         var option = new ButtonMenuOption(title);
         
-        option.Click += async (sender, args) => handler(args);
+        option.Click += async (_, args) => await handler(args);
         
         menu.AddOption(option);
     }
@@ -166,16 +162,12 @@ internal class AdminMenu(ISwiftlyCore core, RoundManager roundManager, IZombieMa
 
     private Task EndWarmup(MenuOptionClickEventArgs args)
     {
-        core.Engine.ExecuteCommandAsync("mp_warmup_end");
-        
-        return Task.CompletedTask;
+        return core.Engine.ExecuteCommandAsync("mp_warmup_end");
     }
     
     private Task RestartGame(MenuOptionClickEventArgs args)
     {
-        core.Engine.ExecuteCommandAsync("mp_restartgame 1");
-        
-        return Task.CompletedTask;
+        return core.Engine.ExecuteCommandAsync("mp_restartgame 1");
     }
 
     private Task GiveMoney(MenuOptionClickEventArgs args)

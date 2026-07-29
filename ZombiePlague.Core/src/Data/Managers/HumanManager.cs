@@ -12,43 +12,47 @@ namespace ZombiePlague.Core.Data.Managers;
 
 internal sealed class HumanManager(ISwiftlyCore core, IEventSubscriber eventSubscriber) : IHumanManager
 {
-    private readonly Dictionary<IPlayer, Human> _humans = new();
+    private readonly Dictionary<int, Human> _humans = [];
     
     private Guid _onRoundStartEvent;
     private Guid _onPlayerDisconnectEvent;
     private Guid _onPlayerDeathEvent;
+    private bool _hooksRegistered;
     
     public void RegisterHooks()
     {
+        if (_hooksRegistered)
+        {
+            return;
+        }
+
         _onRoundStartEvent = core.GameEvent.HookPost<EventRoundStart>(OnRoundStart);
         _onPlayerDisconnectEvent = core.GameEvent.HookPost<EventPlayerDisconnect>(OnPlayerDisconnect);
         _onPlayerDeathEvent = core.GameEvent.HookPost<EventPlayerDeath>(OnPlayerDeath);
         eventSubscriber.OnPlayerInfected += OnPlayerInfected;
         core.Event.OnWeaponServicesDropWeaponHook += OnWeaponServicesDropWeaponHook;
+        _hooksRegistered = true;
     }
     
-    public void Dispose()
+    public void UnregisterHooks()
     {
+        if (!_hooksRegistered)
+        {
+            return;
+        }
+
         core.GameEvent.Unhook(_onRoundStartEvent);
         core.GameEvent.Unhook(_onPlayerDisconnectEvent);
         core.GameEvent.Unhook(_onPlayerDeathEvent);
         eventSubscriber.OnPlayerInfected -= OnPlayerInfected;
         core.Event.OnWeaponServicesDropWeaponHook -= OnWeaponServicesDropWeaponHook;
+        _humans.Clear();
+        _hooksRegistered = false;
     }
 
-    public List<IPlayer> GetAllHumanPlayers()
+    private Human? GetHuman(IPlayer player)
     {
-        return _humans.Keys.ToList();
-    }
-    
-    public List<Human> GetAllHumans()
-    {
-        return _humans.Values.ToList();
-    }
-
-    public Human? GetHuman(IPlayer player)
-    {
-        return _humans.GetValueOrDefault(player);
+        return _humans.GetValueOrDefault(player.PlayerID);
     }
 
     public void Respawn(IPlayer player)
@@ -58,15 +62,9 @@ internal sealed class HumanManager(ISwiftlyCore core, IEventSubscriber eventSubs
             return;
         }
         
-        if (player.IsInfected())
+        if (!IsHuman(player))
         {
-            return;
-        }
-
-        if (!player.IsHuman())
-        {
-            var human = new Human(player);
-            _humans.Add(player, human);
+            _humans[player.PlayerID] = new Human(player);
         }
         
         player.SwitchTeam(Team.CT);
@@ -77,6 +75,11 @@ internal sealed class HumanManager(ISwiftlyCore core, IEventSubscriber eventSubs
     public int GetHumanCount()
     {
         return _humans.Count;
+    }
+
+    public bool IsHuman(IPlayer player)
+    {
+        return _humans.ContainsKey(player.PlayerID);
     }
 
     public void SetSurvivor(IPlayer player, ISurvivorConfig roundSettings)
@@ -90,14 +93,15 @@ internal sealed class HumanManager(ISwiftlyCore core, IEventSubscriber eventSubs
         var human = GetHuman(player);
         if (human == null)
         {
-            return;
+            human = new Human(player);
+            _humans[player.PlayerID] = human;
         }
         
         human.IsSurvivor = true;
         
-        var countPlayers = core.PlayerManager.GetAlive().Count();
-        player.SetHealth(playerPawn.Health + (roundSettings.SurvivorBonusHealthPerZombie * countPlayers));
-        player.SetModel(roundSettings.SurvivorModel);
+        var zombieCount = core.PlayerManager.GetAlive().Count(alivePlayer => !IsHuman(alivePlayer));
+        player.SetHealth(playerPawn.Health + (roundSettings.SurvivorBonusHealthPerZombie * zombieCount));
+        player.SetModel(core, roundSettings.SurvivorModel);
 
         var itemServices = playerPawn.ItemServices;
         if (itemServices == null)
@@ -117,7 +121,7 @@ internal sealed class HumanManager(ISwiftlyCore core, IEventSubscriber eventSubs
 
     public bool IsSurvivor(IPlayer player)
     {
-        if (_humans.TryGetValue(player, out var human))
+        if (_humans.TryGetValue(player.PlayerID, out var human))
         {
             return human.IsSurvivor;
         }
@@ -135,7 +139,7 @@ internal sealed class HumanManager(ISwiftlyCore core, IEventSubscriber eventSubs
             return;
         }
 
-        if (player.IsSurvivor())
+        if (IsSurvivor(player))
         {
             @event.Result = HookResult.Stop;
         }
@@ -151,33 +155,33 @@ internal sealed class HumanManager(ISwiftlyCore core, IEventSubscriber eventSubs
     
     private HookResult OnPlayerDeath(EventPlayerDeath @event)
     {
-        UpdateHumans();
+        ScheduleInvalidHumanCleanup();
         
         return HookResult.Continue;
     }
     
     private HookResult OnPlayerDisconnect(EventPlayerDisconnect @event)
     {
-        UpdateHumans();
+        _humans.Remove(@event.PlayerID);
         
         return HookResult.Continue;
     }
 
     private void OnPlayerInfected(IPlayer player)
     {
-        UpdateHumans();
+        _humans.Remove(player.PlayerID);
     }
 
-    private void UpdateHumans()
+    private void ScheduleInvalidHumanCleanup()
     {
         core.Scheduler.NextTick(() =>
         {
-            var humansSnapshot = GetAllHumanPlayers();
-            foreach (var human in humansSnapshot)
+            foreach (var (playerId, human) in _humans.ToArray())
             {
-                if (human.IsInfected() || !human.IsValid || !human.IsAlive)
+                var player = human.Player;
+                if (!player.IsValid || !player.IsAlive || player.Controller.Team != Team.CT)
                 {
-                    _humans.Remove(human);
+                    _humans.Remove(playerId);
                 }
             }
         });
@@ -189,10 +193,9 @@ internal sealed class HumanManager(ISwiftlyCore core, IEventSubscriber eventSubs
         var allValidPlayer = core.PlayerManager.GetAllPlayers();
         foreach (var player in allValidPlayer)
         {
-            if (!player.IsInfected())
+            if (player.IsValid)
             {
-                var human = new Human(player);
-                _humans.Add(player, human);
+                _humans[player.PlayerID] = new Human(player);
             }
         }
     }

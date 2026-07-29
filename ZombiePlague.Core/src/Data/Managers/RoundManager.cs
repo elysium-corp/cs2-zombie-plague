@@ -24,7 +24,7 @@ internal sealed class RoundManager(
     IOptions<ZombiePlagueCoreConfig> coreConfig,
     IOptions<RoundConfig> roundConfig,
     IZombieManager zombieManager,
-    HumanManager humanManager
+    IHumanManager humanManager
     )
 {
     private readonly List<IRound> _rounds = [];
@@ -33,14 +33,42 @@ internal sealed class RoundManager(
     private CancellationTokenSource? _token;
     private int _preRoundTime;
     private bool _countdownSoundActive;
+    private Guid _onRoundStartEvent;
+    private Guid _onRoundEndEvent;
+    private Guid _onGameRestartEvent;
+    private Guid _onPlayerConnectFullEvent;
+    private bool _hooksRegistered;
 
     public void RegisterHooks()
     {
-        core.GameEvent.HookPre<EventRoundStart>(OnRoundStart);
-        core.GameEvent.HookPost<EventRoundEnd>(OnRoundEnd);
-        core.GameEvent.HookPost<EventCsPreRestart>(OnGameRestart);
-        core.GameEvent.HookPost<EventPlayerConnectFull>(OnPlayerConnectFull);
+        if (_hooksRegistered)
+        {
+            return;
+        }
+
+        _onRoundStartEvent = core.GameEvent.HookPre<EventRoundStart>(OnRoundStart);
+        _onRoundEndEvent = core.GameEvent.HookPost<EventRoundEnd>(OnRoundEnd);
+        _onGameRestartEvent = core.GameEvent.HookPost<EventCsPreRestart>(OnGameRestart);
+        _onPlayerConnectFullEvent = core.GameEvent.HookPost<EventPlayerConnectFull>(OnPlayerConnectFull);
         core.GameHooks.Entities.TakeDamage.Pre += OnEntityTakeDamage;
+        _hooksRegistered = true;
+    }
+
+    public void UnregisterHooks()
+    {
+        if (!_hooksRegistered)
+        {
+            return;
+        }
+
+        CancelToken();
+        EndCurrentRound();
+        core.GameEvent.Unhook(_onRoundStartEvent);
+        core.GameEvent.Unhook(_onRoundEndEvent);
+        core.GameEvent.Unhook(_onGameRestartEvent);
+        core.GameEvent.Unhook(_onPlayerConnectFullEvent);
+        core.GameHooks.Entities.TakeDamage.Pre -= OnEntityTakeDamage;
+        _hooksRegistered = false;
     }
 
     public List<IRound> GetRegisteredRounds()
@@ -55,13 +83,13 @@ internal sealed class RoundManager(
         var roundConfigProperties = roundConfig.Value.GetType()
             .GetProperties();
 
-        _rounds.Add(roundFactory.Create(null, this));
+        _rounds.Add(roundFactory.Create(null));
 
         foreach (var property in roundConfigProperties)
         {
             if (property.GetValue(roundConfig.Value) is IRoundConfig { Enable: true } round)
             {
-                _rounds.Add(roundFactory.Create(round, this));
+                _rounds.Add(roundFactory.Create(round));
             }
         }
     }
@@ -99,13 +127,12 @@ internal sealed class RoundManager(
 
     private HookResult OnRoundStart(EventRoundStart @event)
     {
+        EndCurrentRound();
         zombieManager.RemoveAll();
         CancelToken();
 
-        TeamHelper.MoveAllPlayersToTeam(Team.CT);
-        RenderColorHelper.AllResetRenderColor();
-
-        SetRound(new None());
+        TeamHelper.MoveAllPlayersToTeam(core, Team.CT);
+        RenderColorHelper.AllResetRenderColor(core);
 
         if (IsRoundAvailable())
         {
@@ -125,14 +152,14 @@ internal sealed class RoundManager(
 
     private HookResult OnRoundEnd(EventRoundEnd @event)
     {
-        _currentRound.End();
+        EndCurrentRound();
 
         return HookResult.Continue;
     }
 
     private HookResult OnGameRestart(EventCsPreRestart @event)
     {
-        _currentRound.End();
+        EndCurrentRound();
 
         return HookResult.Continue;
     }
@@ -169,13 +196,9 @@ internal sealed class RoundManager(
         {
             SetRound(ResolveRandomRound());
         }
-        else
-        {
-            SetRound(_currentRound);
-        }
 
         _currentRound.Start();
-        _token?.Cancel();
+        CancelToken();
 
         eventPublisher.OnGameRoundStarted(_currentRound);
     }
@@ -195,6 +218,7 @@ internal sealed class RoundManager(
     private void CancelToken()
     {
         _token?.Cancel();
+        _token = null;
     }
 
     private IRound ResolveRandomRound()
@@ -218,6 +242,17 @@ internal sealed class RoundManager(
             }
         }
 
-        return roundFactory.Create(roundConfig.Value.Infection, this);
+        return roundFactory.Create(roundConfig.Value.Infection);
+    }
+
+    private void EndCurrentRound()
+    {
+        if (_currentRound is None)
+        {
+            return;
+        }
+
+        _currentRound.End();
+        _currentRound = new None();
     }
 }

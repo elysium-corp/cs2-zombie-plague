@@ -19,7 +19,7 @@ internal abstract class BasePassiveAbility(ISwiftlyCore core) : IPassiveAbility,
     public CParticleSystem? Particle { get; set; }
     public virtual bool IsCooldownNotify => false;
     
-    private bool _isHooked;
+    protected bool IsHooked { get; private set; }
     
     private const float TickInterval = 1.0f;
 
@@ -44,22 +44,22 @@ internal abstract class BasePassiveAbility(ISwiftlyCore core) : IPassiveAbility,
 
     public virtual void Hook()
     {
-        if (_isHooked)
+        if (IsHooked)
         {
             return;
         }
         
-        _isHooked = true;
+        IsHooked = true;
     }
 
     public virtual void UnHook()
     {
-        if (!_isHooked)
-        {
-            return;
-        }
-        
-        _isHooked = false;
+        IsHooked = false;
+        StopCooldownTimerInternal();
+        IsActive = false;
+        _cooldownElapsedTime = 0f;
+        Target = null;
+        DestroyParticle();
     }
     
     public void StartCooldown()
@@ -87,7 +87,7 @@ internal abstract class BasePassiveAbility(ISwiftlyCore core) : IPassiveAbility,
     public void ResetCooldown()
     {
         IsActive = false;
-        _cooldownToken?.Cancel();
+        StopCooldownTimerInternal();
         _cooldownElapsedTime = 0f;
     }
     

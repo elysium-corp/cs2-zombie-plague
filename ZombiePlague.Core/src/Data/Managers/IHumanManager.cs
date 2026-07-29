@@ -3,11 +3,19 @@ using ZombiePlague.Core.Config.Round;
 
 namespace ZombiePlague.Core.Data.Managers;
 
-public interface IHumanManager
+internal interface IHumanManager
 {
-    public bool IsSurvivor(IPlayer player);
+    bool IsHuman(IPlayer player);
 
-    public void SetSurvivor(IPlayer player, ISurvivorConfig roundSettings);
+    bool IsSurvivor(IPlayer player);
 
-    public void RegisterHooks();
+    int GetHumanCount();
+
+    void Respawn(IPlayer player);
+
+    void SetSurvivor(IPlayer player, ISurvivorConfig roundSettings);
+
+    void RegisterHooks();
+
+    void UnregisterHooks();
 }

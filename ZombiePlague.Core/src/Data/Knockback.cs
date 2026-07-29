@@ -15,6 +15,9 @@ namespace ZombiePlague.Core.Data;
 
 internal class Knockback(ISwiftlyCore core, IZombieManager zombieManager, IOptions<ZombiePlagueCoreConfig> config) : IKnockback
 {
+    private Guid _onPlayerHurtEvent;
+    private bool _started;
+
     private readonly Dictionary<string, KnockbackData> _weaponKnockback = new()
     {
         { "weapon_glock", new KnockbackData(150.0f, 200.0f) },
@@ -56,7 +59,24 @@ internal class Knockback(ISwiftlyCore core, IZombieManager zombieManager, IOptio
 
     public void Start()
     {
-        core.GameEvent.HookPost<EventPlayerHurt>(OnPlayerHurtPost);
+        if (_started)
+        {
+            return;
+        }
+
+        _onPlayerHurtEvent = core.GameEvent.HookPost<EventPlayerHurt>(OnPlayerHurtPost);
+        _started = true;
+    }
+
+    public void Stop()
+    {
+        if (!_started)
+        {
+            return;
+        }
+
+        core.GameEvent.Unhook(_onPlayerHurtEvent);
+        _started = false;
     }
     
     private HookResult OnPlayerHurtPost(EventPlayerHurt @event)
@@ -76,12 +96,12 @@ internal class Knockback(ISwiftlyCore core, IZombieManager zombieManager, IOptio
             return false;
         }
 
-        if (attacker.IsInfected())
+        if (zombieManager.GetZombie(attacker) != null)
         {
             return false;
         }
         
-        if (!victim.IsInfected() || victim.IsFrozen())
+        if (zombieManager.GetZombie(victim) == null || victim.IsFrozen(core))
         {
             return false;
         }
@@ -115,12 +135,7 @@ internal class Knockback(ISwiftlyCore core, IZombieManager zombieManager, IOptio
     {
         victim.Teleport(null, null, newVelocity);
 
-        if (!victim.IsInfected())
-        {
-            return;
-        }
-        
-        var zombie = zombieManager.GetZombie(victim.PlayerID);
+        var zombie = zombieManager.GetZombie(victim);
             
         core.Scheduler.Delay(20, () =>
         {
@@ -159,7 +174,7 @@ internal class Knockback(ISwiftlyCore core, IZombieManager zombieManager, IOptio
             return Vector.Zero;
         }
         
-        var zombie = zombieManager.GetZombie(victim.PlayerID);
+        var zombie = zombieManager.GetZombie(victim);
         if (zombie == null)
         {
             return Vector.Zero;

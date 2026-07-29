@@ -3,26 +3,31 @@ using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.Sounds;
 using ZombiePlague.Core.Config.Ability;
 using ZombiePlague.Core.Data.Abilities.Contracts;
-using ZombiePlague.Core.Data.Managers;
 using ZombiePlague.Core.Utils.Extensions;
 
 namespace ZombiePlague.Core.Data.Abilities;
 
-internal sealed class Charge(ISwiftlyCore core, ChargeConfig config, IZombieManager zombieManager) : BaseActiveAbility(core)
+internal sealed class Charge(ISwiftlyCore core, ChargeConfig config) : BaseActiveAbility(core)
 {
     public override KeyKind? Key => KeyKind.E;
     
     public override float Cooldown => config.CooldownTime;
     
-    private CancellationTokenSource _chargeToken = null!;
+    private CancellationTokenSource? _chargeToken;
 
     private const uint DurationEffectAbility = 500;
 
     public override void Use()
     {
+        var casterPawn = Caster.PlayerPawn;
+        if (casterPawn == null)
+        {
+            return;
+        }
+
         PlaySound();
-        
-        var startSpeed = zombieManager.GetZombie(Caster).ZClass.Speed;
+
+        var startSpeed = casterPawn.VelocityModifier * 250f;
         var maxSpeed = config.MaxSpeed;
         var chargeTime = config.ChargeTime;
         var speedUpdatePerTimeTick = config.SpeedUpdatePerTimeTick;
@@ -41,15 +46,17 @@ internal sealed class Charge(ISwiftlyCore core, ChargeConfig config, IZombieMana
         
         _chargeToken = core.Scheduler.RepeatBySeconds(speedUpdatePerTimeTick, () =>
         {
-            if (!Caster.IsValid || !Caster.IsAlive || !Caster.IsInfected())
+            if (!Caster.IsValid || !Caster.IsAlive || !Caster.IsOnZombieTeam())
             {
-                _chargeToken.Cancel();
+                _chargeToken?.Cancel();
+                return;
             }
 
             if (currentTime >= chargeTime)
             {
                 core.Scheduler.NextTick(() => { Caster.SetSpeed(startSpeed); });
-                _chargeToken.Cancel();
+                _chargeToken?.Cancel();
+                return;
             }
 
             currentSpeed += deltaSpeed;
@@ -72,22 +79,29 @@ internal sealed class Charge(ISwiftlyCore core, ChargeConfig config, IZombieMana
             return false;
         }
 
-        if (!Caster.IsInfected())
+        if (!Caster.IsOnZombieTeam())
         {
             return false;
         }
 
         return true;
     }
+
+    public override void UnHook()
+    {
+        _chargeToken?.Cancel();
+        _chargeToken = null;
+        base.UnHook();
+    }
     
     public override void PlaySound()
     {
-        var randomSound = config.SoundEffectNames[new Random().Next(config.SoundEffectNames.Count)];
-
         if (config.SoundEffectNames.Count == 0)
         {
             return;
         }
+
+        var randomSound = config.SoundEffectNames[Random.Shared.Next(config.SoundEffectNames.Count)];
 
         using var sound = new SoundEvent(randomSound);
 

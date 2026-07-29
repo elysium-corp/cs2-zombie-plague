@@ -6,13 +6,12 @@ using SwiftlyS2.Shared.SchemaDefinitions;
 using SwiftlyS2.Shared.Sounds;
 using ZombiePlague.Core.Config.Ability;
 using ZombiePlague.Core.Data.Abilities.Contracts;
-using ZombiePlague.Core.Data.Managers;
 using ZombiePlague.Core.Utils;
 using ZombiePlague.Core.Utils.Extensions;
 
 namespace ZombiePlague.Core.Data.Abilities;
 
-internal sealed class Heal(ISwiftlyCore core, HealConfig config, IZombieManager zombieManager) : BaseActiveAbility(core)
+internal sealed class Heal(ISwiftlyCore core, HealConfig config) : BaseActiveAbility(core)
 {
     public override KeyKind? Key => KeyKind.E;
 
@@ -39,7 +38,7 @@ internal sealed class Heal(ISwiftlyCore core, HealConfig config, IZombieManager 
             return;
         }
 
-        if (!target.IsInfected())
+        if (!target.IsOnZombieTeam())
         {
             return;
         }
@@ -66,7 +65,7 @@ internal sealed class Heal(ISwiftlyCore core, HealConfig config, IZombieManager 
             return false;
         }
 
-        if (!Caster.IsInfected())
+        if (!Caster.IsOnZombieTeam())
         {
             return false;
         }
@@ -96,7 +95,7 @@ internal sealed class Heal(ISwiftlyCore core, HealConfig config, IZombieManager 
         if (entity is null)
             return false;
 
-        var found = entity.Address.FindPlayerByPawnAddress();
+        var found = entity.Address.FindPlayerByPawnAddress(core);
         if (found is null || !found.IsValid || !found.Controller.PawnIsAlive)
             return false;
 
@@ -108,7 +107,7 @@ internal sealed class Heal(ISwiftlyCore core, HealConfig config, IZombieManager 
     {
         var currentHp = targetPawn.Health;
         var newHp = currentHp + config.HealAmount;
-        var maxTargetHp = zombieManager.GetZombie(target).ZClass.Health;
+        var maxTargetHp = targetPawn.MaxHealth;
 
         if (newHp >= maxTargetHp)
         {
@@ -176,12 +175,12 @@ internal sealed class Heal(ISwiftlyCore core, HealConfig config, IZombieManager 
 
     public override void PlaySound()
     {
-        var randomSound = config.SoundEffectNames[new Random().Next(config.SoundEffectNames.Count)];
-
         if (config.SoundEffectNames.Count == 0)
         {
             return;
         }
+
+        var randomSound = config.SoundEffectNames[Random.Shared.Next(config.SoundEffectNames.Count)];
 
         using var sound = new SoundEvent(randomSound);
 

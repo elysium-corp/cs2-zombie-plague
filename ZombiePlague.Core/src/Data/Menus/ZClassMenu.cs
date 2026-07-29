@@ -3,7 +3,6 @@ using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Menus;
 using SwiftlyS2.Shared.Players;
 using ZombiePlague.Core.Data.Menus.Contracts;
-using ZombiePlague.Core.Data.Zombies;
 using ZombiePlague.Core.Data.Zombies.ZClasses;
 using ZombiePlague.Core.Utils.Helpers;
 
@@ -11,7 +10,7 @@ namespace ZombiePlague.Core.Data.Menus;
 
 internal class ZClassMenu(ISwiftlyCore core, IZClassFactory zClassFactory) : IZClassMenu
 {
-    private readonly Dictionary<IPlayer, IZClass> _playersZClass = new();
+    private readonly Dictionary<int, IZClass> _playersZClass = [];
 
     public void RegisterMenu()
     {
@@ -32,12 +31,12 @@ internal class ZClassMenu(ISwiftlyCore core, IZClassFactory zClassFactory) : IZC
 
     public IZClass GetPlayerZClass(IPlayer player)
     {
-        if (_playersZClass.TryGetValue(player, out var zClass))
+        if (_playersZClass.TryGetValue(player.PlayerID, out var zClass))
         {
             return zClass;
         }
 
-        return _playersZClass[player] = zClassFactory.Create<ZCleric>();
+        return _playersZClass[player.PlayerID] = zClassFactory.Create<ZCleric>();
     }
 
     private IMenuAPI CreateMenu()
@@ -64,7 +63,7 @@ internal class ZClassMenu(ISwiftlyCore core, IZClassFactory zClassFactory) : IZC
         {
             var player = @args.Player;
             
-            _playersZClass[player] = zClass;
+            _playersZClass[player.PlayerID] = zClass;
             
             core.MenusAPI.CloseActiveMenu(args.Player);
             
@@ -74,5 +73,15 @@ internal class ZClassMenu(ISwiftlyCore core, IZClassFactory zClassFactory) : IZC
         };
         
         builder.AddOption(button);
+    }
+
+    public void RemovePlayer(int playerId)
+    {
+        _playersZClass.Remove(playerId);
+    }
+
+    public void Clear()
+    {
+        _playersZClass.Clear();
     }
 }

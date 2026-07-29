@@ -6,17 +6,20 @@ using ZPCore.Config.Round;
 
 namespace ZombiePlague.Core.Data.Rounds.Contracts;
 
-internal class RoundFactory(ISwiftlyCore core, IZombieManager zombieManager, HumanManager humanManager) : IRoundFactory
+internal sealed class RoundFactory(
+    ISwiftlyCore core,
+    IZombieManager zombieManager,
+    IHumanManager humanManager) : IRoundFactory
 {
-    public IRound Create(IRoundConfig? config, RoundManager roundManager)
+    public IRound Create(IRoundConfig? config)
     {
         return config switch
         {
-            InfectionConfig roundConfig => new Infection(core, roundManager, zombieManager, roundConfig),
-            NemesisConfig roundConfig => new Nemesis(core, roundManager, zombieManager, roundConfig),
-            PlagueConfig roundConfig => new Plague(core, roundManager, zombieManager, roundConfig),
-            SurvivorConfig roundConfig => new Survivor(core, roundManager, zombieManager, humanManager, roundConfig),
-            ArmageddonConfig roundConfig => new Armageddon(core, roundManager, zombieManager, humanManager, roundConfig),
+            InfectionConfig roundConfig => new Infection(core, zombieManager, humanManager, roundConfig),
+            NemesisConfig roundConfig => new Nemesis(core, zombieManager, roundConfig),
+            PlagueConfig roundConfig => new Plague(core, zombieManager, humanManager, roundConfig),
+            SurvivorConfig roundConfig => new Survivor(core, zombieManager, humanManager, roundConfig),
+            ArmageddonConfig roundConfig => new Armageddon(core, zombieManager, humanManager, roundConfig),
             _ => new None()
         };
     }

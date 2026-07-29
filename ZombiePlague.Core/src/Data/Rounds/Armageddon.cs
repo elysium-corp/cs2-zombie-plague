@@ -9,10 +9,9 @@ namespace ZombiePlague.Core.Data.Rounds;
 
 internal sealed class Armageddon(
     ISwiftlyCore core,
-    RoundManager roundManager,
     IZombieManager zombieManager,
     IHumanManager humanManager,
-    ArmageddonConfig config) : BaseRound(core, roundManager)
+    ArmageddonConfig config) : BaseRound(core)
 {
     public override int Chance => config.Chance;
     public override string Name => "Армагеддон";
@@ -50,5 +49,5 @@ internal sealed class Armageddon(
     }
 
     private void OnEntityTakeDamage(ref TakeDamageEntityPreContext @event)
-        => @event.ApplyNemesisExtraDamage(config.NemesisExtraDamage);
+        => @event.ApplyNemesisExtraDamage(config.NemesisExtraDamage, zombieManager, core);
 }

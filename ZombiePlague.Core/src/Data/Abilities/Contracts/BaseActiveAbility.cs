@@ -25,7 +25,7 @@ internal abstract class BaseActiveAbility(ISwiftlyCore core)
 
     public CParticleSystem? Particle { get; set; }
 
-    private bool _isHooked;
+    protected bool IsHooked { get; private set; }
 
     private const float TickInterval = 1.0f;
 
@@ -49,24 +49,28 @@ internal abstract class BaseActiveAbility(ISwiftlyCore core)
 
     public void Hook()
     {
-        if (_isHooked)
+        if (IsHooked)
         {
             return;
         }
 
         core.Event.OnClientKeyStateChanged += OnClientKeyStateChanged;
-        _isHooked = true;
+        IsHooked = true;
     }
 
-    public void UnHook()
+    public virtual void UnHook()
     {
-        if (!_isHooked)
+        if (IsHooked)
         {
-            return;
+            core.Event.OnClientKeyStateChanged -= OnClientKeyStateChanged;
+            IsHooked = false;
         }
 
-        core.Event.OnClientKeyStateChanged -= OnClientKeyStateChanged;
-        _isHooked = false;
+        StopCooldownTimerInternal();
+        IsActive = false;
+        _cooldownElapsedTime = 0f;
+        Target = null;
+        DestroyParticle();
     }
 
     public void OnClientKeyStateChanged(IOnClientKeyStateChangedEvent @event)
@@ -130,7 +134,7 @@ internal abstract class BaseActiveAbility(ISwiftlyCore core)
     public void ResetCooldown()
     {
         IsActive = false;
-        _cooldownToken?.Cancel();
+        StopCooldownTimerInternal();
         _cooldownElapsedTime = 0f;
     }
 

@@ -1,13 +1,11 @@
 ﻿using SwiftlyS2.Shared;
 using ZombiePlague.Api.Data;
-using ZombiePlague.Core.Data.Managers;
 
 namespace ZombiePlague.Core.Data.Rounds.Contracts;
 
-internal abstract class BaseRound(ISwiftlyCore core, RoundManager roundManager) : IRound
+internal abstract class BaseRound(ISwiftlyCore core) : IRound
 {
     protected readonly ISwiftlyCore Core = core;
-    protected readonly RoundManager RoundManager = roundManager;
 
     public abstract int Chance { get; }
     public abstract string Name { get; }
@@ -17,7 +15,6 @@ internal abstract class BaseRound(ISwiftlyCore core, RoundManager roundManager) 
     public virtual void End()
     {
         OnEnd();
-        RoundManager.SetRound(new None());
         Core.PlayerManager.SendCenter("Раунд окончен");
     }
 

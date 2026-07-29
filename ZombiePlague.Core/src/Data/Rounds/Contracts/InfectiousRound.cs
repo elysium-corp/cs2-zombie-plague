@@ -8,17 +8,22 @@ using ZombiePlague.Core.Utils.Extensions;
 
 namespace ZombiePlague.Core.Data.Rounds.Contracts;
 
-internal abstract class InfectiousRound(ISwiftlyCore core, RoundManager roundManager, IZombieManager zombieManager)
-    : BaseRound(core, roundManager)
+internal abstract class InfectiousRound(
+    ISwiftlyCore core,
+    IZombieManager zombieManager,
+    IHumanManager humanManager)
+    : BaseRound(core)
 {
     private Guid _onPlayerDeathEvent;
     private Guid _onPlayerConnectFullEvent;
+    private bool _isActive;
 
     protected abstract bool ZombieRevived { get; }
     protected abstract float ZombieSpawnTime { get; }
 
     protected sealed override void OnStart()
     {
+        _isActive = true;
         Core.GameHooks.Entities.TakeDamage.Pre += OnEntityTakeDamage;
         if (ZombieRevived)
         {
@@ -31,6 +36,7 @@ internal abstract class InfectiousRound(ISwiftlyCore core, RoundManager roundMan
 
     protected sealed override void OnEnd()
     {
+        _isActive = false;
         Core.GameHooks.Entities.TakeDamage.Pre -= OnEntityTakeDamage;
 
         if (ZombieRevived)
@@ -45,13 +51,13 @@ internal abstract class InfectiousRound(ISwiftlyCore core, RoundManager roundMan
 
     private void OnEntityTakeDamage(ref TakeDamageEntityPreContext @event)
     {
-        var attacker = @event.Params.Info.Attacker.ResolvePlayerFromHandle();
-        if (attacker == null || !attacker.IsValid || !attacker.IsInfected())
+        var attacker = @event.Params.Info.Attacker.ResolvePlayerFromHandle(Core);
+        if (attacker == null || !attacker.IsValid || zombieManager.GetZombie(attacker) == null)
         {
             return;
         }
 
-        var victim = @event.Params.Entity.Address.FindPlayerByPawnAddress();
+        var victim = @event.Params.Entity.Address.FindPlayerByPawnAddress(Core);
         if (victim == null || !victim.IsValid || victim.PlayerPawn is not { } pawn)
         {
             return;
@@ -72,8 +78,11 @@ internal abstract class InfectiousRound(ISwiftlyCore core, RoundManager roundMan
     }
 
     protected virtual bool CanInfect(IPlayer attacker, IPlayer victim) =>
-        attacker.IsValid && victim.IsValid && attacker.IsInfected()
-        && !victim.IsInfected() && !victim.IsLastHuman();
+        attacker.IsValid
+        && victim.IsValid
+        && zombieManager.GetZombie(attacker) != null
+        && zombieManager.GetZombie(victim) == null
+        && !(humanManager.IsHuman(victim) && humanManager.GetHumanCount() == 1);
 
     protected virtual void Infect(IPlayer attacker, IPlayer victim) =>
         zombieManager.CreateZombie(victim, attacker);
@@ -83,7 +92,7 @@ internal abstract class InfectiousRound(ISwiftlyCore core, RoundManager roundMan
         var player = @event.UserIdPlayer;
         Core.Scheduler.DelayBySeconds(ZombieSpawnTime, () =>
         {
-            if (player == null || !player.IsValid || RoundManager.GetRound() != this)
+            if (player == null || !player.IsValid || !_isActive)
             {
                 return;
             }
@@ -99,7 +108,7 @@ internal abstract class InfectiousRound(ISwiftlyCore core, RoundManager roundMan
         var player = @event.UserIdPlayer;
         Core.Scheduler.DelayBySeconds(ZombieSpawnTime, () =>
         {
-            if (player == null || !player.IsValid || RoundManager.GetRound() != this)
+            if (player == null || !player.IsValid || !_isActive)
             {
                 return;
             }

@@ -1,6 +1,6 @@
 ﻿namespace ZombiePlague.Core.Data.Plugins.ResourceLoader;
 
-internal interface IResourceLoader
+internal interface IResourceLoader : IDisposable
 {
-    public void Initialize();
+    void Initialize();
 }

@@ -10,9 +10,8 @@ namespace ZombiePlague.Core.Data.Rounds;
 
 internal sealed class Nemesis(
     ISwiftlyCore core,
-    RoundManager roundManager,
     IZombieManager zombieManager,
-    NemesisConfig config) : BaseRound(core, roundManager)
+    NemesisConfig config) : BaseRound(core)
 {
     public override int Chance => config.Chance;
     public override string Name => "Немезида";
@@ -28,7 +27,7 @@ internal sealed class Nemesis(
 
         foreach (var player in players)
         {
-            if (!player.IsInfected())
+            if (zombieManager.GetZombie(player) == null)
             {
                 player.SwitchTeam(Team.CT);
             }
@@ -48,5 +47,5 @@ internal sealed class Nemesis(
     }
 
     private void OnEntityTakeDamage(ref TakeDamageEntityPreContext @event)
-        => @event.ApplyNemesisExtraDamage(config.NemesisExtraDamage);
+        => @event.ApplyNemesisExtraDamage(config.NemesisExtraDamage, zombieManager, core);
 }

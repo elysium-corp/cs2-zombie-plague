@@ -15,13 +15,23 @@ internal sealed class Blind(ISwiftlyCore core, BlindConfig config) : BasePassive
 
     public override void Hook()
     {
+        if (IsHooked)
+        {
+            return;
+        }
+
         base.Hook();
         _abilityCallbackGuid = core.GameEvent.HookPost<EventPlayerHurt>(OnPlayerHurtPost);
     }
 
     public override void UnHook()
     {
-        core.GameEvent.Unhook(_abilityCallbackGuid);
+        if (_abilityCallbackGuid != Guid.Empty)
+        {
+            core.GameEvent.Unhook(_abilityCallbackGuid);
+            _abilityCallbackGuid = Guid.Empty;
+        }
+
         base.UnHook();
     }
 
@@ -53,12 +63,12 @@ internal sealed class Blind(ISwiftlyCore core, BlindConfig config) : BasePassive
         var attacker = @event.AttackerPlayer;
         var victim = @event.UserIdPlayer;
         
-        if (!attacker.IsValid || !attacker.IsAlive || attacker.IsInfected())
+        if (attacker == null || !attacker.IsValid || !attacker.IsAlive || attacker.IsOnZombieTeam())
         {
             return HookResult.Continue;
         }
 
-        if (!victim.IsValid || !victim.IsAlive || !victim.IsInfected())
+        if (victim == null || !victim.IsValid || !victim.IsAlive || !victim.IsOnZombieTeam())
         {
             return HookResult.Continue;
         }

@@ -30,7 +30,7 @@ internal class Leap(ISwiftlyCore core, LeapConfig config) : BaseActiveAbility(co
 
     protected override bool CanUse()
     {
-        if (!Caster.IsValid || !Caster.IsAlive || !Caster.IsInfected())
+        if (!Caster.IsValid || !Caster.IsAlive || !Caster.IsOnZombieTeam())
         {
             return false;
         }

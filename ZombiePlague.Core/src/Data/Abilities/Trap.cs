@@ -18,6 +18,8 @@ internal class Trap(ISwiftlyCore core, TrapConfig config) : BaseActiveAbility(co
 
     private CBaseModelEntity? _trapEntity;
     private CancellationTokenSource? _trapThinker;
+    private IPlayer? _trappedPlayer;
+    private CancellationTokenSource? _trapEffectToken;
     
     private const float Delay = 0.1f;
 
@@ -67,7 +69,7 @@ internal class Trap(ISwiftlyCore core, TrapConfig config) : BaseActiveAbility(co
             return false;
         }
 
-        if (!Caster.IsInfected())
+        if (!Caster.IsOnZombieTeam())
         {
             return false;
         }
@@ -86,18 +88,23 @@ internal class Trap(ISwiftlyCore core, TrapConfig config) : BaseActiveAbility(co
         
         _trapThinker = core.Scheduler.RepeatBySeconds(Delay, () =>
         {
-            if (!_trapEntity.IsValidEntity || !Caster.IsAlive || startTime >= config.LiveDuration)
+            var trapEntity = _trapEntity;
+            if (trapEntity == null || !trapEntity.IsValidEntity || !Caster.IsAlive ||
+                startTime >= config.LiveDuration)
             {
                 DespawnTrap();
                 return;
             }
         
-            var foundPlayers = MathAlgorithm.FindAllPlayersInSphere(config.TriggerRadius, _trapEntity.AbsOrigin.Value);
+            var foundPlayers = MathAlgorithm.FindAllPlayersInSphere(
+                core,
+                config.TriggerRadius,
+                trapEntity.AbsOrigin!.Value);
             if (foundPlayers.Count > 0)
             {
                 foreach (var foundPlayer in foundPlayers)
                 {
-                    if (!foundPlayer.IsInfected() && !foundPlayer.Equals(Caster))
+                    if (!foundPlayer.IsOnZombieTeam() && !foundPlayer.Equals(Caster))
                     {
                         TrapPlayer(foundPlayer);
                         break;
@@ -111,6 +118,7 @@ internal class Trap(ISwiftlyCore core, TrapConfig config) : BaseActiveAbility(co
     private void TrapPlayer(IPlayer player)
     {
         DespawnTrap();
+        CancelTrapEffect();
 
         player.PlayerPawn?.MoveType = MoveType_t.MOVETYPE_NONE;
         player.PlayerPawn?.ActualMoveType = MoveType_t.MOVETYPE_NONE;
@@ -118,21 +126,21 @@ internal class Trap(ISwiftlyCore core, TrapConfig config) : BaseActiveAbility(co
         player.PlayerPawn?.AbsVelocity = new Vector(0, 0, 0);
 
         var startTime = 0f;
+        _trappedPlayer = player;
 
-        CancellationTokenSource? token = null!;
-        token = core.Scheduler.RepeatBySeconds(Delay, () =>
+        _trapEffectToken = core.Scheduler.RepeatBySeconds(Delay, () =>
         {
             startTime += Delay;
 
-            if (!player.IsValid || player.IsInfected() || !player.IsAlive)
+            if (!player.IsValid || player.IsOnZombieTeam() || !player.IsAlive)
             {
-                token?.Cancel();
+                CancelTrapEffect();
+                return;
             }
 
-            if (startTime >= config.EffectDuration || player.IsInfected() || !player.IsAlive)
+            if (startTime >= config.EffectDuration)
             {
-                UnTrapPlayer(player);
-                token?.Cancel();
+                CancelTrapEffect();
             }
         });
     }
@@ -148,13 +156,40 @@ internal class Trap(ISwiftlyCore core, TrapConfig config) : BaseActiveAbility(co
     {
         if (_trapEntity is { IsValidEntity: true })
         {
-            _trapEntity?.Despawn(); 
+            _trapEntity.Despawn();
         }
+
         _trapThinker?.Cancel();
+        _trapThinker = null;
+        _trapEntity = null;
+    }
+
+    private void CancelTrapEffect()
+    {
+        _trapEffectToken?.Cancel();
+        _trapEffectToken = null;
+
+        if (_trappedPlayer != null)
+        {
+            UnTrapPlayer(_trappedPlayer);
+            _trappedPlayer = null;
+        }
+    }
+
+    public override void UnHook()
+    {
+        DespawnTrap();
+        CancelTrapEffect();
+        base.UnHook();
     }
 
     public override void PlaySound()
     {
+        if (config.SoundEffectNames.Count == 0)
+        {
+            return;
+        }
+
         using var sound = new SoundEvent(config.SoundEffectNames[0]);
 
         sound.Recipients.AddAllPlayers();
