@@ -3,48 +3,50 @@ using SwiftlyS2.Shared.Players;
 using ZombiePlague.Api;
 using ZombiePlague.Api.Data;
 using ZombiePlague.Api.Events;
-using ZombiePlague.Core.Data;
 using ZombiePlague.Core.Data.Managers;
+using ZombiePlague.Core.Data.Managers.Contracts;
 using ZombiePlague.Core.Data.Rounds;
-using ZombiePlague.Core.Di;
-using ZombiePlague.Core.Utils.Extensions;
-using ZPCore.Data;
+using ZombiePlague.Core.Data.Service.Contracts;
 
 namespace ZombiePlague.Core.Api;
 
-public sealed class ZombiePlagueApi(IEventSubscriber eventSubscriber) : IZombiePlagueApi
+internal sealed class ZombiePlagueApi(
+    IEventSubscriber eventSubscriber,
+    IPlayerManager playerManager,
+    IKnockbackService knockbackService
+) : IZombiePlagueApi
 {
     public IEventSubscriber EventSubscriber => eventSubscriber;
 
-    public bool IsInfected(IPlayer player) => player.IsInfected();
+    public bool IsInfected(IPlayer player)
+    {
+        return player.IsValid && playerManager.IsZombie(player);
+    }
     
     public bool IsSurvivor(IPlayer player)
     {
-        var humanManager =  DependencyManager.GetService<HumanManager>();
-        return humanManager.IsSurvivor(player);
+        return player.IsValid && playerManager.IsSurvivor(player);
     }
 
     public bool IsNemesis(IPlayer player)
     {
-        var zombieManager =  DependencyManager.GetService<ZombieManager>();
-        return zombieManager.IsNemesis(player);
+        return player.IsValid && playerManager.IsNemesis(player);
     }
 
-    public bool IsNemesisRound(IRound round) => round is Nemesis;
+    public bool IsNemesisRound(IRound round) => false;
 
-    public bool IsPlagueRound(IRound round) => round is Plague;
+    public bool IsPlagueRound(IRound round) => false;
 
-    public bool IsArmageddonRound(IRound round) => round is Armageddon;
+    public bool IsArmageddonRound(IRound round) => false;
 
-    public bool IsSurvivorRound(IRound round) => round is Survivor;
-    
+    public bool IsSurvivorRound(IRound round) => false;
+
     public bool IsInfectionRound(IRound round) => round is Infection;
+
+    public bool IsNoneRound(IRound round) => false;
     
     public void ApplyKnockBack(EventPlayerHurt @event, KnockbackData data)
     {
-        var knockbackSystem = DependencyManager.GetService<Knockback>();
-        knockbackSystem.TryApplyKnockback(@event, data);
+        knockbackService.TryApplyKnockback(@event, data);
     }
-
-    public bool IsNoneRound(IRound round) => round is None;
 }

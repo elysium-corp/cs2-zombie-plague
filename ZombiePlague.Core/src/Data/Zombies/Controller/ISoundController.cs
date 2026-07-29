@@ -1,6 +1,3 @@
-﻿namespace ZPCore.Data.Zombies.Controller;
+﻿namespace ZombiePlague.Core.Data.Zombies.Controller;
 
-internal interface ISoundController : IDisposable
-{
-    
-}
+public interface ISoundController : IDisposable { }

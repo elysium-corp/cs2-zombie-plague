@@ -3,56 +3,80 @@ using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
+using SwiftlyS2.Shared.Sounds;
 using ZombiePlague.Core.Config.Ability;
 using ZombiePlague.Core.Data.Abilities.Contracts;
+using ZombiePlague.Core.Utils;
 using ZombiePlague.Core.Utils.Extensions;
 
 namespace ZombiePlague.Core.Data.Abilities;
 
-internal class Catch(ISwiftlyCore core, CatchConfig config) : BaseActiveAbility(core)
+internal sealed class Catch(ISwiftlyCore core, CatchConfig config) : BaseActiveAbility(core, config)
 {
     public override KeyKind? Key => KeyKind.E;
+
     public override float Cooldown => config.CooldownTime;
-    
+
     private CBeam? _beam;
     private CancellationTokenSource? _thinker;
     private Vector? _oldPosition;
+    private MoveType_t? _targetMoveType;
+    private MoveType_t? _targetActualMoveType;
 
     private const float BodyPositionZ = 48f;
-    private const float DelayByRepeat = 0.1f;
-    
+    private const float ThinkerInterval = 0.1f;
+    private const float MovementTolerance = 1f;
+
     public override void Use()
     {
         var casterPawn = Caster.PlayerPawn;
-        if (casterPawn == null)
-        {
-            return;
-        }
-        
-        if (Target != null)
+        var casterPosition = casterPawn?.AbsOrigin;
+        var casterEyePosition = casterPawn?.EyePosition;
+
+        if (
+            casterPawn is not { IsValid: true } ||
+            casterPosition is null ||
+            casterEyePosition is null
+        )
         {
             return;
         }
 
         CancelCatching();
-        _oldPosition = casterPawn.AbsOrigin;
-        _beam = CreateCatchingBeam(casterPawn);
 
-        var trace = LaunchTraceFromCaster(casterPawn);
+        var trace = LaunchTraceFromCaster(casterPawn, casterEyePosition.Value);
         var entity = trace.Entity;
-        var found = entity.Address.FindPlayerByPawnAddress();
+        IPlayer? found = null;
 
-        if (found is null || !found.IsValid || !found.Controller.PawnIsAlive)
+        if (entity is not null)
+        {
+            found = entity.Address.FindPlayerByPawnAddress();
+        }
+
+        if (
+            found is not { IsValid: true, IsAlive: true } ||
+            found.PlayerID == Caster.PlayerID ||
+            found.Controller.Team == Caster.Controller.Team
+        )
+        {
+            base.Use();
+            return;
+        }
+
+        Target = found;
+        _oldPosition = casterPosition.Value;
+
+        if (!Freeze(found))
         {
             Target = null;
-        }
-        else
-        {
-            Target = found;
-            Freeze(Target);
+            base.Use();
+            return;
         }
 
+        _beam = CreateCatchingBeam(casterPawn);
         _beam.EndPos = trace.EndPos;
+        _beam.EndPosUpdated();
+
         _thinker = CreateCatchingThinker();
 
         base.Use();
@@ -60,47 +84,62 @@ internal class Catch(ISwiftlyCore core, CatchConfig config) : BaseActiveAbility(
 
     protected override bool CanUse()
     {
-        if (!Caster.IsValid)
+        return Caster is { IsValid: true, IsAlive: true } && config.MaxDistance > 0f;
+    }
+
+    public override void UnHook()
+    {
+        CancelCatching();
+        base.UnHook();
+    }
+
+    public override void PlaySound()
+    {
+        if (config.SoundEffectNames.Count == 0)
         {
-            return false;
+            return;
         }
 
-        if (!Caster.IsAlive)
+        var soundName = config.SoundEffectNames[
+            Random.Shared.Next(config.SoundEffectNames.Count)
+        ];
+
+        if (string.IsNullOrWhiteSpace(soundName))
         {
-            return false;
+            return;
         }
 
-        if (!Caster.IsInfected())
-        {
-            return false;
-        }
+        using var sound = new SoundEvent(soundName);
 
-        return true;
+        sound.Recipients.AddAllPlayers();
+        sound.SourceEntityIndex = (int)Caster.RequiredPlayerPawn.Index;
+        sound.Emit();
     }
 
     private CBeam CreateCatchingBeam(CCSPlayerPawn casterPawn)
     {
         var beam = core.EntitySystem.CreateEntity<CBeam>();
         beam.Width = config.BeamWidth;
-        beam.Render = new Color(config.RedColorEffect, config.GreenColorEffect, config.BlueColorEffect);
+        beam.Render = new Color(
+            config.RedColorEffect,
+            config.GreenColorEffect,
+            config.BlueColorEffect
+        );
 
-        var playerEyesPosition = casterPawn.EyePosition;
-        var playerRotation = casterPawn.AbsRotation;
-        beam.Teleport(playerEyesPosition, playerRotation, null);
-
+        beam.Teleport(casterPawn.EyePosition, casterPawn.AbsRotation, null);
         beam.DispatchSpawn();
         return beam;
     }
 
-    private CGameTrace LaunchTraceFromCaster(CCSPlayerPawn casterPawn)
+    private CGameTrace LaunchTraceFromCaster(CCSPlayerPawn casterPawn, Vector start)
     {
-        var start = casterPawn.EyePosition!.Value;
-        var forward = casterPawn.EyeAngles;
+        var direction = MathAlgorithm.ForwardFromAngles(casterPawn.EyeAngles);
+        var end = start + direction * config.MaxDistance;
 
         var trace = new CGameTrace();
         core.Trace.SimpleTrace(
             start,
-            forward,
+            end,
             RayType_t.RAY_TYPE_LINE,
             RnQueryObjectSet.AllGameEntities | RnQueryObjectSet.Static,
             MaskTrace.Solid | MaskTrace.Player,
@@ -116,109 +155,148 @@ internal class Catch(ISwiftlyCore core, CatchConfig config) : BaseActiveAbility(
 
     private CancellationTokenSource CreateCatchingThinker()
     {
-        CancellationTokenSource? token = null!;
-        token = core.Scheduler.RepeatBySeconds(DelayByRepeat, () =>
+        return core.Scheduler.RepeatBySeconds(ThinkerInterval, () =>
         {
-            var playerPawn = Caster.PlayerPawn;
-            var playerPosition = playerPawn?.AbsOrigin;
-            if (playerPawn == null || !playerPawn.IsValid || _oldPosition!.Value != playerPosition!.Value ||
-                !Caster.IsInfected())
+            var casterPawn = Caster.PlayerPawn;
+            var casterPosition = casterPawn?.AbsOrigin;
+
+            if (
+                !Caster.IsValid ||
+                !Caster.IsAlive ||
+                casterPawn is not { IsValid: true } ||
+                casterPosition is null ||
+                _oldPosition is not { } oldPosition ||
+                HasMoved(oldPosition, casterPosition.Value)
+            )
             {
                 CancelCatching();
                 return;
             }
 
-            if (Target == null || !Target.IsValid || Target.IsInfected())
+            if (
+                Target is not { IsValid: true, IsAlive: true } target ||
+                target.Controller.Team == Caster.Controller.Team
+            )
             {
                 CancelCatching();
                 return;
             }
 
-            if ((playerPawn.MovementServices?.Buttons.ButtonPressed & GameButtonFlags.E) == 0)
+            if ((casterPawn.MovementServices?.Buttons.ButtonPressed & GameButtonFlags.E) == 0)
             {
                 CancelCatching();
                 return;
             }
 
-            CatchTargetPawn();
-            RefreshCatchingBeam();
+            if (!CatchTargetPawn(target))
+            {
+                CancelCatching();
+                return;
+            }
+
+            RefreshCatchingBeam(target);
         });
-
-        return token;
     }
 
-    private void CatchTargetPawn()
+    private bool CatchTargetPawn(IPlayer target)
     {
-        var casterPawn = Caster.PlayerPawn;
-        var targetPawn = Target!.PlayerPawn;
+        var casterPosition = Caster.PlayerPawn?.AbsOrigin;
+        var targetPawn = target.PlayerPawn;
+        var targetPosition = targetPawn?.AbsOrigin;
 
-        var targetPosition = targetPawn!.AbsOrigin!;
+        if (casterPosition is null || targetPawn is not { IsValid: true } || targetPosition is null)
+        {
+            return false;
+        }
 
-        var direction = (casterPawn!.AbsOrigin! - targetPosition).Value.Normalized();
+        var offset = casterPosition.Value - targetPosition.Value;
+        var distanceSquared =
+            offset.X * offset.X +
+            offset.Y * offset.Y +
+            offset.Z * offset.Z;
+
+        if (distanceSquared <= float.Epsilon)
+        {
+            targetPawn.AbsVelocity = Vector.Zero;
+            return true;
+        }
+
+        var direction = offset.Normalized();
         targetPawn.AbsVelocity = direction * config.Strength;
+        return true;
     }
 
-    private void RefreshCatchingBeam()
+    private void RefreshCatchingBeam(IPlayer target)
     {
-        var targetPawn = Target?.PlayerPawn;
-        if (targetPawn == null)
+        var targetPosition = target.PlayerPawn?.AbsOrigin;
+        if (targetPosition is null)
         {
             return;
         }
 
-        var targetPosition = targetPawn.AbsOrigin;
-        if (targetPosition == null)
+        if (_beam is not null)
         {
-            return;
+            _beam.EndPos = targetPosition.Value + new Vector(0f, 0f, BodyPositionZ);
+            _beam.EndPosUpdated();
+        }
+    }
+
+    private bool Freeze(IPlayer player)
+    {
+        if (player.PlayerPawn is not { IsValid: true } pawn)
+        {
+            return false;
         }
 
-        _beam?.EndPos = targetPosition.Value + new Vector(0f, 0f, BodyPositionZ);
-        _beam?.EndPosUpdated();
+        _targetMoveType = pawn.MoveType;
+        _targetActualMoveType = pawn.ActualMoveType;
+
+        pawn.MoveType = MoveType_t.MOVETYPE_FLYGRAVITY;
+        pawn.ActualMoveType = MoveType_t.MOVETYPE_FLYGRAVITY;
+        pawn.MoveTypeUpdated();
+        pawn.AbsVelocity = Vector.Zero;
+        return true;
     }
 
     private void CancelCatching()
     {
-        if (_beam != null && _beam.IsValidEntity)
+        _thinker?.Cancel();
+        _thinker = null;
+
+        if (_beam is { IsValidEntity: true })
         {
             _beam.Despawn();
         }
 
-        if (Target != null)
+        _beam = null;
+
+        if (Target is not null)
         {
             UnFreeze(Target);
         }
 
-        _beam = null;
-        _thinker?.Cancel();
-        _thinker = null;
         Target = null;
-    }
-
-    private void Freeze(IPlayer player)
-    {
-        var playerPawn = player.PlayerPawn;
-        if (playerPawn == null)
-        {
-            return;
-        }
-        
-        playerPawn.MoveType = MoveType_t.MOVETYPE_FLYGRAVITY;
-        playerPawn.ActualMoveType = MoveType_t.MOVETYPE_FLYGRAVITY;
-        playerPawn.MoveTypeUpdated();
-        
-        playerPawn.AbsVelocity = new Vector(0, 0, 0);
+        _oldPosition = null;
     }
 
     private void UnFreeze(IPlayer player)
     {
-        var playerPawn = player.PlayerPawn;
-        if (playerPawn == null)
+        if (player.PlayerPawn is { IsValid: true } pawn)
         {
-            return;
+            pawn.MoveType = _targetMoveType ?? MoveType_t.MOVETYPE_WALK;
+            pawn.ActualMoveType = _targetActualMoveType ?? MoveType_t.MOVETYPE_WALK;
+            pawn.MoveTypeUpdated();
         }
-        
-        playerPawn.MoveType = MoveType_t.MOVETYPE_WALK;
-        playerPawn.ActualMoveType = MoveType_t.MOVETYPE_WALK;
-        playerPawn.MoveTypeUpdated();
+
+        _targetMoveType = null;
+        _targetActualMoveType = null;
+    }
+
+    private static bool HasMoved(Vector oldPosition, Vector currentPosition)
+    {
+        return
+            Math.Abs(oldPosition.X - currentPosition.X) > MovementTolerance ||
+            Math.Abs(oldPosition.Y - currentPosition.Y) > MovementTolerance ||
+            Math.Abs(oldPosition.Z - currentPosition.Z) > MovementTolerance;
     }
 }

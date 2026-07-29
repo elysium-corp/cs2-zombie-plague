@@ -1,4 +1,5 @@
-﻿using SwiftlyS2.Shared;
+﻿using Common.Di;
+using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
@@ -18,7 +19,7 @@ internal static class CHandleExt
             
             if (address == null) return null;
 
-            var core = DependencyManager.GetService<ISwiftlyCore>();
+            var core = DependencyResolver.GetRequiredService<ISwiftlyCore>();
 
             foreach (var player in core.PlayerManager.GetAllPlayers())
             {

@@ -10,8 +10,8 @@
         <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
         <GenerateDependencyFile>true</GenerateDependencyFile>
         <GenerateDocumentationFile>false</GenerateDocumentationFile>
-        <DebugSymbols>false</DebugSymbols>
-        <DebugType>none</DebugType>
+        <DebugSymbols>true</DebugSymbols>
+        <DebugType>portable</DebugType>
     </PropertyGroup>
 
     <!-- Папка output создаётся только для Core -->

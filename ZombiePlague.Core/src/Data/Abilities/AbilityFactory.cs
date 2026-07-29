@@ -17,7 +17,30 @@ internal class AbilityFactory(ISwiftlyCore core, IOptions<AbilityConfig> config)
             var t when t == typeof(Charge) => new Charge(core, config.Value.Charge),
             var t when t == typeof(Trap) => new Trap(core, config.Value.Trap),
             var t when t == typeof(Catch) => new Catch(core, config.Value.Catch),
+            
             _ => throw new NotSupportedException("ZAbilityFactory: type T hasn't supported!")
         };
+    }
+
+    public IAbility CreateByName(string abilityName)
+    {
+        return abilityName.ToLowerInvariant() switch
+        {
+            "heal" => Create<Heal>(),
+            "leap" => Create<Leap>(),
+            "blind" => Create<Blind>(),
+            "charge" => Create<Charge>(),
+            "trap" => Create<Trap>(),
+            "catch" => Create<Catch>(),
+            
+            _ => throw new NotSupportedException($"Ability '{abilityName}' is not supported.")
+        };
+    }
+
+    public List<IAbility> CreateFromStrings(List<string> abilities)
+    {
+        return abilities
+            .Select(CreateByName)
+            .ToList();
     }
 }

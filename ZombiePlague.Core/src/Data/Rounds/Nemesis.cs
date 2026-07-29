@@ -1,8 +1,9 @@
 ﻿using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameHooks;
-using SwiftlyS2.Shared.Players;
+using ZombiePlague.Api.Events;
 using ZombiePlague.Core.Config.Round;
-using ZombiePlague.Core.Data.Managers;
+using ZombiePlague.Core.Data.Abilities;
+using ZombiePlague.Core.Data.Managers.Contracts;
 using ZombiePlague.Core.Data.Rounds.Contracts;
 using ZombiePlague.Core.Utils.Extensions;
 
@@ -10,43 +11,71 @@ namespace ZombiePlague.Core.Data.Rounds;
 
 internal sealed class Nemesis(
     ISwiftlyCore core,
-    RoundManager roundManager,
-    ZombieManager zombieManager,
-    NemesisConfig config) : BaseRound(core, roundManager, zombieManager)
+    IPlayerManager playerManager,
+    IEventPublisher eventPublisher,
+    NemesisConfig config
+) : RoundBase(core, playerManager, eventPublisher)
 {
-    public override int Chance => config.Chance;
-    public override string Name => "Немезида";
-
+    public override string Name => config.Name;
+    
     protected override void OnStart()
     {
-        Core.GameHooks.Entities.TakeDamage.Pre += OnEntityTakeDamage;
+        var humans = PlayerManager.GetAllAliveHumans().ToArray();
+        var humansCount = humans.Length;
+        var selectedPlayer = humans[Random.Shared.Next(humans.Length)];
 
-        var players = Core.PlayerManager.GetAlive().ToList();
-        var nemesis = players[Random.Shared.Next(0, players.Count)];
-
-        ZombieManager.SetNemesis(nemesis, config);
-
-        foreach (var player in players)
+        if (!PlayerManager.TrySetNemesis(selectedPlayer, out var nemesis))
         {
-            if (!player.IsInfected())
-            {
-                player.SwitchTeam(Team.CT);
-            }
+            return;
         }
+        
+        var health = nemesis.ZClass.Health + config.NemesisBonusHealthPerPlayer * humansCount;
 
+        nemesis.ZClass.Health = Math.Clamp(
+            health,
+            min: nemesis.ZClass.Health,
+            max: int.MaxValue
+        );
+        
         if (config.IsMusicEnabled)
         {
             SoundExt.PlayGlobal(config.MusicSoundName);
         }
+        
+        if (!config.NemesisLeap)
+        {
+            var leap = nemesis.ZClass.Abilities.OfType<Leap>().FirstOrDefault();
+            leap?.UnHook();
+        }
 
-        Core.PlayerManager.SendCenter("Немезида => " + nemesis.Name);
+        Core.PlayerManager.SendCenter($"Немезида => {selectedPlayer.Name}");
     }
 
-    protected override void OnEnd()
+    protected override void OnEnd() { }
+    
+    public override bool CanStart()
     {
-        Core.GameHooks.Entities.TakeDamage.Pre -= OnEntityTakeDamage;
+        var humansCount = PlayerManager.GetAllAliveHumans().Count();
+        
+        return humansCount > config.MinimumHumansRequired;
     }
 
-    private void OnEntityTakeDamage(ref TakeDamageEntityPreContext @event)
-        => @event.ApplyNemesisExtraDamage(config.NemesisExtraDamage);
+    protected override void OnTakeDamage(ref TakeDamageEntityPreContext context)
+    {
+        var attacker = context.Params.Info.Attacker.ResolvePlayerFromHandle();
+        
+        if (attacker is not { IsValid: true, IsAlive: true } || !PlayerManager.IsNemesis(attacker))
+        {
+            return;
+        }
+
+        var victim = context.Params.Entity.Address.FindPlayerByPawnAddress();
+        
+        if (victim is not { IsValid: true, IsAlive: true } || !PlayerManager.IsHuman(victim))
+        {
+            return;
+        }
+
+        context.Params.Info.Damage += config.NemesisExtraDamage;
+    }
 }

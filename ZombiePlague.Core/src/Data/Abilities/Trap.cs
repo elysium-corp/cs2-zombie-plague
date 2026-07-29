@@ -7,49 +7,67 @@ using SwiftlyS2.Shared.Sounds;
 using ZombiePlague.Core.Config.Ability;
 using ZombiePlague.Core.Data.Abilities.Contracts;
 using ZombiePlague.Core.Utils;
-using ZombiePlague.Core.Utils.Extensions;
 
 namespace ZombiePlague.Core.Data.Abilities;
 
-internal class Trap(ISwiftlyCore core, TrapConfig config) : BaseActiveAbility(core)
+internal sealed class Trap(ISwiftlyCore core, TrapConfig config) : BaseActiveAbility(core, config)
 {
     public override KeyKind? Key => KeyKind.E;
+
     public override float Cooldown => config.CooldownTime;
 
     private CBaseModelEntity? _trapEntity;
     private CancellationTokenSource? _trapThinker;
-    
+    private CancellationTokenSource? _trapEffectToken;
+    private IPlayer? _trappedPlayer;
+    private MoveType_t? _trappedMoveType;
+    private MoveType_t? _trappedActualMoveType;
+    private int _spawnVersion;
+
     private const float Delay = 0.1f;
 
     public override void Use()
     {
-        DespawnTrap();
+        StopTrap();
+        var spawnVersion = _spawnVersion;
 
         core.Scheduler.NextTick(() =>
         {
-            var casterPos = Caster.RequiredPawn.AbsOrigin;
+            var casterPawn = Caster.PlayerPawn;
+            var casterPosition = casterPawn?.AbsOrigin;
+
+            if (
+                spawnVersion != _spawnVersion ||
+                !Caster.IsValid ||
+                !Caster.IsAlive ||
+                casterPawn is not { IsValid: true } ||
+                casterPosition is null
+            )
+            {
+                return;
+            }
+
             _trapEntity = core.EntitySystem.CreateEntity<CBaseModelEntity>();
-            _trapEntity.SetModel("");
+            _trapEntity.SetModel(string.Empty);
             _trapEntity.Render = new Color(255, 255, 255, 0);
             _trapEntity.DispatchSpawn();
-            
-            _trapEntity.Teleport(casterPos, null, null);
+            _trapEntity.Teleport(casterPosition.Value, null, null);
 
             var filter = new CRecipientFilter(NetChannelBufType_t.BUF_RELIABLE);
             filter.AddRecipient(Caster.PlayerID);
 
-            core.Engine.DispatchParticleEffect(config.ParticleEffectName,
+            core.Engine.DispatchParticleEffect(
+                config.ParticleEffectName,
                 ParticleAttachment_t.PATTACH_ABSORIGIN,
                 0,
                 string.Empty,
                 filter,
                 resetAllParticlesOnEntity: false,
                 splitScreenSlot: 0,
-                _trapEntity);
-            
-            PlaySound();
-            
-            SetTrapThinker();
+                _trapEntity
+            );
+
+            StartTrapThinker();
         });
 
         base.Use();
@@ -57,109 +75,161 @@ internal class Trap(ISwiftlyCore core, TrapConfig config) : BaseActiveAbility(co
 
     protected override bool CanUse()
     {
-        if (!Caster.IsValid)
-        {
-            return false;
-        }
-
-        if (!Caster.IsAlive)
-        {
-            return false;
-        }
-
-        if (!Caster.IsInfected())
-        {
-            return false;
-        }
-
-        if (Caster.RequiredPlayerPawn.GroundEntity.Value == null)
-        {
-            return false;
-        }
-
-        return true;
+        return
+            Caster is { IsValid: true, IsAlive: true } &&
+            Caster.RequiredPlayerPawn.GroundEntity.Value != null;
     }
 
-    private void SetTrapThinker()
+    public override void UnHook()
     {
-        var startTime = 0f;
-        
+        StopTrap();
+        base.UnHook();
+    }
+
+    public override void PlaySound()
+    {
+        if (config.SoundEffectNames.Count == 0)
+        {
+            return;
+        }
+
+        var soundName = config.SoundEffectNames[
+            Random.Shared.Next(config.SoundEffectNames.Count)
+        ];
+
+        if (string.IsNullOrWhiteSpace(soundName))
+        {
+            return;
+        }
+
+        using var sound = new SoundEvent(soundName);
+
+        sound.Recipients.AddAllPlayers();
+        sound.SourceEntityIndex = (int)Caster.RequiredPlayerPawn.Index;
+        sound.Emit();
+    }
+
+    private void StartTrapThinker()
+    {
+        var elapsedTime = 0f;
+
         _trapThinker = core.Scheduler.RepeatBySeconds(Delay, () =>
         {
-            if (!_trapEntity.IsValidEntity || !Caster.IsAlive || startTime >= config.LiveDuration)
+            var trapEntity = _trapEntity;
+            var trapPosition = trapEntity?.AbsOrigin;
+
+            if (
+                trapEntity is not { IsValidEntity: true } ||
+                trapPosition is null ||
+                !Caster.IsValid ||
+                !Caster.IsAlive ||
+                elapsedTime >= config.LiveDuration
+            )
             {
-                DespawnTrap();
+                DespawnTrapEntity();
                 return;
             }
-        
-            var foundPlayers = MathAlgorithm.FindAllPlayersInSphere(config.TriggerRadius, _trapEntity.AbsOrigin.Value);
-            if (foundPlayers.Count > 0)
+
+            var foundPlayers = MathAlgorithm.FindAllPlayersInSphere(
+                config.TriggerRadius,
+                trapPosition.Value
+            );
+
+            foreach (var foundPlayer in foundPlayers)
             {
-                foreach (var foundPlayer in foundPlayers)
+                if (
+                    foundPlayer.IsValid &&
+                    foundPlayer.IsAlive &&
+                    foundPlayer.PlayerID != Caster.PlayerID &&
+                    foundPlayer.Controller.Team != Caster.Controller.Team
+                )
                 {
-                    if (!foundPlayer.IsInfected() && !foundPlayer.Equals(Caster))
-                    {
-                        TrapPlayer(foundPlayer);
-                        break;
-                    }
+                    TrapPlayer(foundPlayer);
+                    return;
                 }
             }
-            startTime += Delay;
+
+            elapsedTime += Delay;
         });
     }
 
     private void TrapPlayer(IPlayer player)
     {
-        DespawnTrap();
+        DespawnTrapEntity();
 
-        player.PlayerPawn?.MoveType = MoveType_t.MOVETYPE_NONE;
-        player.PlayerPawn?.ActualMoveType = MoveType_t.MOVETYPE_NONE;
-        player.PlayerPawn?.MoveTypeUpdated();
-        player.PlayerPawn?.AbsVelocity = new Vector(0, 0, 0);
-
-        var startTime = 0f;
-
-        CancellationTokenSource? token = null!;
-        token = core.Scheduler.RepeatBySeconds(Delay, () =>
+        if (
+            !player.IsValid ||
+            !player.IsAlive ||
+            player.Controller.Team == Caster.Controller.Team ||
+            player.PlayerPawn is not { IsValid: true } pawn
+        )
         {
-            startTime += Delay;
+            return;
+        }
 
-            if (!player.IsValid || player.IsInfected() || !player.IsAlive)
-            {
-                token?.Cancel();
-            }
+        _trappedPlayer = player;
+        _trappedMoveType = pawn.MoveType;
+        _trappedActualMoveType = pawn.ActualMoveType;
 
-            if (startTime >= config.EffectDuration || player.IsInfected() || !player.IsAlive)
+        pawn.MoveType = MoveType_t.MOVETYPE_NONE;
+        pawn.ActualMoveType = MoveType_t.MOVETYPE_NONE;
+        pawn.MoveTypeUpdated();
+        pawn.AbsVelocity = Vector.Zero;
+
+        var elapsedTime = 0f;
+
+        _trapEffectToken = core.Scheduler.RepeatBySeconds(Delay, () =>
+        {
+            elapsedTime += Delay;
+
+            if (
+                !Caster.IsValid ||
+                !Caster.IsAlive ||
+                !player.IsValid ||
+                !player.IsAlive ||
+                player.Controller.Team == Caster.Controller.Team ||
+                elapsedTime >= config.EffectDuration
+            )
             {
-                UnTrapPlayer(player);
-                token?.Cancel();
+                ReleaseTrappedPlayer();
             }
         });
     }
 
-    private void UnTrapPlayer(IPlayer player)
+    private void StopTrap()
     {
-        player.PlayerPawn?.MoveType = MoveType_t.MOVETYPE_WALK;
-        player.PlayerPawn?.ActualMoveType = MoveType_t.MOVETYPE_WALK;
-        player.PlayerPawn?.MoveTypeUpdated();
+        _spawnVersion++;
+        DespawnTrapEntity();
+        ReleaseTrappedPlayer();
     }
 
-    private void DespawnTrap()
+    private void DespawnTrapEntity()
     {
+        _trapThinker?.Cancel();
+        _trapThinker = null;
+
         if (_trapEntity is { IsValidEntity: true })
         {
-            _trapEntity?.Despawn(); 
+            _trapEntity.Despawn();
         }
-        _trapThinker?.Cancel();
+
+        _trapEntity = null;
     }
 
-    public override void PlaySound()
+    private void ReleaseTrappedPlayer()
     {
-        using var sound = new SoundEvent(config.SoundEffectNames[0]);
+        _trapEffectToken?.Cancel();
+        _trapEffectToken = null;
 
-        sound.Recipients.AddAllPlayers();
-        sound.SourceEntityIndex = (int)Caster.RequiredPlayerPawn.Index;
+        if (_trappedPlayer?.PlayerPawn is { IsValid: true } pawn)
+        {
+            pawn.MoveType = _trappedMoveType ?? MoveType_t.MOVETYPE_WALK;
+            pawn.ActualMoveType = _trappedActualMoveType ?? MoveType_t.MOVETYPE_WALK;
+            pawn.MoveTypeUpdated();
+        }
 
-        sound.Emit();
+        _trappedPlayer = null;
+        _trappedMoveType = null;
+        _trappedActualMoveType = null;
     }
 }

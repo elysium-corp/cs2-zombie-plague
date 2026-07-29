@@ -1,43 +1,62 @@
-﻿using SwiftlyS2.Core.Menus.OptionsBase;
+﻿using Microsoft.Extensions.Options;
+using SwiftlyS2.Core.Menus.OptionsBase;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Menus;
 using SwiftlyS2.Shared.Players;
+using ZombiePlague.Core.Config.Zombie;
 using ZombiePlague.Core.Data.Menus.Contracts;
-using ZombiePlague.Core.Data.Zombies.ZClasses;
-using ZombiePlague.Core.Di;
+using ZombiePlague.Core.Store.Contracts;
 using ZombiePlague.Core.Utils.Helpers;
 
 namespace ZombiePlague.Core.Data.Menus;
 
-internal class ZClassMenu(ISwiftlyCore core) : IZClassMenu
+internal sealed class ZClassMenu(
+    ISwiftlyCore core,
+    IOptions<ZClassConfig> config,
+    IPlayerRepository playerRepository
+) : IZClassMenu
 {
-    private readonly Dictionary<IPlayer, IZClass> _playersZClass = new();
+    private Guid _commandGuid = Guid.Empty;
 
     public void RegisterMenu()
     {
-        core.Command.RegisterCommand(
+        if (_commandGuid != Guid.Empty)
+        {
+            return;
+        }
+
+        _commandGuid = core.Command.RegisterCommand(
             commandName: "class",
-            handler: (args)=>
+            handler: context =>
             {
-                if (args.Sender != null) Open(args.Sender);
+                if (context.Sender is { IsValid: true } player)
+                {
+                    Open(player);
+                }
             },
             registerRaw: true
         );
     }
 
-    public void Open(IPlayer player)
+    public void UnregisterMenu()
     {
-        core.MenusAPI.OpenMenuForPlayer(player, CreateMenu());
-    }
-
-    public IZClass GetPlayerZClass(IPlayer player)
-    {
-        if (_playersZClass.TryGetValue(player, out var zClass))
+        if (_commandGuid == Guid.Empty)
         {
-            return zClass;
+            return;
         }
 
-        return _playersZClass[player] = DependencyManager.GetService<ZCleric>();
+        core.Command.UnregisterCommand(_commandGuid);
+        _commandGuid = Guid.Empty;
+    }
+
+    public void Open(IPlayer player)
+    {
+        if (!player.IsValid)
+        {
+            return;
+        }
+
+        core.MenusAPI.OpenMenuForPlayer(player, CreateMenu());
     }
 
     private IMenuAPI CreateMenu()
@@ -46,33 +65,54 @@ internal class ZClassMenu(ISwiftlyCore core) : IZClassMenu
             .Design.SetMenuTitle("Зомби-классы")
             .EnableSound();
 
-        AddZClassOption<ZCleric>(builder);
-        AddZClassOption<ZAssassin>(builder);
-        AddZClassOption<ZHeavy>(builder);
-        AddZClassOption<ZHunter>(builder);
-        AddZClassOption<ZSmoker>(builder);
+        foreach (var zClass in GetAvailableClasses())
+        {
+            AddZClassOption(builder, zClass);
+        }
 
         return builder.Build();
     }
-    
-    private void AddZClassOption<T>(IMenuBuilderAPI builder) where T : IZClass
+
+    private IEnumerable<IZClassConfig> GetAvailableClasses()
     {
-        var zClass = DependencyManager.GetService<T>();
-        var button = new ButtonMenuOption($"{zClass.DisplayName} {HtmlHelper.TextWithColor(zClass.Description, "#FFFF00")}");
+        var classes = config.Value;
+
+        return new IZClassConfig[]
+        {
+            classes.Cleric,
+            classes.Assassin,
+            classes.Heavy,
+            classes.Hunter,
+            classes.Smoker
+        }.Where(zClass => zClass.Enabled);
+    }
+
+    private void AddZClassOption(
+        IMenuBuilderAPI builder,
+        IZClassConfig zClass
+    )
+    {
+        var description = HtmlHelper.TextWithColor(
+            zClass.Description,
+            "#FFFF00"
+        );
+        var button = new ButtonMenuOption(
+            $"{zClass.DisplayName} {description}"
+        );
 
         button.Click += (_, args) =>
         {
-            var player = @args.Player;
-            
-            _playersZClass[player] = zClass;
-            
-            core.MenusAPI.CloseActiveMenu(@args.Player);
-            
-            core.PlayerManager.SendCenterAsync($"{zClass.DisplayName} успешно выбран!");
-            
+            var player = args.Player;
+
+            if (player.IsValid)
+            {
+                playerRepository.SetZClassId(player, zClass.InternalName);
+                core.MenusAPI.CloseActiveMenu(player);
+            }
+
             return ValueTask.CompletedTask;
         };
-        
+
         builder.AddOption(button);
     }
 }

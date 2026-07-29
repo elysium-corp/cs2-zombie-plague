@@ -3,11 +3,10 @@ using SwiftlyS2.Shared.Events;
 using ZombiePlague.Core.Config.Ability;
 using ZombiePlague.Core.Data.Abilities.Contracts;
 using ZombiePlague.Core.Utils;
-using ZombiePlague.Core.Utils.Extensions;
 
 namespace ZombiePlague.Core.Data.Abilities;
 
-internal class Leap(ISwiftlyCore core, LeapConfig config) : BaseActiveAbility(core)
+internal class Leap(ISwiftlyCore core, LeapConfig config) : BaseActiveAbility(core, config)
 {
     public override KeyKind? Key => KeyKind.Ctrl;
     public override float Cooldown => config.CooldownTime;
@@ -30,7 +29,7 @@ internal class Leap(ISwiftlyCore core, LeapConfig config) : BaseActiveAbility(co
 
     protected override bool CanUse()
     {
-        if (!Caster.IsValid || !Caster.IsAlive || !Caster.IsInfected())
+        if (!Caster.IsValid || !Caster.IsAlive)
         {
             return false;
         }

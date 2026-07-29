@@ -5,7 +5,11 @@ namespace ZombiePlague.Api.Events;
 
 public interface IEventPublisher
 {
-    void OnPlayerInfectedBy(IPlayer infector, IPlayer victim);
-    void OnPlayerInfected(IPlayer victim);
-    void OnGameRoundStarted(IRound round);
+    void OnPlayerInfected(IPlayer infected, IPlayer? infector = null);
+    void OnPlayerDisinfected(IPlayer disinfected);
+    
+    
+    // Round API 
+    void OnRoundStarted(IRound round);
+    void OnRoundEnded(IRound round); 
 }

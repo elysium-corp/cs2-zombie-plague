@@ -60,7 +60,7 @@ internal sealed partial class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxMod
     {
         _guidOnEventRoundEndPost = core.GameEvent.HookPost<EventRoundEnd>(OnRoundEnd);
         _guidOnEventCsPreRestartPost = core.GameEvent.HookPost<EventCsPreRestart>(OnGameRestart);
-        ZombiePlagueApi.EventSubscriber.OnGameRoundStarted += OnGameRoundStarted;
+        ZombiePlagueApi.EventSubscriber.OnRoundStarted += OnRoundStarted;
         _eventSubscriber.Value.OnSupplyBoxPickedUp += OnSupplyBoxPickedUp;
         core.Event.OnMapLoad += OnMapLoad;
         
@@ -75,6 +75,7 @@ internal sealed partial class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxMod
     {
         Core.GameEvent.Unhook(_guidOnEventRoundEndPost);
         Core.GameEvent.Unhook(_guidOnEventCsPreRestartPost);
+        ZombiePlagueApi.EventSubscriber.OnRoundStarted -= OnRoundStarted;
         _eventSubscriber.Value.OnSupplyBoxPickedUp -= OnSupplyBoxPickedUp;
         core.Event.OnMapLoad -= OnMapLoad;
     }
@@ -119,7 +120,7 @@ internal sealed partial class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxMod
         _droppedSupplyBoxes.Remove(box);
     }
     
-    private void OnGameRoundStarted(IRound round)
+    private void OnRoundStarted(IRound round)
     {
         CreateRespawnTimer(round);
     }

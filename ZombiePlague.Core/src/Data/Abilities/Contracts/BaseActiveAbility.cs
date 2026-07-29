@@ -2,15 +2,18 @@
 using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
+using ZombiePlague.Core.Config.Ability;
 
 namespace ZombiePlague.Core.Data.Abilities.Contracts;
 
-internal abstract class BaseActiveAbility(ISwiftlyCore core)
+internal abstract class BaseActiveAbility(ISwiftlyCore core, IAbilityConfig config)
     : IActiveAbility, ICooldownRestricted, IParticleRestricted, ISoundPlayable
 {
     protected IPlayer Caster { get; private set; } = null!;
 
     protected IPlayer? Target { get; set; }
+
+    protected bool IsEnabled => config.Enable;
 
     public bool IsActive { get; set; }
 
@@ -31,6 +34,11 @@ internal abstract class BaseActiveAbility(ISwiftlyCore core)
 
     public virtual void Use()
     {
+        if (!IsEnabled)
+        {
+            return;
+        }
+
         if (Cooldown > 0)
         {
             StartCooldown();
@@ -47,8 +55,13 @@ internal abstract class BaseActiveAbility(ISwiftlyCore core)
         Hook();
     }
 
-    public void Hook()
+    public virtual void Hook()
     {
+        if (!IsEnabled)
+        {
+            return;
+        }
+
         if (_isHooked)
         {
             return;
@@ -58,15 +71,19 @@ internal abstract class BaseActiveAbility(ISwiftlyCore core)
         _isHooked = true;
     }
 
-    public void UnHook()
+    public virtual void UnHook()
     {
-        if (!_isHooked)
+        if (_isHooked)
         {
-            return;
+            core.Event.OnClientKeyStateChanged -= OnClientKeyStateChanged;
+            _isHooked = false;
         }
 
-        core.Event.OnClientKeyStateChanged -= OnClientKeyStateChanged;
-        _isHooked = false;
+        StopCooldownTimerInternal();
+        IsActive = false;
+        _cooldownElapsedTime = 0f;
+        DestroyParticle();
+        Target = null;
     }
 
     public void OnClientKeyStateChanged(IOnClientKeyStateChangedEvent @event)
@@ -86,6 +103,11 @@ internal abstract class BaseActiveAbility(ISwiftlyCore core)
 
     private void TryUse()
     {
+        if (!IsEnabled)
+        {
+            return;
+        }
+
         if (IsActive)
         {
             if (IsCooldownNotify)
@@ -130,7 +152,7 @@ internal abstract class BaseActiveAbility(ISwiftlyCore core)
     public void ResetCooldown()
     {
         IsActive = false;
-        _cooldownToken?.Cancel();
+        StopCooldownTimerInternal();
         _cooldownElapsedTime = 0f;
     }
 

@@ -7,12 +7,16 @@ namespace Menu.Api.Data.Contracts;
 
 public abstract class DynamicOptionsMenu(ISwiftlyCore core, IEventPublisher eventPublisher) : BaseMenu(core)
 {
-    private IMenuBuilderAPI DynamicOptionsBuilder(IMenuBuilderAPI baseBuilder)
+    protected virtual Action<IPlayer, MenuOptionsHolder>? MenuBuilderCallback => null;
+
+    private IMenuBuilderAPI DynamicOptionsBuilder(IPlayer player, IMenuBuilderAPI baseBuilder)
     {
         var menuType = GetType();
         var optionsHolder = new MenuOptionsHolder();
         
-        eventPublisher.OnMenuAddOption(menuType, optionsHolder);
+        eventPublisher.OnMenuAddOption(player, menuType, optionsHolder);
+        
+        MenuBuilderCallback?.Invoke(player, optionsHolder);
 
         var options = optionsHolder
             .BuildOptions()
@@ -30,18 +34,18 @@ public abstract class DynamicOptionsMenu(ISwiftlyCore core, IEventPublisher even
     {
         var baseBuilder = BaseBuilder(player);
 
-        var builder = DynamicOptionsBuilder(baseBuilder);
+        var builder = DynamicOptionsBuilder(player, baseBuilder);
 
         return builder;
-    }
+    } 
 
-    public record IMenuOptionWrapper(IMenuOption Option, int? Priority = int.MaxValue);
+    public record IMenuOptionWrapper(IMenuOption Option, int? Priority);
 
     public sealed class MenuOptionsHolder
     {
         private readonly List<IMenuOptionWrapper> _options = [];
 
-        public void Add(IMenuOption option, int priority)
+        public void Add(IMenuOption option, int priority = int.MaxValue)
         {
             var optionWrapper = new IMenuOptionWrapper(option, priority);
             _options.Add(optionWrapper);

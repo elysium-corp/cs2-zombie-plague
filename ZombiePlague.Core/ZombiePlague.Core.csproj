@@ -36,12 +36,12 @@
     <ItemGroup>
         <ProjectReference Include="..\Common.Effects\Common.Effects.csproj" />
         <ProjectReference Include="..\Menu.Api\Menu.Api.csproj" />
-        <ProjectReference Include="..\SupplyBox.Core\SupplyBox.Core.csproj" />
         <ProjectReference Include="..\ZombiePlague.Api\ZombiePlague.Api.csproj" />
     </ItemGroup>
 
     <ItemGroup>
         <Folder Include="resources\exports\"/>
+        <Folder Include="src\Data\Rounds\Exceptions\" />
     </ItemGroup>
 
     <Target Name="CreateZip" AfterTargets="Publish">

@@ -1,4 +1,5 @@
-﻿using SwiftlyS2.Shared;
+﻿using Common.Di;
+using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
 using ZombiePlague.Core.Di;
@@ -25,7 +26,7 @@ internal static class MathAlgorithm
 
     public static List<IPlayer> FindAllPlayersInSphere(float radius, Vector position)
     {
-        var core = DependencyManager.GetService<ISwiftlyCore>();
+        var core = DependencyResolver.GetRequiredService<ISwiftlyCore>();
         var players = core.PlayerManager.GetAlive();
 
         List<IPlayer> foundPlayers = [];

@@ -1,39 +1,46 @@
 ﻿using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
+using ZombiePlague.Core.Config.Ability;
 
 namespace ZombiePlague.Core.Data.Abilities.Contracts;
 
-internal abstract class BasePassiveAbility(ISwiftlyCore core) : IPassiveAbility, ICooldownRestricted, IParticleRestricted, ISoundPlayable
+internal abstract class BasePassiveAbility(ISwiftlyCore core, IAbilityConfig config)
+    : IPassiveAbility, ICooldownRestricted, IParticleRestricted, ISoundPlayable
 {
     protected IPlayer Caster { get; private set; } = null!;
-    
+
     protected IPlayer? Target { get; set; }
-    
+
+    protected bool IsEnabled => config.Enable;
+
     public bool IsActive { get; set; }
-    
+
     public abstract float Cooldown { get; }
     private CancellationTokenSource? _cooldownToken;
     private float _cooldownElapsedTime;
-    
+
     public CParticleSystem? Particle { get; set; }
     public virtual bool IsCooldownNotify => false;
-    
+
     private bool _isHooked;
-    
+
     private const float TickInterval = 1.0f;
 
     public virtual void Use()
     {
+        if (!IsEnabled)
+        {
+            return;
+        }
+
         if (Cooldown > 0)
         {
             StartCooldown();
         }
 
-        if (Particle != null)
-        {
-            CreateParticle();
-        }
+        CreateParticle();
+        PlaySound();
     }
 
     public void SetCaster(IPlayer caster)
@@ -44,24 +51,29 @@ internal abstract class BasePassiveAbility(ISwiftlyCore core) : IPassiveAbility,
 
     public virtual void Hook()
     {
+        if (!IsEnabled)
+        {
+            return;
+        }
+
         if (_isHooked)
         {
             return;
         }
-        
+
         _isHooked = true;
     }
 
     public virtual void UnHook()
     {
-        if (!_isHooked)
-        {
-            return;
-        }
-        
         _isHooked = false;
+        StopCooldownTimerInternal();
+        IsActive = false;
+        _cooldownElapsedTime = 0f;
+        DestroyParticle();
+        Target = null;
     }
-    
+
     public void StartCooldown()
     {
         IsActive = true;
@@ -87,10 +99,10 @@ internal abstract class BasePassiveAbility(ISwiftlyCore core) : IPassiveAbility,
     public void ResetCooldown()
     {
         IsActive = false;
-        _cooldownToken?.Cancel();
+        StopCooldownTimerInternal();
         _cooldownElapsedTime = 0f;
     }
-    
+
     public virtual void DestroyParticle()
     {
         try
@@ -107,10 +119,14 @@ internal abstract class BasePassiveAbility(ISwiftlyCore core) : IPassiveAbility,
         }
     }
 
-    public virtual void CreateParticle() { }
-    
-    public virtual void PlaySound() { }
-    
+    public virtual void CreateParticle()
+    {
+    }
+
+    public virtual void PlaySound()
+    {
+    }
+
     private void StopCooldownTimerInternal()
     {
         try

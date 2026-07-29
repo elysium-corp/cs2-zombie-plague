@@ -1,6 +1,6 @@
-﻿using SwiftlyS2.Shared;
+﻿using Common.Di;
+using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Natives;
-using ZombiePlague.Core.Di;
 
 namespace ZombiePlague.Core.Utils.Helpers;
 
@@ -12,7 +12,7 @@ internal static class RenderColorHelper
     /// </summary>
     public static void AllResetRenderColor()
     {
-        var core = DependencyManager.GetService<ISwiftlyCore>();
+        var core = DependencyResolver.GetRequiredService<ISwiftlyCore>();
         var players = core.PlayerManager.GetAllValidPlayers();
         
         foreach (var player in players)
