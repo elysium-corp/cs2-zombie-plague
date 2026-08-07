@@ -19,7 +19,7 @@ public sealed class HealConfig : IAbilityConfig
 {
     // Доступна ли способность
     public bool Enable { get; set; } = true;
-
+    
     // Максимальная дистанция до цели для хила 
     public float MaxHealDistance { get; set; } = 350f;
 
@@ -173,6 +173,9 @@ public sealed class CatchConfig : IAbilityConfig
     
     // Сила притягивание цели к кастеру
     public float Strength { get; set; } = 100f;
+
+    // Максимальная длина луча (дистанция притягивания)
+    public float MaxDistance { get; set; } = 1_000f;
     
     // Ширина луча
     public float BeamWidth { get; set; } = 0.5f;

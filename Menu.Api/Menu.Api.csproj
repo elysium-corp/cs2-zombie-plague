@@ -10,4 +10,20 @@
       <PackageReference Include="SwiftlyS2.CS2" Version="1.4.4-beta.7" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Compile Remove="Events\**" />
+      <Compile Include="Events\EventDelegates.cs" />
+      <Compile Include="Events\EventService.cs" />
+      <Compile Include="Events\IEventPublisher.cs" />
+      <Compile Include="Events\IEventSubscriber.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Remove="Events\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Events\**" />
+    </ItemGroup>
+
 </Project>

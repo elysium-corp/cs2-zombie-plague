@@ -1,22 +1,17 @@
+using Common.Di;
 using Menu.Api;
-using Menu.Api.Data.Contracts;
-using Microsoft.Extensions.Options;
-using SwiftlyS2.Core.Menus.OptionsBase;
 using SwiftlyS2.Shared;
-using SwiftlyS2.Shared.Commands;
-using SwiftlyS2.Shared.Menus;
-using SwiftlyS2.Shared.Plugins;
 using ZombiePlague.Api;
-using ZombiePlague.Api.Events;
 using ZombiePlague.Core.Api;
 using ZombiePlague.Core.Data;
-using ZombiePlague.Core.Data.Managers;
+using ZombiePlague.Core.Data.Managers.Contracts;
 using ZombiePlague.Core.Data.Plugins.AdminMenu;
 using ZombiePlague.Core.Data.Plugins.ResourceLoader;
+using ZombiePlague.Core.Data.Rounds.Contracts;
+using ZombiePlague.Core.Data.Rounds.Registrator;
 using ZombiePlague.Core.Di;
 using ZombiePlague.Core.Generated;
-using ZPCore.Config.Core;
-using EventDelegates = Menu.Api.Events.EventDelegates;
+using ZombiePlague.Core.Menus.Factories;
 
 namespace ZombiePlague.Core;
 
@@ -27,78 +22,46 @@ namespace ZombiePlague.Core;
     Author = "illusion & fdrinv",
     Description = "Zombie Plague Core for CS2"
 )]
-public sealed partial class ZombiePlague(ISwiftlyCore core) : BasePlugin(core)
+public sealed partial class ZombiePlague(ISwiftlyCore core) : Plugin<ZombiePlagueModule>(core)
 {
-    private readonly Lazy<IResourceLoader> _resourceLoader = new(DependencyManager.GetService<IResourceLoader>);
-    private readonly Lazy<RoundManager> _roundManager = new(DependencyManager.GetService<RoundManager>);
-    private readonly Lazy<ZombieManager> _zombieManager = new(DependencyManager.GetService<ZombieManager>);
-    private readonly Lazy<HumanManager> _humanManager = new(DependencyManager.GetService<HumanManager>);
-    private readonly Lazy<Knockback> _knockback = new(DependencyManager.GetService<Knockback>);
+    private readonly Lazy<IResourceLoader> _resourceLoader = GetRequiredServiceLazy<IResourceLoader>();
+    private readonly Lazy<ICoreCoordinator> _coordinator = GetRequiredServiceLazy<ICoreCoordinator>();
+    private readonly Lazy<ZombiePlagueApi> _api = GetRequiredServiceLazy<ZombiePlagueApi>();
+    private readonly Lazy<IMainMenuItemFactory> _mainMenuItemFactory = GetRequiredServiceLazy<IMainMenuItemFactory>();
+    private readonly Lazy<IZClassMenuItemFactory> _zClassMenuItemFactory = GetRequiredServiceLazy<IZClassMenuItemFactory>();
 
-    private IMenuApi _menuApi = null!;
+    public static IMenuApi MenuApi = null!;
     
     public override void ConfigureSharedInterface(IInterfaceManager interfaceManager)
     {
-        var eventSubscriber = DependencyManager.GetService<IEventSubscriber>();
-        var zServiceApi = new ZombiePlagueApi(eventSubscriber);
-        interfaceManager.AddSharedInterface<IZombiePlagueApi, ZombiePlagueApi>(IZombiePlagueApi.SharedApiKey, zServiceApi);
+        interfaceManager.AddSharedInterface<IZombiePlagueApi, ZombiePlagueApi>(IZombiePlagueApi.SharedApiKey, _api.Value);
     }
-
+    
     public override void OnSharedInterfaceInjected(IInterfaceManager interfaceManager)
     {
-        _menuApi = interfaceManager.GetSharedInterface<IMenuApi>(IMenuApi.SharedApiKey);
+        MenuApi = interfaceManager.GetSharedInterface<IMenuApi>(IMenuApi.SharedApiKey);
         
-        _menuApi.EventSubscriber.OnMenuAddOption += OnMenuAddOption;
+        MenuApi.EventSubscriber.OnMainMenuAddOption += _mainMenuItemFactory.Value.OnMainMenuAddOption;
+        MenuApi.EventSubscriber.OnZClassMenuAddOption += _zClassMenuItemFactory.Value.OnZClassMenuAddOption;
     }
 
-    public override void Load(bool hotReload)
+    protected override void OnStart()
     {
-        if (hotReload)
-        {
-            DependencyManager.Dispose();
-        }
-
-        DependencyManager.Load(Core);
-
         _resourceLoader.Value.Initialize();
+        _coordinator.Value.Start();
         
-        RegisterHooks();
-        LoadFeatures();
-
-        new AdminMenu(Core, _roundManager.Value, _zombieManager.Value).Load();
-    }
-
-    private void OnMenuAddOption(Type menuType, DynamicOptionsMenu.MenuOptionsHolder holder)
-    {
-        var option1 = new ButtonMenuOption();
-        option1.Text = "zpOption 1 [priority 1]";
-        var option2 = new ButtonMenuOption();
-        option2.Text = "zpOption 2 [priority 5]";
+        var playerManager = DependencyResolver.GetRequiredService<IPlayerManager>();
+        var roundManager = DependencyResolver.GetRequiredService<IRoundManager>();
+        var roundFactory = DependencyResolver.GetRequiredService<IRoundFactory>();
+        var roundRegistry = DependencyResolver.GetRequiredService<IRoundRegistrator>();
+        var adminMenu = new AdminMenu(core, playerManager, roundManager, roundRegistry, roundFactory);
         
-        holder.Add(option1, 1);
-        holder.Add(option2, 5);
+        adminMenu.Load();
     }
 
-    public override void Unload()
+    protected override void OnUnload()
     {
-    }
-
-    private void RegisterHooks()
-    {
-        _roundManager.Value.RegisterRounds();
-        
-        _zombieManager.Value.RegisterHooks();
-        _humanManager.Value.RegisterHooks();
-        _roundManager.Value.RegisterHooks();
-    }
-
-    private void LoadFeatures()
-    {
-        var config = DependencyManager.GetService<IOptions<ZombiePlagueCoreConfig>>().Value;
-
-        if (config.KnockbackEnabled)
-        {
-            _knockback.Value.Start();
-        }
+        _coordinator.Value.Stop();
+        _resourceLoader.Value.Uninitialize();
     }
 }

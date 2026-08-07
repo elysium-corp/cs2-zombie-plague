@@ -2,14 +2,19 @@
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Commands;
 using SwiftlyS2.Shared.Menus;
-using SwiftlyS2.Shared.Players;
-using ZombiePlague.Core.Data.Managers;
-using ZombiePlague.Core.Data.Rounds;
-using ZombiePlague.Core.Utils.Extensions;
+using ZombiePlague.Core.Data.Managers.Contracts;
+using ZombiePlague.Core.Data.Rounds.Contracts;
+using ZombiePlague.Core.Data.Rounds.Registrator;
 
 namespace ZombiePlague.Core.Data.Plugins.AdminMenu;
 
-internal class AdminMenu(ISwiftlyCore core, RoundManager roundManager, ZombieManager zombieManager)
+internal sealed class AdminMenu(
+    ISwiftlyCore core,
+    IPlayerManager playerManager,
+    IRoundManager roundManager,
+    IRoundRegistrator roundRegistrator,
+    IRoundFactory roundFactory
+)
 {
     public void Load()
     {
@@ -24,176 +29,215 @@ internal class AdminMenu(ISwiftlyCore core, RoundManager roundManager, ZombieMan
     {
         var player = context.Sender;
 
-        if (player == null)
+        if (player is not { IsValid: true })
         {
             return;
         }
-        
+
         var menu = core.MenusAPI.CreateBuilder()
             .Design.SetMenuTitle("Админ меню");
-        
+
         AddButtonOption(menu, EndWarmup, "Выключить вармап");
         AddButtonOption(menu, RestartGame, "Начать игру заново");
+        AddSubMenuOption(menu, SetRound(), "Управление игровыми раундами");
         AddButtonOption(menu, GiveMoney, "Выдать себе 5000$");
-        AddSubMenuOption(menu, OpenRoundMenu(player), "Установить режим");
-        AddSubMenuOption(menu, OpenZombieMenu(player), "Сделать зомби");
-        AddSubMenuOption(menu, OpenWeaponMenu(player), "Взять оружие");
-        
+        AddSubMenuOption(menu, CreateZombieMenu(), "Сделать зомби");
+        AddSubMenuOption(menu, CreateWeaponMenu(), "Взять оружие");
+
         core.MenusAPI.OpenMenuForPlayer(player, menu.Build());
     }
 
-    private IMenuAPI OpenZombieMenu(IPlayer player)
+    private IMenuAPI CreateZombieMenu()
     {
         var menu = core.MenusAPI.CreateBuilder()
             .Design.SetMenuTitle("Зомби меню");
 
-        var allPlayers = core.PlayerManager.GetAlive();
-        
-        foreach (var p in allPlayers)
+        foreach (var player in core.PlayerManager.GetAlive())
         {
-            if (!p.IsInfected())
-            {
-                var option = new ButtonMenuOption(p.Controller.PlayerName);
-                
-                option.Click += async (sender, args) =>
-                {
-                    
-                    core.Scheduler.NextTickAsync(() =>
-                    {
-                        zombieManager.CreateZombie(p);
-                    });
-                    
-                    await Task.CompletedTask;
-                };
-                
-                menu.AddOption(option);
-            }
-        }
-
-        return menu.Build();
-    }
-    
-    private IMenuAPI OpenWeaponMenu(IPlayer player)
-    {
-        var menu = core.MenusAPI.CreateBuilder()
-            .Design.SetMenuTitle("Арсенал");
-        
-        var option1 = new ButtonMenuOption("Взять ак");
-        
-        option1.Click += (sender, args) =>
-        {
-            GiveWeapon(args, "weapon_ak");
-            return ValueTask.CompletedTask;
-        };
-        menu.AddOption(option1);
-        
-        var option2 = new ButtonMenuOption("Взять заморозку");
-        
-        option2.Click += (sender, args) =>
-        {
-            GiveWeapon(args, "weapon_hegrenade");
-            
-            return ValueTask.CompletedTask;
-        };
-        
-        menu.AddOption(option2);
-        
-        var option3 = new ButtonMenuOption("Взять барьер");
-        
-        option3.Click += (sender, args) =>
-        {
-            GiveWeapon(args, "weapon_decoy");
-            
-            return ValueTask.CompletedTask;
-        };
-        
-        menu.AddOption(option3);
-        
-        return menu.Build();
-    }
-    
-    private IMenuAPI OpenRoundMenu(IPlayer player)
-    {
-        var menu = core.MenusAPI.CreateBuilder()
-            .Design.SetMenuTitle("Установить режим");
-
-        if (!roundManager.IsNoneRound())
-        {
-            return menu.Build();
-        }
-        
-        var registeredRounds = roundManager.GetRegisteredRounds();
-
-        foreach (var round in registeredRounds)
-        {
-            if (round is None)
+            if (playerManager.IsZombie(player))
             {
                 continue;
             }
-            
-            var option = new ButtonMenuOption(round.Name);
-            
-            option.Click += (sender, args) =>
+
+            var option = new ButtonMenuOption(player.Controller.PlayerName);
+
+            option.Click += (_, _) =>
             {
-                roundManager.SetRound(round);
-                
-                core.MenusAPI.CloseActiveMenu(args.Player);
-                
+                core.Scheduler.NextTick(() =>
+                {
+                    if (player.IsValid)
+                    {
+                        playerManager.TryInfect(player);
+                    }
+                });
+
                 return ValueTask.CompletedTask;
             };
-            
+
             menu.AddOption(option);
         }
-        
+
         return menu.Build();
     }
 
-    private void AddButtonOption(IMenuBuilderAPI menu, Func<MenuOptionClickEventArgs, Task> handler, string title)
+    private IMenuAPI CreateWeaponMenu()
+    {
+        var menu = core.MenusAPI.CreateBuilder()
+            .Design.SetMenuTitle("Арсенал");
+
+        AddWeaponOption(menu, "Взять AK-47", "weapon_ak47");
+        AddWeaponOption(menu, "Взять заморозку", "weapon_hegrenade");
+        AddWeaponOption(menu, "Взять барьер", "weapon_decoy");
+
+        return menu.Build();
+    }
+
+    private static void AddButtonOption(
+        IMenuBuilderAPI menu,
+        Func<MenuOptionClickEventArgs, Task> handler,
+        string title
+    )
     {
         var option = new ButtonMenuOption(title);
-        
-        option.Click += async (sender, args) => handler(args);
-        
+
+        option.Click += async (_, args) => await handler(args);
+
         menu.AddOption(option);
     }
 
-    private void AddSubMenuOption(IMenuBuilderAPI menu, IMenuAPI subMenu, string title)
+    private static void AddSubMenuOption(
+        IMenuBuilderAPI menu,
+        IMenuAPI subMenu,
+        string title
+    )
     {
-        var option = new SubmenuMenuOption(title, subMenu);
-        
+        menu.AddOption(new SubmenuMenuOption(title, subMenu));
+    }
+
+    private void AddWeaponOption(
+        IMenuBuilderAPI menu,
+        string title,
+        string weaponName
+    )
+    {
+        var option = new ButtonMenuOption(title);
+
+        option.Click += (_, args) =>
+        {
+            var player = args.Player;
+
+            core.Scheduler.NextTick(() =>
+            {
+                if (player.IsValid)
+                {
+                    player.PlayerPawn?.ItemServices?.GiveItem(weaponName);
+                }
+            });
+
+            return ValueTask.CompletedTask;
+        };
+
         menu.AddOption(option);
     }
 
     private Task EndWarmup(MenuOptionClickEventArgs args)
     {
         core.Engine.ExecuteCommandAsync("mp_warmup_end");
-        
+
         return Task.CompletedTask;
     }
-    
+
     private Task RestartGame(MenuOptionClickEventArgs args)
     {
         core.Engine.ExecuteCommandAsync("mp_restartgame 1");
-        
-        return Task.CompletedTask;
-    }
-
-    private Task GiveMoney(MenuOptionClickEventArgs args)
-    {
-        var playerController = args.Player.Controller;
-        
-        playerController.InGameMoneyServices?.Account += 5000;
-        playerController.InGameMoneyServices?.AccountUpdated();
 
         return Task.CompletedTask;
     }
 
-    private void GiveWeapon(MenuOptionClickEventArgs args, string weaponName)
+    private static Task GiveMoney(MenuOptionClickEventArgs args)
     {
-        core.Scheduler.NextTickAsync(() =>
+        var moneyServices = args.Player.Controller.InGameMoneyServices;
+
+        if (moneyServices is not null)
         {
-            var player = args.Player;
-            player.PlayerPawn?.ItemServices?.GiveItem(weaponName);
-        });
+            moneyServices.Account += 5000;
+            moneyServices.AccountUpdated();
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private IMenuAPI SetRound()
+    {
+        var menu = core.MenusAPI.CreateBuilder().Design.SetMenuTitle("Управление игровыми раундами");
+        var currentRound = roundManager.CurrentRound?.Name ?? "Не определен";
+        var nextRound = roundManager.NextRound?.Name ?? "Не определен";
+        var currentRoundTextOption = new TextMenuOption
+        {
+            Text = $"Текущий раунд: {currentRound}"
+        };
+        var nextRoundTextOption = new TextMenuOption
+        {
+            Text = $"Следующий раунд: {nextRound}"
+        };
+
+        menu.AddOption(currentRoundTextOption);
+        menu.AddOption(nextRoundTextOption);
+        menu.AddOption(new SubmenuMenuOption("Установить текущий раунд", SetCurrentRound()));
+        menu.AddOption(new SubmenuMenuOption("Установить следующий раунд", SetNextRound()));
+
+        return menu.Build();
+    }
+
+    private IMenuAPI SetCurrentRound()
+    {
+        var menu = core.MenusAPI.CreateBuilder()
+            .Design.SetMenuTitle($"Установить текущий раунд");
+
+        foreach (var round in roundRegistrator.GetAll())
+        {
+            var enable = round is { Enable: true, Weight: > 0 } ? "[+]" : "[-]";
+            var text = $"{round.Name} {enable}";
+            var option = new ButtonMenuOption(text);
+
+            option.Click += (_, args) =>
+            {
+                args.Player.SendChatAsync($"Установлен текущий раунд: {round.Name}");
+                
+                roundManager.SelectNextRound(roundFactory.Create(round));
+
+                return ValueTask.CompletedTask;
+            };
+
+            menu.AddOption(option);
+        }
+
+        return menu.Build();
+    }
+
+    private IMenuAPI SetNextRound()
+    {
+        var menu = core.MenusAPI.CreateBuilder()
+            .Design.SetMenuTitle($"Установить следующий раунд");
+
+        foreach (var round in roundRegistrator.GetAll())
+        {
+            var enable = round is { Enable: true, Weight: > 0 } ? "[+]" : "[-]";
+            var text = $"{round.Name} {enable}";
+            var option = new ButtonMenuOption(text);
+
+            option.Click += (_, args) =>
+            {
+                args.Player.SendChatAsync($"Установлен следующий раунд: {round.Name}");
+                
+                roundManager.SelectNextRound(roundFactory.Create(round));
+
+                return ValueTask.CompletedTask;
+            };
+
+            menu.AddOption(option);
+        }
+
+        return menu.Build();
     }
 }

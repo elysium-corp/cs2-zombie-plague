@@ -1,3 +1,4 @@
 {
-  "Menu.Main.Title": "Server menu"
+  "Menu.Main.Title": "Server menu",
+  "Menu.Main.Item.ZClass.Title": "Select zombie class"
 }

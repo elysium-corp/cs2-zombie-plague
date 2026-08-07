@@ -15,19 +15,19 @@ public interface IZombiePlagueApi
     public bool IsSurvivor(IPlayer player);
     
     public bool IsNemesis(IPlayer player);
-    
-    public bool IsNoneRound(IRound round);
-    
+
     public bool IsNemesisRound(IRound round);
-    
+
     public bool IsPlagueRound(IRound round);
-    
+
     public bool IsArmageddonRound(IRound round);
-    
+
     public bool IsSurvivorRound(IRound round);
-    
+
     public bool IsInfectionRound(IRound round);
 
+    public bool IsNoneRound(IRound round);
+    
     public void ApplyKnockBack(EventPlayerHurt @event, KnockbackData data);
 
     public static readonly string VersionApi = BuildInfo.ApiVersion;

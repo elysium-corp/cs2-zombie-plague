@@ -2,5 +2,7 @@
 
 internal interface IResourceLoader
 {
-    public void Initialize();
+    void Initialize();
+
+    void Uninitialize();
 }

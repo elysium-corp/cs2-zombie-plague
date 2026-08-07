@@ -9,6 +9,8 @@ public abstract class BaseMenu(ISwiftlyCore core) : IMenu
     private readonly IMenuManagerAPI _menuManager = core.MenusAPI;
 
     public IMenuAPI? Menu { get; private set; }
+    
+    protected ISwiftlyCore Core => core;
 
     private IMenuAPI GetOrCreateMenu(IPlayer player)
     {

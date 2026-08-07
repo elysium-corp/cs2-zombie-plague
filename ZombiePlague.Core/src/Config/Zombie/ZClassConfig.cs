@@ -1,4 +1,4 @@
-﻿namespace ZPCore.Config.Zombie;
+﻿namespace ZombiePlague.Core.Config.Zombie;
 
 public sealed class ZClassConfig
 {
@@ -8,6 +8,14 @@ public sealed class ZClassConfig
     public ZombieHeavy Heavy { get; set; } = new();
     public ZombieSmoker Smoker { get; set; } = new();
     public ZombieNemesis Nemesis { get; set; } = new();
+    
+    public IEnumerable<IZClassConfig> GetAll()
+    {
+        return GetType()
+            .GetProperties()
+            .Select(property => property.GetValue(this))
+            .OfType<IZClassConfig>();
+    }
 }
 
 public class ZombieCleric : IZClassConfig
@@ -22,7 +30,7 @@ public class ZombieCleric : IZClassConfig
     public float Knockback { get; set; } = 0.9f;
     public int Gravity { get; set; } = 600;
     public List<string> HurtSounds { get; set; } = ["ZombiePlagueSounds.zombie_pain_1"];
-    public List<string> Abilities { get; set; } = ["heal"];
+    public List<string> Abilities { get; set; } = ["heal", "leap"];
 }
 
 public class ZombieHunter : IZClassConfig
@@ -37,7 +45,7 @@ public class ZombieHunter : IZClassConfig
     public float Knockback { get; set; } = 0.9f;
     public int Gravity { get; set; } = 600;
     public List<string> HurtSounds { get; set; } = ["ZombiePlagueSounds.zombie_hurt_2"];
-    public List<string> Abilities { get; set; } = [];
+    public List<string> Abilities { get; set; } = ["trap", "leap"];
 }
 
 public class ZombieAssassin : IZClassConfig
@@ -52,7 +60,7 @@ public class ZombieAssassin : IZClassConfig
     public float Knockback { get; set; } = 0.9f;
     public int Gravity { get; set; } = 600;
     public List<string> HurtSounds { get; set; } = ["ZombiePlagueSounds.zombie_hurt_3"];
-    public List<string> Abilities { get; set; } = [];
+    public List<string> Abilities { get; set; } = ["charge", "leap"];
 }
 
 public class ZombieHeavy : IZClassConfig
@@ -67,7 +75,7 @@ public class ZombieHeavy : IZClassConfig
     public float Knockback { get; set; } = 0.9f;
     public int Gravity { get; set; } = 700;
     public List<string> HurtSounds { get; set; } = ["ZombiePlagueSounds.zombie_hurt_4"];
-    public List<string> Abilities { get; set; } = [];
+    public List<string> Abilities { get; set; } = ["blind", "leap"];
 }
 
 public class ZombieSmoker : IZClassConfig
@@ -82,7 +90,7 @@ public class ZombieSmoker : IZClassConfig
     public float Knockback { get; set; } = 0.9f;
     public int Gravity { get; set; } = 800;
     public List<string> HurtSounds { get; set; } = ["ZombiePlagueSounds.zombie_hurt_5"];
-    public List<string> Abilities { get; set; } = [];
+    public List<string> Abilities { get; set; } = ["catch"];
 }
 
 public class ZombieNemesis : IZClassConfig
@@ -97,5 +105,5 @@ public class ZombieNemesis : IZClassConfig
     public float Knockback { get; set; } = 1f;
     public int Gravity { get; set; } = 400;
     public List<string> HurtSounds { get; set; } = ["ZombiePlagueSounds.zombie_hurt_2"];
-    public List<string> Abilities { get; set; } = [];
+    public List<string> Abilities { get; set; } = ["leap"];
 }

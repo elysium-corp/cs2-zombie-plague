@@ -1,6 +1,6 @@
-﻿using SwiftlyS2.Shared;
+﻿using Common.Di;
+using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Players;
-using ZombiePlague.Core.Di;
 
 namespace ZombiePlague.Core.Utils.Extensions;
 
@@ -10,7 +10,7 @@ internal static class NIntExt
     {
         public IPlayer? FindPlayerByPawnAddress()
         {
-            var core = DependencyManager.GetService<ISwiftlyCore>();
+            var core = DependencyResolver.GetRequiredService<ISwiftlyCore>();
             
             foreach (var player in core.PlayerManager.GetAllPlayers())
             {

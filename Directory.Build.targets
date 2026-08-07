@@ -26,6 +26,10 @@
 
         <ItemGroup>
             <FilesToKeep Include="$(TargetPath)" />
+            <FilesToKeep
+                    Include="$(TargetDir)$(TargetName).pdb"
+                    Condition="Exists('$(TargetDir)$(TargetName).pdb')"
+            />
             <FilesToKeep Include="$(OutDir)$(TargetName).deps.json" />
             <FilesToKeep Include="$(OutDir)**\$(TargetName).resources.dll" />
             <FilesToKeep Include="$(OutDir)resources\**\*" />

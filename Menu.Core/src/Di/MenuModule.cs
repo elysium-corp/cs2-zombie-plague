@@ -1,8 +1,7 @@
 ﻿using Common.Di;
-using Menu.Api.Data.Contracts;
+using Menu.Api.Data.Factory;
 using Menu.Api.Events;
-using Menu.Core.Data;
-using Menu.Core.Data.Menus;
+using Menu.Core.Factory;
 using Menu.Core.Service;
 using Microsoft.Extensions.DependencyInjection;
 using SwiftlyS2.Shared;
@@ -22,7 +21,6 @@ internal class MenuModule(ISwiftlyCore core) : BaseModule(core)
         AddSingleton<EventService>(service);
         AddSingleton<IEventSubscriber>(service, s => s.GetRequiredService<EventService>());
         AddSingleton<IEventPublisher>(service, s => s.GetRequiredService<EventService>());
-        
         
         return (service.BuildServiceProvider(), service);
     }

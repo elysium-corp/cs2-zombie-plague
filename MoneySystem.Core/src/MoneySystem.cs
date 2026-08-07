@@ -34,7 +34,7 @@ internal sealed partial class MoneySystem(ISwiftlyCore core) : Plugin<MoneySyste
     private const string ConVarMaxMoney = "mp_maxmoney";
     private const string ConVarStartMoney = "mp_startmoney";
     
-    public override void UseSharedInterface(IInterfaceManager interfaceManager)
+    public override void OnSharedInterfaceInjected(IInterfaceManager interfaceManager)
     {
         _zombiePlagueApi = interfaceManager.GetSharedInterface<IZombiePlagueApi>(IZombiePlagueApi.SharedApiKey);
     }
@@ -60,20 +60,25 @@ internal sealed partial class MoneySystem(ISwiftlyCore core) : Plugin<MoneySyste
     {
         _guidOnPlayerHurtPost = Core.GameEvent.HookPost<EventPlayerHurt>(OnPlayerHurtPost);
         
-        _zombiePlagueApi.EventSubscriber.OnPlayerInfectedBy += OnPlayerInfectedBy;
+        _zombiePlagueApi.EventSubscriber.OnPlayerInfected += OnPlayerInfected;
     }
 
     protected override void OnUnload()
     {
         Core.GameEvent.Unhook(_guidOnPlayerHurtPost);
 
-        _zombiePlagueApi.EventSubscriber.OnPlayerInfectedBy -= OnPlayerInfectedBy;
+        _zombiePlagueApi.EventSubscriber.OnPlayerInfected -= OnPlayerInfected;
     }
     
     
     
-    private void OnPlayerInfectedBy(IPlayer infector, IPlayer player)
+    private void OnPlayerInfected(IPlayer _, IPlayer? infector)
     {
+        if (infector is not { IsValid: true })
+        {
+            return;
+        }
+
         var config = _config.Value.Value;
         _moneyServiceLazy.Value.GiveMoney(infector, config.MoneyForInfection);
     }

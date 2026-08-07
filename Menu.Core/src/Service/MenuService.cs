@@ -1,5 +1,5 @@
 ﻿using Menu.Api.Data.Contracts;
-using Menu.Core.Data;
+using Menu.Api.Data.Factory;
 
 namespace Menu.Core.Service;
 

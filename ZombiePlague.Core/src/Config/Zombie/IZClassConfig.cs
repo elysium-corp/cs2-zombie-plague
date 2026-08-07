@@ -1,4 +1,4 @@
-﻿namespace ZPCore.Config.Zombie;
+﻿namespace ZombiePlague.Core.Config.Zombie;
 
 public interface IZClassConfig
 {

@@ -1,224 +1,222 @@
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.GameHooks;
 using SwiftlyS2.Shared.Misc;
-using SwiftlyS2.Shared.Players;
-using ZombiePlague.Api.Data;
-using ZombiePlague.Api.Events;
+using ZombiePlague.Core.Config.Core;
 using ZombiePlague.Core.Config.Round;
+using ZombiePlague.Core.Data.Managers.Contracts;
 using ZombiePlague.Core.Data.Rounds;
 using ZombiePlague.Core.Data.Rounds.Contracts;
-using ZombiePlague.Core.Di;
-using ZombiePlague.Core.Utils;
+using ZombiePlague.Core.Data.Rounds.Registrator;
 using ZombiePlague.Core.Utils.Extensions;
-using ZombiePlague.Core.Utils.Helpers;
-using ZPCore.Config.Core;
-using ZPCore.Config.Round;
 
 namespace ZombiePlague.Core.Data.Managers;
 
 internal sealed class RoundManager(
     ISwiftlyCore core,
-    IEventPublisher eventPublisher,
-    IRoundFactory roundFactory,
     IOptions<ZombiePlagueCoreConfig> coreConfig,
-    IOptions<RoundConfig> roundConfig)
+    IPlayerManager playerManager,
+    IRoundRegistrator roundRegistrator, 
+    IRoundFactory roundFactory
+) : IRoundManager
 {
-    private readonly ZombieManager _zombieManager = DependencyManager.GetService<ZombieManager>();
-    private readonly HumanManager _humanManager = DependencyManager.GetService<HumanManager>();
+    public RoundBase? CurrentRound { get; set; }
+    public RoundBase? NextRound { get; set; }
 
-    private readonly List<IRound> _rounds = [];
-    private IRound _currentRound = new None();
+    private CancellationTokenSource? _preparationTimer;
+    private int _remainingPreparationTime;
+    private bool _countdownSoundPlayed;
 
-    private CancellationTokenSource? _token;
-    private int _preRoundTime;
-    private bool _countdownSoundActive;
+    private const float DelayPreparationTimer = 1.5f;
+    private const int PeriodSecondsPreparationTask = 1;
 
-    public void RegisterHooks()
+    private const string RoundStartSoundName = "ZombiePlagueSounds.round_start";
+    
+    public void Prepare()
     {
-        core.GameEvent.HookPre<EventRoundStart>(OnRoundStart);
-        core.GameEvent.HookPost<EventRoundEnd>(OnRoundEnd);
-        core.GameEvent.HookPost<EventCsPreRestart>(OnGameRestart);
-        core.GameEvent.HookPost<EventPlayerConnectFull>(OnPlayerConnectFull);
-        core.GameHooks.Entities.TakeDamage.Pre += OnEntityTakeDamage;
-    }
-
-    public List<IRound> GetRegisteredRounds()
-    {
-        return _rounds;
-    }
-
-    public void RegisterRounds()
-    {
-        _rounds.Clear();
-
-        var roundConfigProperties = roundConfig.Value.GetType()
-            .GetProperties();
-
-        _rounds.Add(roundFactory.Create(null, this));
-
-        foreach (var property in roundConfigProperties)
-        {
-            if (property.GetValue(roundConfig.Value) is IRoundConfig { Enable: true } round)
-            {
-                _rounds.Add(roundFactory.Create(round, this));
-            }
-        }
-    }
-
-    public bool IsNoneRound()
-    {
-        return _currentRound is None;
-    }
-
-    public void SetRound(IRound round)
-    {
-        _currentRound = round;
-    }
-
-    public IRound GetRound()
-    {
-        return _currentRound;
-    }
-
-    private HookResult OnPlayerConnectFull(EventPlayerConnectFull @event)
-    {
-        var player = @event.UserIdPlayer;
-        if (player == null)
-        {
-            return HookResult.Continue;
-        }
-
-        if (IsNoneRound())
-        {
-            _humanManager.Respawn(player);
-        }
-
-        return HookResult.Continue;
-    }
-
-    private HookResult OnRoundStart(EventRoundStart @event)
-    {
-        _zombieManager.RemoveAll();
-        CancelToken();
-
-        TeamHelper.MoveAllPlayersToTeam(Team.CT);
-        RenderColorHelper.AllResetRenderColor();
-
-        SetRound(new None());
-
-        if (IsRoundAvailable())
-        {
-            StartPreRound();
-        }
-
-        return HookResult.Continue;
-    }
-
-    private void OnEntityTakeDamage(ref TakeDamageEntityPreContext @event)
-    {
-        if (IsNoneRound())
-        {
-            @event.Params.Info.Damage = 0;
-        }
-    }
-
-    private HookResult OnRoundEnd(EventRoundEnd @event)
-    {
-        _currentRound.End();
-
-        return HookResult.Continue;
-    }
-
-    private HookResult OnGameRestart(EventCsPreRestart @event)
-    {
-        _currentRound.End();
-
-        return HookResult.Continue;
-    }
-
-    private void StartPreRound()
-    {
-        _preRoundTime = 0;
-        _countdownSoundActive = false;
-
-        SoundExt.PlayGlobal("ZombiePlagueSounds.round_start", 2f);
-
-        var roundStartTime = coreConfig.Value.PreStartDelay;
-        _token = core.Scheduler.RepeatBySeconds(1, () => OnPreRoundTick(roundStartTime));
-    }
-
-    private void OnPreRoundTick(int roundStartTime)
-    {
-        _preRoundTime += 1;
-
-        core.PlayerManager.SendCenterAsync("До заражения " + (roundStartTime - _preRoundTime) + " секунд");
-
-        if (roundStartTime - _preRoundTime <= 11 && !_countdownSoundActive)
-        {
-            SoundExt.PlayGlobal("ZombiePlagueSounds.countdown", 3f);
-            _countdownSoundActive = true;
-        }
-
-        if (_preRoundTime < roundStartTime)
+        CurrentRound = null;
+        
+        if (IsWarmupActive())
         {
             return;
         }
+        
+        SoundExt.PlayGlobal(RoundStartSoundName, 1.5f);
 
-        if (IsNoneRound())
+        var allPlayers = core.PlayerManager.GetAllPlayers();
+
+        foreach (var player in allPlayers)
         {
-            SetRound(ResolveRandomRound());
+            playerManager.TrySetHuman(player);
         }
-        else
+        
+        _remainingPreparationTime = coreConfig.Value.PreStartDelay;
+        _countdownSoundPlayed = false;
+
+        if (_preparationTimer != null)
         {
-            SetRound(_currentRound);
+            _preparationTimer?.Cancel();
+            _preparationTimer = null;
         }
-
-        _currentRound.Start();
-        _token?.Cancel();
-
-        eventPublisher.OnGameRoundStarted(_currentRound);
+        
+        _preparationTimer = core.Scheduler.DelayAndRepeatBySeconds(
+            delaySeconds: DelayPreparationTimer, 
+            periodSeconds: PeriodSecondsPreparationTask, 
+            task: OnPrepareTask
+        );
+    }
+    
+    public void Start()
+    {
+        _remainingPreparationTime = 0;
+        _countdownSoundPlayed = false;
+            
+        _preparationTimer?.Cancel();
+        _preparationTimer = null;
+        
+        var round = CurrentRound = CreateRandomRoundOrDefault();
+        
+        round.Start();
     }
 
-    private bool IsRoundAvailable()
+    public void End()
     {
-        var players = core.PlayerManager.GetAllPlayers();
-
-        if (core.EntitySystem.GetGameRules()?.WarmupPeriod == true)
+        if (_preparationTimer != null)
         {
-            return false;
+            _preparationTimer.Cancel();
+            _preparationTimer = null;
         }
-
-        return players.Count() > 1;
+        
+        CurrentRound?.End();
+        CurrentRound = null;
     }
 
-    private void CancelToken()
+    public void SelectCurrentRound(RoundBase round)
     {
-        _token?.Cancel();
+        CurrentRound = round;
     }
 
-    private IRound ResolveRandomRound()
+    public void SelectNextRound(RoundBase round)
     {
-        var totalWeight = 0;
-        foreach (var round in _rounds)
+        NextRound = round;
+    }
+
+    public HookResult OnPlayerConnected(EventPlayerConnectFull @event)
+    {
+        return CurrentRound?.HandlePlayerConnectedFull(@event) ?? HookResult.Continue;
+    }
+
+    public HookResult OnPlayerDeath(EventPlayerDeath @event)
+    {
+        return CurrentRound?.HandlePlayerDeath(@event) ?? HookResult.Continue;
+    }
+
+    public HookResult OnPlayerDisconnect(EventPlayerDisconnect @event)
+    {
+        return CurrentRound?.HandlePlayerDisconnect(@event) ?? HookResult.Continue;
+    }
+
+    public HookResult OnPlayerTeam(EventPlayerTeam @event)
+    {
+        return CurrentRound?.HandlePlayerTeam(@event) ?? HookResult.Continue;
+    }
+
+    public void OnTakeDamage(ref TakeDamageEntityPreContext context)
+    {
+        CurrentRound?.HandleTakeDamage(ref context);
+    }
+
+    private void OnPrepareTask()
+    {
+        if (_preparationTimer == null)
         {
-            totalWeight += round.Chance;
+            return;
+        }
+        
+        _remainingPreparationTime--;
+
+        if (!_countdownSoundPlayed && _remainingPreparationTime == 10)
+        {
+            PlayCountdownSound();
         }
 
-        var randomWeight = Numeric.Random(1, ++totalWeight);
-        var currentWeight = 0;
-
-        foreach (var round in _rounds)
+        if (_remainingPreparationTime < 1)
         {
-            currentWeight += round.Chance;
+            Start();
 
-            if (randomWeight <= currentWeight)
+            return;
+        }
+        
+        core.PlayerManager.SendCenterAsync($"До заражения {_remainingPreparationTime} секунд");
+    }
+    
+    private RoundBase CreateRandomRoundOrDefault()
+    {
+        if (CurrentRound != null)
+        {
+            return CurrentRound;
+        }
+
+        if (NextRound != null)
+        {
+            var round = NextRound;
+            NextRound = null;
+            return round;
+        }
+        
+        var candidates = roundRegistrator.GetAllEnabled().ToList();
+
+        while (candidates.Count > 0)
+        {
+            var selectedConfig = SelectByWeight(candidates, Random.Shared);
+
+            // Чтобы неподходящий раунд больше не выпадал.
+            candidates.Remove(selectedConfig);
+
+            var selectedRound = roundFactory.Create(selectedConfig);
+
+            if (selectedRound.CanStart())
             {
-                return round;
+                return selectedRound;
             }
         }
 
-        return roundFactory.Create(roundConfig.Value.Infection, this);
+        return roundFactory.Create<Infection>();
+    }
+    
+    private static IRoundConfig SelectByWeight(IReadOnlyCollection<IRoundConfig> candidates, Random random)
+    {
+        var totalWeight = candidates.Sum(
+            static round => (long)round.Weight
+        );
+
+        var roll = random.NextInt64(totalWeight);
+        long accumulatedWeight = 0;
+
+        foreach (var candidate in candidates)
+        {
+            accumulatedWeight += candidate.Weight;
+
+            if (roll < accumulatedWeight)
+            {
+                return candidate;
+            }
+        }
+
+        throw new InvalidOperationException("Failed to select a round by weight!");
+    }
+
+    private void PlayCountdownSound()
+    {
+        SoundExt.PlayGlobal("ZombiePlagueSounds.countdown", 2f);
+        _countdownSoundPlayed = true;
+    }
+
+    private bool IsWarmupActive()
+    {
+        var gameRules = core.EntitySystem.GetGameRules();
+
+        return gameRules is not null && gameRules.WarmupPeriod;
     }
 }

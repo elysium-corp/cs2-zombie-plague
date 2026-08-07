@@ -54,7 +54,7 @@ internal sealed partial class CustomKnife(ISwiftlyCore core) : Plugin<CustomKnif
         _guidOnPlayerHurtEventPost = Core.GameEvent.HookPost<EventPlayerHurt>(PlayerHurtEvent);
         _guidOnRoundStartEventPost = Core.GameEvent.HookPost<EventRoundStart>(EventRoundStart);
         Core.GameHooks.Entities.TakeDamage.Pre += OnEntityTakeDamage;
-        ZombiePlagueApi.EventSubscriber.OnGameRoundStarted += OnGameRoundStarted;
+        ZombiePlagueApi.EventSubscriber.OnRoundStarted += OnRoundStarted;
 
         Core.Command.RegisterCommand(
             commandName: "knife",
@@ -70,10 +70,10 @@ internal sealed partial class CustomKnife(ISwiftlyCore core) : Plugin<CustomKnif
         Core.GameEvent.Unhook(_guidOnPlayerHurtEventPost);
         Core.GameEvent.Unhook(_guidOnRoundStartEventPost);
         Core.GameHooks.Entities.TakeDamage.Pre -= OnEntityTakeDamage;
-        ZombiePlagueApi.EventSubscriber.OnGameRoundStarted -= OnGameRoundStarted;
+        ZombiePlagueApi.EventSubscriber.OnRoundStarted -= OnRoundStarted;
     }
 
-    private void OnGameRoundStarted(IRound round)
+    private void OnRoundStarted(IRound round)
     {
         if (ZombiePlagueApi.IsSurvivorRound(round) || ZombiePlagueApi.IsArmageddonRound(round))
         {

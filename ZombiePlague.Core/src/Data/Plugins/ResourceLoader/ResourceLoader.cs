@@ -17,13 +17,32 @@ internal sealed class ResourceLoader(ISwiftlyCore core) : IResourceLoader
     private const string ConfigFileName = "resources.json";
 
     private List<PrecacheItem> _resourcesToPrecache = [];
+    private bool _isInitialized;
 
     public void Initialize()
     {
+        if (_isInitialized)
+        {
+            return;
+        }
+
         var config = LoadConfig();
-        _resourcesToPrecache = config.PrecacheResources;
+        _resourcesToPrecache = config.PrecacheResources ?? [];
 
         core.Event.OnPrecacheResource += OnPrecacheResources;
+        _isInitialized = true;
+    }
+
+    public void Uninitialize()
+    {
+        if (!_isInitialized)
+        {
+            return;
+        }
+
+        core.Event.OnPrecacheResource -= OnPrecacheResources;
+        _resourcesToPrecache = [];
+        _isInitialized = false;
     }
 
     private void OnPrecacheResources(IOnPrecacheResourceEvent @event)
@@ -45,31 +64,34 @@ internal sealed class ResourceLoader(ISwiftlyCore core) : IResourceLoader
     private ResourcePrecacheConfig LoadConfig()
     {
         var configPath = GetConfigPath();
-        
+
         EnsureDirectoryForFile(configPath);
 
-        ResourcePrecacheConfig config = null!;
-        
         if (!File.Exists(configPath))
         {
-            config = new ResourcePrecacheConfig();
+            var config = new ResourcePrecacheConfig();
             config.PrecacheResources.Add(GetResourceConfigTemplate());
-            
+
             SaveConfig(config);
+
+            return config;
         }
 
         try
         {
             var json = File.ReadAllText(configPath);
-            config = JsonSerializer.Deserialize<ResourcePrecacheConfig>(json, _jsonOptions) ??
-                         new ResourcePrecacheConfig();
+
+            return JsonSerializer.Deserialize<ResourcePrecacheConfig>(
+                json,
+                _jsonOptions
+            ) ?? new ResourcePrecacheConfig();
         }
         catch (Exception ex)
         {
             core.Logger.LogError($"Error loading ResourceLoader config '{configPath}': {ex}");
+
+            return new ResourcePrecacheConfig();
         }
-        
-        return config;
     }
     
     private void SaveConfig(ResourcePrecacheConfig config)
@@ -119,5 +141,5 @@ public sealed class ResourcePrecacheConfig
 
 public sealed class PrecacheItem
 {
-    public string Item { get; set; }
+    public string Item { get; set; } = string.Empty;
 }

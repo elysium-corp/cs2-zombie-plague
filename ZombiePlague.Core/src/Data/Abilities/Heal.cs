@@ -6,14 +6,12 @@ using SwiftlyS2.Shared.SchemaDefinitions;
 using SwiftlyS2.Shared.Sounds;
 using ZombiePlague.Core.Config.Ability;
 using ZombiePlague.Core.Data.Abilities.Contracts;
-using ZombiePlague.Core.Data.Managers;
-using ZombiePlague.Core.Di;
 using ZombiePlague.Core.Utils;
 using ZombiePlague.Core.Utils.Extensions;
 
 namespace ZombiePlague.Core.Data.Abilities;
 
-internal sealed class Heal(ISwiftlyCore core, HealConfig config) : BaseActiveAbility(core)
+internal sealed class Heal(ISwiftlyCore core, HealConfig config) : BaseActiveAbility(core, config)
 {
     public override KeyKind? Key => KeyKind.E;
 
@@ -21,7 +19,7 @@ internal sealed class Heal(ISwiftlyCore core, HealConfig config) : BaseActiveAbi
 
     private const float EyePositionZ = 64f;
 
-    private readonly ZombieManager _zombieManager = DependencyManager.GetService<ZombieManager>();
+    private CancellationTokenSource? _particleDestroyToken;
 
     public override void Use()
     {
@@ -34,7 +32,7 @@ internal sealed class Heal(ISwiftlyCore core, HealConfig config) : BaseActiveAbi
         }
 
         var forward = MathAlgorithm.ForwardFromAngles(casterPawn.EyeAngles);
-        var start = origin.Value + new Vector(0f, 0f, EyePositionZ) + forward*50;
+        var start = origin.Value + new Vector(0f, 0f, EyePositionZ) + forward * 50;
         var end = start + forward * config.MaxHealDistance;
 
         if (!TryFindHealTarget(casterPawn, start, end, out var target))
@@ -42,17 +40,13 @@ internal sealed class Heal(ISwiftlyCore core, HealConfig config) : BaseActiveAbi
             return;
         }
 
-        if (!target.IsInfected())
+        if (target.Controller.Team != Caster.Controller.Team)
         {
             return;
         }
 
-        var targetPawn = target.RequiredPlayerPawn;
-
-        ApplyHeal(target, targetPawn);
         Target = target;
-
-        PlaySound();
+        ApplyHeal(target.RequiredPlayerPawn);
 
         base.Use();
     }
@@ -69,18 +63,13 @@ internal sealed class Heal(ISwiftlyCore core, HealConfig config) : BaseActiveAbi
             return false;
         }
 
-        if (!Caster.IsInfected())
-        {
-            return false;
-        }
-
         return true;
     }
 
     private bool TryFindHealTarget(CCSPlayerPawn casterPawn, Vector start, Vector end, out IPlayer target)
     {
         target = null!;
-        
+
         var trace = new CGameTrace();
         core.Trace.SimpleTrace(
             start,
@@ -107,48 +96,44 @@ internal sealed class Heal(ISwiftlyCore core, HealConfig config) : BaseActiveAbi
         return true;
     }
 
-    private void ApplyHeal(IPlayer target, CBasePlayerPawn targetPawn)
+    private void ApplyHeal(CBasePlayerPawn targetPawn)
     {
-        var currentHp = targetPawn.Health;
-        var newHp = currentHp + config.HealAmount;
-        var maxTargetHp = _zombieManager.GetZombie(target.PlayerID).ZClass.Health;
+        var maxHealth = Math.Max(targetPawn.MaxHealth, 1);
 
-        if (newHp >= maxTargetHp)
-        {
-            newHp = maxTargetHp;
-        }
+        var health = Math.Clamp(
+            (long)targetPawn.Health + config.HealAmount,
+            1L,
+            maxHealth
+        );
 
-        if (newHp < 1)
-        {
-            newHp = 1;
-        }
-
-        target.SetHealth(newHp);
+        targetPawn.Health = (int)health;
+        targetPawn.HealthUpdated();
     }
 
     public override void CreateParticle()
     {
         DestroyParticle();
 
-        var pawn = Target?.RequiredPlayerPawn;
-
-        if (Target == null)
+        if (
+            Target is not { IsValid: true } target ||
+            target.PlayerPawn is not { IsValid: true } pawn ||
+            config.ParticleEffectNames.Count == 0
+        )
         {
             return;
         }
 
-        if (pawn == null)
+        var particleEffectName = config.ParticleEffectNames[
+            Random.Shared.Next(config.ParticleEffectNames.Count)
+        ];
+
+        if (string.IsNullOrWhiteSpace(particleEffectName))
         {
             return;
         }
 
         var particle = core.EntitySystem.CreateEntity<CParticleSystem>();
-
-        var random = new Random();
-        var listOfParticle = config.ParticleEffectNames;
-        var randomParticleEffect = config.ParticleEffectNames[random.Next(listOfParticle.Count)];
-
-        particle.EffectName = randomParticleEffect;
+        particle.EffectName = particleEffectName;
         particle.StartActive = true;
         particle.DispatchSpawn();
 
@@ -161,7 +146,7 @@ internal sealed class Heal(ISwiftlyCore core, HealConfig config) : BaseActiveAbi
         if (config.HasScreenEffectAfterAbilityOnTarget)
         {
             core.NetMessage.SendCUserMessageFade(
-                playerId: Target.PlayerID,
+                playerId: target.PlayerID,
                 duration: config.DurationEffectAfterAbilityOnTarget,
                 holdTime: config.HoldTimeEffectAfterAbilityOnTarget,
                 flags: NetMessageExt.FFadeIn | NetMessageExt.FFadeOut,
@@ -174,19 +159,47 @@ internal sealed class Heal(ISwiftlyCore core, HealConfig config) : BaseActiveAbi
             );
         }
 
-        core.Scheduler.DelayBySeconds(config.DurationParticleEffect, DestroyParticle);
+        _particleDestroyToken = core.Scheduler.DelayBySeconds(
+            config.DurationParticleEffect,
+            DestroyParticle
+        );
+    }
+
+    public override void DestroyParticle()
+    {
+        try
+        {
+            _particleDestroyToken?.Cancel();
+        }
+        catch
+        {
+            // Таймер мог уже завершиться или быть отменён scheduler'ом.
+        }
+        finally
+        {
+            _particleDestroyToken = null;
+        }
+
+        base.DestroyParticle();
     }
 
     public override void PlaySound()
     {
-        var randomSound = config.SoundEffectNames[new Random().Next(config.SoundEffectNames.Count)];
-
         if (config.SoundEffectNames.Count == 0)
         {
             return;
         }
 
-        using var sound = new SoundEvent(randomSound);
+        var soundName = config.SoundEffectNames[
+            Random.Shared.Next(config.SoundEffectNames.Count)
+        ];
+
+        if (string.IsNullOrWhiteSpace(soundName))
+        {
+            return;
+        }
+
+        using var sound = new SoundEvent(soundName);
 
         sound.Recipients.AddAllPlayers();
         sound.SourceEntityIndex = (int)Caster.RequiredPlayerPawn.Index;
