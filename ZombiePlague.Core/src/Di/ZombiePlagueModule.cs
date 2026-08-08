@@ -1,6 +1,8 @@
 ﻿using Common.Di;
+using Menu.Api.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using SwiftlyS2.Shared;
+using ZombiePlague.Api.Data.Store;
 using ZombiePlague.Api.Events;
 using ZombiePlague.Core.Api;
 using ZombiePlague.Core.Config.Ability;
@@ -18,14 +20,12 @@ using ZombiePlague.Core.Data.Entities.Zombie.Factory;
 using ZombiePlague.Core.Data.Events;
 using ZombiePlague.Core.Data.Managers;
 using ZombiePlague.Core.Data.Managers.Contracts;
-using ZombiePlague.Core.Data.Menus;
-using ZombiePlague.Core.Data.Menus.Contracts;
 using ZombiePlague.Core.Data.Plugins.ResourceLoader;
 using ZombiePlague.Core.Data.Rounds.Contracts;
 using ZombiePlague.Core.Data.Rounds.Registrator;
 using ZombiePlague.Core.Data.Service;
 using ZombiePlague.Core.Data.Service.Contracts;
-using ZombiePlague.Core.Menus.Factories;
+using ZombiePlague.Core.Menus;
 using ZombiePlague.Core.Store;
 using ZombiePlague.Core.Store.Contracts;
 using ZombiePlague.Core.Store.Repository;
@@ -114,10 +114,11 @@ public sealed class ZombiePlagueModule(ISwiftlyCore core) : BaseModule(core)
         AddSingleton<ICommandService, CommandService>(service);
         AddSingleton<ICoreCoordinator, CoreCoordinator>(service);
         
-        AddSingleton<IMainMenuItemFactory, MainMenuItemFactory>(service);
-        AddSingleton<IZClassMenuItemFactory, ZClassMenuItemFactory>(service);
+        AddSingleton<MenuExtensionDispatcherProxy>(service);
+        AddSingleton<IMenuExtensionDispatcher>(service, provider => provider.GetRequiredService<MenuExtensionDispatcherProxy>());
+        AddSingleton<MainMenu>(service);
+        AddSingleton<ZClassMenu>(service);
 
-        AddSingleton<IZClassMenu, ZClassMenu>(service);
         AddSingleton<ZombiePlagueApi>(service);
     }
 }

@@ -1,13 +1,12 @@
-﻿using Menu.Api.Data.Contracts;
-using Menu.Api.Events;
+﻿using Menu.Api.Extensions;
 
 namespace Menu.Api;
 
 public interface IMenuApi
 {
-    public IEventSubscriber EventSubscriber { get; }
+    IMenuExtensionDispatcher Dispatcher { get; }
 
-    public TMenu CreateMenu<TMenu>() where TMenu : class, IMenu;
+    IMenuExtensionRegistry Extensions { get; }
     
-    public static readonly string SharedApiKey = "Menu.Api.IMenuApi";
+    static readonly string SharedApiKey = "Menu.Api.IMenuApi";
 }

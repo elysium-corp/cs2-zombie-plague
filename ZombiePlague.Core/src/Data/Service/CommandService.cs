@@ -1,14 +1,17 @@
-﻿using Menu.Api.Data.Menus;
-using SwiftlyS2.Shared;
-using SwiftlyS2.Shared.Commands;
+﻿using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Misc;
 using ZombiePlague.Core.Data.Service.Contracts;
+using ZombiePlague.Core.Menus;
 
 namespace ZombiePlague.Core.Data.Service;
 
 internal interface ICommandService : IService;
 
-internal sealed class CommandService(ISwiftlyCore core) : ICommandService
+internal sealed class CommandService(
+    ISwiftlyCore core,
+    MainMenu mainMenu,
+    ZClassMenu zClassMenu
+) : ICommandService
 {
     private Guid _commandHook = Guid.Empty;
     
@@ -16,12 +19,16 @@ internal sealed class CommandService(ISwiftlyCore core) : ICommandService
     {
         _commandHook = core.Command.HookClientCommand(OnClientCommand);
 
-        MainMenuRegister();
+        mainMenu.RegisterCommands();
+        zClassMenu.RegisterCommands();
     }
 
     public void Unregister()
     {
-        core.GameEvent.Unhook(_commandHook);
+        mainMenu.UnregisterCommands();
+        zClassMenu.UnregisterCommands();
+        
+        core.Command.UnhookClientCommand(_commandHook);
     }
     
     private static HookResult OnClientCommand(int playerId, string commandLine)
@@ -44,33 +51,5 @@ internal sealed class CommandService(ISwiftlyCore core) : ICommandService
         return command.Equals("jointeam", StringComparison.OrdinalIgnoreCase) ||
                command.Equals("teammenu", StringComparison.OrdinalIgnoreCase) ||
                command.Equals("spectate", StringComparison.OrdinalIgnoreCase);
-    }
-
-    private void MainMenuRegister()
-    {
-        HashSet<string> commands = ["menu", "main", "меню", "ьутг", "vty."];
-
-        foreach (var command in commands)
-        {
-            core.Command.RegisterCommand(
-                commandName: command,
-                handler: MainMenuHandler,
-                registerRaw: true
-            );
-        }
-    }
-
-    private void MainMenuHandler(ICommandContext context)
-    {
-        var player = context.Sender;
-
-        if (player == null || !player.IsValid)
-        {
-            return;
-        }
-
-        var menu = ZombiePlague.MenuApi.CreateMenu<IMainMenu>();
-        
-        menu.Open(player);
     }
 }

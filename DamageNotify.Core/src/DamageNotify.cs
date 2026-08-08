@@ -25,7 +25,7 @@ internal partial class DamageNotify(ISwiftlyCore core) : Plugin<DamageNotifyModu
     
     private readonly Lazy<IOptions<DamageNotifyConfig>> _config = GetRequiredServiceLazy<IOptions<DamageNotifyConfig>>();
     
-    public override void UseSharedInterface(IInterfaceManager interfaceManager)
+    protected override void OnUseSharedInterfaces(IInterfaceManager interfaceManager)
     {
         _zombiePlagueApi = interfaceManager.GetSharedInterface<IZombiePlagueApi>(IZombiePlagueApi.SharedApiKey);
     }

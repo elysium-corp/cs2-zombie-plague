@@ -1,59 +1,37 @@
-﻿using Menu.Api.Events;
+﻿using Menu.Api.Extensions;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Menus;
 using SwiftlyS2.Shared.Players;
 
 namespace Menu.Api.Data.Contracts;
 
-public abstract class DynamicOptionsMenu(ISwiftlyCore core, IEventPublisher eventPublisher) : BaseMenu(core)
+public abstract class DynamicOptionsMenu(
+    ISwiftlyCore core,
+    IMenuExtensionDispatcher extensionDispatcher
+) : MenuBase(core)
 {
-    protected virtual Action<IPlayer, MenuOptionsHolder>? MenuBuilderCallback => null;
-
-    private IMenuBuilderAPI DynamicOptionsBuilder(IPlayer player, IMenuBuilderAPI baseBuilder)
+    protected override IMenuAPI Build(IPlayer player)
     {
-        var menuType = GetType();
-        var optionsHolder = new MenuOptionsHolder();
-        
-        eventPublisher.OnMenuAddOption(player, menuType, optionsHolder);
-        
-        MenuBuilderCallback?.Invoke(player, optionsHolder);
+        var builder = CreateBuilder(player);
+        var options = new MenuOptionsCollection();
 
-        var options = optionsHolder
-            .BuildOptions()
-            .Select(option => option.Option);
+        BuildOptions(player, options);
 
-        foreach (var option in options)
+        extensionDispatcher.Dispatch(
+            Id,
+            new MenuExtensionContext(
+                player,
+                options
+            )
+        );
+
+        foreach (var option in options.Build())
         {
-            baseBuilder.AddOption(option);
+            builder.AddOption(option);
         }
 
-        return baseBuilder;
+        return builder.Build();
     }
 
-    public override IMenuBuilderAPI Builder(IPlayer player)
-    {
-        var baseBuilder = BaseBuilder(player);
-
-        var builder = DynamicOptionsBuilder(player, baseBuilder);
-
-        return builder;
-    } 
-
-    public record IMenuOptionWrapper(IMenuOption Option, int? Priority);
-
-    public sealed class MenuOptionsHolder
-    {
-        private readonly List<IMenuOptionWrapper> _options = [];
-
-        public void Add(IMenuOption option, int priority = int.MaxValue)
-        {
-            var optionWrapper = new IMenuOptionWrapper(option, priority);
-            _options.Add(optionWrapper);
-        }
-
-        public List<IMenuOptionWrapper> BuildOptions()
-        {
-            return _options.OrderBy(option => option.Priority).ToList();
-        }
-    }
+    protected virtual void BuildOptions(IPlayer player, MenuOptionsCollection options) { }
 }

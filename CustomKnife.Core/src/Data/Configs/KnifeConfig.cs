@@ -4,15 +4,19 @@ namespace CustomKnife.Data.Configs;
 
 public sealed class KnifeConfig
 {
-    public MonarchKnifeConfig Knockback { get; set; } = new();
-    public AncientConfig Speed { get; set; } = new();
-    public GaiasVengeanceConfig Gravity { get; set; } = new();
-    public KatanaConfig Vip { get; set; } = new();
+    public MonarchConfig MonarchConfig { get; } = new();
+    
+    public AncientConfig AncientConfig { get; } = new();
+    
+    public GaiasVengeanceConfig GaiasVengeanceConfig { get; } = new();
+    
+    public KatanaConfig KatanaConfig { get; } = new();
 }
 
 public interface IKnifeConfig
 {
-    public byte Index { get; set; }
+    public bool Enabled { get; set; }
+    public string InternalName { get; set; }
     public string DisplayName { get; set; }
     public string Model { get; set; }
     public string Description { get; set; }
@@ -22,9 +26,10 @@ public interface IKnifeConfig
     public float DamageMultiplier { get; set; }
 }
 
-public class MonarchKnifeConfig : IKnifeConfig
+public class MonarchConfig : IKnifeConfig
 {
-    public byte Index { get; set; } = 1;
+    public bool Enabled { get; set; } = true;
+    public string InternalName { get; set; } = "knife_monarch";
     public string DisplayName { get; set; } = "Monarch";
     public string Model { get; set; } = "weapons/nozb1/valogun/knife/sovereign_tactical/sovereign_tactical_ag2.vmdl";
     public string Description { get; set; } = "Отдача";
@@ -36,7 +41,8 @@ public class MonarchKnifeConfig : IKnifeConfig
 
 public class AncientConfig : IKnifeConfig
 {
-    public byte Index { get; set; } = 2;
+    public bool Enabled { get; set; } = true;
+    public string InternalName { get; set; } = "knife_ancient";
     public string DisplayName { get; set; } = "Ancient";
     public string Model { get; set; } = "weapons/nozb1/valogun/knife/ejderbicak_cord/ejderbicak_cord_ag2.vmdl";
     public string Description { get; set; } = "Скорость";
@@ -48,7 +54,8 @@ public class AncientConfig : IKnifeConfig
 
 public class GaiasVengeanceConfig : IKnifeConfig
 {
-    public byte Index { get; set; } = 0;
+    public bool Enabled { get; set; } = true;
+    public string InternalName { get; set; } = "knife_vengeance";
     public string DisplayName { get; set; } = "Vengeance";
     public string Model { get; set; } = "weapons/nozb1/valogun/knife/ashen_kukri/ashen_kukri_ag2.vmdl";
     public string Description { get; set; } = "Гравитация";
@@ -60,7 +67,8 @@ public class GaiasVengeanceConfig : IKnifeConfig
 
 public class KatanaConfig : IKnifeConfig
 {
-    public byte Index { get; set; } = 3;
+    public bool Enabled { get; set; } = true;
+    public string InternalName { get; set; } = "knife_katana";
     public string DisplayName { get; set; } = "Katana";
     public string Model { get; set; } = "weapons/nozb1/valogun/knife/oni_katana_tactical/oni_katana_tactical_ag2.vmdl";
     public string Description { get; set; } = "VIP";

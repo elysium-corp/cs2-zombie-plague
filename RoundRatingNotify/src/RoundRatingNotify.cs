@@ -25,7 +25,7 @@ internal sealed partial class RoundRatingNotify(ISwiftlyCore core) : Plugin<Roun
     
     private IZombiePlagueApi _zombiePlagueApi = null!;
     
-    public override void UseSharedInterface(IInterfaceManager interfaceManager)
+    protected override void OnUseSharedInterfaces(IInterfaceManager interfaceManager)
     {
         _zombiePlagueApi = interfaceManager.GetSharedInterface<IZombiePlagueApi>(IZombiePlagueApi.SharedApiKey);
     }

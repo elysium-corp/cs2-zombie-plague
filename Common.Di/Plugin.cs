@@ -62,6 +62,18 @@ public abstract class Plugin<TModule>(ISwiftlyCore core) : BasePlugin(core) wher
     /// </summary>
     protected virtual void OnStart() { }
     
+    protected virtual void OnConfigureSharedInterfaces(IInterfaceManager interfaceManager)
+    {
+    }
+
+    protected virtual void OnUseSharedInterfaces(IInterfaceManager interfaceManager)
+    {
+    }
+
+    protected virtual void OnSharedInterfacesInjected(IInterfaceManager interfaceManager)
+    {
+    }
+    
     /// <summary>
     /// Вызывается после внедрения shared-интерфейсов через <see cref="IInterfaceManager"/>.
     /// Подходит для подписки на внешние API или события или поздней инициализации плагина, можно считать, что это
@@ -97,7 +109,7 @@ public abstract class Plugin<TModule>(ISwiftlyCore core) : BasePlugin(core) wher
     /// 3. reload плагина - true
     /// 4. замена dll на лету - true
     /// </param>
-    public override void Load(bool hotReload)
+    public sealed override void Load(bool hotReload)
     {
         OnLoad();
         
@@ -105,12 +117,24 @@ public abstract class Plugin<TModule>(ISwiftlyCore core) : BasePlugin(core) wher
         
         OnStart();
     }
+    
+    public sealed override void ConfigureSharedInterface(IInterfaceManager interfaceManager)
+    {
+        OnConfigureSharedInterfaces(interfaceManager);
+    }
+    
+    public sealed override void UseSharedInterface(IInterfaceManager interfaceManager)
+    {
+        OnUseSharedInterfaces(interfaceManager);
+    }
 
     /// <summary>
     /// Вызывается после внедрения интерфейсов платформы.
     /// </summary>
-    public override void OnSharedInterfaceInjected(IInterfaceManager interfaceManager)
+    public sealed override void OnSharedInterfaceInjected(IInterfaceManager interfaceManager)
     {
+        OnSharedInterfacesInjected(interfaceManager);
+
         OnReady();
     }
 
@@ -120,7 +144,7 @@ public abstract class Plugin<TModule>(ISwiftlyCore core) : BasePlugin(core) wher
     /// ⚠️ Не рекомендуется вызывать напрямую. Вместо этого используйте <see cref="OnUnload"/> или <see cref="OnStop"/>.
     /// </para>
     /// </summary>
-    public override void Unload()
+    public sealed override void Unload()
     {
         OnUnload();
         
@@ -129,7 +153,7 @@ public abstract class Plugin<TModule>(ISwiftlyCore core) : BasePlugin(core) wher
         OnStop();
     }
 
-    public override void OnAllPluginsLoaded()
+    public sealed override void OnAllPluginsLoaded()
     {
         if (DependencyManager.Loaded) return;
         

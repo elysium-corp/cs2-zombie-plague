@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Players;
+using ZombiePlague.Api.Data.Store;
 using ZombiePlague.Core.Data.Entities.Human;
 using ZombiePlague.Core.Data.Entities.Human.Classes;
 using ZombiePlague.Core.Data.Entities.Human.Factory;

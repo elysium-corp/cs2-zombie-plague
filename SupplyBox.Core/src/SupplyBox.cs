@@ -45,13 +45,13 @@ internal sealed partial class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxMod
     
     public static IZombiePlagueApi ZombiePlagueApi = null!;
     
-    public override void ConfigureSharedInterface(IInterfaceManager interfaceManager)
+    protected override void OnConfigureSharedInterfaces(IInterfaceManager interfaceManager)
     {
         var supplyBoxApi = new SupplyBoxApi(_eventSubscriber.Value);
         interfaceManager.AddSharedInterface<ISupplyBoxApi, SupplyBoxApi>(ISupplyBoxApi.SharedApiKey, supplyBoxApi);
     }
     
-    public override void UseSharedInterface(IInterfaceManager interfaceManager)
+    protected override void OnUseSharedInterfaces(IInterfaceManager interfaceManager)
     {
         ZombiePlagueApi = interfaceManager.GetSharedInterface<IZombiePlagueApi>(IZombiePlagueApi.SharedApiKey);
     }

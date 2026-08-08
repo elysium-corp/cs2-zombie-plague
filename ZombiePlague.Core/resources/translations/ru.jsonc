@@ -1,4 +1,6 @@
 {
   "Menu.Main.Title": "Меню сервера",
-  "Menu.Main.Item.ZClass.Title": "Выбрать класс зомби"
+  "Menu.Main.Item.ZClass.Title": "Выбрать класс зомби",
+  
+  "Menu.ZClass.Title": "Классы зомби"
 }
