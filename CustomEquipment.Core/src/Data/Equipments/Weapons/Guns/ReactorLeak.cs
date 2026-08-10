@@ -11,7 +11,7 @@ internal sealed class ReactorLeak : WeaponItemBase
     
     public override string DisplayName => "UMP45 ReactorLeak";
     
-    public override string InternalName => "custom_equipment:weapon_reactorleak";
+    public override string InternalName => "custom_equipment:reactorleak";
     
     public override string SubclassName => "weapon_reactorleak";
     

@@ -11,13 +11,13 @@ using SwiftlyS2.Shared.Players;
 
 namespace CustomEquipment.Data.Equipments.Weapons.Grenades;
 
-internal sealed class FrostNade : ItemBaseGrenade
+internal sealed class FrostNade : GrenadeItemBase
 {
     public override string InheritorName => WeaponName.He;
 
     public override string DisplayName => "Frost Nade";
     
-    public override string InternalName => "custom_equipment:weapon_frost_nade";
+    public override string InternalName => "custom_equipment:frost_nade";
     
     public override Slot Slot => Slot.Grenade;
 

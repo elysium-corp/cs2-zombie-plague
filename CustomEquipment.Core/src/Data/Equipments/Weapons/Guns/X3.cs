@@ -11,7 +11,7 @@ internal sealed class X3 : WeaponItemBase
 
     public override string DisplayName => "M4A1-S X3";
     
-    public override string InternalName => "custom_equipment:weapon_x3";
+    public override string InternalName => "custom_equipment:x3";
     
     public override string SubclassName => "weapon_x3";
     

@@ -12,7 +12,7 @@ internal sealed class Frostbyte : WeaponItemBase
 
     public override string DisplayName => "MP7 Frostbyte";
     
-    public override string InternalName => "custom_equipment:weapon_frostbyte";
+    public override string InternalName => "custom_equipment:frostbyte";
     
     public override string SubclassName => "weapon_frostbyte";
     

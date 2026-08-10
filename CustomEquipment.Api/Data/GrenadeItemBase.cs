@@ -7,7 +7,7 @@ using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace CustomEquipment.Api.Data;
 
-public abstract class ItemBaseGrenade : ItemBase, IGrenade
+public abstract class GrenadeItemBase : ItemBase, IGrenade
 {
     public virtual CBaseCSGrenade AttachedGrenade
     {

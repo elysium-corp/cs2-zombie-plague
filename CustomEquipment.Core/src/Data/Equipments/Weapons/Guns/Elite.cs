@@ -12,7 +12,7 @@ internal sealed class Elite : WeaponItemBase
 
     public override string DisplayName => "SSG Elite";
 
-    public override string InternalName => "custom_equipment:weapon_elite";
+    public override string InternalName => "custom_equipment:elite";
 
     public override string SubclassName => "weapon_elite_v2";
 

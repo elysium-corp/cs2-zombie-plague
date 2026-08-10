@@ -4,7 +4,7 @@ using SwiftlyS2.Shared.Players;
 
 namespace CustomEquipment.Api.Data;
 
-public abstract class ItemBaseEquipment : ItemBase, IEquipment
+public abstract class EquipmentItemBase : ItemBase, IEquipment
 {
     public abstract string InheritorName { get; }
 

@@ -11,7 +11,7 @@ internal sealed class Blackline : WeaponItemBase
 
     public override string DisplayName => "MP9 Blackline";
 
-    public override string InternalName => "custom_equipment:weapon_blackline";
+    public override string InternalName => "custom_equipment:blackline";
 
     public override string SubclassName => "weapon_blackline";
 

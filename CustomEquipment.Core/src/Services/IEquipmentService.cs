@@ -11,11 +11,11 @@ internal interface IEquipmentService
 
     public IEnumerable<WeaponItemBase> GetAllWeapons();
 
-    public IEnumerable<ItemBaseGrenade> GetAllGrenades();
+    public IEnumerable<GrenadeItemBase> GetAllGrenades();
     
     public WeaponItemBase? GiveWeapon<TWeapon>(IPlayer player) where TWeapon : WeaponItemBase;
 
-    public ItemBaseGrenade? GiveGrenade<TGrenade>(IPlayer player) where TGrenade : ItemBaseGrenade;
+    public GrenadeItemBase? GiveGrenade<TGrenade>(IPlayer player) where TGrenade : GrenadeItemBase;
 
     public TItem? GetActiveItem<TItem>(IPlayer player) where TItem : ItemBase;
 

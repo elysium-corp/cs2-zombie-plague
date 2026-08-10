@@ -47,7 +47,7 @@ internal sealed class EquipmentService(ISwiftlyCore core, IItemGiver itemGiver, 
     
     public IEnumerable<WeaponItemBase> GetAllWeapons() => _items.OfType<WeaponItemBase>();
     
-    public IEnumerable<ItemBaseGrenade> GetAllGrenades() => _items.OfType<ItemBaseGrenade>();
+    public IEnumerable<GrenadeItemBase> GetAllGrenades() => _items.OfType<GrenadeItemBase>();
     
     public WeaponItemBase? GiveWeapon<TWeapon>(IPlayer player) where TWeapon : WeaponItemBase
     {
@@ -60,7 +60,7 @@ internal sealed class EquipmentService(ISwiftlyCore core, IItemGiver itemGiver, 
         return weapon;
     }
 
-    public ItemBaseGrenade? GiveGrenade<TGrenade>(IPlayer player) where TGrenade : ItemBaseGrenade
+    public GrenadeItemBase? GiveGrenade<TGrenade>(IPlayer player) where TGrenade : GrenadeItemBase
     {
         var grenade = itemGiver.GiveGrenade<TGrenade>(player);
         
@@ -173,12 +173,12 @@ internal sealed class EquipmentService(ISwiftlyCore core, IItemGiver itemGiver, 
         return GetAllWeapons().ToList().Find(wp => wp.AttachedEntity.Index == index);
     }
 
-    private ItemBaseGrenade? GetGrenadeByIndex(uint index)
+    private GrenadeItemBase? GetGrenadeByIndex(uint index)
     {
         return GetAllGrenades().ToList().Find(wp => wp.AttachedEntity.Index == index);
     }
 
-    private ItemBaseGrenade? ResolveGrenadeByProjectile(CBaseCSGrenadeProjectile projectile)
+    private GrenadeItemBase? ResolveGrenadeByProjectile(CBaseCSGrenadeProjectile projectile)
     {
         var thrower = projectile.Thrower.Value;
 

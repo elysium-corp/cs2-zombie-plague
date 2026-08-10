@@ -8,6 +8,7 @@ using CustomEquipment.Fetcher;
 using CustomEquipment.Fetcher.Analyzers;
 using CustomEquipment.Giver;
 using CustomEquipment.Menus;
+using CustomEquipment.Registry;
 using CustomEquipment.Services;
 using Microsoft.Extensions.DependencyInjection;
 using SwiftlyS2.Shared;
@@ -24,7 +25,7 @@ internal sealed class CustomEquipmentModule(ISwiftlyCore core) : BaseModule(core
 
         AddSingleton<IEquipmentFetcher>(service, OnWeaponRegistratorFactory);
         AddSingleton<IEquipmentService, EquipmentService>(service);
-        AddSingleton<IItemService, ItemService>(service);
+        AddSingleton<IItemRegistry, ItemRegistry>(service);
         AddSingleton<IParticleService, ParticleService>(service);
         AddSingleton<IWeaponController, WeaponController>(service);
         AddSingleton<IParticleController, ParticleController>(service);

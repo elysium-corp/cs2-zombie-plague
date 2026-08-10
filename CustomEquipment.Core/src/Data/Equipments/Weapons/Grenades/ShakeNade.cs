@@ -11,13 +11,13 @@ using SwiftlyS2.Shared.Players;
 
 namespace CustomEquipment.Data.Equipments.Weapons.Grenades;
 
-public class ShakeNade : ItemBaseGrenade
+public class ShakeNade : GrenadeItemBase
 {
     public override string InheritorName => WeaponName.Smoke;
 
     public override string DisplayName => "Shake Nade";
     
-    public override string InternalName => "custom_equipment:weapon_shake_nade";
+    public override string InternalName => "custom_equipment:shake_nade";
     
     public override Slot Slot => Slot.Grenade;
 

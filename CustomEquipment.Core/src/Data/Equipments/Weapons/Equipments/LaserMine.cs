@@ -13,13 +13,13 @@ using SwiftlyS2.Shared.Trace;
 
 namespace CustomEquipment.Data.Equipments.Weapons.Equipments;
 
-public sealed class LaserMine : ItemBaseEquipment
+public sealed class LaserMine : EquipmentItemBase
 {
     public override string InheritorName => WeaponName.LaserMine;
     
     public override string DisplayName => "Laser Mine";
     
-    public override string InternalName => "custom_equipment:weapon_laser_mine";
+    public override string InternalName => "custom_equipment:laser_mine";
     
     public override string SubclassName => "";
     

@@ -22,9 +22,4 @@ public abstract class ItemBase : IItem
     public abstract Slot Slot { get; }
     
     public abstract string Model { get; }
-    
-    public object Clone()
-    {
-        return MemberwiseClone();
-    }
 }

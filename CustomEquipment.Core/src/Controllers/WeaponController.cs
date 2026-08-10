@@ -61,7 +61,7 @@ internal sealed class WeaponController(
     {
         _grenadeHandler.OnGrenadeDetonated(grenade, projectile, position);
         
-        if (grenade is not ItemBaseGrenade baseGrenade) return;
+        if (grenade is not GrenadeItemBase baseGrenade) return;
 
         var thrower = projectile.OriginalThrower.Value?.ToPlayer();
 

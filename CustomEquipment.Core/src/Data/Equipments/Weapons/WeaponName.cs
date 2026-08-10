@@ -51,7 +51,7 @@ internal static class WeaponName
     internal const string He = "hegrenade";
     internal const string Inc = "incgrenade";
     internal const string Molotov = "molotov";
-    internal const string Smoke = "smoke";
+    internal const string Smoke = "smokegrenade";
     
     // Equipment
     internal const string LaserMine = "lasermine";

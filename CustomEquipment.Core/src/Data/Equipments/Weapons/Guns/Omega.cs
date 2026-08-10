@@ -11,7 +11,7 @@ internal sealed class Omega : WeaponItemBase
     
     public override string DisplayName => "Omega Shotgun";
     
-    public override string InternalName => "custom_equipment:weapon_omega";
+    public override string InternalName => "custom_equipment:omega";
     
     public override string SubclassName => "weapon_omega";
 

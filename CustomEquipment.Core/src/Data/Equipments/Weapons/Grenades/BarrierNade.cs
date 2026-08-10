@@ -9,13 +9,13 @@ using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace CustomEquipment.Data.Equipments.Weapons.Grenades;
 
-public class BarrierNade : ItemBaseGrenade
+public class BarrierNade : GrenadeItemBase
 {
     public override string InheritorName => WeaponName.Smoke;
 
     public override string DisplayName => "Barrier Nade";
     
-    public override string InternalName => "custom_equipment:weapon_barrier_nade";
+    public override string InternalName => "custom_equipment:barrier_nade";
 
     public override Slot Slot => Slot.Grenade;
 

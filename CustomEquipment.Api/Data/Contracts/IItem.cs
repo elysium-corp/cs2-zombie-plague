@@ -2,7 +2,7 @@
 
 namespace CustomEquipment.Api.Data.Contracts;
 
-public interface IItem : ICloneable
+public interface IItem
 {
     string DisplayName { get; }
     

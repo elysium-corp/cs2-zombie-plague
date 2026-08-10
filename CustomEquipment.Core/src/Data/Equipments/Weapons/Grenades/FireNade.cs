@@ -11,7 +11,7 @@ using SwiftlyS2.Shared.Players;
 
 namespace CustomEquipment.Data.Equipments.Weapons.Grenades;
 
-internal sealed class FireNade : ItemBaseGrenade
+internal sealed class FireNade : GrenadeItemBase
 {
     private const float BurnRadius = 275.0f;
 
@@ -21,7 +21,7 @@ internal sealed class FireNade : ItemBaseGrenade
 
     public override string DisplayName => "Fire Nade";
     
-    public override string InternalName => "custom_equipment:weapon_fire_nade";
+    public override string InternalName => "custom_equipment:fire_nade";
 
     public override Slot Slot => Slot.Grenade;
 
