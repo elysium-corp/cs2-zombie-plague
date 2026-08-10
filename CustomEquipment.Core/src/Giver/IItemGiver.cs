@@ -13,4 +13,6 @@ internal interface IItemGiver
 
     public TGrenade? GiveGrenade<TGrenade>(IPlayer player, GiveAction action = GiveAction.Drop)
         where TGrenade : GrenadeItemBase;
+    
+    public WeaponItemBase? GiveWeapon(IPlayer player, string internalName, GiveAction action = GiveAction.Drop);
 }
