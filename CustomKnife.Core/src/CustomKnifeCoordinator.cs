@@ -24,17 +24,17 @@ internal sealed class CustomKnifeCoordinator(
     private Guid _playerSpawnHook = Guid.Empty;
     private Guid _playerHurtHook = Guid.Empty;
     private Guid _roundStartHook = Guid.Empty;
-    
+
     private IDisposable? _mainMenuSubscription;
 
     private const string SelectKnifeItemTitle = "Menu.Main.Item.Knife.Title";
-    
+
     public void Start()
     {
         knifeRegistryInitializer.Initialize();
 
         knifeMenu.RegisterCommands();
-        
+
         RegisterEvents();
         RegisterMenuExtensions();
     }
@@ -42,30 +42,29 @@ internal sealed class CustomKnifeCoordinator(
     public void Stop()
     {
         knifeMenu.UnregisterCommands();
-        
+
         UnregisterEvents();
         UnregisterMenuExtensions();
     }
-    
+
     private void RegisterEvents()
     {
         _playerEquipHook = core.GameEvent.HookPost<EventItemEquip>(OnPlayerEquip);
         _playerSpawnHook = core.GameEvent.HookPost<EventPlayerSpawn>(OnPlayerSpawn);
         _playerHurtHook = core.GameEvent.HookPost<EventPlayerHurt>(OnPlayerHurt);
         _roundStartHook = core.GameEvent.HookPost<EventRoundStart>(OnRoundStart);
-        
+
         core.GameHooks.Entities.TakeDamage.Pre += OnEntityTakeDamage;
     }
-    
+
     private void RegisterMenuExtensions()
     {
-        _mainMenuSubscription =
-            menuApiBridge.Extensions.Subscribe(
-                ZombiePlagueMenuIds.Main,
-                ExtendMainMenu
-            );
+        _mainMenuSubscription = menuApiBridge.Extensions.Subscribe(
+            menuId: ZombiePlagueMenuIds.Main,
+            handler: ExtendMainMenu
+        );
     }
-    
+
     private void UnregisterEvents()
     {
         core.GameEvent.Unhook(_playerEquipHook);
@@ -75,27 +74,17 @@ internal sealed class CustomKnifeCoordinator(
 
         core.GameHooks.Entities.TakeDamage.Pre -= OnEntityTakeDamage;
     }
-    
+
     private void UnregisterMenuExtensions()
     {
         _mainMenuSubscription?.Dispose();
         _mainMenuSubscription = null;
     }
-    
-    private void OnKnifeCommand(ICommandContext context)
-    {
-        if (context.Sender is not { IsValid: true } player)
-        {
-            return;
-        }
 
-        knifeMenu.Open(player);
-    }
-    
     private void ExtendMainMenu(MenuExtensionContext context)
     {
         var localizer = core.Translation.GetPlayerLocalizer(context.Player);
-        
+
         var knifeButton = new ButtonMenuOption(localizer[SelectKnifeItemTitle]);
 
         knifeButton.Click += (_, args) =>
@@ -112,7 +101,7 @@ internal sealed class CustomKnifeCoordinator(
     {
         knifeService.TryApplyKnifeDamage(ref context);
     }
-    
+
     private HookResult OnPlayerSpawn(EventPlayerSpawn @event)
     {
         var player = @event.UserIdPlayer;
@@ -136,7 +125,7 @@ internal sealed class CustomKnifeCoordinator(
 
         return HookResult.Continue;
     }
-    
+
     private HookResult OnPlayerHurt(EventPlayerHurt @event)
     {
         var player = @event.UserIdPlayer;

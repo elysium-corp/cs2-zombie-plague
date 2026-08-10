@@ -17,19 +17,17 @@ namespace CustomKnife;
 internal sealed partial class CustomKnife(ISwiftlyCore core) : Plugin<CustomKnifeModule>(core)
 {
     private readonly Lazy<CustomKnifeCoordinator> _coordinator = GetRequiredServiceLazy<CustomKnifeCoordinator>();
-    private readonly Lazy<MenuApiBridge> _menuExtensionDispatcher = GetRequiredServiceLazy<MenuApiBridge>();
-
-    public static IZombiePlagueApi ZombiePlagueApi = null!;
+    private readonly Lazy<MenuApiBridge> _menuApiBridge = GetRequiredServiceLazy<MenuApiBridge>();
     
     protected override void OnUseSharedInterfaces(IInterfaceManager interfaceManager)
     {
-        ZombiePlagueApi = interfaceManager.GetSharedInterface<IZombiePlagueApi>(IZombiePlagueApi.SharedApiKey);
+        BindSharedInterface<IZombiePlagueApi>(interfaceManager, IZombiePlagueApi.SharedApiKey);
     }
 
     protected override void OnSharedInterfacesInjected(IInterfaceManager interfaceManager)
     {
         var menuApi = interfaceManager.GetSharedInterface<IMenuApi>(IMenuApi.SharedApiKey);
-        _menuExtensionDispatcher.Value.Initialize(menuApi);
+        _menuApiBridge.Value.Initialize(menuApi);
     }
 
     protected override void OnReady()
