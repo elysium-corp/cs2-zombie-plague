@@ -9,7 +9,6 @@ using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.SchemaDefinitions;
-using IEventSubscriber = CustomEquipment.Api.IEventSubscriber;
 
 namespace CustomEquipment.Controllers;
 
@@ -19,7 +18,7 @@ internal sealed class WeaponController(
     IParticleService particleService, 
     IEventSubscriber eventSubscriber, 
     IEventPublisher eventPublisher
-    ) : IWeaponController, IDisposable
+) : IWeaponController, IDisposable
 {
     private Guid _guidBulletImpactPost = Guid.Empty;
     

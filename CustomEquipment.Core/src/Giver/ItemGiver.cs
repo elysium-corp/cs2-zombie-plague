@@ -1,8 +1,7 @@
-﻿using Common.Di;
-using CustomEquipment.Api;
 using CustomEquipment.Data.Equipments.Contracts;
 using CustomEquipment.Data.Equipments.Enums;
 using CustomEquipment.Data.Equipments.Weapons;
+using CustomEquipment.Api;
 using CustomEquipment.Exceptions;
 using CustomEquipment.Mappers;
 using CustomEquipment.Services;
@@ -12,168 +11,222 @@ using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace CustomEquipment.Giver;
 
-internal sealed class ItemGiver(IItemService itemService, IEventPublisher eventPublisher) : IItemGiver
+internal sealed class ItemGiver(
+    IItemService itemService,
+    IEventPublisher eventPublisher
+) : IItemGiver
 {
-    public TItem? GiveItem<TItem>(IPlayer player, GiveAction action = GiveAction.Drop) where TItem : class, IItem
+    public BaseItem? GiveItem(IPlayer player, string itemId, GiveAction action = GiveAction.Drop)
     {
-        var item = CreateItem<TItem>();
+        if (!itemService.TryGet(itemId, out var prototype))
+        {
+            throw new NotRegisteredItemException();
+        }
+
+        return GiveItem(player, prototype, action);
+    }
+
+    public TItem? GiveItem<TItem>(IPlayer player, GiveAction action = GiveAction.Drop)
+        where TItem : class, IItem
+    {
+        var prototype = itemService
+            .GetAllRegisteredItems()
+            .FirstOrDefault(item => item.GetType() == typeof(TItem));
+
+        if (prototype is null)
+        {
+            throw new NotRegisteredItemException();
+        }
+
+        return GiveItem(player, prototype, action) as TItem;
+    }
+
+    public TWeapon? GiveWeapon<TWeapon>(IPlayer player, GiveAction action = GiveAction.Drop)
+        where TWeapon : BaseWeapon
+    {
+        return GiveItem<TWeapon>(player, action);
+    }
+
+    public TGrenade? GiveGrenade<TGrenade>(IPlayer player, GiveAction action = GiveAction.Drop)
+        where TGrenade : BaseGrenade
+    {
+        return GiveItem<TGrenade>(player, action);
+    }
+
+    private BaseItem? GiveItem(IPlayer player, IItem prototype, GiveAction action)
+    {
+        if (prototype.Clone() is not BaseItem item)
+        {
+            throw new CannotCreateItemException();
+        }
 
         var givenItem = item switch
         {
-            BaseWeapon weapon => GiveWeapon(player, weapon, action) as TItem,
-            BaseGrenade grenade => GiveGrenade(player, grenade, action) as TItem,
-            _ => throw new ArgumentOutOfRangeException(nameof(TItem))
+            BaseWeapon weapon => GiveWeaponInternal(player, weapon, action),
+            BaseGrenade grenade => GiveGrenadeInternal(player, grenade, action),
+            BaseEquipment equipment => GiveEquipmentInternal(player, equipment),
+            _ => throw new ArgumentOutOfRangeException(nameof(prototype), prototype.GetType(), null)
         };
-        
-        if (givenItem != null) eventPublisher.OnItemGiven(player, givenItem);
+
+        if (givenItem is null)
+        {
+            return null;
+        }
+
+        switch (givenItem)
+        {
+            case IWeapon weapon:
+                eventPublisher.OnWeaponGiven(player, weapon);
+                break;
+            case IGrenade grenade:
+                eventPublisher.OnGrenadeGiven(player, grenade);
+                break;
+        }
+
+        eventPublisher.OnItemGiven(player, givenItem);
 
         return givenItem;
     }
 
-    public TWeapon? GiveWeapon<TWeapon>(IPlayer player, GiveAction action = GiveAction.Drop) where TWeapon : BaseWeapon
+    private static BaseEquipment? GiveEquipmentInternal(IPlayer player, BaseEquipment equipment)
     {
-        var weapon = CreateItem<TWeapon>();
-        
-        return GiveWeaponInternal(player, weapon, action);
-    }
-    
-    private TWeapon? GiveWeapon<TWeapon>(IPlayer player, TWeapon weapon, GiveAction action = GiveAction.Drop) where TWeapon : BaseWeapon
-    {
-        var givenWeapon = GiveWeaponInternal(player, weapon, action);
-        
-        if (givenWeapon != null) eventPublisher.OnWeaponGiven(player, givenWeapon);
-
-        return givenWeapon;
-    }
-    
-    public TGrenade? GiveGrenade<TGrenade>(IPlayer player, GiveAction action = GiveAction.Drop) where TGrenade : BaseGrenade
-    {
-        var grenade = CreateItem<TGrenade>();
-
-        return GiveGrenade(player, grenade, action);
-    }
-    
-    private TGrenade? GiveGrenade<TGrenade>(IPlayer player, TGrenade grenade, GiveAction action) where TGrenade : BaseGrenade
-    {
-        var givenGrenade = GiveGrenadeInternal(player, grenade, action);
-        
-        if (givenGrenade != null) eventPublisher.OnGrenadeGiven(player, givenGrenade);
-        
-        return givenGrenade;
+        return equipment.TryPurchase(player) ? equipment : null;
     }
 
-    private TGrenade? GiveGrenadeInternal<TGrenade>(IPlayer player, TGrenade grenade, GiveAction action = GiveAction.Drop) where TGrenade : BaseGrenade
+    private static BaseGrenade? GiveGrenadeInternal(
+        IPlayer player,
+        BaseGrenade grenade,
+        GiveAction action
+    )
     {
-        var pawn = player.RequiredPlayerPawn;
+        var pawn = player.PlayerPawn;
+
+        if (!player.IsValid || !player.IsAlive || pawn is not { IsValid: true })
+        {
+            return null;
+        }
+
         var itemServices = pawn.ItemServices;
-        var weaponService = pawn.WeaponServices;
-        
-        if (itemServices == null || weaponService == null) return null;
-        
-        var inheritorName = grenade.InheritorName;
-        var resolvedInheritorName = ResolveInheritorName(inheritorName);
-        
+        var weaponServices = pawn.WeaponServices;
+
+        if (itemServices is null || weaponServices is null)
+        {
+            return null;
+        }
+
+        var inheritorName = ResolveInheritorName(grenade.InheritorName);
+
         switch (action)
         {
             case GiveAction.Drop:
-                weaponService.DropWeaponByDesignerName(resolvedInheritorName);
+                weaponServices.DropWeaponByDesignerName(inheritorName);
                 break;
-            
             case GiveAction.Remove:
-                weaponService.RemoveWeaponByDesignerName(resolvedInheritorName);
+                weaponServices.RemoveWeaponByDesignerName(inheritorName);
                 break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(action), action, null);
         }
-        
-        var originalGrenade = CreateOriginalGrenade(itemServices, weaponService, resolvedInheritorName);
-        
-        if (originalGrenade == null) return null;
+
+        var originalGrenade = CreateOriginalGrenade(itemServices, weaponServices, inheritorName);
+        if (originalGrenade is null)
+        {
+            return null;
+        }
 
         grenade.AttachedGrenade = originalGrenade;
-
         return grenade;
     }
-    
-    private TWeapon? GiveWeaponInternal<TWeapon>(IPlayer player, TWeapon weapon, GiveAction action) where TWeapon : BaseWeapon
+
+    private static BaseWeapon? GiveWeaponInternal(
+        IPlayer player,
+        BaseWeapon weapon,
+        GiveAction action
+    )
     {
-        var pawn = player.RequiredPlayerPawn;
+        var pawn = player.PlayerPawn;
+
+        if (!player.IsValid || !player.IsAlive || pawn is not { IsValid: true })
+        {
+            return null;
+        }
+
         var itemServices = pawn.ItemServices;
-        var weaponService = pawn.WeaponServices;
-        
-        if (itemServices == null || weaponService == null) return null;
+        var weaponServices = pawn.WeaponServices;
+
+        if (itemServices is null || weaponServices is null)
+        {
+            return null;
+        }
 
         var slot = weapon.Slot.MapToGearSlot();
 
         switch (action)
         {
             case GiveAction.Drop:
-                weaponService.DropWeaponBySlot(slot);
+                weaponServices.DropWeaponBySlot(slot);
                 break;
-            
             case GiveAction.Remove:
-                weaponService.RemoveWeaponBySlot(slot);
+                weaponServices.RemoveWeaponBySlot(slot);
                 break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(action), action, null);
         }
 
-        var inheritorName = weapon.InheritorName;
-        var resolvedInheritorName = ResolveInheritorName(inheritorName);
-        
-        var originalWeapon = CreateOriginalWeapon(itemServices, weaponService, resolvedInheritorName);
+        var inheritorName = ResolveInheritorName(weapon.InheritorName);
+        var originalWeapon = CreateOriginalWeapon(itemServices, weaponServices, inheritorName);
 
-        if (originalWeapon == null) return null;
+        if (originalWeapon is null)
+        {
+            return null;
+        }
 
         weapon.AttachedWeapon = originalWeapon;
-
         return weapon;
     }
 
-    private TItem CreateItem<TItem>() where TItem : IItem
-    {
-        if (!itemService.HasRegistered<TItem>()) throw new NotRegisteredItemException();
-
-        var allRegisteredWeapons = itemService.GetAllRegisteredItems();
-        var item = (TItem?)allRegisteredWeapons.FirstOrDefault(wp => wp is TItem)?.Clone() 
-                   ?? throw new CannotCreateItemException();
-
-        return item;
-    }
-    
-    private string ResolveInheritorName(string inheritorName)
+    private static string ResolveInheritorName(string inheritorName)
     {
         const string prefix = "weapon_";
-        
-        if (inheritorName.Contains(prefix))
-        {
-            return inheritorName;
-        }
 
-        return $"{prefix}{inheritorName}";
+        return inheritorName.StartsWith(prefix, StringComparison.Ordinal)
+            ? inheritorName
+            : $"{prefix}{inheritorName}";
     }
 
-    private CCSWeaponBase? CreateOriginalWeapon(CPlayer_ItemServices itemServices, CPlayer_WeaponServices weaponService, string name)
+    private static CCSWeaponBase? CreateOriginalWeapon(
+        CPlayer_ItemServices itemServices,
+        CPlayer_WeaponServices weaponServices,
+        string name
+    )
     {
-        if (name.Contains(WeaponName.M4A1S))
+        if (name.Contains(WeaponName.M4A1S, StringComparison.Ordinal))
         {
             return itemServices.GiveItem<CWeaponM4A1Silencer>();
         }
 
-        if (name.Contains(WeaponName.UspS))
+        if (name.Contains(WeaponName.UspS, StringComparison.Ordinal))
         {
             return itemServices.GiveItem<CWeaponUSPSilencer>();
         }
-        
+
         itemServices.GiveItem(name);
-        
-        return weaponService.MyValidWeapons
-            .FirstOrDefault(w => w.DesignerName.Contains(name))
+
+        return weaponServices.MyValidWeapons
+            .FirstOrDefault(weapon => weapon.DesignerName.Contains(name, StringComparison.Ordinal))
             ?.As<CCSWeaponBase>();
     }
 
-    private CBaseCSGrenade? CreateOriginalGrenade(CPlayer_ItemServices itemServices, CPlayer_WeaponServices weaponService, string name)
+    private static CBaseCSGrenade? CreateOriginalGrenade(
+        CPlayer_ItemServices itemServices,
+        CPlayer_WeaponServices weaponServices,
+        string name
+    )
     {
         itemServices.GiveItem(name);
-        
-        return weaponService.MyValidWeapons
-            .FirstOrDefault(w => w.DesignerName.Contains(name))
+
+        return weaponServices.MyValidWeapons
+            .FirstOrDefault(weapon => weapon.DesignerName.Contains(name, StringComparison.Ordinal))
             ?.As<CBaseCSGrenade>();
     }
 }

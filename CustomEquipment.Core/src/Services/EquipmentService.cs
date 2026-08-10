@@ -1,40 +1,60 @@
 ﻿using CustomEquipment.Api;
 using CustomEquipment.Data.Equipments.Contracts;
+using CustomEquipment.Data.Equipments.Enums;
 using CustomEquipment.Data.Equipments.Weapons;
 using CustomEquipment.Data.Equipments.Weapons.Grenades;
 using CustomEquipment.Giver;
 using CustomEquipment.Utils;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Events;
+using SwiftlyS2.Shared.GameEventDefinitions;
+using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
-using IEventSubscriber = CustomEquipment.Api.IEventSubscriber;
 
 namespace CustomEquipment.Services;
 
-internal sealed class EquipmentService(ISwiftlyCore core, IItemGiver itemGiver, IEventPublisher eventPublisher, IEventSubscriber eventSubscriber) : IEquipmentService, IDisposable
+internal sealed class EquipmentService(
+    ISwiftlyCore core,
+    IItemGiver itemGiver,
+    IEventPublisher eventPublisher,
+    IEventSubscriber eventSubscriber
+) : IEquipmentService, IDisposable
 {
     private readonly List<BaseItem> _items = [];
     private readonly Dictionary<IPlayer, HashSet<BaseWeapon>> _inventories = [];
+    private Guid _playerDisconnectHook = Guid.Empty;
+    private bool _isActive;
 
     public void Initialize()
     {
+        _isActive = true;
+
         core.Event.OnEntityCreated += OnEntityCreated;
         core.Event.OnEntityDeleted += OnEntityDeleted;
         core.Event.OnWeaponServicesCanUseHook += OnWeaponServicesCanUseHook;
         core.Event.OnWeaponServicesDropWeaponHook += OnWeaponServicesDropWeaponHook;
+
+        _playerDisconnectHook = core.GameEvent.HookPost<EventPlayerDisconnect>(OnPlayerDisconnect);
 
         eventSubscriber.OnGrenadeThrown += OnGrenadeThrown;
     }
     
     public void Dispose()
     {
+        _isActive = false;
+
         core.Event.OnEntityCreated -= OnEntityCreated;
         core.Event.OnEntityDeleted -= OnEntityDeleted;
         core.Event.OnWeaponServicesCanUseHook -= OnWeaponServicesCanUseHook;
         core.Event.OnWeaponServicesDropWeaponHook -= OnWeaponServicesDropWeaponHook;
+
+        core.GameEvent.Unhook(_playerDisconnectHook);
         
         eventSubscriber.OnGrenadeThrown -= OnGrenadeThrown;
+
+        _items.Clear();
+        _inventories.Clear();
     }
 
     private void OnGrenadeThrown(IGrenade grenade, CBaseCSGrenadeProjectile projectile)
@@ -42,11 +62,31 @@ internal sealed class EquipmentService(ISwiftlyCore core, IItemGiver itemGiver, 
         projectile.SetModel(grenade.Model);
     }
 
-    public List<BaseItem> GetAllItems() => _items;
-    
+    private HookResult OnPlayerDisconnect(EventPlayerDisconnect @event)
+    {
+        if (@event.UserIdPlayer is { } player)
+        {
+            _inventories.Remove(player);
+        }
+
+        return HookResult.Continue;
+    }
+
     public List<BaseWeapon> GetAllWeapons() => _items.OfType<BaseWeapon>().ToList();
     
     public List<BaseGrenade> GetAllGrenades() => _items.OfType<BaseGrenade>().ToList();
+
+    public bool GiveItem(IPlayer player, string itemId, GiveAction action = GiveAction.Drop)
+    {
+        var item = itemGiver.GiveItem(player, itemId, action);
+
+        if (item is BaseWeapon or BaseGrenade)
+        {
+            AddOrReplace(item);
+        }
+
+        return item is not null;
+    }
     
     public BaseWeapon? GiveWeapon<TWeapon>(IPlayer player) where TWeapon : BaseWeapon
     {
@@ -76,7 +116,7 @@ internal sealed class EquipmentService(ISwiftlyCore core, IItemGiver itemGiver, 
 
         if (activeWeaponIndex == null) return null;
 
-        return _items.Find(wp => wp.AttachedEntity.Index == activeWeaponIndex || wp.AttachedEntity.Index == activeWeaponIndex) as TItem;
+        return _items.Find(item => item.AttachedEntity.Index == activeWeaponIndex) as TItem;
     }
 
     public TWeapon? GetActiveWeapon<TWeapon>(IPlayer player) where TWeapon : BaseWeapon
@@ -85,7 +125,7 @@ internal sealed class EquipmentService(ISwiftlyCore core, IItemGiver itemGiver, 
 
         if (activeWeaponIndex == null) return null;
 
-        return _items.Find(wp => wp.AttachedEntity.Index == activeWeaponIndex || wp.AttachedEntity.Index == activeWeaponIndex) as TWeapon;
+        return _items.Find(item => item.AttachedEntity.Index == activeWeaponIndex) as TWeapon;
     }
 
     private void OnEntityCreated(IOnEntityCreatedEvent hook)
@@ -96,6 +136,11 @@ internal sealed class EquipmentService(ISwiftlyCore core, IItemGiver itemGiver, 
         
         core.Scheduler.NextWorldUpdate(() =>
         {
+            if (!_isActive || !entity.IsValid)
+            {
+                return;
+            }
+
             var projectile = entity.As<CBaseCSGrenadeProjectile>();
 
             var grenade = ResolveGrenadeByProjectile(projectile);
@@ -144,15 +189,16 @@ internal sealed class EquipmentService(ISwiftlyCore core, IItemGiver itemGiver, 
         
         core.Scheduler.NextWorldUpdate(() =>
         {
-            foreach (var weapon in inventory)
+            if (!_isActive
+                || !_inventories.TryGetValue(player, out var currentInventory)
+                || !ReferenceEquals(currentInventory, inventory))
             {
-                var weaponId = weapon.AttachedWeapon.Index;
-
-                if (!weaponsInInventoryAsIds.Contains((int)weaponId))
-                {
-                    inventory.Remove(weapon);
-                }
+                return;
             }
+
+            inventory.RemoveWhere(weapon =>
+                !weaponsInInventoryAsIds.Contains((int)weapon.AttachedWeapon.Index)
+            );
         });
     }
 
@@ -211,7 +257,7 @@ internal sealed class EquipmentService(ISwiftlyCore core, IItemGiver itemGiver, 
         }
 
         var index = _items.IndexOf(foundItem);
-        _items[index] = foundItem;
-        return foundItem;
+        _items[index] = item;
+        return item;
     }
 }

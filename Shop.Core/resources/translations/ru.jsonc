@@ -1,0 +1,24 @@
+{
+  "Shop.MainMenu.Item": "Магазин",
+  "Shop.Menu.Title": "Магазин экипировки",
+  "Shop.Menu.Items": "Предметов",
+  "Shop.Menu.Empty": "Нет доступных предметов",
+
+  "Shop.Category.Pistol": "Пистолеты",
+  "Shop.Category.SubmachineGun": "Пистолеты-пулемёты",
+  "Shop.Category.Rifle": "Винтовки",
+  "Shop.Category.Shotgun": "Дробовики",
+  "Shop.Category.SniperRifle": "Снайперские винтовки",
+  "Shop.Category.MachineGun": "Пулемёты",
+  "Shop.Category.Grenade": "Гранаты",
+  "Shop.Category.Equipment": "Экипировка",
+
+  "Shop.Purchase.Success": "Куплено",
+  "Shop.Purchase.Balance": "Баланс",
+  "Shop.Purchase.InsufficientFunds": "Недостаточно денег.",
+  "Shop.Purchase.NotAllowed": "Магазин доступен только живым людям.",
+  "Shop.Purchase.ItemNotFound": "Этот предмет больше недоступен.",
+  "Shop.Purchase.PaymentUnavailable": "Сервис оплаты сейчас недоступен.",
+  "Shop.Purchase.DeliveryFailed": "Не удалось выдать предмет. Деньги возвращены.",
+  "Shop.Purchase.Failed": "Не удалось завершить покупку."
+}

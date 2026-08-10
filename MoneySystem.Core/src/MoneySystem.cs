@@ -43,6 +43,10 @@ internal sealed partial class MoneySystem(ISwiftlyCore core) : Plugin<MoneySyste
     {
         var mSServiceApi = new MoneySystemApi(_moneyServiceLazy.Value);
         interfaceManager.AddSharedInterface<IMoneySystemApi, MoneySystemApi>(IMoneySystemApi.SharedApiKey, mSServiceApi);
+        interfaceManager.AddSharedInterface<IMoneySystemPaymentApi, MoneySystemApi>(
+            IMoneySystemPaymentApi.SharedApiKey,
+            mSServiceApi
+        );
     }
 
     protected override void OnStart()

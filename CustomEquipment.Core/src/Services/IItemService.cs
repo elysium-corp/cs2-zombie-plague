@@ -6,7 +6,7 @@ internal interface IItemService
 {
     void Initialize();
     
-    HashSet<IItem> GetAllRegisteredItems();
+    IReadOnlyCollection<IItem> GetAllRegisteredItems();
 
-    public bool HasRegistered<TItem>() where TItem : IItem;
+    bool TryGet(string itemId, out IItem item);
 }

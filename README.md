@@ -38,6 +38,7 @@
 | Custom Knife | ножи с отдельными характеристиками, уроном, knockback и меню выбора |
 | Supply Box | сбрасываемые припасы, награды, ограничения по режимам и редактор точек |
 | Money System | награды за урон и заражение, собственные правила экономики |
+| Shop | категории оружия и экипировки, настраиваемые цены и безопасная покупка через Custom Equipment |
 | Menu | расширяемое меню с API, событиями и приоритетами пунктов |
 | Notifications | урон, игровые сообщения, затемнение экрана и итоги раунда |
 | Utilities | сброс статистики игрока и общие математические/визуальные инструменты |
@@ -54,7 +55,7 @@
 
 ## Архитектура
 
-Решение состоит из **18 проектов** и разделено на четыре слоя:
+Решение состоит из **21 проекта** и разделено на четыре слоя:
 
 ```mermaid
 flowchart TB
@@ -62,7 +63,7 @@ flowchart TB
 
     subgraph Contracts["Публичные контракты"]
         ZpApi["ZombiePlague.Api"]
-        FeatureApi["MoneySystem.Api · SupplyBox.Api · Menu.Api"]
+        FeatureApi["MoneySystem.Api · CustomEquipment.Api · Shop.Api · SupplyBox.Api · Menu.Api"]
     end
 
     subgraph Plugins["Исполняемые плагины"]
@@ -106,6 +107,9 @@ flowchart TB
 | Core | `Menu.Core` | Создание и отображение расширяемых меню |
 | API | `Menu.Api` | Контракты меню, publisher/subscriber и события |
 | Core | `CustomEquipment.Core` | Пользовательское оружие, гранаты, эффекты и частицы |
+| API | `CustomEquipment.Api` | Каталог предметов и контракт безопасной выдачи экипировки |
+| Core | `Shop.Core` | Категории магазина, цены, меню и обработка покупок |
+| API | `Shop.Api` | Каталог магазина и публичный контракт покупки |
 | Core | `CustomKnife.Core` | Система ножей и их игровых свойств |
 | Core | `DamageNotify.Core` | Уведомления об уроне |
 | Core | `InfoNotify.Core` | Информационные сообщения игрокам |
@@ -127,7 +131,8 @@ flowchart TB
 | `DamageNotify.Core` | `ZombiePlague.Api`, `Common.Di` |
 | `RoundRatingNotify.Core` | `ZombiePlague.Api`, `Common.Di` |
 | `CustomKnife.Core` | `ZombiePlague.Api`, `Common.Di` |
-| `CustomEquipment.Core` | `Common.Di`, `Common.Effects`, `Common.Math` |
+| `CustomEquipment.Core` | `CustomEquipment.Api`, `Common.Di`, `Common.Effects`, `Common.Math` |
+| `Shop.Core` | `Shop.Api`, `CustomEquipment.Api`, `MoneySystem.Api`, `Menu.Api`, `ZombiePlague.Api`, `Common.Di` |
 | `ScreenFade.Core` | `Common.Di` |
 | `ResetScore.Core` | `Common.Di` |
 | `InfoNotify.Core` | `Common.Di` |
@@ -222,6 +227,7 @@ dotnet build CS2ZombiePlague.sln -c Release
 dotnet publish ZombiePlague.Core/ZombiePlague.Core.csproj -c Release
 dotnet publish Menu.Core/Menu.Core.csproj -c Release
 dotnet publish MoneySystem.Core/MoneySystem.Core.csproj -c Release
+dotnet publish Shop.Core/Shop.Core.csproj -c Release
 ```
 
 Для `*.Core` сборка складывается в `output/<ProjectName>/`. После `publish` MSBuild также формирует ZIP-архив модуля. Каталоги `resources/gamedata`, `resources/templates` и `resources/translations` копируются автоматически.

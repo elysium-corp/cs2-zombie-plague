@@ -1,4 +1,6 @@
 ﻿using CustomEquipment.Data.Equipments.Contracts;
+using Microsoft.Extensions.Logging;
+using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
@@ -7,6 +9,17 @@ namespace CustomEquipment.Api;
 
 public class EventService : IEventSubscriber, IEventPublisher
 {
+    private readonly ISwiftlyCore? _core;
+
+    public EventService()
+    {
+    }
+
+    public EventService(ISwiftlyCore core)
+    {
+        _core = core;
+    }
+
     public event EventDelegates.OnItemGiven? OnItemGiven;
     public event EventDelegates.OnGrenadeGiven? OnGrenadeGiven;
     public event EventDelegates.OnWeaponGiven? OnWeaponGiven;
@@ -21,7 +34,7 @@ public class EventService : IEventSubscriber, IEventPublisher
         foreach (var @delegate in handlers.GetInvocationList())
         {
             var handler = (EventDelegates.OnItemGiven)@delegate;
-            handler(player, item);
+            InvokeSafely(nameof(OnItemGiven), () => handler(player, item));
         }
     }
     
@@ -33,7 +46,7 @@ public class EventService : IEventSubscriber, IEventPublisher
         foreach (var @delegate in handlers.GetInvocationList())
         {
             var handler = (EventDelegates.OnGrenadeGiven)@delegate;
-            handler(player, grenade);
+            InvokeSafely(nameof(OnGrenadeGiven), () => handler(player, grenade));
         }
     }
     
@@ -45,7 +58,7 @@ public class EventService : IEventSubscriber, IEventPublisher
         foreach (var @delegate in handlers.GetInvocationList())
         {
             var handler = (EventDelegates.OnWeaponGiven)@delegate;
-            handler(player, weapon);
+            InvokeSafely(nameof(OnWeaponGiven), () => handler(player, weapon));
         }
     }
     
@@ -57,7 +70,7 @@ public class EventService : IEventSubscriber, IEventPublisher
         foreach (var @delegate in handlers.GetInvocationList())
         {
             var handler = (EventDelegates.OnGrenadeThrown)@delegate;
-            handler(grenade, projectile);
+            InvokeSafely(nameof(OnGrenadeThrown), () => handler(grenade, projectile));
         }
     }
     
@@ -69,7 +82,23 @@ public class EventService : IEventSubscriber, IEventPublisher
         foreach (var @delegate in handlers.GetInvocationList())
         {
             var handler = (EventDelegates.OnGrenadeDetonated)@delegate;
-            handler(grenade, projectile, position);
+            InvokeSafely(nameof(OnGrenadeDetonated), () => handler(grenade, projectile, position));
+        }
+    }
+
+    private void InvokeSafely(string eventName, Action callback)
+    {
+        try
+        {
+            callback();
+        }
+        catch (Exception exception)
+        {
+            _core?.Logger.LogError(
+                exception,
+                "CustomEquipment event handler failed for {EventName}.",
+                eventName
+            );
         }
     }
 }

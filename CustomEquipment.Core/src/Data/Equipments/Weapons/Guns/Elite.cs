@@ -15,7 +15,7 @@ internal sealed class Elite : BaseWeapon
 
     public override Slot Slot => Slot.Primary;
 
-    public override WeaponType WeaponType => WeaponType.Rifle;
+    public override WeaponType WeaponType => WeaponType.SniperRifle;
 
     public override string Model => "weapons/luci/parab_ssg/parab_ssg_ag2.vmdl";
 

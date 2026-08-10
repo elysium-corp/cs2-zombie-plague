@@ -28,6 +28,11 @@ public sealed class LaserMine : BaseEquipment
     private IMenuAPI? _setupWindow;
     private float _setupProgress;
 
+    public override bool TryPurchase(IPlayer owner)
+    {
+        return owner.PlayerPawn?.Team == Team.CT && base.TryPurchase(owner);
+    }
+
     public override void OnPurchase(IPlayer player)
     {
         if (player.PlayerPawn?.Team == Team.T) return;

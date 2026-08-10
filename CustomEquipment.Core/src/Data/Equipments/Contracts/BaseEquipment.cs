@@ -11,6 +11,19 @@ public abstract class BaseEquipment : BaseItem, IEquipment
 
     public abstract WeaponType WeaponType { get; }
 
+    public virtual bool TryPurchase(IPlayer owner)
+    {
+        ArgumentNullException.ThrowIfNull(owner);
+
+        if (!owner.IsValid || !owner.IsAlive)
+        {
+            return false;
+        }
+
+        OnPurchase(owner);
+        return true;
+    }
+
     public abstract void OnPurchase(IPlayer owner);
 
     private static string ToInternalName(string name)

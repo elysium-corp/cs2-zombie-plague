@@ -1,0 +1,24 @@
+{
+  "Shop.MainMenu.Item": "Shop",
+  "Shop.Menu.Title": "Equipment shop",
+  "Shop.Menu.Items": "Items",
+  "Shop.Menu.Empty": "No items available",
+
+  "Shop.Category.Pistol": "Pistols",
+  "Shop.Category.SubmachineGun": "Submachine guns",
+  "Shop.Category.Rifle": "Rifles",
+  "Shop.Category.Shotgun": "Shotguns",
+  "Shop.Category.SniperRifle": "Sniper rifles",
+  "Shop.Category.MachineGun": "Machine guns",
+  "Shop.Category.Grenade": "Grenades",
+  "Shop.Category.Equipment": "Equipment",
+
+  "Shop.Purchase.Success": "Purchased",
+  "Shop.Purchase.Balance": "Balance",
+  "Shop.Purchase.InsufficientFunds": "Not enough money.",
+  "Shop.Purchase.NotAllowed": "The shop is available only to living humans.",
+  "Shop.Purchase.ItemNotFound": "This item is no longer available.",
+  "Shop.Purchase.PaymentUnavailable": "The payment service is currently unavailable.",
+  "Shop.Purchase.DeliveryFailed": "The item could not be delivered. Your money was refunded.",
+  "Shop.Purchase.Failed": "The purchase could not be completed."
+}

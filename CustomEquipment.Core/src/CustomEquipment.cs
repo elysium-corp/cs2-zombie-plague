@@ -1,12 +1,10 @@
 using Common.Di;
 using CustomEquipment.Controllers;
-using CustomEquipment.Data.Equipments.Weapons.Equipments;
-using CustomEquipment.Data.Equipments.Weapons.Grenades;
-using CustomEquipment.Data.Equipments.Weapons.Guns;
+using CustomEquipment.Api;
 using CustomEquipment.Di;
 using CustomEquipment.Services;
+using CustomEquipment.SharedApi;
 using SwiftlyS2.Shared;
-using SwiftlyS2.Shared.Commands;
 
 namespace CustomEquipment;
 
@@ -15,7 +13,7 @@ namespace CustomEquipment;
     Version = "0.1.0", 
     Name = "[ZP] CustomEquipment",
     Author = "illusion & fdrinv",
-    Description = "Added custom equipment")
+    Description = "Provides custom equipment and a shared item delivery API")
 ]
 internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<CustomEquipmentModule>(core)
 {
@@ -23,6 +21,15 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
     private readonly Lazy<IParticleController> _particleController = GetRequiredServiceLazy<IParticleController>();
     private readonly Lazy<IEquipmentService> _equipmentService = GetRequiredServiceLazy<IEquipmentService>();
     private readonly Lazy<IItemService> _itemService = GetRequiredServiceLazy<IItemService>();
+    private readonly Lazy<CustomEquipmentApi> _api = GetRequiredServiceLazy<CustomEquipmentApi>();
+
+    protected override void OnConfigureSharedInterfaces(IInterfaceManager interfaceManager)
+    {
+        interfaceManager.AddSharedInterface<ICustomEquipmentApi, CustomEquipmentApi>(
+            ICustomEquipmentApi.SharedApiKey,
+            _api.Value
+        );
+    }
     
     protected override void OnStart()
     {
@@ -30,94 +37,5 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
         _equipmentService.Value.Initialize();
         _itemController.Value.Initialize();
         _particleController.Value.Initialize();
-        
-        Core.Command.RegisterCommand(
-            commandName: "gun",
-            handler: GunHandler,
-            registerRaw: true
-        );
-        
-        Core.Command.RegisterCommand(
-            commandName: "r",
-            handler: Register,
-            registerRaw: true
-        );
-        
-        Core.Command.RegisterCommand(
-            commandName: "d",
-            handler: Debug,
-            registerRaw: true
-        );
-        
-        Core.Command.RegisterCommand(
-            commandName: "mine",
-            handler: (ICommandContext context) =>
-            {
-                var laser = new LaserMine();
-                laser.OnPurchase(context.Sender);
-            },
-            registerRaw: true
-        );
-    }
-
-    private void Debug(ICommandContext context)
-    {
-        var player = context.Sender;
-        
-        if (player == null) return;
-
-        if (!context.IsSentByPlayer) return;
-
-        var equipmentService = (EquipmentService)_equipmentService.Value;
-
-        var weapons = equipmentService.GetAllItems();
-
-        Core.PlayerManager.SendChat($"========== WEAPONS ==========");
-        
-        foreach (var weapon in weapons)
-        {
-            Core.PlayerManager.SendChat($"weapon = {weapon.DisplayName}");
-        }
-    }
-    
-    private void Register(ICommandContext context)
-    {
-        var player = context.Sender;
-        
-        if (player == null) return;
-
-        if (!context.IsSentByPlayer) return;
-
-        var itemService = _itemService.Value;
-
-        var weapons = itemService.GetAllRegisteredItems();
-
-        Core.PlayerManager.SendChat($"========== REGISTER ==========");
-        
-        foreach (var weapon in weapons)
-        {
-            Core.PlayerManager.SendChat($"weapon = {weapon.DisplayName}");
-        }
-    }
-    
-    private void GunHandler(ICommandContext context)
-    {
-        var player = context.Sender;
-        
-        if (player == null) return;
-
-        if (!context.IsSentByPlayer) return;
-
-        var equipmentService = _equipmentService.Value;
-
-        equipmentService.GiveWeapon<Omega>(player);
-        equipmentService.GiveWeapon<Elite>(player);
-        equipmentService.GiveWeapon<ReactorLeak>(player);
-        equipmentService.GiveWeapon<Frostbyte>(player);
-        equipmentService.GiveWeapon<Blackline>(player);
-        equipmentService.GiveWeapon<X3>(player);
-        equipmentService.GiveGrenade<BarrierNade>(player);
-        equipmentService.GiveGrenade<FrostNade>(player);
-        equipmentService.GiveGrenade<FireNade>(player);
     }
 }

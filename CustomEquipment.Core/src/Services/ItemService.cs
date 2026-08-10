@@ -5,21 +5,25 @@ namespace CustomEquipment.Services;
 
 internal sealed class ItemService(IEquipmentFetcher equipmentFetcher) : IItemService
 {
-    private readonly HashSet<IItem> _registeredItems = [];
+    private readonly Dictionary<string, IItem> _registeredItems = new(StringComparer.OrdinalIgnoreCase);
 
     public void Initialize()
     {
         _registeredItems.Clear();
         
-        var registeredItems = equipmentFetcher.Fetch();
-        
-        _registeredItems.UnionWith(registeredItems);
+        foreach (var item in equipmentFetcher.Fetch())
+        {
+            if (!_registeredItems.TryAdd(item.InternalName, item))
+            {
+                throw new InvalidOperationException($"Equipment item id '{item.InternalName}' is registered more than once.");
+            }
+        }
     }
 
-    public HashSet<IItem> GetAllRegisteredItems() => _registeredItems;
-    
-    public bool HasRegistered<TItem>() where TItem : IItem
+    public IReadOnlyCollection<IItem> GetAllRegisteredItems() => _registeredItems.Values;
+
+    public bool TryGet(string itemId, out IItem item)
     {
-        return GetAllRegisteredItems().Any(type => type.GetType() == typeof(TItem));
+        return _registeredItems.TryGetValue(itemId, out item!);
     }
 }

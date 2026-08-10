@@ -4,5 +4,9 @@ namespace MoneySystem.Core.Services;
 
 internal interface IMoneyService
 {
-    public void GiveMoney(IPlayer player, int amount);
+    int GetMoney(IPlayer player);
+
+    void GiveMoney(IPlayer player, int amount);
+
+    bool TrySpendMoney(IPlayer player, int amount);
 }
