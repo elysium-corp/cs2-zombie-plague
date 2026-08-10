@@ -46,7 +46,7 @@ internal sealed class CustomEquipmentModule(ISwiftlyCore core) : BaseModule(core
 
     private IEquipmentFetcher OnWeaponRegistratorFactory(IServiceProvider service)
     {
-        var compileAnalyzer = new CompileAnalyzer<IItem>();
-        return new EquipmentFetcher(compileAnalyzer: compileAnalyzer);
+        var compileAnalyzer = new CompileAnalyzer<IItem>(typeof(CustomEquipmentModule).Assembly);
+        return new EquipmentFetcher(compileAnalyzer);
     }
 }
