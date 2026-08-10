@@ -1,4 +1,5 @@
 using Common.Di;
+using CustomEquipment.Api;
 using CustomEquipment.Controllers;
 using CustomEquipment.Data.Equipments.Weapons.Equipments;
 using CustomEquipment.Data.Equipments.Weapons.Grenades;
@@ -24,14 +25,18 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
     private readonly Lazy<IWeaponController> _itemController = GetRequiredServiceLazy<IWeaponController>();
     private readonly Lazy<IParticleController> _particleController = GetRequiredServiceLazy<IParticleController>();
     private readonly Lazy<IEquipmentService> _equipmentService = GetRequiredServiceLazy<IEquipmentService>();
-    private readonly Lazy<IItemRegistry> _itemService = GetRequiredServiceLazy<IItemRegistry>();
+    private readonly Lazy<CustomEquipmentApi> _customEquipmentApi = GetRequiredServiceLazy<CustomEquipmentApi>();
     private readonly Lazy<EquipmentMenu> _equipmentMenu = GetRequiredServiceLazy<EquipmentMenu>();
     private readonly Lazy<IItemRegistry> _itemRegistry = GetRequiredServiceLazy<IItemRegistry>();
+    
+    protected override void OnConfigureSharedInterfaces(IInterfaceManager interfaceManager)
+    {
+        interfaceManager.AddSharedInterface<ICustomEquipmentApi, CustomEquipmentApi>(ICustomEquipmentApi.SharedApiKey, _customEquipmentApi.Value);
+    }
     
     protected override void OnStart()
     {
         _itemRegistry.Value.Initialize();
-        _itemService.Value.Initialize();
         _equipmentService.Value.Initialize();
         _itemController.Value.Initialize();
         _particleController.Value.Initialize();
@@ -93,9 +98,7 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
         if (player == null) return;
 
         if (!context.IsSentByPlayer) return;
-
-        var itemService = _itemService.Value;
-
+        
         var items = _itemRegistry.Value.GetDefinitions();
 
         Core.PlayerManager.SendChat($"========== REGISTER ==========");

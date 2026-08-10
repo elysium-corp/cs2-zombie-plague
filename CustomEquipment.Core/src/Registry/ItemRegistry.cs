@@ -75,6 +75,20 @@ internal sealed class ItemRegistry(IEquipmentFetcher equipmentFetcher) : IItemRe
 
         return Create(registration);
     }
+    
+    public IDisposable Register<TItem>(Func<TItem> factory) where TItem : class, IItem
+    {
+        ArgumentNullException.ThrowIfNull(factory);
+
+        var definition = factory()
+                         ?? throw new CannotCreateItemException($"Factory for '{typeof(TItem).FullName}' returned null!");
+
+        var registration = Register(definition, factory: () => factory());
+
+        return new RegistrationHandle(
+            () => Unregister(registration)
+        );
+    }
 
     private void RegisterBuiltIn(IItem definition)
     {
@@ -86,7 +100,7 @@ internal sealed class ItemRegistry(IEquipmentFetcher equipmentFetcher) : IItemRe
         );
     }
 
-    private void Register(IItem definition, Func<IItem> factory)
+    private Registration Register(IItem definition, Func<IItem> factory)
     {
         var internalName = definition.InternalName;
         var itemType = definition.GetType();
@@ -117,6 +131,8 @@ internal sealed class ItemRegistry(IEquipmentFetcher equipmentFetcher) : IItemRe
 
         _registrationsById.Add(internalName, registration);
         _registrationsByType.Add(itemType, registration);
+        
+        return registration;
     }
 
     private static IItem Create(Registration registration)
@@ -149,4 +165,28 @@ internal sealed class ItemRegistry(IEquipmentFetcher equipmentFetcher) : IItemRe
         IItem Definition,
         Func<IItem> Factory
     );
+    
+    private void Unregister(Registration registration)
+    {
+        var internalName = registration.Definition.InternalName;
+        var itemType = registration.Definition.GetType();
+
+        if (!_registrationsById.TryGetValue(internalName, out var current) || !ReferenceEquals(current, registration))
+        {
+            return;
+        }
+
+        _registrationsById.Remove(internalName);
+        _registrationsByType.Remove(itemType);
+    }
+    
+    private sealed class RegistrationHandle(Action unregister) : IDisposable
+    {
+        private Action? _unregister = unregister;
+
+        public void Dispose()
+        {
+            Interlocked.Exchange(ref _unregister, null)?.Invoke();
+        }
+    }
 }

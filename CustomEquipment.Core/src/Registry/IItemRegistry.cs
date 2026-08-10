@@ -1,9 +1,10 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using CustomEquipment.Api.Data.Contracts;
+using CustomEquipment.Api.Registration;
 
 namespace CustomEquipment.Registry;
 
-internal interface IItemRegistry
+internal interface IItemRegistry : IEquipmentRegistrar
 {
     void Initialize();
 

@@ -1,10 +1,10 @@
-﻿using CustomEquipment.Api.Events;
+﻿using CustomEquipment.Api.Registration;
 
 namespace CustomEquipment.Api;
 
 internal sealed class CustomEquipmentApi(
-    IEventPublisher eventPublisher
+    IEquipmentRegistrar registrar
 ) : ICustomEquipmentApi
 {
-    
+    public IEquipmentRegistrar Registrar => registrar;
 }

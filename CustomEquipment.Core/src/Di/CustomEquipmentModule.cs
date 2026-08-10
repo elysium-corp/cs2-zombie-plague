@@ -3,6 +3,7 @@ using CustomEquipment.Api;
 using CustomEquipment.Api.Data;
 using CustomEquipment.Api.Data.Contracts;
 using CustomEquipment.Api.Events;
+using CustomEquipment.Api.Registration;
 using CustomEquipment.Controllers;
 using CustomEquipment.Fetcher;
 using CustomEquipment.Fetcher.Analyzers;
@@ -21,17 +22,21 @@ internal sealed class CustomEquipmentModule(ISwiftlyCore core) : BaseModule(core
     {
         var service = new ServiceCollection();
 
-        service.AddSwiftly(core);
+        service.AddSwiftly(core); 
 
         AddSingleton<IEquipmentFetcher>(service, OnWeaponRegistratorFactory);
         AddSingleton<IEquipmentService, EquipmentService>(service);
-        AddSingleton<IItemRegistry, ItemRegistry>(service);
         AddSingleton<IParticleService, ParticleService>(service);
         AddSingleton<IWeaponController, WeaponController>(service);
         AddSingleton<IParticleController, ParticleController>(service);
         AddSingleton<IItemGiver, ItemGiver>(service);
-        
+        AddSingleton<ItemRegistry>(service);
+        AddSingleton<IItemRegistry>(service, provider => provider.GetRequiredService<ItemRegistry>());
+        AddSingleton<IEquipmentRegistrar>(service, provider => provider.GetRequiredService<ItemRegistry>());
+
         AddSingleton<EquipmentMenu>(service);
+        
+        AddSingleton<CustomEquipmentApi>(service);
         
         EventServiceRegistration(service);
 
