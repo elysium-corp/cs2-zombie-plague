@@ -13,6 +13,8 @@ public sealed class AbilityConfig
     public TrapConfig Trap { get; set; } = new();
     
     public CatchConfig Catch { get; set; } = new();
+    
+    public DoubleJumpConfig DoubleJump { get; set; } = new();
 }
 
 public sealed class HealConfig : IAbilityConfig
@@ -188,4 +190,11 @@ public sealed class CatchConfig : IAbilityConfig
     
     // Кол-во синего в цвете эффекта от 0..255
     public byte BlueColorEffect { get; set; } = 0;
+}
+
+public sealed class DoubleJumpConfig : IAbilityConfig
+{
+    public bool Enable { get; set; } = true;
+
+    public float BaseJumpUnits { get; set; } = 54f;
 }

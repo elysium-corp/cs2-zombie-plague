@@ -17,7 +17,7 @@ internal class AbilityFactory(ISwiftlyCore core, IOptions<AbilityConfig> config)
             var t when t == typeof(Charge) => new Charge(core, config.Value.Charge),
             var t when t == typeof(Trap) => new Trap(core, config.Value.Trap),
             var t when t == typeof(Catch) => new Catch(core, config.Value.Catch),
-            
+            var t when t == typeof(DoubleJump) => new DoubleJump(core, config.Value.DoubleJump),
             _ => throw new NotSupportedException("ZAbilityFactory: type T hasn't supported!")
         };
     }
@@ -32,6 +32,7 @@ internal class AbilityFactory(ISwiftlyCore core, IOptions<AbilityConfig> config)
             "charge" => Create<Charge>(),
             "trap" => Create<Trap>(),
             "catch" => Create<Catch>(),
+            "double_jump" => Create<DoubleJump>(),
             
             _ => throw new NotSupportedException($"Ability '{abilityName}' is not supported.")
         };
