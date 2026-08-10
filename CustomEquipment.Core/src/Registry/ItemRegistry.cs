@@ -83,7 +83,17 @@ internal sealed class ItemRegistry(IEquipmentFetcher equipmentFetcher) : IItemRe
         var definition = factory()
                          ?? throw new CannotCreateItemException($"Factory for '{typeof(TItem).FullName}' returned null!");
 
-        var registration = Register(definition, factory: () => factory());
+        if (definition.GetType() != typeof(TItem))
+        {
+            throw new CannotCreateItemException(
+                $"Factory registered as '{typeof(TItem).FullName}' " + $"returned '{definition.GetType().FullName}'!"
+            );
+        }
+
+        var registration = Register(
+            definition,
+            factory: () => factory() ?? throw new CannotCreateItemException($"Factory for '{typeof(TItem).FullName}' returned null!")
+        );
 
         return new RegistrationHandle(
             () => Unregister(registration)
@@ -137,7 +147,8 @@ internal sealed class ItemRegistry(IEquipmentFetcher equipmentFetcher) : IItemRe
 
     private static IItem Create(Registration registration)
     {
-        var item = registration.Factory();
+        var item = registration.Factory()
+                   ?? throw new CannotCreateItemException($"Factory for '{registration.Definition.InternalName}' returned null!");
 
         if (item.GetType() != registration.Definition.GetType())
         {
