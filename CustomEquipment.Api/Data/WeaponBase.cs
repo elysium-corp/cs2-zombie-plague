@@ -1,13 +1,15 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using CustomEquipment.Data.Equipments.Enums;
+using CustomEquipment.Api.Data.Contracts;
+using CustomEquipment.Api.Data.Models;
+using CustomEquipment.Api.Enums;
+using CustomEquipment.Api.Exceptions;
 using CustomEquipment.Data.Equipments.Models;
-using CustomEquipment.Exceptions;
 using CustomEquipment.Utils;
 using SwiftlyS2.Shared.SchemaDefinitions;
 
-namespace CustomEquipment.Data.Equipments.Contracts;
+namespace CustomEquipment.Api.Data;
 
-internal abstract class BaseWeapon : BaseItem, IWeapon, IHasParticle
+public abstract class WeaponBase : BaseItem, IWeapon, IHasParticle
 {
     public virtual CCSWeaponBase AttachedWeapon
     {
@@ -30,19 +32,19 @@ internal abstract class BaseWeapon : BaseItem, IWeapon, IHasParticle
     [MemberNotNullWhen(true, nameof(Particle))]
     public bool HasTraceParticle()
     {
-        return Particle?.Trace.IsNotNullOrEmpty() == true;
+        return !string.IsNullOrEmpty(Particle?.Trace);
     }
 
     [MemberNotNullWhen(true, nameof(Particle))]
     public bool HasImpactParticle()
     {
-        return Particle?.Impact.IsNotNullOrEmpty() == true;
+        return !string.IsNullOrEmpty(Particle?.Impact);
     }
     
     [MemberNotNullWhen(true, nameof(Particle))]
     public bool HasMuzzleFlashParticle()
     {
-        return Particle?.MuzzleFlash.IsNotNullOrEmpty() == true;
+        return !string.IsNullOrEmpty(Particle?.MuzzleFlash);
     }
 
     private CCSWeaponBase AttachBaseWeaponVData(CCSWeaponBase weapon)
@@ -58,7 +60,7 @@ internal abstract class BaseWeapon : BaseItem, IWeapon, IHasParticle
         vData.SetDamage(WeaponDamage?.NumBullets, WeaponDamage?.Penetration, WeaponDamage?.Range,
             WeaponDamage?.RangeModifier);
         
-        if (Model.IsNotNullOrEmpty()) weapon.SetModel(Model);
+        if (!string.IsNullOrEmpty(Model)) weapon.SetModel(Model);
 
         weapon.AttributeManager.Item.CustomName = DisplayName;
         weapon.AttributeManager.Item.CustomNameOverride = DisplayName;

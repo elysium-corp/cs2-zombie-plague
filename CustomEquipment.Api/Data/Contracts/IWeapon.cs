@@ -1,7 +1,7 @@
-﻿using CustomEquipment.Data.Equipments.Enums;
+﻿using CustomEquipment.Api.Enums;
 using CustomEquipment.Data.Equipments.Models;
 
-namespace CustomEquipment.Data.Equipments.Contracts;
+namespace CustomEquipment.Api.Data.Contracts;
 
 public interface IWeapon : IItem
 {

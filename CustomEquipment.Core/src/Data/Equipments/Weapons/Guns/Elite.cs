@@ -1,11 +1,12 @@
-﻿using CustomEquipment.Data.Equipments.Contracts;
-using CustomEquipment.Data.Equipments.Enums;
+﻿using CustomEquipment.Api.Data;
+using CustomEquipment.Api.Data.Models;
+using CustomEquipment.Api.Enums;
 using CustomEquipment.Data.Equipments.Models;
 using CustomEquipment.Data.Equipments.Particle;
 
 namespace CustomEquipment.Data.Equipments.Weapons.Guns;
 
-internal sealed class Elite : BaseWeapon
+internal sealed class Elite : WeaponBase
 {
     public override string InheritorName => WeaponName.Ssg08;
 

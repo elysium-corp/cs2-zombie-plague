@@ -1,4 +1,4 @@
-﻿using CustomEquipment.Data.Equipments.Contracts;
+﻿using CustomEquipment.Api.Data;
 using CustomEquipment.Services;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
@@ -7,7 +7,7 @@ using SwiftlyS2.Shared.Natives;
 
 namespace CustomEquipment.Controllers;
 
-internal sealed class ParticleController(ISwiftlyCore core, IEquipmentService equipmentService/*, IParticleService particleService*/) : IParticleController, IDisposable
+internal sealed class ParticleController(ISwiftlyCore core, IEquipmentService equipmentService) : IParticleController, IDisposable
 {
     private Guid _guidBulletImpactPost = Guid.Empty;
     
@@ -27,7 +27,7 @@ internal sealed class ParticleController(ISwiftlyCore core, IEquipmentService eq
 
         if (attacker == null || !attacker.IsValid) return HookResult.Continue;
 
-        var activeWeapon = equipmentService.GetActiveWeapon<BaseWeapon>(attacker);
+        var activeWeapon = equipmentService.GetActiveWeapon<WeaponBase>(attacker);
         
         if (activeWeapon?.Particle != null && activeWeapon.HasTraceParticle())
         {

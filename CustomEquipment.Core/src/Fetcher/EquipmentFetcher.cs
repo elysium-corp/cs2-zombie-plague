@@ -1,4 +1,4 @@
-﻿using CustomEquipment.Data.Equipments.Contracts;
+﻿using CustomEquipment.Api.Data.Contracts;
 using CustomEquipment.Fetcher.Analyzers;
 
 namespace CustomEquipment.Fetcher;

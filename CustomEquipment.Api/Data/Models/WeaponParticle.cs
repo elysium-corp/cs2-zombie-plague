@@ -1,8 +1,8 @@
 ﻿using CustomEquipment.Data.Equipments.Particle;
 
-namespace CustomEquipment.Data.Equipments.Models;
+namespace CustomEquipment.Api.Data.Models;
 
-internal sealed class WeaponParticle : IParticle
+public sealed class WeaponParticle : IParticle
 {
     public string Trace { get; init; } = "";
     

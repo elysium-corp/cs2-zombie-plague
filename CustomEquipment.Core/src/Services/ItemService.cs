@@ -1,4 +1,5 @@
-﻿using CustomEquipment.Data.Equipments.Contracts;
+﻿using CustomEquipment.Api.Data;
+using CustomEquipment.Api.Data.Contracts;
 using CustomEquipment.Fetcher;
 
 namespace CustomEquipment.Services;

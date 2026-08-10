@@ -1,7 +1,8 @@
-﻿using CustomEquipment.Data.Equipments.Enums;
+﻿using CustomEquipment.Api.Data.Contracts;
+using CustomEquipment.Api.Enums;
 using SwiftlyS2.Shared.Players;
 
-namespace CustomEquipment.Data.Equipments.Contracts;
+namespace CustomEquipment.Api.Data;
 
 public abstract class BaseEquipment : BaseItem, IEquipment
 {

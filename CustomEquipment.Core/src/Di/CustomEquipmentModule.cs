@@ -1,10 +1,13 @@
 ﻿using Common.Di;
 using CustomEquipment.Api;
+using CustomEquipment.Api.Data;
+using CustomEquipment.Api.Data.Contracts;
+using CustomEquipment.Api.Events;
 using CustomEquipment.Controllers;
-using CustomEquipment.Data.Equipments.Contracts;
 using CustomEquipment.Fetcher;
 using CustomEquipment.Fetcher.Analyzers;
 using CustomEquipment.Giver;
+using CustomEquipment.Menus;
 using CustomEquipment.Services;
 using Microsoft.Extensions.DependencyInjection;
 using SwiftlyS2.Shared;
@@ -26,6 +29,8 @@ internal sealed class CustomEquipmentModule(ISwiftlyCore core) : BaseModule(core
         AddSingleton<IWeaponController, WeaponController>(service);
         AddSingleton<IParticleController, ParticleController>(service);
         AddSingleton<IItemGiver, ItemGiver>(service);
+        
+        AddSingleton<EquipmentMenu>(service);
         
         EventServiceRegistration(service);
 

@@ -1,6 +1,8 @@
 ﻿using CustomEquipment.Api;
-using CustomEquipment.Data.Equipments.Contracts;
-using CustomEquipment.Data.Equipments.Enums;
+using CustomEquipment.Api.Data;
+using CustomEquipment.Api.Data.Contracts;
+using CustomEquipment.Api.Enums;
+using CustomEquipment.Api.Events;
 using CustomEquipment.Services;
 using CustomEquipment.Utils;
 using SwiftlyS2.Shared;
@@ -9,7 +11,7 @@ using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.SchemaDefinitions;
-using IEventSubscriber = CustomEquipment.Api.IEventSubscriber;
+using IEventSubscriber = CustomEquipment.Api.Events.IEventSubscriber;
 
 namespace CustomEquipment.Controllers;
 
@@ -77,7 +79,7 @@ internal sealed class WeaponController(
 
         if (attacker == null || victim == null || !attacker.IsValid) return;
 
-        var activeWeapon = equipmentService.GetActiveItem<BaseWeapon>(attacker);
+        var activeWeapon = equipmentService.GetActiveItem<WeaponBase>(attacker);
 
         if (activeWeapon == null || activeWeapon.WeaponDamage?.DamageMultiplier == null) return;
 
@@ -107,7 +109,7 @@ internal sealed class WeaponController(
 
         if (attacker == null || !attacker.IsValid) return HookResult.Continue;
 
-        var activeWeapon = equipmentService.GetActiveWeapon<BaseWeapon>(attacker);
+        var activeWeapon = equipmentService.GetActiveWeapon<WeaponBase>(attacker);
         
         if (activeWeapon == null) return HookResult.Continue;
         

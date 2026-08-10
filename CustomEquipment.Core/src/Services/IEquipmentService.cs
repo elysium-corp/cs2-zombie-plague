@@ -1,4 +1,4 @@
-﻿using CustomEquipment.Data.Equipments.Contracts;
+﻿using CustomEquipment.Api.Data;
 using SwiftlyS2.Shared.Players;
 
 namespace CustomEquipment.Services;
@@ -7,15 +7,17 @@ internal interface IEquipmentService
 {
     void Initialize();
 
-    public List<BaseWeapon> GetAllWeapons();
+    public IEnumerable<BaseItem> GetAllItems();
 
-    public List<BaseGrenade> GetAllGrenades();
+    public IEnumerable<WeaponBase> GetAllWeapons();
+
+    public IEnumerable<BaseGrenade> GetAllGrenades();
     
-    public BaseWeapon? GiveWeapon<TWeapon>(IPlayer player) where TWeapon : BaseWeapon;
+    public WeaponBase? GiveWeapon<TWeapon>(IPlayer player) where TWeapon : WeaponBase;
 
     public BaseGrenade? GiveGrenade<TGrenade>(IPlayer player) where TGrenade : BaseGrenade;
 
     public TItem? GetActiveItem<TItem>(IPlayer player) where TItem : BaseItem;
 
-    public TWeapon? GetActiveWeapon<TWeapon>(IPlayer player) where TWeapon : BaseWeapon;
+    public TWeapon? GetActiveWeapon<TWeapon>(IPlayer player) where TWeapon : WeaponBase;
 }

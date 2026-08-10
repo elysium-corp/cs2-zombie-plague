@@ -1,8 +1,9 @@
-﻿using CustomEquipment.Data.Equipments.Enums;
-using CustomEquipment.Exceptions;
+﻿using CustomEquipment.Api.Data.Contracts;
+using CustomEquipment.Api.Enums;
+using CustomEquipment.Api.Exceptions;
 using SwiftlyS2.Shared.SchemaDefinitions;
 
-namespace CustomEquipment.Data.Equipments.Contracts;
+namespace CustomEquipment.Api.Data;
 
 public abstract class BaseItem : IItem
 {

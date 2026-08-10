@@ -1,6 +1,6 @@
-﻿namespace CustomEquipment.Exceptions;
+﻿namespace CustomEquipment.Api.Exceptions;
 
-internal sealed class NotRegisteredItemException : SystemException
+public sealed class NotRegisteredItemException : SystemException
 {
     public NotRegisteredItemException(string? value) : base(value) { }
         

@@ -1,6 +1,6 @@
-﻿namespace CustomEquipment.Exceptions;
+﻿namespace CustomEquipment.Api.Exceptions;
 
-internal sealed class NotAttachedEntityException : SystemException
+public sealed class NotAttachedEntityException : SystemException
 {
     public NotAttachedEntityException(string? value) : base(value) { }
         

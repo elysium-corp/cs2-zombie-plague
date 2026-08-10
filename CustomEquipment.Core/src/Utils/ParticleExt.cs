@@ -1,4 +1,4 @@
-﻿using CustomEquipment.Data.Equipments.Enums;
+﻿using CustomEquipment.Api.Enums;
 using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace CustomEquipment.Utils;

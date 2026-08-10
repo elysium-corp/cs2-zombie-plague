@@ -1,4 +1,4 @@
-﻿namespace CustomEquipment.Exceptions;
+﻿namespace CustomEquipment.Api.Exceptions;
 
 public class NotAttachedGrenadeException : SystemException
 {

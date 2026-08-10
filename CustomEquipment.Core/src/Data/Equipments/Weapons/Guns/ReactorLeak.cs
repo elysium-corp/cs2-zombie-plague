@@ -1,10 +1,11 @@
-﻿using CustomEquipment.Data.Equipments.Contracts;
-using CustomEquipment.Data.Equipments.Enums;
+﻿using CustomEquipment.Api.Data;
+using CustomEquipment.Api.Data.Models;
+using CustomEquipment.Api.Enums;
 using CustomEquipment.Data.Equipments.Models;
 
 namespace CustomEquipment.Data.Equipments.Weapons.Guns;
 
-internal sealed class ReactorLeak : BaseWeapon
+internal sealed class ReactorLeak : WeaponBase
 {
     public override string InheritorName => WeaponName.Ump45;
     

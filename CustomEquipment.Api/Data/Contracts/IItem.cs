@@ -1,6 +1,6 @@
-﻿using CustomEquipment.Data.Equipments.Enums;
+﻿using CustomEquipment.Api.Enums;
 
-namespace CustomEquipment.Data.Equipments.Contracts;
+namespace CustomEquipment.Api.Data.Contracts;
 
 public interface IItem : ICloneable
 {

@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
-using CustomEquipment.Data.Equipments.Contracts;
+using CustomEquipment.Api.Data;
+using CustomEquipment.Api.Data.Contracts;
 
 namespace CustomEquipment.Fetcher.Analyzers;
 

@@ -1,6 +1,6 @@
-﻿namespace CustomEquipment.Exceptions;
+﻿namespace CustomEquipment.Api.Exceptions;
 
-internal sealed class CannotCreateItemException : SystemException
+public sealed class CannotCreateItemException : SystemException
 {
     public CannotCreateItemException(string? value) : base(value) { }
         

@@ -1,4 +1,4 @@
-﻿namespace CustomEquipment.Api;
+﻿namespace CustomEquipment.Api.Events;
 
 public interface IEventSubscriber
 {

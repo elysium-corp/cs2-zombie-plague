@@ -1,11 +1,11 @@
-﻿using CustomEquipment.Data.Equipments.Enums;
-using CustomEquipment.Exceptions;
-using CustomEquipment.Utils;
+﻿using CustomEquipment.Api.Data.Contracts;
+using CustomEquipment.Api.Enums;
+using CustomEquipment.Api.Exceptions;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
 
-namespace CustomEquipment.Data.Equipments.Contracts;
+namespace CustomEquipment.Api.Data;
 
 public abstract class BaseGrenade : BaseItem, IGrenade
 {
@@ -27,7 +27,7 @@ public abstract class BaseGrenade : BaseItem, IGrenade
     {
         AttachedEntity = grenade;
            
-        if (Model.IsNotNullOrEmpty()) grenade.SetModel(Model);
+        if (!string.IsNullOrEmpty(Model)) grenade.SetModel(Model);
         
         grenade.AttributeManager.Item.CustomName = DisplayName;
         grenade.AttributeManager.Item.CustomNameOverride = DisplayName;

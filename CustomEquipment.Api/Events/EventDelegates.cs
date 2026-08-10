@@ -1,9 +1,10 @@
-﻿using CustomEquipment.Data.Equipments.Contracts;
+﻿using CustomEquipment.Api.Data;
+using CustomEquipment.Api.Data.Contracts;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
 
-namespace CustomEquipment.Api;
+namespace CustomEquipment.Api.Events;
 
 public class EventDelegates
 {

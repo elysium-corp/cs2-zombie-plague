@@ -1,5 +1,5 @@
-﻿using CustomEquipment.Controllers;
-using CustomEquipment.Data.Equipments.Enums;
+﻿using CustomEquipment.Api.Enums;
+using CustomEquipment.Controllers;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.SchemaDefinitions;
 

@@ -1,6 +1,6 @@
-﻿namespace CustomEquipment.Exceptions;
+﻿namespace CustomEquipment.Api.Exceptions;
 
-internal sealed class NotAttachedWeaponException : SystemException
+public sealed class NotAttachedWeaponException : SystemException
 {
     public NotAttachedWeaponException(string? value) : base(value) { }
         

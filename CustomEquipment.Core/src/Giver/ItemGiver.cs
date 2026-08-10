@@ -1,12 +1,11 @@
-﻿using Common.Di;
-using CustomEquipment.Api;
-using CustomEquipment.Data.Equipments.Contracts;
-using CustomEquipment.Data.Equipments.Enums;
+﻿using CustomEquipment.Api.Data;
+using CustomEquipment.Api.Data.Contracts;
+using CustomEquipment.Api.Enums;
+using CustomEquipment.Api.Events;
+using CustomEquipment.Api.Exceptions;
 using CustomEquipment.Data.Equipments.Weapons;
-using CustomEquipment.Exceptions;
 using CustomEquipment.Mappers;
 using CustomEquipment.Services;
-using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
 
@@ -20,7 +19,7 @@ internal sealed class ItemGiver(IItemService itemService, IEventPublisher eventP
 
         var givenItem = item switch
         {
-            BaseWeapon weapon => GiveWeapon(player, weapon, action) as TItem,
+            WeaponBase weapon => GiveWeapon(player, weapon, action) as TItem,
             BaseGrenade grenade => GiveGrenade(player, grenade, action) as TItem,
             _ => throw new ArgumentOutOfRangeException(nameof(TItem))
         };
@@ -30,14 +29,14 @@ internal sealed class ItemGiver(IItemService itemService, IEventPublisher eventP
         return givenItem;
     }
 
-    public TWeapon? GiveWeapon<TWeapon>(IPlayer player, GiveAction action = GiveAction.Drop) where TWeapon : BaseWeapon
+    public TWeapon? GiveWeapon<TWeapon>(IPlayer player, GiveAction action = GiveAction.Drop) where TWeapon : WeaponBase
     {
         var weapon = CreateItem<TWeapon>();
         
         return GiveWeaponInternal(player, weapon, action);
     }
     
-    private TWeapon? GiveWeapon<TWeapon>(IPlayer player, TWeapon weapon, GiveAction action = GiveAction.Drop) where TWeapon : BaseWeapon
+    private TWeapon? GiveWeapon<TWeapon>(IPlayer player, TWeapon weapon, GiveAction action = GiveAction.Drop) where TWeapon : WeaponBase
     {
         var givenWeapon = GiveWeaponInternal(player, weapon, action);
         
@@ -93,7 +92,7 @@ internal sealed class ItemGiver(IItemService itemService, IEventPublisher eventP
         return grenade;
     }
     
-    private TWeapon? GiveWeaponInternal<TWeapon>(IPlayer player, TWeapon weapon, GiveAction action) where TWeapon : BaseWeapon
+    private TWeapon? GiveWeaponInternal<TWeapon>(IPlayer player, TWeapon weapon, GiveAction action) where TWeapon : WeaponBase
     {
         var pawn = player.RequiredPlayerPawn;
         var itemServices = pawn.ItemServices;

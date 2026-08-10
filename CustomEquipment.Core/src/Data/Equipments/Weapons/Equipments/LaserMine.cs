@@ -1,6 +1,6 @@
 ﻿using Common.Di;
-using CustomEquipment.Data.Equipments.Contracts;
-using CustomEquipment.Data.Equipments.Enums;
+using CustomEquipment.Api.Data;
+using CustomEquipment.Api.Enums;
 using CustomEquipment.Data.Equipments.Weapons.Equipments.Contracts;
 using CustomEquipment.Utils;
 using SwiftlyS2.Core.Menus.OptionsBase;

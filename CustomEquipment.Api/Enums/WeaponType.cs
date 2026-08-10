@@ -1,4 +1,4 @@
-﻿namespace CustomEquipment.Data.Equipments.Enums;
+﻿namespace CustomEquipment.Api.Enums;
 
 public enum WeaponType
 {

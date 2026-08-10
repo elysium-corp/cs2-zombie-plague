@@ -4,6 +4,7 @@ using CustomEquipment.Data.Equipments.Weapons.Equipments;
 using CustomEquipment.Data.Equipments.Weapons.Grenades;
 using CustomEquipment.Data.Equipments.Weapons.Guns;
 using CustomEquipment.Di;
+using CustomEquipment.Menus;
 using CustomEquipment.Services;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Commands;
@@ -23,6 +24,7 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
     private readonly Lazy<IParticleController> _particleController = GetRequiredServiceLazy<IParticleController>();
     private readonly Lazy<IEquipmentService> _equipmentService = GetRequiredServiceLazy<IEquipmentService>();
     private readonly Lazy<IItemService> _itemService = GetRequiredServiceLazy<IItemService>();
+    private readonly Lazy<EquipmentMenu> _equipmentMenu = GetRequiredServiceLazy<EquipmentMenu>();
     
     protected override void OnStart()
     {
@@ -30,6 +32,7 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
         _equipmentService.Value.Initialize();
         _itemController.Value.Initialize();
         _particleController.Value.Initialize();
+        _equipmentMenu.Value.RegisterCommands();
         
         Core.Command.RegisterCommand(
             commandName: "gun",
