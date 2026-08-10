@@ -54,7 +54,7 @@ internal sealed class EquipmentService(ISwiftlyCore core, IItemGiver itemGiver, 
     
     public TWeapon? GiveWeapon<TWeapon>(IPlayer player, GiveAction action = GiveAction.Drop) where TWeapon : WeaponItemBase
     {
-        var weapon = itemGiver.GiveWeapon<TWeapon>(player);
+        var weapon = itemGiver.GiveWeapon<TWeapon>(player, action);
 
         if (weapon is null)
         {
@@ -76,17 +76,6 @@ internal sealed class EquipmentService(ISwiftlyCore core, IItemGiver itemGiver, 
         return AddOrReplace(weapon);
     }
 
-    public WeaponItemBase? GiveWeapon<TWeapon>(IPlayer player) where TWeapon : WeaponItemBase
-    {
-        var weapon = itemGiver.GiveWeapon<TWeapon>(player);
-
-        if (weapon == null) return null;
-        
-        AddOrReplace(weapon);
-        
-        return weapon;
-    }
-
     public GrenadeItemBase? GiveGrenade<TGrenade>(IPlayer player) where TGrenade : GrenadeItemBase
     {
         var grenade = itemGiver.GiveGrenade<TGrenade>(player);
@@ -100,7 +89,7 @@ internal sealed class EquipmentService(ISwiftlyCore core, IItemGiver itemGiver, 
 
         if (activeWeaponIndex == null) return null;
 
-        return _items.Find(wp => wp.AttachedEntity.Index == activeWeaponIndex || wp.AttachedEntity.Index == activeWeaponIndex) as TItem;
+        return _items.Find(wp => wp.AttachedEntity.Index == activeWeaponIndex) as TItem;
     }
 
     public TWeapon? GetActiveWeapon<TWeapon>(IPlayer player) where TWeapon : WeaponItemBase
@@ -109,7 +98,7 @@ internal sealed class EquipmentService(ISwiftlyCore core, IItemGiver itemGiver, 
 
         if (activeWeaponIndex == null) return null;
 
-        return _items.Find(wp => wp.AttachedEntity.Index == activeWeaponIndex || wp.AttachedEntity.Index == activeWeaponIndex) as TWeapon;
+        return _items.Find(wp => wp.AttachedEntity.Index == activeWeaponIndex) as TWeapon;
     }
 
     private void OnEntityCreated(IOnEntityCreatedEvent hook)
@@ -194,7 +183,9 @@ internal sealed class EquipmentService(ISwiftlyCore core, IItemGiver itemGiver, 
 
     private WeaponItemBase? GetWeaponByIndex(uint index)
     {
-        return GetAllWeapons().ToList().Find(wp => wp.AttachedEntity.Index == index);
+        return _items
+            .OfType<WeaponItemBase>()
+            .FirstOrDefault(weapon => weapon.AttachedEntity.Index == index);
     }
 
     private GrenadeItemBase? GetGrenadeByIndex(uint index)
