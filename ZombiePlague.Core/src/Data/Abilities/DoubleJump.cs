@@ -35,16 +35,14 @@ internal sealed class DoubleJump(
 
         base.UnHook();
     }
-    
+
     public override void Use()
     {
-        core.PlayerManager.SendChat(_jumpNum.ToString());
-
         var pawn = Caster.PlayerPawn;
 
         if (pawn == null) return;
 
-        var gravityScale = pawn.GravityScale;
+        var gravityScale = pawn.ActualGravityScale;
         var currentVelocity = pawn.AbsVelocity;
 
         var jumpVelocity = CalculateJumpVelocity(gravityScale);
@@ -52,7 +50,7 @@ internal sealed class DoubleJump(
         var velocity = new Vector(
             currentVelocity.X,
             currentVelocity.Y,
-            currentVelocity.Z + jumpVelocity
+            jumpVelocity
         );
 
         pawn.Teleport(null, null, velocity);
@@ -105,7 +103,6 @@ internal sealed class DoubleJump(
         _jumpPressed = true;
 
         if (_jumpNum <= 0) return;
-
         TryUse();
     }
 

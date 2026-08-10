@@ -26,13 +26,9 @@ internal sealed class Human : IHuman
     public void Bind()
     {
         if (_isBindScheduled) return;
-        
+
         _isBindScheduled = true;
         _core.Scheduler.NextWorldUpdate(InternalBind);
-        
-        var ability1 = new DoubleJump(_core, new DoubleJumpConfig());
-        ability1.SetCaster(Owner);
-        ability1.Hook();
     }
 
     public void Unbind()

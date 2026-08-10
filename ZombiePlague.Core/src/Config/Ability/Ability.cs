@@ -13,6 +13,8 @@ public sealed class AbilityConfig
     public TrapConfig Trap { get; set; } = new();
     
     public CatchConfig Catch { get; set; } = new();
+    
+    public DoubleJumpConfig DoubleJump { get; set; } = new();
 }
 
 public sealed class HealConfig : IAbilityConfig
