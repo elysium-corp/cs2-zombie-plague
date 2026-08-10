@@ -1,4 +1,7 @@
-﻿using ZombiePlague.Core.Data.Abilities.Contracts;
+﻿using Common.Di;
+using SwiftlyS2.Shared;
+using ZombiePlague.Core.Data.Abilities;
+using ZombiePlague.Core.Data.Abilities.Contracts;
 
 namespace ZombiePlague.Core.Data.Entities.Human;
 

@@ -1,5 +1,7 @@
 ﻿using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Players;
+using ZombiePlague.Core.Config.Ability;
+using ZombiePlague.Core.Data.Abilities;
 using ZombiePlague.Core.Utils.Extensions;
 
 namespace ZombiePlague.Core.Data.Entities.Human;
@@ -27,6 +29,10 @@ internal sealed class Human : IHuman
         
         _isBindScheduled = true;
         _core.Scheduler.NextWorldUpdate(InternalBind);
+        
+        var ability1 = new DoubleJump(_core, new DoubleJumpConfig());
+        ability1.SetCaster(Owner);
+        ability1.Hook();
     }
 
     public void Unbind()

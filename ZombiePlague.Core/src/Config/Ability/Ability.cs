@@ -189,3 +189,10 @@ public sealed class CatchConfig : IAbilityConfig
     // Кол-во синего в цвете эффекта от 0..255
     public byte BlueColorEffect { get; set; } = 0;
 }
+
+public sealed class DoubleJumpConfig : IAbilityConfig
+{
+    public bool Enable { get; set; } = true;
+
+    public float BaseJumpUnits { get; set; } = 54f;
+}
