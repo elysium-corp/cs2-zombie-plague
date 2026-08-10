@@ -9,7 +9,7 @@ using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace CustomEquipment.Api.Data;
 
-public abstract class WeaponBase : BaseItem, IWeapon, IHasParticle
+public abstract class WeaponItemBase : ItemBase, IWeapon, IHasParticle
 {
     public virtual CCSWeaponBase AttachedWeapon
     {

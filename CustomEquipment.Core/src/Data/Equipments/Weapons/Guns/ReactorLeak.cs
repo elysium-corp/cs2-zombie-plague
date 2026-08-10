@@ -5,11 +5,13 @@ using CustomEquipment.Data.Equipments.Models;
 
 namespace CustomEquipment.Data.Equipments.Weapons.Guns;
 
-internal sealed class ReactorLeak : WeaponBase
+internal sealed class ReactorLeak : WeaponItemBase
 {
     public override string InheritorName => WeaponName.Ump45;
     
     public override string DisplayName => "UMP45 ReactorLeak";
+    
+    public override string InternalName => "custom_equipment:weapon_reactorleak";
     
     public override string SubclassName => "weapon_reactorleak";
     

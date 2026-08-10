@@ -5,7 +5,7 @@ using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace CustomEquipment.Api.Data;
 
-public abstract class BaseItem : IItem
+public abstract class ItemBase : IItem
 {
     public virtual CEconEntity AttachedEntity
     {
@@ -15,7 +15,7 @@ public abstract class BaseItem : IItem
     
     public abstract string DisplayName { get; }
 
-    public virtual string InternalName => ToInternalName(DisplayName);
+    public abstract string InternalName { get; }
 
     public abstract string SubclassName { get; }
 
@@ -26,12 +26,5 @@ public abstract class BaseItem : IItem
     public object Clone()
     {
         return MemberwiseClone();
-    }
-    
-    private static string ToInternalName(string name)
-    {
-        if (string.IsNullOrEmpty(name)) return name;
-
-        return name.ToLowerInvariant().Replace(" ", "_");
     }
 }

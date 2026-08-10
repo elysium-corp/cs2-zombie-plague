@@ -13,13 +13,20 @@ using SwiftlyS2.Shared.Trace;
 
 namespace CustomEquipment.Data.Equipments.Weapons.Equipments;
 
-public sealed class LaserMine : BaseEquipment
+public sealed class LaserMine : ItemBaseEquipment
 {
     public override string InheritorName => WeaponName.LaserMine;
-    public override string DisplayName => "LaserMine";
+    
+    public override string DisplayName => "Laser Mine";
+    
+    public override string InternalName => "custom_equipment:weapon_laser_mine";
+    
     public override string SubclassName => "";
+    
     public override Slot Slot => Slot.Equipment;
+    
     public override string Model => "";
+    
     public override WeaponType WeaponType => WeaponType.Equipment;
 
     private const float SetupDuration = 3.0f;

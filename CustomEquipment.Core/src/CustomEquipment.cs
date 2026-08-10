@@ -93,13 +93,15 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
 
         var itemService = _itemService.Value;
 
-        var weapons = itemService.GetAllRegisteredItems();
+        var items = itemService.GetAllRegisteredItems();
 
         Core.PlayerManager.SendChat($"========== REGISTER ==========");
         
-        foreach (var weapon in weapons)
+        foreach (var item in items)
         {
-            Core.PlayerManager.SendChat($"weapon = {weapon.DisplayName}");
+            Core.PlayerManager.SendChat(
+                $"{item.DisplayName} — {item.InternalName}"
+            );
         }
     }
     

@@ -19,8 +19,8 @@ internal sealed class ItemGiver(IItemService itemService, IEventPublisher eventP
 
         var givenItem = item switch
         {
-            WeaponBase weapon => GiveWeapon(player, weapon, action) as TItem,
-            BaseGrenade grenade => GiveGrenade(player, grenade, action) as TItem,
+            WeaponItemBase weapon => GiveWeapon(player, weapon, action) as TItem,
+            ItemBaseGrenade grenade => GiveGrenade(player, grenade, action) as TItem,
             _ => throw new ArgumentOutOfRangeException(nameof(TItem))
         };
         
@@ -29,14 +29,14 @@ internal sealed class ItemGiver(IItemService itemService, IEventPublisher eventP
         return givenItem;
     }
 
-    public TWeapon? GiveWeapon<TWeapon>(IPlayer player, GiveAction action = GiveAction.Drop) where TWeapon : WeaponBase
+    public TWeapon? GiveWeapon<TWeapon>(IPlayer player, GiveAction action = GiveAction.Drop) where TWeapon : WeaponItemBase
     {
         var weapon = CreateItem<TWeapon>();
         
         return GiveWeaponInternal(player, weapon, action);
     }
     
-    private TWeapon? GiveWeapon<TWeapon>(IPlayer player, TWeapon weapon, GiveAction action = GiveAction.Drop) where TWeapon : WeaponBase
+    private TWeapon? GiveWeapon<TWeapon>(IPlayer player, TWeapon weapon, GiveAction action = GiveAction.Drop) where TWeapon : WeaponItemBase
     {
         var givenWeapon = GiveWeaponInternal(player, weapon, action);
         
@@ -45,14 +45,14 @@ internal sealed class ItemGiver(IItemService itemService, IEventPublisher eventP
         return givenWeapon;
     }
     
-    public TGrenade? GiveGrenade<TGrenade>(IPlayer player, GiveAction action = GiveAction.Drop) where TGrenade : BaseGrenade
+    public TGrenade? GiveGrenade<TGrenade>(IPlayer player, GiveAction action = GiveAction.Drop) where TGrenade : ItemBaseGrenade
     {
         var grenade = CreateItem<TGrenade>();
 
         return GiveGrenade(player, grenade, action);
     }
     
-    private TGrenade? GiveGrenade<TGrenade>(IPlayer player, TGrenade grenade, GiveAction action) where TGrenade : BaseGrenade
+    private TGrenade? GiveGrenade<TGrenade>(IPlayer player, TGrenade grenade, GiveAction action) where TGrenade : ItemBaseGrenade
     {
         var givenGrenade = GiveGrenadeInternal(player, grenade, action);
         
@@ -61,7 +61,7 @@ internal sealed class ItemGiver(IItemService itemService, IEventPublisher eventP
         return givenGrenade;
     }
 
-    private TGrenade? GiveGrenadeInternal<TGrenade>(IPlayer player, TGrenade grenade, GiveAction action = GiveAction.Drop) where TGrenade : BaseGrenade
+    private TGrenade? GiveGrenadeInternal<TGrenade>(IPlayer player, TGrenade grenade, GiveAction action = GiveAction.Drop) where TGrenade : ItemBaseGrenade
     {
         var pawn = player.RequiredPlayerPawn;
         var itemServices = pawn.ItemServices;
@@ -92,7 +92,7 @@ internal sealed class ItemGiver(IItemService itemService, IEventPublisher eventP
         return grenade;
     }
     
-    private TWeapon? GiveWeaponInternal<TWeapon>(IPlayer player, TWeapon weapon, GiveAction action) where TWeapon : WeaponBase
+    private TWeapon? GiveWeaponInternal<TWeapon>(IPlayer player, TWeapon weapon, GiveAction action) where TWeapon : WeaponItemBase
     {
         var pawn = player.RequiredPlayerPawn;
         var itemServices = pawn.ItemServices;

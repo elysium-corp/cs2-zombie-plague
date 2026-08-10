@@ -61,7 +61,7 @@ internal sealed class WeaponController(
     {
         _grenadeHandler.OnGrenadeDetonated(grenade, projectile, position);
         
-        if (grenade is not BaseGrenade baseGrenade) return;
+        if (grenade is not ItemBaseGrenade baseGrenade) return;
 
         var thrower = projectile.OriginalThrower.Value?.ToPlayer();
 
@@ -79,7 +79,7 @@ internal sealed class WeaponController(
 
         if (attacker == null || victim == null || !attacker.IsValid) return;
 
-        var activeWeapon = equipmentService.GetActiveItem<WeaponBase>(attacker);
+        var activeWeapon = equipmentService.GetActiveItem<WeaponItemBase>(attacker);
 
         if (activeWeapon == null || activeWeapon.WeaponDamage?.DamageMultiplier == null) return;
 
@@ -109,7 +109,7 @@ internal sealed class WeaponController(
 
         if (attacker == null || !attacker.IsValid) return HookResult.Continue;
 
-        var activeWeapon = equipmentService.GetActiveWeapon<WeaponBase>(attacker);
+        var activeWeapon = equipmentService.GetActiveWeapon<WeaponItemBase>(attacker);
         
         if (activeWeapon == null) return HookResult.Continue;
         

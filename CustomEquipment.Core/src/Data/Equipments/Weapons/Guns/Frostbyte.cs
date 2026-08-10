@@ -6,11 +6,13 @@ using CustomEquipment.Data.Equipments.Particle;
 
 namespace CustomEquipment.Data.Equipments.Weapons.Guns;
 
-internal sealed class Frostbyte : WeaponBase
+internal sealed class Frostbyte : WeaponItemBase
 {
     public override string InheritorName => WeaponName.Mp7;
 
     public override string DisplayName => "MP7 Frostbyte";
+    
+    public override string InternalName => "custom_equipment:weapon_frostbyte";
     
     public override string SubclassName => "weapon_frostbyte";
     

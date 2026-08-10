@@ -1,13 +1,14 @@
-﻿using CustomEquipment.Api.Data;
-using CustomEquipment.Api.Data.Contracts;
+﻿using CustomEquipment.Api.Data.Contracts;
 
 namespace CustomEquipment.Services;
 
 internal interface IItemService
 {
     void Initialize();
-    
-    HashSet<IItem> GetAllRegisteredItems();
 
-    public bool HasRegistered<TItem>() where TItem : IItem;
+    IReadOnlyCollection<IItem> GetAllRegisteredItems();
+
+    bool HasRegistered<TItem>() where TItem : IItem;
+
+    bool TryGet(string internalName, out IItem? item);
 }

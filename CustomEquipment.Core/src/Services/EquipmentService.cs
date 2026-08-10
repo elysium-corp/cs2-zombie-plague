@@ -15,8 +15,8 @@ namespace CustomEquipment.Services;
 
 internal sealed class EquipmentService(ISwiftlyCore core, IItemGiver itemGiver, IEventPublisher eventPublisher, IEventSubscriber eventSubscriber) : IEquipmentService, IDisposable
 {
-    private readonly List<BaseItem> _items = [];
-    private readonly Dictionary<IPlayer, HashSet<WeaponBase>> _inventories = [];
+    private readonly List<ItemBase> _items = [];
+    private readonly Dictionary<IPlayer, HashSet<WeaponItemBase>> _inventories = [];
 
     public void Initialize()
     {
@@ -43,13 +43,13 @@ internal sealed class EquipmentService(ISwiftlyCore core, IItemGiver itemGiver, 
         projectile.SetModel(grenade.Model);
     }
 
-    public IEnumerable<BaseItem> GetAllItems() => _items;
+    public IEnumerable<ItemBase> GetAllItems() => _items;
     
-    public IEnumerable<WeaponBase> GetAllWeapons() => _items.OfType<WeaponBase>();
+    public IEnumerable<WeaponItemBase> GetAllWeapons() => _items.OfType<WeaponItemBase>();
     
-    public IEnumerable<BaseGrenade> GetAllGrenades() => _items.OfType<BaseGrenade>();
+    public IEnumerable<ItemBaseGrenade> GetAllGrenades() => _items.OfType<ItemBaseGrenade>();
     
-    public WeaponBase? GiveWeapon<TWeapon>(IPlayer player) where TWeapon : WeaponBase
+    public WeaponItemBase? GiveWeapon<TWeapon>(IPlayer player) where TWeapon : WeaponItemBase
     {
         var weapon = itemGiver.GiveWeapon<TWeapon>(player);
 
@@ -60,7 +60,7 @@ internal sealed class EquipmentService(ISwiftlyCore core, IItemGiver itemGiver, 
         return weapon;
     }
 
-    public BaseGrenade? GiveGrenade<TGrenade>(IPlayer player) where TGrenade : BaseGrenade
+    public ItemBaseGrenade? GiveGrenade<TGrenade>(IPlayer player) where TGrenade : ItemBaseGrenade
     {
         var grenade = itemGiver.GiveGrenade<TGrenade>(player);
         
@@ -71,7 +71,7 @@ internal sealed class EquipmentService(ISwiftlyCore core, IItemGiver itemGiver, 
         return grenade;
     }
 
-    public TItem? GetActiveItem<TItem>(IPlayer player) where TItem : BaseItem
+    public TItem? GetActiveItem<TItem>(IPlayer player) where TItem : ItemBase
     {
         var activeWeaponIndex = player.RequiredPawn.WeaponServices?.ActiveWeapon.Value?.Index;
 
@@ -80,7 +80,7 @@ internal sealed class EquipmentService(ISwiftlyCore core, IItemGiver itemGiver, 
         return _items.Find(wp => wp.AttachedEntity.Index == activeWeaponIndex || wp.AttachedEntity.Index == activeWeaponIndex) as TItem;
     }
 
-    public TWeapon? GetActiveWeapon<TWeapon>(IPlayer player) where TWeapon : WeaponBase
+    public TWeapon? GetActiveWeapon<TWeapon>(IPlayer player) where TWeapon : WeaponItemBase
     {
         var activeWeaponIndex = player.RequiredPawn.WeaponServices?.ActiveWeapon.Value?.Index;
 
@@ -157,7 +157,7 @@ internal sealed class EquipmentService(ISwiftlyCore core, IItemGiver itemGiver, 
         });
     }
 
-    private void AddWeaponToInventory(IPlayer player, WeaponBase weapon)
+    private void AddWeaponToInventory(IPlayer player, WeaponItemBase weaponItem)
     {
         if (!_inventories.TryGetValue(player, out var weapons))
         {
@@ -165,20 +165,20 @@ internal sealed class EquipmentService(ISwiftlyCore core, IItemGiver itemGiver, 
             _inventories[player] = weapons;
         }
 
-        weapons.Add(weapon);
+        weapons.Add(weaponItem);
     }
 
-    private WeaponBase? GetWeaponByIndex(uint index)
+    private WeaponItemBase? GetWeaponByIndex(uint index)
     {
         return GetAllWeapons().ToList().Find(wp => wp.AttachedEntity.Index == index);
     }
 
-    private BaseGrenade? GetGrenadeByIndex(uint index)
+    private ItemBaseGrenade? GetGrenadeByIndex(uint index)
     {
         return GetAllGrenades().ToList().Find(wp => wp.AttachedEntity.Index == index);
     }
 
-    private BaseGrenade? ResolveGrenadeByProjectile(CBaseCSGrenadeProjectile projectile)
+    private ItemBaseGrenade? ResolveGrenadeByProjectile(CBaseCSGrenadeProjectile projectile)
     {
         var thrower = projectile.Thrower.Value;
 
@@ -201,7 +201,7 @@ internal sealed class EquipmentService(ISwiftlyCore core, IItemGiver itemGiver, 
         return GetGrenadeByIndex(grenade.Index);
     }
     
-    private BaseItem AddOrReplace(BaseItem item)
+    private ItemBase AddOrReplace(ItemBase item)
     {
         var foundItem = _items.Find(wp => wp.AttachedEntity.Index == item.AttachedEntity.Index);
 

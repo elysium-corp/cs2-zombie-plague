@@ -5,11 +5,13 @@ using CustomEquipment.Data.Equipments.Models;
 
 namespace CustomEquipment.Data.Equipments.Weapons.Guns;
 
-internal sealed class Blackline : WeaponBase
+internal sealed class Blackline : WeaponItemBase
 {
     public override string InheritorName => WeaponName.Mp9;
 
     public override string DisplayName => "MP9 Blackline";
+
+    public override string InternalName => "custom_equipment:weapon_blackline";
 
     public override string SubclassName => "weapon_blackline";
 

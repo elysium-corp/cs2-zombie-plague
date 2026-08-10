@@ -27,7 +27,7 @@ internal sealed class ParticleController(ISwiftlyCore core, IEquipmentService eq
 
         if (attacker == null || !attacker.IsValid) return HookResult.Continue;
 
-        var activeWeapon = equipmentService.GetActiveWeapon<WeaponBase>(attacker);
+        var activeWeapon = equipmentService.GetActiveWeapon<WeaponItemBase>(attacker);
         
         if (activeWeapon?.Particle != null && activeWeapon.HasTraceParticle())
         {

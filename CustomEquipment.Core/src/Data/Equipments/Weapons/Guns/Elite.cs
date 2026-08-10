@@ -6,12 +6,14 @@ using CustomEquipment.Data.Equipments.Particle;
 
 namespace CustomEquipment.Data.Equipments.Weapons.Guns;
 
-internal sealed class Elite : WeaponBase
+internal sealed class Elite : WeaponItemBase
 {
     public override string InheritorName => WeaponName.Ssg08;
 
     public override string DisplayName => "SSG Elite";
-    
+
+    public override string InternalName => "custom_equipment:weapon_elite";
+
     public override string SubclassName => "weapon_elite_v2";
 
     public override Slot Slot => Slot.Primary;

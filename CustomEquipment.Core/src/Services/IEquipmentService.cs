@@ -7,17 +7,17 @@ internal interface IEquipmentService
 {
     void Initialize();
 
-    public IEnumerable<BaseItem> GetAllItems();
+    public IEnumerable<ItemBase> GetAllItems();
 
-    public IEnumerable<WeaponBase> GetAllWeapons();
+    public IEnumerable<WeaponItemBase> GetAllWeapons();
 
-    public IEnumerable<BaseGrenade> GetAllGrenades();
+    public IEnumerable<ItemBaseGrenade> GetAllGrenades();
     
-    public WeaponBase? GiveWeapon<TWeapon>(IPlayer player) where TWeapon : WeaponBase;
+    public WeaponItemBase? GiveWeapon<TWeapon>(IPlayer player) where TWeapon : WeaponItemBase;
 
-    public BaseGrenade? GiveGrenade<TGrenade>(IPlayer player) where TGrenade : BaseGrenade;
+    public ItemBaseGrenade? GiveGrenade<TGrenade>(IPlayer player) where TGrenade : ItemBaseGrenade;
 
-    public TItem? GetActiveItem<TItem>(IPlayer player) where TItem : BaseItem;
+    public TItem? GetActiveItem<TItem>(IPlayer player) where TItem : ItemBase;
 
-    public TWeapon? GetActiveWeapon<TWeapon>(IPlayer player) where TWeapon : WeaponBase;
+    public TWeapon? GetActiveWeapon<TWeapon>(IPlayer player) where TWeapon : WeaponItemBase;
 }

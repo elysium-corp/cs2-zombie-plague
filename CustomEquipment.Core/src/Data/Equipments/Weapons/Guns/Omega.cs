@@ -5,11 +5,13 @@ using CustomEquipment.Data.Equipments.Models;
 
 namespace CustomEquipment.Data.Equipments.Weapons.Guns;
 
-internal sealed class Omega : WeaponBase
+internal sealed class Omega : WeaponItemBase
 {
     public override string InheritorName => WeaponName.Xm1014;
     
     public override string DisplayName => "Omega Shotgun";
+    
+    public override string InternalName => "custom_equipment:weapon_omega";
     
     public override string SubclassName => "weapon_omega";
 
