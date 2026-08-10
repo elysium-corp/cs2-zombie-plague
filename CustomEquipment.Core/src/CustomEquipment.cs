@@ -1,5 +1,6 @@
 using Common.Di;
 using CustomEquipment.Controllers;
+using CustomEquipment.Data.Equipments.Weapons.Equipments;
 using CustomEquipment.Data.Equipments.Weapons.Grenades;
 using CustomEquipment.Data.Equipments.Weapons.Guns;
 using CustomEquipment.Di;
@@ -45,6 +46,16 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
         Core.Command.RegisterCommand(
             commandName: "d",
             handler: Debug,
+            registerRaw: true
+        );
+        
+        Core.Command.RegisterCommand(
+            commandName: "mine",
+            handler: (ICommandContext context) =>
+            {
+                var laser = new LaserMine();
+                laser.OnPurchase(context.Sender);
+            },
             registerRaw: true
         );
     }
