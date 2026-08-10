@@ -1,7 +1,5 @@
 ﻿using SwiftlyS2.Shared.Players;
-using ZombiePlague.Core.Data.Entities.Zombie;
-using ZombiePlague.Core.Data.Entities.Zombie.Classes;
-using ZombiePlague.Core.Data.Entities.Zombie.Factory;
+using ZombiePlague.Api.Data.Store;
 using ZombiePlague.Core.Store.Contracts;
 using ZombiePlague.Core.Store.Data;
 
@@ -17,6 +15,11 @@ internal class PlayerRepository(IPlayerStore playerStore) : IPlayerRepository
     public string GetHClassId(IPlayer player)
     {
         return GetOrCreate(player).HClassId;
+    }
+
+    public string GetKnifeId(IPlayer player)
+    {
+        return GetOrCreate(player).KnifeId;
     }
 
     public void SetZClassId(IPlayer player, string classId)
@@ -48,7 +51,22 @@ internal class PlayerRepository(IPlayerStore playerStore) : IPlayerRepository
             }
         );
     }
-    
+
+    public void SetKnifeId(IPlayer player, string knifeId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(knifeId);
+
+        var preferences = GetOrCreate(player);
+
+        playerStore.Set(
+            player,
+            preferences with
+            {
+                KnifeId = knifeId
+            }
+        );
+    }
+
     public bool Remove(IPlayer player)
     {
         return playerStore.Remove(player);

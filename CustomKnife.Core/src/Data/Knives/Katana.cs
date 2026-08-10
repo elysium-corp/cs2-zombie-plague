@@ -6,12 +6,21 @@ namespace CustomKnife.Data.Knives;
 
 internal class Katana(KatanaConfig config) : IKnife
 {
-    public byte Index { get; set; } = config.Index;
-    public string DisplayName { get; set; } = config.DisplayName;
-    public string Model { get; set; } = config.Model;
-    public string Description { get; set; } = config.Description;
-    public float Speed { get; set; } = config.Speed;
-    public KnockbackData KnockbackData { get; set; } = config.KnockbackData;
-    public int Gravity { get; set; } = config.Gravity;
-    public float DamageMultiplier { get; set; } = config.DamageMultiplier;
+    public bool Enabled { get; } = config.Enabled;
+    
+    public string InternalName { get; } = config.InternalName;
+    
+    public string DisplayName { get; } = config.DisplayName;
+    
+    public string Model { get; } = config.Model;
+    
+    public string Description { get; } = config.Description;
+    
+    public float Speed { get; } = config.Speed;
+    
+    public KnockbackData KnockbackData { get; } = config.KnockbackData;
+    
+    public int Gravity { get; } = config.Gravity;
+    
+    public float DamageMultiplier { get; } = config.DamageMultiplier;
 }

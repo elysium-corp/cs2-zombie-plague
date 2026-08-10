@@ -1,6 +1,7 @@
 ﻿using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Players;
 using ZombiePlague.Api.Data;
+using ZombiePlague.Api.Data.Store;
 using ZombiePlague.Api.Events;
 using ZombiePlague.Api.Generated;
 
@@ -9,6 +10,8 @@ namespace ZombiePlague.Api;
 public interface IZombiePlagueApi
 {
     public IEventSubscriber EventSubscriber { get; }
+    
+    public IPlayerRepository PlayerRepository { get; }
 
     public bool IsInfected(IPlayer player);
     

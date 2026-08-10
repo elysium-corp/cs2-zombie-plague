@@ -2,6 +2,7 @@
 using SwiftlyS2.Shared.Players;
 using ZombiePlague.Api;
 using ZombiePlague.Api.Data;
+using ZombiePlague.Api.Data.Store;
 using ZombiePlague.Api.Events;
 using ZombiePlague.Core.Data.Managers;
 using ZombiePlague.Core.Data.Managers.Contracts;
@@ -13,10 +14,13 @@ namespace ZombiePlague.Core.Api;
 internal sealed class ZombiePlagueApi(
     IEventSubscriber eventSubscriber,
     IPlayerManager playerManager,
-    IKnockbackService knockbackService
+    IKnockbackService knockbackService,
+    IPlayerRepository playerRepository
 ) : IZombiePlagueApi
 {
     public IEventSubscriber EventSubscriber => eventSubscriber;
+    
+    public IPlayerRepository PlayerRepository => playerRepository;
 
     public bool IsInfected(IPlayer player)
     {

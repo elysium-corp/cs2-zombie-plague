@@ -5,15 +5,7 @@ namespace Menu.Api.Data.Contracts;
 
 public interface IMenu
 {
+    string Id { get; }
+    
     void Open(IPlayer player);
-    
-    void OpenAll(Predicate<IPlayer>? predicate);
-
-    void Close(IPlayer player);
-
-    void CloseAll();
-
-    void CloseBy(Predicate<IPlayer>? predicate);
-    
-    IMenuBuilderAPI Builder(IPlayer player);
 }

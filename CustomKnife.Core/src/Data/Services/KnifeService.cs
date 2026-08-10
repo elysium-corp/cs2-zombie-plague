@@ -1,8 +1,7 @@
-﻿using Common.Di;
-using CustomKnife.Data.Models;
+﻿using CustomKnife.Data.Models;
+using CustomKnife.Data.Registrator;
 using CustomKnife.Data.Services.Contracts;
 using CustomKnife.Data.Utils.Extensions;
-using CustomKnife.Di;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.GameHooks;
@@ -11,13 +10,15 @@ using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace CustomKnife.Data.Services;
 
-public class KnifeService(ISwiftlyCore core) : IKnifeService
+public class KnifeService(ISwiftlyCore core, IKnivesRegistry knivesRegistry) : IKnifeService
 {
     private const string DefaultKnifeName = "weapon_knife";
     private const string CustomKnifeName = "weapon_knife_t";
+    const string DefaultKnifeId = "knife_ancient";
 
     private const float DefaultSpeed = 250f;
     private const float DefaultGravity = 800f;
+    
 
     public bool TryGiveKnife(IPlayer player)
     {
@@ -31,9 +32,19 @@ public class KnifeService(ISwiftlyCore core) : IKnifeService
         return true;
     }
 
-    public void ChangeKnife(IPlayer player, IKnife knife)
+    public void SelectKnife(IPlayer player, IKnife knife)
     {
-        CustomKnife.PlayerKnifes[player] = knife;
+        ArgumentNullException.ThrowIfNull(player);
+        ArgumentNullException.ThrowIfNull(knife);
+
+        if (!knivesRegistry.TryGet(knife.InternalName, out _))
+        {
+            throw new ArgumentException($"Knife '{knife.InternalName}' is not registered.", nameof(knife));
+        }
+
+        CustomKnife.ZombiePlagueApi
+            .PlayerRepository
+            .SetKnifeId(player, knife.InternalName);
 
         TryGiveKnife(player);
     }
@@ -90,12 +101,25 @@ public class KnifeService(ISwiftlyCore core) : IKnifeService
 
     public IKnife GetKnife(IPlayer player)
     {
-        if (CustomKnife.PlayerKnifes.TryGetValue(player, out var knife))
+        ArgumentNullException.ThrowIfNull(player);
+
+        var repository = CustomKnife.ZombiePlagueApi.PlayerRepository;
+
+        var knifeId = repository.GetKnifeId(player);
+
+        if (knivesRegistry.TryGet(knifeId, out var knife))
         {
             return knife;
         }
+        
+        if (!knivesRegistry.TryGet(DefaultKnifeId, out var defaultKnife))
+        {
+            throw new InvalidOperationException($"Default knife '{DefaultKnifeId}' is not registered!");
+        }
 
-        return CustomKnife.PlayerKnifes[player] = CustomKnife.RegisteredKnifes[0];
+        repository.SetKnifeId(player, defaultKnife.InternalName);
+
+        return defaultKnife;
     }
 
     public bool TryApplyKnifeDamage(ref TakeDamageEntityPreContext @event)
@@ -134,24 +158,9 @@ public class KnifeService(ISwiftlyCore core) : IKnifeService
         return true;
     }
 
-    public List<IKnife> GetRegisteredKnives()
+    public IReadOnlyCollection<IKnife> GetRegisteredKnives()
     {
-        List<IKnife> registeredKnifes = [];
-
-        if (CustomKnife.RegisteredKnifes.Count != 0)
-            return CustomKnife.RegisteredKnifes;
-
-        var knives = DependencyResolver
-            .GetRequiredService<CustomKnifeModule, IEnumerable<IKnife>>()
-            .OrderBy(k => k.Index)
-            .ToList();
-
-        foreach (var knife in knives)
-        {
-            registeredKnifes.Add(knife);
-        }
-
-        return registeredKnifes;
+        return knivesRegistry.GetAll();
     }
 
     private void ApplyKnifeProperties(IPlayer player)

@@ -34,12 +34,12 @@ internal sealed partial class MoneySystem(ISwiftlyCore core) : Plugin<MoneySyste
     private const string ConVarMaxMoney = "mp_maxmoney";
     private const string ConVarStartMoney = "mp_startmoney";
     
-    public override void OnSharedInterfaceInjected(IInterfaceManager interfaceManager)
+    protected override void OnSharedInterfacesInjected(IInterfaceManager interfaceManager)
     {
         _zombiePlagueApi = interfaceManager.GetSharedInterface<IZombiePlagueApi>(IZombiePlagueApi.SharedApiKey);
     }
 
-    public override void ConfigureSharedInterface(IInterfaceManager interfaceManager)
+    protected override void OnConfigureSharedInterfaces(IInterfaceManager interfaceManager)
     {
         var mSServiceApi = new MoneySystemApi(_moneyServiceLazy.Value);
         interfaceManager.AddSharedInterface<IMoneySystemApi, MoneySystemApi>(IMoneySystemApi.SharedApiKey, mSServiceApi);
