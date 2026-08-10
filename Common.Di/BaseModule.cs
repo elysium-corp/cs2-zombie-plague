@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using SwiftlyS2.Shared;
 
 namespace Common.Di;
@@ -10,9 +11,15 @@ public abstract class BaseModule(ISwiftlyCore core) : IModule
     
     protected IServiceCollection AddConfig<TConfig>(ServiceCollection service, string name, string section, bool optional = false, bool reloadOnChange = true) where TConfig : class, new()
     {
-        core.Configuration
+        var configuration = core.Configuration
             .InitializeJsonWithModel<TConfig>(name, section)
             .Configure(builder => { builder.AddJsonFile(name, optional: optional, reloadOnChange: reloadOnChange); });
+
+        var configurationManager = configuration.Manager;
+
+        service.TryAddSingleton(configuration);
+        service.TryAddSingleton(configurationManager);
+        service.TryAddSingleton<IConfiguration>(configurationManager);
         
         service
             .AddOptionsWithValidateOnStart<TConfig>()
