@@ -7,10 +7,15 @@ using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.GameHooks;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
+using ZombiePlague.Api;
 
 namespace CustomKnife.Data.Services;
 
-public class KnifeService(ISwiftlyCore core, IKnivesRegistry knivesRegistry) : IKnifeService
+internal sealed class KnifeService(
+    ISwiftlyCore core, 
+    IKnivesRegistry knivesRegistry,
+    IZombiePlagueApi zombiePlagueApi
+) : IKnifeService
 {
     private const string DefaultKnifeName = "weapon_knife";
     private const string CustomKnifeName = "weapon_knife_t";
@@ -22,7 +27,7 @@ public class KnifeService(ISwiftlyCore core, IKnivesRegistry knivesRegistry) : I
 
     public bool TryGiveKnife(IPlayer player)
     {
-        if (!CanHasKnife(player))
+        if (!CanHaveKnife(player))
         {
             return false;
         }
@@ -42,7 +47,7 @@ public class KnifeService(ISwiftlyCore core, IKnivesRegistry knivesRegistry) : I
             throw new ArgumentException($"Knife '{knife.InternalName}' is not registered.", nameof(knife));
         }
 
-        CustomKnife.ZombiePlagueApi
+        zombiePlagueApi
             .PlayerRepository
             .SetKnifeId(player, knife.InternalName);
 
@@ -51,7 +56,7 @@ public class KnifeService(ISwiftlyCore core, IKnivesRegistry knivesRegistry) : I
 
     public bool TryApplyProperties(IPlayer? player)
     {
-        if (player == null || !player.IsValid || !player.IsAlive || CustomKnife.ZombiePlagueApi.IsInfected(player))
+        if (player == null || !player.IsValid || !player.IsAlive || zombiePlagueApi.IsInfected(player))
         {
             return false;
         }
@@ -94,7 +99,7 @@ public class KnifeService(ISwiftlyCore core, IKnivesRegistry knivesRegistry) : I
 
         var attackerKnife = GetKnife(attacker);
 
-        CustomKnife.ZombiePlagueApi.ApplyKnockBack(@event, attackerKnife.KnockbackData);
+        zombiePlagueApi.ApplyKnockBack(@event, attackerKnife.KnockbackData);
 
         return true;
     }
@@ -103,7 +108,7 @@ public class KnifeService(ISwiftlyCore core, IKnivesRegistry knivesRegistry) : I
     {
         ArgumentNullException.ThrowIfNull(player);
 
-        var repository = CustomKnife.ZombiePlagueApi.PlayerRepository;
+        var repository = zombiePlagueApi.PlayerRepository;
 
         var knifeId = repository.GetKnifeId(player);
 
@@ -127,7 +132,7 @@ public class KnifeService(ISwiftlyCore core, IKnivesRegistry knivesRegistry) : I
         var attacker = @event.Params.Info.Attacker.ResolvePlayerFromHandle();
 
         if (attacker == null || !attacker.IsValid || !attacker.IsAlive ||
-            CustomKnife.ZombiePlagueApi.IsInfected(attacker))
+            zombiePlagueApi.IsInfected(attacker))
         {
             return false;
         }
@@ -176,31 +181,9 @@ public class KnifeService(ISwiftlyCore core, IKnivesRegistry knivesRegistry) : I
         player.SetGravity(DefaultGravity);
     }
 
-    private bool CanHasKnife(IPlayer player)
+    private bool CanHaveKnife(IPlayer player)
     {
-        if (!player.IsValid)
-        {
-            return false;
-        }
-
-        if (CustomKnife.ZombiePlagueApi.IsInfected(player))
-        {
-            return false;
-        }
-
-        var playerPawn = player.PlayerPawn;
-
-        if (playerPawn == null || !player.IsValid)
-        {
-            return false;
-        }
-
-        if (!player.IsAlive)
-        {
-            return false;
-        }
-
-        return true;
+        return player.IsValid && player.IsAlive && player.PlayerPawn is { IsValid: true } && !zombiePlagueApi.IsInfected(player);
     }
 
     private void RemoveOldAndGiveNewKnife(CCSPlayer_WeaponServices weaponService, CCSPlayer_ItemServices itemService)

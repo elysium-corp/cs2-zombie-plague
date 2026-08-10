@@ -1,4 +1,5 @@
 ﻿using Common.Di.Exceptions;
+using Common.Di.SharedInterfaces;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Plugins;
 
@@ -47,6 +48,17 @@ public abstract class Plugin<TModule>(ISwiftlyCore core) : BasePlugin(core) wher
     protected static Lazy<TService> GetRequiredServiceLazy<TService>() where TService : notnull
     {
         return DependencyResolver.GetRequiredServiceLazy<TModule, TService>();
+    }
+    
+    /// <summary>
+    /// Получает обязательный Shared Interface из SwiftlyS2
+    /// и сохраняет его в зарегистрированной отложенной ссылке.
+    /// </summary>
+    protected static void BindSharedInterface<TInterface>(IInterfaceManager interfaceManager, string key) where TInterface : class
+    {
+        var sharedInterface = interfaceManager.GetSharedInterface<TInterface>(key);
+
+        GetRequiredService<SharedInterfaceReference<TInterface>>().Bind(sharedInterface);
     }
     
     /// <summary>

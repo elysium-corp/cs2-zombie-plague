@@ -179,7 +179,7 @@ internal sealed partial class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxMod
     
     private bool CanDrop(IRound round)
     {
-        if (ZombiePlagueApi.IsNoneRound(round)|| ZombiePlagueApi.IsArmageddonRound(round) || ZombiePlagueApi.IsSurvivorRound(round) || ZombiePlagueApi.IsNemesisRound(round))
+        if (ZombiePlagueApi.IsSurvivorRound(round) || ZombiePlagueApi.IsNemesisRound(round))
         {
             return false;
         }

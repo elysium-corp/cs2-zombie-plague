@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using Common.Di;
+using Common.Di.Utils;
 using CustomKnife.Data.Configs;
 using CustomKnife.Data.Menus;
 using CustomKnife.Data.Models;
@@ -11,12 +12,12 @@ using Menu.Api.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;
+using ZombiePlague.Api;
 
 namespace CustomKnife.Di;
 
 internal sealed class CustomKnifeModule(ISwiftlyCore core) : BaseModule(core)
 {
-
     public override (ServiceProvider, ServiceCollection) GetProvider()
     {
         var service = new ServiceCollection();
@@ -42,15 +43,16 @@ internal sealed class CustomKnifeModule(ISwiftlyCore core) : BaseModule(core)
 
     private void BuildSingletons(ServiceCollection service)
     {
+        service.AddSharedInterface<IZombiePlagueApi>();
+        
         AddSingleton<KnifeMenu>(service);
         AddSingleton<CustomKnifeCoordinator>(service);
         AddSingleton<IKnifeService, KnifeService>(service);
         AddSingleton<IKnivesRegistry, KnivesRegistry>(service);
         AddSingleton<KnifeRegistryInitializer>(service);
         AddSingleton<MenuApiBridge>(service);
-        AddSingleton<IMenuExtensionDispatcher>(service, provider => 
-            provider.GetRequiredService<MenuApiBridge>()
-        );
+        
+        AddSingleton<IMenuExtensionDispatcher>(service, provider => provider.GetRequiredService<MenuApiBridge>());
     }
 
     private void BuildTransients(ServiceCollection service)
