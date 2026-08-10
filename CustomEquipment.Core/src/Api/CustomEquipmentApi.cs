@@ -37,7 +37,12 @@ internal sealed class CustomEquipmentApi(
 
     public WeaponItemBase CreateWeapon(string internalName)
     {
-        if (!itemRegistry.TryGetDefinition(internalName, out var definition) || definition is not WeaponItemBase)
+        if (!itemRegistry.TryGetDefinition(internalName, out var definition))
+        {
+            throw new NotRegisteredItemException($"Equipment item '{internalName}' is not registered!");
+        }
+
+        if (definition is not WeaponItemBase)
         {
             throw new CannotCreateItemException($"Registered item '{internalName}' is not a weapon!");
         }

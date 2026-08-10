@@ -1,6 +1,6 @@
 ﻿namespace CustomEquipment.Api.Exceptions;
 
-public sealed class NotAttachedEntityException : SystemException
+public sealed class NotAttachedEntityException : KeyNotFoundException
 {
     public NotAttachedEntityException(string? value) : base(value) { }
         

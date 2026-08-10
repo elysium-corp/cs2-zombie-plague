@@ -1,6 +1,6 @@
 ﻿namespace CustomEquipment.Api.Exceptions;
 
-public class NotAttachedGrenadeException : SystemException
+public class NotAttachedGrenadeException : KeyNotFoundException
 {
     public NotAttachedGrenadeException(string? value) : base(value) { }
         

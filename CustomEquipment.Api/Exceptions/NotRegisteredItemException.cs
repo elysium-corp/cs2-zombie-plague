@@ -1,6 +1,6 @@
 ﻿namespace CustomEquipment.Api.Exceptions;
 
-public sealed class NotRegisteredItemException : SystemException
+public sealed class NotRegisteredItemException : KeyNotFoundException
 {
     public NotRegisteredItemException(string? value) : base(value) { }
         

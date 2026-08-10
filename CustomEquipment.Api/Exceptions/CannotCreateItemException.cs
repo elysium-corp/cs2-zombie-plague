@@ -1,6 +1,6 @@
 ﻿namespace CustomEquipment.Api.Exceptions;
 
-public sealed class CannotCreateItemException : SystemException
+public sealed class CannotCreateItemException : KeyNotFoundException
 {
     public CannotCreateItemException(string? value) : base(value) { }
         
