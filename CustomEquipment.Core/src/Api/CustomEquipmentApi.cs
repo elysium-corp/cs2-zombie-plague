@@ -1,14 +1,18 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using CustomEquipment.Api.Data;
 using CustomEquipment.Api.Data.Contracts;
+using CustomEquipment.Api.Enums;
 using CustomEquipment.Api.Exceptions;
 using CustomEquipment.Api.Registration;
 using CustomEquipment.Registry;
+using CustomEquipment.Services;
+using SwiftlyS2.Shared.Players;
 
 namespace CustomEquipment.Api;
 
 internal sealed class CustomEquipmentApi(
-    IItemRegistry itemRegistry
+    IItemRegistry itemRegistry,
+    IEquipmentService equipmentService
 ) : ICustomEquipmentApi
 {
     public IEquipmentRegistrar Registrar => itemRegistry;
@@ -33,6 +37,16 @@ internal sealed class CustomEquipmentApi(
 
         weapon = registeredWeapon;
         return true;
+    }
+
+    public WeaponItemBase? GiveWeapon(IPlayer player, string internalName, GiveAction action = GiveAction.Drop)
+    {
+        return equipmentService.GiveWeapon(player, internalName, action);
+    }
+
+    public TWeapon? GiveWeapon<TWeapon>(IPlayer player, GiveAction action = GiveAction.Drop) where TWeapon : WeaponItemBase
+    {
+        return equipmentService.GiveWeapon<TWeapon>(player, action);
     }
 
     public WeaponItemBase CreateWeapon(string internalName)

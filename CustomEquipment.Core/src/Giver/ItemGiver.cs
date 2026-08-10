@@ -76,7 +76,7 @@ internal sealed class ItemGiver(
         return grenade;
     }
     
-    private WeaponItemBase? GiveWeaponInternal(IPlayer player, WeaponItemBase  weapon, GiveAction action)
+    private WeaponItemBase? GiveWeaponInternal(IPlayer player, WeaponItemBase weapon, GiveAction action)
     {
         var pawn = player.RequiredPlayerPawn;
         var itemServices = pawn.ItemServices;

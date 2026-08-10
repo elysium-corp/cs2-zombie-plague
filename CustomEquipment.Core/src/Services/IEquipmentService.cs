@@ -1,4 +1,5 @@
 ﻿using CustomEquipment.Api.Data;
+using CustomEquipment.Api.Enums;
 using SwiftlyS2.Shared.Players;
 
 namespace CustomEquipment.Services;
@@ -7,17 +8,19 @@ internal interface IEquipmentService
 {
     void Initialize();
 
-    public IEnumerable<ItemBase> GetAllItems();
+    IEnumerable<ItemBase> GetAllItems();
 
-    public IEnumerable<WeaponItemBase> GetAllWeapons();
+    IEnumerable<WeaponItemBase> GetAllWeapons();
 
-    public IEnumerable<GrenadeItemBase> GetAllGrenades();
-    
-    public WeaponItemBase? GiveWeapon<TWeapon>(IPlayer player) where TWeapon : WeaponItemBase;
+    IEnumerable<GrenadeItemBase> GetAllGrenades();
 
-    public GrenadeItemBase? GiveGrenade<TGrenade>(IPlayer player) where TGrenade : GrenadeItemBase;
+    TWeapon? GiveWeapon<TWeapon>(IPlayer player, GiveAction action = GiveAction.Drop) where TWeapon : WeaponItemBase;
 
-    public TItem? GetActiveItem<TItem>(IPlayer player) where TItem : ItemBase;
+    WeaponItemBase? GiveWeapon(IPlayer player, string internalName, GiveAction action = GiveAction.Drop);
 
-    public TWeapon? GetActiveWeapon<TWeapon>(IPlayer player) where TWeapon : WeaponItemBase;
+    GrenadeItemBase? GiveGrenade<TGrenade>(IPlayer player) where TGrenade : GrenadeItemBase;
+
+    TItem? GetActiveItem<TItem>(IPlayer player) where TItem : ItemBase;
+
+    TWeapon? GetActiveWeapon<TWeapon>(IPlayer player) where TWeapon : WeaponItemBase;
 }
