@@ -3,22 +3,25 @@ using Common.Effects;
 using Common.Effects.Effects;
 using Common.Effects.Effects.Settings;
 using Common.Math;
-using CustomEquipment.Data.Equipments.Contracts;
-using CustomEquipment.Data.Equipments.Enums;
+using CustomEquipment.Api.Data;
+using CustomEquipment.Api.Enums;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
 
 namespace CustomEquipment.Data.Equipments.Weapons.Grenades;
 
-internal sealed class FireNade : BaseGrenade
+internal sealed class FireNade : GrenadeItemBase
 {
     private const float BurnRadius = 275.0f;
 
     private readonly BurnSettings _settings = new(8.0f, 1.0f, 5.0f);
+    
     public override string InheritorName => WeaponName.Inc;
 
     public override string DisplayName => "Fire Nade";
+    
+    public override string InternalName => "custom_equipment:fire_nade";
 
     public override Slot Slot => Slot.Grenade;
 

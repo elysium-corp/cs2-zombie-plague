@@ -1,7 +1,7 @@
 ﻿using Common.Di;
 using Common.Math;
-using CustomEquipment.Data.Equipments.Contracts;
-using CustomEquipment.Data.Equipments.Enums;
+using CustomEquipment.Api.Data;
+using CustomEquipment.Api.Enums;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
@@ -9,11 +9,13 @@ using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace CustomEquipment.Data.Equipments.Weapons.Grenades;
 
-public class BarrierNade : BaseGrenade
+public class BarrierNade : GrenadeItemBase
 {
     public override string InheritorName => WeaponName.Smoke;
 
     public override string DisplayName => "Barrier Nade";
+    
+    public override string InternalName => "custom_equipment:barrier_nade";
 
     public override Slot Slot => Slot.Grenade;
 

@@ -3,19 +3,21 @@ using Common.Effects;
 using Common.Effects.Effects;
 using Common.Effects.Effects.Settings;
 using Common.Math;
-using CustomEquipment.Data.Equipments.Contracts;
-using CustomEquipment.Data.Equipments.Enums;
+using CustomEquipment.Api.Data;
+using CustomEquipment.Api.Enums;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
 
 namespace CustomEquipment.Data.Equipments.Weapons.Grenades;
 
-internal sealed class FrostNade : BaseGrenade
+internal sealed class FrostNade : GrenadeItemBase
 {
     public override string InheritorName => WeaponName.He;
 
     public override string DisplayName => "Frost Nade";
+    
+    public override string InternalName => "custom_equipment:frost_nade";
     
     public override Slot Slot => Slot.Grenade;
 

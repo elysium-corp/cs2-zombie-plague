@@ -1,5 +1,7 @@
 ﻿using CustomEquipment.Api;
-using CustomEquipment.Data.Equipments.Contracts;
+using CustomEquipment.Api.Data;
+using CustomEquipment.Api.Data.Contracts;
+using CustomEquipment.Api.Events;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;

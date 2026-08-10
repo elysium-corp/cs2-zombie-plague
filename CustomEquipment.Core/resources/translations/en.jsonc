@@ -1,3 +1,12 @@
 {
-  "hello": "world"
+  "Menu.Equipment.Title": "Select equipment",
+
+  "Menu.Equipment.Category.Pistol": "Pistols",
+  "Menu.Equipment.Category.SubmachineGun": "Submachine Guns",
+  "Menu.Equipment.Category.Rifle": "Rifles",
+  "Menu.Equipment.Category.Shotgun": "Shotguns",
+  "Menu.Equipment.Category.SniperRifle": "Sniper Rifles",
+  "Menu.Equipment.Category.MachineGun": "Machine Guns",
+  "Menu.Equipment.Category.Grenade": "Grenades",
+  "Menu.Equipment.Category.Equipment": "Экипировка"
 }

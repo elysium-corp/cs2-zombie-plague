@@ -1,9 +1,12 @@
 using Common.Di;
+using CustomEquipment.Api;
 using CustomEquipment.Controllers;
 using CustomEquipment.Data.Equipments.Weapons.Equipments;
 using CustomEquipment.Data.Equipments.Weapons.Grenades;
 using CustomEquipment.Data.Equipments.Weapons.Guns;
 using CustomEquipment.Di;
+using CustomEquipment.Menus;
+using CustomEquipment.Registry;
 using CustomEquipment.Services;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Commands;
@@ -22,14 +25,22 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
     private readonly Lazy<IWeaponController> _itemController = GetRequiredServiceLazy<IWeaponController>();
     private readonly Lazy<IParticleController> _particleController = GetRequiredServiceLazy<IParticleController>();
     private readonly Lazy<IEquipmentService> _equipmentService = GetRequiredServiceLazy<IEquipmentService>();
-    private readonly Lazy<IItemService> _itemService = GetRequiredServiceLazy<IItemService>();
+    private readonly Lazy<CustomEquipmentApi> _customEquipmentApi = GetRequiredServiceLazy<CustomEquipmentApi>();
+    private readonly Lazy<EquipmentMenu> _equipmentMenu = GetRequiredServiceLazy<EquipmentMenu>();
+    private readonly Lazy<IItemRegistry> _itemRegistry = GetRequiredServiceLazy<IItemRegistry>();
+    
+    protected override void OnConfigureSharedInterfaces(IInterfaceManager interfaceManager)
+    {
+        interfaceManager.AddSharedInterface<ICustomEquipmentApi, CustomEquipmentApi>(ICustomEquipmentApi.SharedApiKey, _customEquipmentApi.Value);
+    }
     
     protected override void OnStart()
     {
-        _itemService.Value.Initialize();
+        _itemRegistry.Value.Initialize();
         _equipmentService.Value.Initialize();
         _itemController.Value.Initialize();
         _particleController.Value.Initialize();
+        _equipmentMenu.Value.RegisterCommands();
         
         Core.Command.RegisterCommand(
             commandName: "gun",
@@ -87,16 +98,16 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
         if (player == null) return;
 
         if (!context.IsSentByPlayer) return;
-
-        var itemService = _itemService.Value;
-
-        var weapons = itemService.GetAllRegisteredItems();
+        
+        var items = _itemRegistry.Value.GetDefinitions();
 
         Core.PlayerManager.SendChat($"========== REGISTER ==========");
         
-        foreach (var weapon in weapons)
+        foreach (var item in items)
         {
-            Core.PlayerManager.SendChat($"weapon = {weapon.DisplayName}");
+            Core.PlayerManager.SendChat(
+                $"{item.DisplayName} — {item.InternalName}"
+            );
         }
     }
     

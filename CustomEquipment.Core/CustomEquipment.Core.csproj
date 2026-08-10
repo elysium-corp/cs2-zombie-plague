@@ -37,6 +37,8 @@
       <ProjectReference Include="..\Common.Di\Common.Di.csproj" />
       <ProjectReference Include="..\Common.Effects\Common.Effects.csproj" />
       <ProjectReference Include="..\Common.Math\Common.Math.csproj" />
+      <ProjectReference Include="..\CustomEquipment.Api\CustomEquipment.Api.csproj" />
+      <ProjectReference Include="..\Menu.Api\Menu.Api.csproj" />
     </ItemGroup>
 
     <Target Name="CreateZip" AfterTargets="Publish">

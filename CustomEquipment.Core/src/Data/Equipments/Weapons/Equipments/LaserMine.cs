@@ -1,6 +1,6 @@
 ﻿using Common.Di;
-using CustomEquipment.Data.Equipments.Contracts;
-using CustomEquipment.Data.Equipments.Enums;
+using CustomEquipment.Api.Data;
+using CustomEquipment.Api.Enums;
 using CustomEquipment.Data.Equipments.Weapons.Equipments.Contracts;
 using CustomEquipment.Utils;
 using SwiftlyS2.Core.Menus.OptionsBase;
@@ -13,13 +13,20 @@ using SwiftlyS2.Shared.Trace;
 
 namespace CustomEquipment.Data.Equipments.Weapons.Equipments;
 
-public sealed class LaserMine : BaseEquipment
+public sealed class LaserMine : EquipmentItemBase
 {
     public override string InheritorName => WeaponName.LaserMine;
-    public override string DisplayName => "LaserMine";
+    
+    public override string DisplayName => "Laser Mine";
+    
+    public override string InternalName => "custom_equipment:laser_mine";
+    
     public override string SubclassName => "";
+    
     public override Slot Slot => Slot.Equipment;
+    
     public override string Model => "";
+    
     public override WeaponType WeaponType => WeaponType.Equipment;
 
     private const float SetupDuration = 3.0f;

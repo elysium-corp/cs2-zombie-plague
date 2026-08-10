@@ -1,14 +1,17 @@
-﻿using CustomEquipment.Data.Equipments.Contracts;
-using CustomEquipment.Data.Equipments.Enums;
+﻿using CustomEquipment.Api.Data;
+using CustomEquipment.Api.Data.Models;
+using CustomEquipment.Api.Enums;
 using CustomEquipment.Data.Equipments.Models;
 
 namespace CustomEquipment.Data.Equipments.Weapons.Guns;
 
-internal sealed class X3 : BaseWeapon
+internal sealed class X3 : WeaponItemBase
 {
     public override string InheritorName => WeaponName.M4A1S;
 
     public override string DisplayName => "M4A1-S X3";
+    
+    public override string InternalName => "custom_equipment:x3";
     
     public override string SubclassName => "weapon_x3";
     

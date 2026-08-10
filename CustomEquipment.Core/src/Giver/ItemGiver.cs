@@ -1,68 +1,51 @@
-﻿using Common.Di;
-using CustomEquipment.Api;
-using CustomEquipment.Data.Equipments.Contracts;
-using CustomEquipment.Data.Equipments.Enums;
+﻿using CustomEquipment.Api.Data;
+using CustomEquipment.Api.Data.Contracts;
+using CustomEquipment.Api.Enums;
+using CustomEquipment.Api.Events;
+using CustomEquipment.Api.Exceptions;
 using CustomEquipment.Data.Equipments.Weapons;
-using CustomEquipment.Exceptions;
 using CustomEquipment.Mappers;
-using CustomEquipment.Services;
-using SwiftlyS2.Shared;
+using CustomEquipment.Registry;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace CustomEquipment.Giver;
 
-internal sealed class ItemGiver(IItemService itemService, IEventPublisher eventPublisher) : IItemGiver
+internal sealed class ItemGiver(
+    IItemRegistry itemRegistry, 
+    IEventPublisher eventPublisher
+) : IItemGiver
 {
     public TItem? GiveItem<TItem>(IPlayer player, GiveAction action = GiveAction.Drop) where TItem : class, IItem
     {
-        var item = CreateItem<TItem>();
+        var item = itemRegistry.Create<TItem>();
 
-        var givenItem = item switch
+        return GiveCreatedItem(player, item, action) as TItem;
+    }
+    
+    public WeaponItemBase? GiveWeapon(IPlayer player, string internalName, GiveAction action = GiveAction.Drop)
+    {
+        var item = itemRegistry.Create(internalName);
+
+        if (item is not WeaponItemBase weapon)
         {
-            BaseWeapon weapon => GiveWeapon(player, weapon, action) as TItem,
-            BaseGrenade grenade => GiveGrenade(player, grenade, action) as TItem,
-            _ => throw new ArgumentOutOfRangeException(nameof(TItem))
-        };
-        
-        if (givenItem != null) eventPublisher.OnItemGiven(player, givenItem);
+            throw new CannotCreateItemException($"Registered item '{internalName}' is not a weapon!");
+        }
 
-        return givenItem;
+        return GiveCreatedItem(player, weapon, action) as WeaponItemBase;
     }
 
-    public TWeapon? GiveWeapon<TWeapon>(IPlayer player, GiveAction action = GiveAction.Drop) where TWeapon : BaseWeapon
+    public TWeapon? GiveWeapon<TWeapon>(IPlayer player, GiveAction action = GiveAction.Drop) where TWeapon : WeaponItemBase
     {
-        var weapon = CreateItem<TWeapon>();
-        
-        return GiveWeaponInternal(player, weapon, action);
+        return GiveItem<TWeapon>(player, action);
     }
     
-    private TWeapon? GiveWeapon<TWeapon>(IPlayer player, TWeapon weapon, GiveAction action = GiveAction.Drop) where TWeapon : BaseWeapon
+    public TGrenade? GiveGrenade<TGrenade>(IPlayer player, GiveAction action = GiveAction.Drop) where TGrenade : GrenadeItemBase
     {
-        var givenWeapon = GiveWeaponInternal(player, weapon, action);
-        
-        if (givenWeapon != null) eventPublisher.OnWeaponGiven(player, givenWeapon);
-
-        return givenWeapon;
-    }
-    
-    public TGrenade? GiveGrenade<TGrenade>(IPlayer player, GiveAction action = GiveAction.Drop) where TGrenade : BaseGrenade
-    {
-        var grenade = CreateItem<TGrenade>();
-
-        return GiveGrenade(player, grenade, action);
-    }
-    
-    private TGrenade? GiveGrenade<TGrenade>(IPlayer player, TGrenade grenade, GiveAction action) where TGrenade : BaseGrenade
-    {
-        var givenGrenade = GiveGrenadeInternal(player, grenade, action);
-        
-        if (givenGrenade != null) eventPublisher.OnGrenadeGiven(player, givenGrenade);
-        
-        return givenGrenade;
+        return GiveItem<TGrenade>(player, action);
     }
 
-    private TGrenade? GiveGrenadeInternal<TGrenade>(IPlayer player, TGrenade grenade, GiveAction action = GiveAction.Drop) where TGrenade : BaseGrenade
+    private GrenadeItemBase? GiveGrenadeInternal(IPlayer player, GrenadeItemBase grenade, GiveAction action = GiveAction.Drop)
     {
         var pawn = player.RequiredPlayerPawn;
         var itemServices = pawn.ItemServices;
@@ -93,7 +76,7 @@ internal sealed class ItemGiver(IItemService itemService, IEventPublisher eventP
         return grenade;
     }
     
-    private TWeapon? GiveWeaponInternal<TWeapon>(IPlayer player, TWeapon weapon, GiveAction action) where TWeapon : BaseWeapon
+    private WeaponItemBase? GiveWeaponInternal(IPlayer player, WeaponItemBase weapon, GiveAction action)
     {
         var pawn = player.RequiredPlayerPawn;
         var itemServices = pawn.ItemServices;
@@ -125,16 +108,35 @@ internal sealed class ItemGiver(IItemService itemService, IEventPublisher eventP
 
         return weapon;
     }
-
-    private TItem CreateItem<TItem>() where TItem : IItem
+    
+    private IItem? GiveCreatedItem(IPlayer player, IItem item, GiveAction action)
     {
-        if (!itemService.HasRegistered<TItem>()) throw new NotRegisteredItemException();
+        ItemBase? givenItem = item switch
+        {
+            WeaponItemBase weapon => GiveWeaponInternal(player, weapon, action),
 
-        var allRegisteredWeapons = itemService.GetAllRegisteredItems();
-        var item = (TItem?)allRegisteredWeapons.FirstOrDefault(wp => wp is TItem)?.Clone() 
-                   ?? throw new CannotCreateItemException();
+            GrenadeItemBase grenade => GiveGrenadeInternal(player, grenade, action),
 
-        return item;
+            _ => throw new NotSupportedException($"Giving item type '{item.GetType().FullName}' is not supported.")
+        };
+
+        switch (givenItem)
+        {
+            case WeaponItemBase weapon:
+                eventPublisher.OnWeaponGiven(player, weapon);
+                break;
+
+            case GrenadeItemBase grenade:
+                eventPublisher.OnGrenadeGiven(player, grenade);
+                break;
+        }
+
+        if (givenItem is not null)
+        {
+            eventPublisher.OnItemGiven(player, givenItem);
+        }
+
+        return givenItem;
     }
     
     private string ResolveInheritorName(string inheritorName)

@@ -3,19 +3,21 @@ using Common.Effects;
 using Common.Effects.Effects;
 using Common.Effects.Effects.Settings;
 using Common.Math;
-using CustomEquipment.Data.Equipments.Contracts;
-using CustomEquipment.Data.Equipments.Enums;
+using CustomEquipment.Api.Data;
+using CustomEquipment.Api.Enums;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
 
 namespace CustomEquipment.Data.Equipments.Weapons.Grenades;
 
-public class ShakeNade : BaseGrenade
+public class ShakeNade : GrenadeItemBase
 {
     public override string InheritorName => WeaponName.Smoke;
 
     public override string DisplayName => "Shake Nade";
+    
+    public override string InternalName => "custom_equipment:shake_nade";
     
     public override Slot Slot => Slot.Grenade;
 

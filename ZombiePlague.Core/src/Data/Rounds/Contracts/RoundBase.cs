@@ -80,7 +80,7 @@ internal abstract class RoundBase(
 
     private void TryRequestRoundEnd()
     {
-        if (!_isRoundEnded)
+        if (_isRoundEnded)
         {
             return;
         }
@@ -105,8 +105,6 @@ internal abstract class RoundBase(
         _isRoundEnded = true;
 
         Core.Game.TerminateRound(reason, 5.0f);
-
-        End();
     }
 
     public HookResult HandlePlayerConnectedFull(EventPlayerConnectFull @event)

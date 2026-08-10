@@ -1,14 +1,17 @@
-﻿using CustomEquipment.Data.Equipments.Contracts;
-using CustomEquipment.Data.Equipments.Enums;
+﻿using CustomEquipment.Api.Data;
+using CustomEquipment.Api.Data.Models;
+using CustomEquipment.Api.Enums;
 using CustomEquipment.Data.Equipments.Models;
 
 namespace CustomEquipment.Data.Equipments.Weapons.Guns;
 
-internal sealed class Omega : BaseWeapon
+internal sealed class Omega : WeaponItemBase
 {
     public override string InheritorName => WeaponName.Xm1014;
     
     public override string DisplayName => "Omega Shotgun";
+    
+    public override string InternalName => "custom_equipment:omega";
     
     public override string SubclassName => "weapon_omega";
 

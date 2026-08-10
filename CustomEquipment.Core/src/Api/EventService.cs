@@ -1,11 +1,13 @@
-﻿using CustomEquipment.Data.Equipments.Contracts;
+﻿using CustomEquipment.Api.Data;
+using CustomEquipment.Api.Data.Contracts;
+using CustomEquipment.Api.Events;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace CustomEquipment.Api;
 
-public class EventService : IEventSubscriber, IEventPublisher
+internal class EventService : IEventSubscriber, IEventPublisher
 {
     public event EventDelegates.OnItemGiven? OnItemGiven;
     public event EventDelegates.OnGrenadeGiven? OnGrenadeGiven;
