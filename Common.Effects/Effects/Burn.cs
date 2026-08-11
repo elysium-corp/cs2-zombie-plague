@@ -54,7 +54,7 @@ public sealed class Burn(ISwiftlyCore core, Action<IEffect> callback, IPlayer? c
         return (int)(Target.PlayerPawn!.MaxHealth * (percent / 100));
     }
 
-    public override void CreateParticle()
+    protected override void CreateParticle()
     {
         var playerPawn = Target.PlayerPawn;
         if (playerPawn == null)
@@ -72,7 +72,7 @@ public sealed class Burn(ISwiftlyCore core, Action<IEffect> callback, IPlayer? c
         Particle.AcceptInput("SetParentAttachment", "knife", playerPawn);
     }
 
-    public override void DestroyParticle()
+    protected override void DestroyParticle()
     {
         if (Particle != null && Particle.IsValidEntity)
         {
