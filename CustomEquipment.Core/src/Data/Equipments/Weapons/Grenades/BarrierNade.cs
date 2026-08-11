@@ -2,6 +2,7 @@
 using Common.Math;
 using CustomEquipment.Api.Data;
 using CustomEquipment.Api.Enums;
+using CustomEquipment.Utils;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
@@ -25,6 +26,10 @@ public class BarrierNade : GrenadeItemBase
 
     private const string BarrierParticleName = "particles/barrier_nade.vpcf";
 
+    private const string KnockSound = "ZombiePlague.barrier_impact";
+    
+    private const string EnvironmentSound = "ZombiePlague.barrier_environment";
+
     private const float BarrierRadius = 175.0f;
 
     private const float BarrierDuration = 15.0f;
@@ -45,7 +50,9 @@ public class BarrierNade : GrenadeItemBase
         particle.EffectName = BarrierParticleName;
         particle.Teleport(position, null, null);
         particle.DispatchSpawn();
-
+        
+        SoundExt.PlayInPlace(particle, EnvironmentSound, position, 0.65f);
+        
         CreateBarrierHandler(core, position, particle);
     }
 
@@ -115,5 +122,7 @@ public class BarrierNade : GrenadeItemBase
         pawn.GroundEntity.Value = null;
 
         pawn.Teleport(origin, pawn.EyeAngles, newVelocity);
+
+        SoundExt.PlayAt(player, KnockSound, 1);
     }
 }
