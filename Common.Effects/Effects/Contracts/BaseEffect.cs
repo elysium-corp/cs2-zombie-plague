@@ -95,11 +95,11 @@ public abstract class BaseEffect(ISwiftlyCore core, Action<IEffect> callback, IP
     {
     }
 
-    public virtual void DestroyParticle()
+    protected virtual void DestroyParticle()
     {
     }
 
-    public virtual void CreateParticle()
+    protected virtual void CreateParticle()
     {
     }
 }
