@@ -1,11 +1,12 @@
 ﻿using CustomEquipment.Api.Data;
+using CustomEquipment.Api.Data.Contracts;
 using CustomEquipment.Api.Data.Models;
 using CustomEquipment.Api.Enums;
 using CustomEquipment.Data.Equipments.Models;
 
 namespace CustomEquipment.Data.Equipments.Weapons.Guns;
 
-internal sealed class ReactorLeak : WeaponItemBase
+internal sealed class ReactorLeak : WeaponItemBase, IShopItem
 {
     public override string InheritorName => WeaponName.Ump45;
     
@@ -36,4 +37,8 @@ internal sealed class ReactorLeak : WeaponItemBase
     {
         CycleTime = [0.15f, 1.0f],
     };
+    
+    public int Price => 2_500;
+
+    public ItemRarity Rarity => ItemRarity.Uncommon;
 }

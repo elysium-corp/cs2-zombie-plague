@@ -1,5 +1,7 @@
 {
-  "Menu.Equipment.Title": "Select equipment",
+  "Menu.Main.Item.Equipment.Title": "Equipment Shop",
+
+  "Menu.Equipment.Title": "Equipment",
 
   "Menu.Equipment.Category.Pistol": "Pistols",
   "Menu.Equipment.Category.SubmachineGun": "Submachine Guns",

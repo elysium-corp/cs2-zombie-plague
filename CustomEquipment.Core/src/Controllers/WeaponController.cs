@@ -1,5 +1,4 @@
-﻿using CustomEquipment.Api;
-using CustomEquipment.Api.Data;
+﻿using CustomEquipment.Api.Data;
 using CustomEquipment.Api.Data.Contracts;
 using CustomEquipment.Api.Enums;
 using CustomEquipment.Api.Events;

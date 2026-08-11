@@ -1,12 +1,12 @@
 ﻿using CustomEquipment.Api.Data;
+using CustomEquipment.Api.Data.Contracts;
 using CustomEquipment.Api.Data.Models;
 using CustomEquipment.Api.Enums;
 using CustomEquipment.Data.Equipments.Models;
-using CustomEquipment.Data.Equipments.Particle;
 
 namespace CustomEquipment.Data.Equipments.Weapons.Guns;
 
-internal sealed class Frostbyte : WeaponItemBase
+internal sealed class Frostbyte : WeaponItemBase, IShopItem
 {
     public override string InheritorName => WeaponName.Mp7;
 
@@ -46,4 +46,8 @@ internal sealed class Frostbyte : WeaponItemBase
     {
         CycleTime = [0.2f, 1.0f],
     };
+    
+    public int Price => 3_00;
+
+    public ItemRarity Rarity => ItemRarity.Uncommon;
 }

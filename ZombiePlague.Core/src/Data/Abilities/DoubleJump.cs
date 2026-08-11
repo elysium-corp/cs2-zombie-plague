@@ -22,6 +22,7 @@ internal sealed class DoubleJump(
     public override void Hook()
     {
         if (!IsEnabled) return;
+        
         if (Caster.IsFakeClient) return;
 
         base.Hook();

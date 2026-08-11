@@ -1,4 +1,5 @@
 ﻿using CustomEquipment.Api.Data;
+using CustomEquipment.Api.Data.Contracts;
 using CustomEquipment.Api.Data.Models;
 using CustomEquipment.Api.Enums;
 using CustomEquipment.Data.Equipments.Models;
@@ -6,7 +7,7 @@ using CustomEquipment.Data.Equipments.Particle;
 
 namespace CustomEquipment.Data.Equipments.Weapons.Guns;
 
-internal sealed class Elite : WeaponItemBase
+internal sealed class Elite : WeaponItemBase, IShopItem
 {
     public override string InheritorName => WeaponName.Ssg08;
 
@@ -50,4 +51,8 @@ internal sealed class Elite : WeaponItemBase
     {
         CycleTime = [0.2f, 1.0f],
     };
+
+    public int Price => 10_000;
+
+    public ItemRarity Rarity => ItemRarity.Uncommon;
 }

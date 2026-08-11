@@ -1,11 +1,12 @@
 ﻿using CustomEquipment.Api.Data;
+using CustomEquipment.Api.Data.Contracts;
 using CustomEquipment.Api.Data.Models;
 using CustomEquipment.Api.Enums;
 using CustomEquipment.Data.Equipments.Models;
 
 namespace CustomEquipment.Data.Equipments.Weapons.Guns;
 
-internal sealed class Omega : WeaponItemBase
+internal sealed class Omega : WeaponItemBase, IShopItem
 {
     public override string InheritorName => WeaponName.Xm1014;
     
@@ -49,4 +50,8 @@ internal sealed class Omega : WeaponItemBase
     {
         CycleTime = [0.8f, 1.0f],
     };
+    
+    public int Price => 5_000;
+
+    public ItemRarity Rarity => ItemRarity.Uncommon;
 }

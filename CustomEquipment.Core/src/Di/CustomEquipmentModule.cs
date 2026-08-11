@@ -1,10 +1,12 @@
 ﻿using Common.Di;
+using Common.Di.Utils;
 using CustomEquipment.Api;
 using CustomEquipment.Api.Data;
 using CustomEquipment.Api.Data.Contracts;
 using CustomEquipment.Api.Events;
 using CustomEquipment.Api.Registration;
 using CustomEquipment.Controllers;
+using CustomEquipment.Data.Catalog;
 using CustomEquipment.Fetcher;
 using CustomEquipment.Fetcher.Analyzers;
 using CustomEquipment.Giver;
@@ -12,6 +14,7 @@ using CustomEquipment.Menus;
 using CustomEquipment.Registry;
 using CustomEquipment.Services;
 using Microsoft.Extensions.DependencyInjection;
+using Economy.Api;
 using SwiftlyS2.Shared;
 
 namespace CustomEquipment.Di;
@@ -23,12 +26,15 @@ internal sealed class CustomEquipmentModule(ISwiftlyCore core) : BaseModule(core
         var service = new ServiceCollection();
 
         service.AddSwiftly(core); 
+        
+        service.AddSharedInterface<IEconomyApi>();
 
         AddSingleton<IEquipmentFetcher>(service, OnWeaponRegistratorFactory);
         AddSingleton<IEquipmentService, EquipmentService>(service);
         AddSingleton<IParticleService, ParticleService>(service);
         AddSingleton<IWeaponController, WeaponController>(service);
         AddSingleton<IParticleController, ParticleController>(service);
+        AddSingleton<IEquipmentShopCatalog, EquipmentShopCatalog>(service);
         AddSingleton<IItemGiver, ItemGiver>(service);
         AddSingleton<ItemRegistry>(service);
         AddSingleton<IItemRegistry>(service, provider => provider.GetRequiredService<ItemRegistry>());
