@@ -34,16 +34,13 @@ internal sealed partial class Economy(ISwiftlyCore core) : Plugin<EconomyModule>
 
     private IZombiePlagueApi _zombiePlagueApi = null!;
 
-    private readonly Lazy<EconomyDatabaseInitializer> _economyDatabaseInitializer =
-        GetRequiredServiceLazy<EconomyDatabaseInitializer>();
-
+    private readonly Lazy<EconomyDatabaseInitializer> _economyDatabaseInitializer = GetRequiredServiceLazy<EconomyDatabaseInitializer>();
+    
     private readonly Lazy<IEconomyService> _economyServiceLazy = GetRequiredServiceLazy<IEconomyService>();
     private readonly Lazy<IOptions<EconomyConfig>> _config = GetRequiredServiceLazy<IOptions<EconomyConfig>>();
-
-    private readonly Lazy<IAccountPersistenceService> _accountPersistenceService =
-        GetRequiredServiceLazy<IAccountPersistenceService>();
-
-
+    private readonly Lazy<IAccountPersistenceService> _accountPersistenceService = GetRequiredServiceLazy<IAccountPersistenceService>();
+    
+    
     protected override void OnSharedInterfacesInjected(IInterfaceManager interfaceManager)
     {
         _zombiePlagueApi = interfaceManager.GetSharedInterface<IZombiePlagueApi>(IZombiePlagueApi.SharedApiKey);
@@ -167,6 +164,11 @@ internal sealed partial class Economy(ISwiftlyCore core) : Plugin<EconomyModule>
 
     private HookResult OnRoundPoststart(EventRoundPoststart @event)
     {
+        if (_balancesBeforeRestart.Count == 0)
+        {
+            return HookResult.Continue;
+        }
+
         var balances = _balancesBeforeRestart.ToArray();
         _balancesBeforeRestart.Clear();
 
