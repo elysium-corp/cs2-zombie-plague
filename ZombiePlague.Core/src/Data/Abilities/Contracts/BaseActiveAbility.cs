@@ -1,5 +1,6 @@
 ﻿using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Events;
+using SwiftlyS2.Shared.GameHooks;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
 using ZombiePlague.Core.Config.Ability;
@@ -67,7 +68,16 @@ internal abstract class BaseActiveAbility(ISwiftlyCore core, IAbilityConfig conf
             return;
         }
 
-        core.Event.OnClientKeyStateChanged += OnClientKeyStateChanged;
+
+        if (Key == null)
+        {
+            core.GameHooks.Movement.RunCommand.Pre += OnRunCommand;
+        }
+        else
+        {
+            core.Event.OnClientKeyStateChanged += OnClientKeyStateChanged;
+        }
+
         _isHooked = true;
     }
 
@@ -75,7 +85,15 @@ internal abstract class BaseActiveAbility(ISwiftlyCore core, IAbilityConfig conf
     {
         if (_isHooked)
         {
-            core.Event.OnClientKeyStateChanged -= OnClientKeyStateChanged;
+            if (Key == null)
+            {
+                core.GameHooks.Movement.RunCommand.Pre -= OnRunCommand;
+            }
+            else
+            {
+                core.Event.OnClientKeyStateChanged -= OnClientKeyStateChanged;
+            }
+
             _isHooked = false;
         }
 
@@ -94,7 +112,20 @@ internal abstract class BaseActiveAbility(ISwiftlyCore core, IAbilityConfig conf
         }
     }
 
+    private void OnRunCommand(ref RunCommandMovementPreContext context)
+    {
+        if (context.Params.Player.PlayerID == Caster.PlayerID)
+        {
+            OnRunCommandHandler(ref context);
+        }
+    }
+
     protected virtual void OnClientButtonClickHandler(int playerId, KeyKind key, bool pressed)
+    {
+        TryUse();
+    }
+
+    protected virtual void OnRunCommandHandler(ref RunCommandMovementPreContext context)
     {
         TryUse();
     }

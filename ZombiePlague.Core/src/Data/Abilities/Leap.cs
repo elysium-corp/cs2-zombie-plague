@@ -1,5 +1,6 @@
 ﻿using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Events;
+using SwiftlyS2.Shared.GameHooks;
 using ZombiePlague.Core.Config.Ability;
 using ZombiePlague.Core.Data.Abilities.Contracts;
 using ZombiePlague.Core.Utils;
@@ -8,9 +9,11 @@ namespace ZombiePlague.Core.Data.Abilities;
 
 internal class Leap(ISwiftlyCore core, LeapConfig config) : BaseActiveAbility(core, config)
 {
-    public override KeyKind? Key => KeyKind.Ctrl;
+    public override KeyKind? Key => null;
     public override float Cooldown => config.CooldownTime;
     public override bool IsCooldownNotify => false;
+
+    private const float MinScale = 1.9f;
 
     public override void Use()
     {
@@ -19,7 +22,7 @@ internal class Leap(ISwiftlyCore core, LeapConfig config) : BaseActiveAbility(co
         var forward = MathAlgorithm.ForwardFromAngles(viewAngles);
 
         var leapVelocity = forward * config.LeapDistance;
-        var leapScale = Math.Min(1.9f, 1 / casterPawn.GravityScale);
+        var leapScale = Math.Min(MinScale, 1 / casterPawn.GravityScale);
         leapVelocity.Z = config.LeapBoost * leapScale;
 
         Caster.Teleport(casterPawn.AbsOrigin, viewAngles, leapVelocity);
@@ -29,21 +32,22 @@ internal class Leap(ISwiftlyCore core, LeapConfig config) : BaseActiveAbility(co
 
     protected override bool CanUse()
     {
-        if (!Caster.IsValid || !Caster.IsAlive)
-        {
-            return false;
-        }
+        return Caster.IsValid && Caster.IsAlive;
+    }
 
-        if (Caster.PlayerPawn is not { } pawn || pawn.MovementServices is not { } movement)
-        {
-            return false;
-        }
-        
-        if ((movement.Buttons.ButtonPressed & GameButtonFlags.Space) == 0)
-        {
-            return false;
-        }
+    protected override void OnRunCommandHandler(ref RunCommandMovementPreContext context)
+    {
+        var playerPawn = Caster.PlayerPawn;
 
-        return true;
+        if (playerPawn == null || !playerPawn.IsValid) return;
+
+        var userCmd = context.Params.UserCmd;
+
+        if ((userCmd.ButtonState.ButtonPressed & GameButtonFlags.Space) != 0 &&
+            (userCmd.ButtonState.ButtonPressed & GameButtonFlags.Ctrl) != 0 &&
+            playerPawn.GroundEntity.IsValid)
+        {
+            base.OnRunCommandHandler(ref context);
+        }
     }
 }
