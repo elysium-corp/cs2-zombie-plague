@@ -208,16 +208,42 @@ internal sealed class KnifeService(
         return playerKnife!;
     }
 
-    private void SelectKnifeInNexWorldUpdate(IPlayer player, CBasePlayerWeapon knife)
+    private void SelectKnifeOnNextWorldUpdate(IPlayer player, CBasePlayerWeapon? knife)
     {
+        if (!player.IsValid || knife is null || !knife.IsValid)
+        {
+            return;
+        }
+
+        var sessionId = player.SessionId;
+
         core.Scheduler.NextWorldUpdate(() =>
         {
-            if (!player.IsValid)
+            var currentPlayer = core.PlayerManager.GetPlayerFromSessionId(sessionId);
+
+            if (currentPlayer is null || !currentPlayer.IsValid || !currentPlayer.IsAlive || !knife.IsValid)
             {
                 return;
             }
 
-            player.PlayerPawn?.WeaponServices?.SelectWeapon(knife);
+            var weaponServices = currentPlayer.PlayerPawn?.WeaponServices;
+            if (weaponServices is null)
+            {
+                return;
+            }
+
+            // Повторно проверяем, что нож существует
+            // и действительно находится у этого игрока.
+            var currentKnife = weaponServices
+                .MyValidWeapons
+                .FirstOrDefault(weapon => weapon.Address == knife.Address);
+
+            if (currentKnife is null)
+            {
+                return;
+            }
+
+            weaponServices.SelectWeapon(currentKnife);
         });
     }
 
@@ -249,7 +275,7 @@ internal sealed class KnifeService(
             var knife = GetKnife(player);
             var newKnife = ModifyKnife(player, knife);
 
-            SelectKnifeInNexWorldUpdate(player, newKnife);
+            SelectKnifeOnNextWorldUpdate(player, newKnife);
         });
     }
 }

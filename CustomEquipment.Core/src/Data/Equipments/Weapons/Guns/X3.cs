@@ -1,11 +1,12 @@
 ﻿using CustomEquipment.Api.Data;
+using CustomEquipment.Api.Data.Contracts;
 using CustomEquipment.Api.Data.Models;
 using CustomEquipment.Api.Enums;
 using CustomEquipment.Data.Equipments.Models;
 
 namespace CustomEquipment.Data.Equipments.Weapons.Guns;
 
-internal sealed class X3 : WeaponItemBase
+internal sealed class X3 : WeaponItemBase, IShopItem
 {
     public override string InheritorName => WeaponName.M4A1S;
 
@@ -41,4 +42,8 @@ internal sealed class X3 : WeaponItemBase
         Clip = 150,
         ReserveAmmo = 15
     };
+    
+    public int Price => 7_000;
+
+    public ItemRarity Rarity => ItemRarity.Uncommon;
 }

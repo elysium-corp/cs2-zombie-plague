@@ -16,7 +16,8 @@
 
     <!-- Папка output создаётся только для Core -->
     <PropertyGroup Condition="'$(IsCoreProject)' == 'True'">
-        <OutDir>$(MSBuildThisFileDirectory)output\$(MSBuildProjectName)\</OutDir>
+        <OutputPath>$(MSBuildThisFileDirectory)output\$(MSBuildProjectName)\</OutputPath>
+        <OutDir>$(OutputPath)</OutDir>
     </PropertyGroup>
 
     <ItemDefinitionGroup>

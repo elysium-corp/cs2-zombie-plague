@@ -1,6 +1,6 @@
-﻿namespace MoneySystem.Core.Data.Configs;
+﻿namespace Economy.Core.Data.Configs;
 
-internal sealed class MoneySystemConfig
+internal sealed class EconomyConfig
 {
     // - максимальное количество денег
     public int MaxMoney => 100_000;

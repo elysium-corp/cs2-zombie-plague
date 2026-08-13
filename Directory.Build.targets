@@ -33,6 +33,9 @@
             <FilesToKeep Include="$(OutDir)$(TargetName).deps.json" />
             <FilesToKeep Include="$(OutDir)**\$(TargetName).resources.dll" />
             <FilesToKeep Include="$(OutDir)resources\**\*" />
+            <FilesToKeep Include="@(ReferenceCopyLocalPaths->'$(OutDir)%(DestinationSubDirectory)%(Filename)%(Extension)')" />
+            <FilesToKeep Include="$(OutDir)runtimes\**\*" />
+            <FilesToKeep Include="$(TargetDir)$(TargetName).runtimeconfig.json" Condition="Exists('$(TargetDir)$(TargetName).runtimeconfig.json')"/>
         </ItemGroup>
 
         <ItemGroup>
@@ -41,8 +44,6 @@
         </ItemGroup>
 
         <Delete Files="@(FilesToDelete)" />
-        <RemoveDir Directories="$(OutDir)runtimes"
-                   Condition="Exists('$(OutDir)runtimes')" />
     </Target>
 
     <!-- Для обычного Core: копируем только соответствующий Api -->

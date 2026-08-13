@@ -1,5 +1,7 @@
 {
-  "Menu.Equipment.Title": "Выбор экипировки",
+  "Menu.Main.Item.Equipment.Title": "Магазин снаряжения",
+  
+  "Menu.Equipment.Title": "Снаряжение",
   
   "Menu.Equipment.Category.Pistol": "Пистолеты",
   "Menu.Equipment.Category.SubmachineGun": "Пистолеты-пулемёты",

@@ -5,13 +5,13 @@ VisualStudioVersion = 18.3.11312.210 d18.3
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZombiePlague.Api", "ZombiePlague.Api\ZombiePlague.Api.csproj", "{68147316-F4BB-4DCC-B3A2-FCAE0B9E8B3D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoneySystem.Core", "MoneySystem.Core\MoneySystem.Core.csproj", "{31DCDAB9-5EDF-4C7E-B7E5-5FA02D773F85}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Economy.Core", "Economy.Core\Economy.Core.csproj", "{31DCDAB9-5EDF-4C7E-B7E5-5FA02D773F85}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZombiePlague.Core", "ZombiePlague.Core\ZombiePlague.Core.csproj", "{5284465A-77EE-4D74-8C4C-51EDABBFFC7E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.Di", "Common.Di\Common.Di.csproj", "{D3AFF91C-6556-4783-AEAF-9B21A4EE2D76}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoneySystem.Api", "MoneySystem.Api\MoneySystem.Api.csproj", "{6296B5E4-E4DC-4B85-9089-C21DEF305FC0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Economy.Api", "Economy.Api\Economy.Api.csproj", "{6296B5E4-E4DC-4B85-9089-C21DEF305FC0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DamageNotify.Core", "DamageNotify.Core\DamageNotify.Core.csproj", "{46B0A7F4-5314-4D03-813C-61E6BE6AADD2}"
 EndProject

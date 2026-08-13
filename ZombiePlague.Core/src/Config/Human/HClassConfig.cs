@@ -17,7 +17,7 @@ public class HumanMercenary : IHClassConfig
     public int Armor { get; set; } = 0;
     public float Speed { get; set; } = 250f;
     public int Gravity { get; set; } = 800;
-    public List<string> Abilities { get; set; } = [];
+    public List<string> Abilities { get; set; } = ["double_jump"];
 }
 
 public class HumanSurvivor : IHClassConfig
