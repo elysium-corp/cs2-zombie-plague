@@ -10,6 +10,7 @@ internal sealed class CoreCoordinator(
     IRoundService roundService,
     IInfectionService infectionService,
     IKnockbackService knockbackService,
+    IMapService mapService,
     IRoundRegistrator roundRegistrator,
     IZClassRegistrator zClassRegistrator,
     ICommandService commandService
@@ -17,6 +18,7 @@ internal sealed class CoreCoordinator(
 {
     public void Start()
     {
+        mapService.Register();
         roundRegistrator.Register();
         zClassRegistrator.Register();
         playerService.Register();
@@ -28,6 +30,7 @@ internal sealed class CoreCoordinator(
 
     public void Stop()
     {
+        mapService.Unregister();
         knockbackService.Unregister();
         infectionService.Unregister();
         roundService.Unregister();

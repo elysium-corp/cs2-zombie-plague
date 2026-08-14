@@ -2,6 +2,7 @@
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.GameHooks;
 using SwiftlyS2.Shared.Misc;
+using SwiftlyS2.Shared.SchemaDefinitions;
 using ZombiePlague.Core.Data.Managers.Contracts;
 using ZombiePlague.Core.Data.Service.Contracts;
 using ZombiePlague.Core.Utils.Extensions;
@@ -13,14 +14,14 @@ internal interface IRoundService : IService;
 internal sealed class RoundService(ISwiftlyCore core, IRoundManager roundManager) : IRoundService
 {
     private bool _isRoundEnded;
-    
+
     private Guid _roundStartHook = Guid.Empty;
     private Guid _roundEndHook = Guid.Empty;
     private Guid _gameRestartHook = Guid.Empty;
     private Guid _playerConnectHook = Guid.Empty;
     private Guid _playerDeathHook = Guid.Empty;
     private Guid _playerDisconnectHook = Guid.Empty;
-    
+
     public void Register()
     {
         _roundStartHook = core.GameEvent.HookPost<EventRoundStart>(OnRoundStart);
@@ -32,8 +33,8 @@ internal sealed class RoundService(ISwiftlyCore core, IRoundManager roundManager
 
         core.GameHooks.Entities.TakeDamage.Pre += OnTakeDamage;
     }
- 
-    public void Unregister() 
+
+    public void Unregister()
     {
         core.GameEvent.Unhook(_roundStartHook);
         core.GameEvent.Unhook(_roundEndHook);
@@ -44,37 +45,39 @@ internal sealed class RoundService(ISwiftlyCore core, IRoundManager roundManager
 
         core.GameHooks.Entities.TakeDamage.Pre -= OnTakeDamage;
     }
-    
+
     private HookResult OnRoundStart(EventRoundStart @event)
     {
         _isRoundEnded = false;
-        
+
+        core.Scheduler.NextWorldUpdate(RemoveAllWeapons);
+
         roundManager.Prepare();
 
         return HookResult.Continue;
     }
-    
+
     private HookResult OnRoundEnd(EventRoundEnd @event)
     {
         _isRoundEnded = true;
-        
+
         roundManager.End();
 
         return HookResult.Continue;
     }
-    
+
     private HookResult OnGameRestart(EventCsPreRestart @event)
     {
         roundManager.End();
 
         return HookResult.Continue;
     }
-    
+
     private HookResult OnPlayerConnected(EventPlayerConnectFull @event)
     {
         return roundManager.OnPlayerConnected(@event);
     }
-    
+
     private HookResult OnPlayerDeath(EventPlayerDeath @event)
     {
         return roundManager.OnPlayerDeath(@event);
@@ -84,21 +87,34 @@ internal sealed class RoundService(ISwiftlyCore core, IRoundManager roundManager
     {
         return roundManager.OnPlayerDisconnect(@event);
     }
-    
+
     private void OnTakeDamage(ref TakeDamageEntityPreContext context)
     {
         if (_isRoundEnded)
         {
             var victim = context.Params.Entity.Address.FindPlayerByPawnAddress();
             if (victim is not { IsValid: true }) return;
-            
+
             var attacker = context.Params.Info.Attacker.ResolvePlayerFromHandle();
             if (attacker is not { IsValid: true }) return;
-            
+
             context.Params.Info.Damage = 0;
             context.SetHookResult(HookResult.CancelOriginal);
         }
-        
+
         roundManager.OnTakeDamage(ref context);
+    }
+
+    private void RemoveAllWeapons()
+    {
+        var weapons = core.EntitySystem
+            .GetAllEntitiesByClass<CBasePlayerWeapon>()
+            .Where(x => x.IsValidEntity && !x.OwnerEntity.IsValid)
+            .ToList();
+
+        foreach (var weapon in weapons)
+        {
+            weapon.Despawn();
+        }
     }
 }
