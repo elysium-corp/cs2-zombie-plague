@@ -1,4 +1,4 @@
-﻿using SwiftlyS2.Shared;
+using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Misc;
@@ -9,10 +9,11 @@ namespace ZombiePlague.Core.Data.Service;
 
 internal interface IPlayerService : IService;
 
-internal class PlayerService(
+internal sealed class PlayerService(
     ISwiftlyCore core,
     IPlayerManager playerManager,
-    IRoundManager roundManager
+    IRoundManager roundManager,
+    PlayerPreferencesCoordinator playerPreferencesCoordinator
 ) : IPlayerService
 {
     private Guid _playerConnectGuid = Guid.Empty;
@@ -20,18 +21,18 @@ internal class PlayerService(
     private Guid _playerDeathGuid = Guid.Empty;
     private Guid _playerDisconnectGuid = Guid.Empty;
     private Guid _playerTeamGuid = Guid.Empty;
-    
+
     public void Register()
     {
         _playerConnectGuid = core.GameEvent.HookPre<EventPlayerConnectFull>(OnPlayerConnectFull);
         _playerSpawnGuid = core.GameEvent.HookPost<EventPlayerSpawn>(OnPlayerSpawn);
         _playerDeathGuid = core.GameEvent.HookPost<EventPlayerDeath>(OnPlayerDeath);
-        _playerDisconnectGuid = core.GameEvent.HookPost<EventPlayerDisconnect>(OnPlayerDisconnect);
+        _playerDisconnectGuid = core.GameEvent.HookPre<EventPlayerDisconnect>(OnPlayerDisconnect);
         _playerTeamGuid = core.GameEvent.HookPost<EventPlayerTeam>(OnPlayerTeam);
-        
+
         core.Event.OnClientPutInServer += OnClientPutInServer;
     }
- 
+
     public void Unregister()
     {
         core.GameEvent.Unhook(_playerConnectGuid);
@@ -39,12 +40,13 @@ internal class PlayerService(
         core.GameEvent.Unhook(_playerDeathGuid);
         core.GameEvent.Unhook(_playerDisconnectGuid);
         core.GameEvent.Unhook(_playerTeamGuid);
-        
+
         core.Event.OnClientPutInServer -= OnClientPutInServer;
 
+        playerPreferencesCoordinator.SaveAllAndWait();
         playerManager.Clear();
     }
-    
+
     private void OnClientPutInServer(IOnClientPutInServerEvent @event)
     {
         if (@event.Kind != ClientKind.Bot)
@@ -53,25 +55,29 @@ internal class PlayerService(
         }
 
         var bot = core.PlayerManager.GetPlayer(@event.PlayerId);
-        
+
         if (bot != null)
         {
             playerManager.TrySetHuman(bot);
         }
     }
-    
-    // - хук специально использует Pre, чтобы другие хуки могли продолжить работу в Post и не было колизий 
+
+    // Pre используется специально: следующие Post-хуки увидят уже созданную роль игрока.
     private HookResult OnPlayerConnectFull(EventPlayerConnectFull @event)
     {
         var player = @event.UserIdPlayer;
 
-        if (player?.IsValid != true) return HookResult.Continue;
+        if (player?.IsValid != true)
+        {
+            return HookResult.Continue;
+        }
 
+        playerPreferencesCoordinator.Initialize(player);
         playerManager.TrySetHuman(player);
 
         return HookResult.Continue;
     }
-    
+
     private HookResult OnPlayerSpawn(EventPlayerSpawn @event)
     {
         var player = @event.UserIdPlayer;
@@ -85,15 +91,17 @@ internal class PlayerService(
 
         return HookResult.Continue;
     }
-    
+
     private HookResult OnPlayerDeath(EventPlayerDeath @event)
     {
         var player = @event.UserIdPlayer;
 
-        if (player is null) return HookResult.Continue;
+        if (player is null)
+        {
+            return HookResult.Continue;
+        }
 
-        // Позволяем другим обработчикам смерти, например
-        // ZombieSoundController, завершить свою работу.
+        // Позволяем другим обработчикам смерти завершить работу до снятия роли.
         core.Scheduler.NextWorldUpdate(() =>
         {
             if (player.IsValid)
@@ -109,11 +117,12 @@ internal class PlayerService(
     {
         var player = @event.UserIdPlayer;
 
-        if (player == null)
+        if (player is null)
         {
             return HookResult.Continue;
         }
-        
+
+        playerPreferencesCoordinator.SaveAndRemove(player);
         playerManager.Remove(player);
 
         return HookResult.Continue;

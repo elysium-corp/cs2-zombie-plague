@@ -1,5 +1,7 @@
-﻿using Common.Di;
+using Common.Di;
 using Menu.Api.Extensions;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using SwiftlyS2.Shared;
 using ZombiePlague.Api.Data.Store;
@@ -25,6 +27,7 @@ using ZombiePlague.Core.Data.Rounds.Contracts;
 using ZombiePlague.Core.Data.Rounds.Registrator;
 using ZombiePlague.Core.Data.Service;
 using ZombiePlague.Core.Data.Service.Contracts;
+using ZombiePlague.Core.Database;
 using ZombiePlague.Core.Menus;
 using ZombiePlague.Core.Store;
 using ZombiePlague.Core.Store.Contracts;
@@ -34,6 +37,8 @@ namespace ZombiePlague.Core.Di;
 
 public sealed class ZombiePlagueModule(ISwiftlyCore core) : BaseModule(core)
 {
+    private const string DatabaseConnectionName = "elysium_zp_server_1";
+
     public override (ServiceProvider, ServiceCollection) GetProvider()
     {
         var service = new ServiceCollection();
@@ -42,6 +47,7 @@ public sealed class ZombiePlagueModule(ISwiftlyCore core) : BaseModule(core)
 
         BuildConfigs(service);
         BuildSingletons(service);
+        AddDatabase(service);
 
         var provider = service.BuildServiceProvider(new ServiceProviderOptions
         {
@@ -93,6 +99,8 @@ public sealed class ZombiePlagueModule(ISwiftlyCore core) : BaseModule(core)
         AddSingleton<IKeyValueStore, InMemoryKeyValueStore>(service);
         AddSingleton<IPlayerStore, PlayerStore>(service);
         AddSingleton<IPlayerRepository, PlayerRepository>(service);
+        AddSingleton<IPlayerPersistenceService, PlayerPersistenceService>(service);
+        AddSingleton<PlayerPreferencesCoordinator>(service);
 
         AddSingleton<IAbilityFactory, AbilityFactory>(service);
         AddSingleton<IHClassFactory, HClassFactory>(service);
@@ -114,12 +122,41 @@ public sealed class ZombiePlagueModule(ISwiftlyCore core) : BaseModule(core)
         AddSingleton<IKnockbackService, KnockbackService>(service);
         AddSingleton<ICommandService, CommandService>(service);
         AddSingleton<ICoreCoordinator, CoreCoordinator>(service);
-        
+
         AddSingleton<MenuExtensionDispatcherProxy>(service);
-        AddSingleton<IMenuExtensionDispatcher>(service, provider => provider.GetRequiredService<MenuExtensionDispatcherProxy>());
+        AddSingleton<IMenuExtensionDispatcher>(
+            service,
+            provider => provider.GetRequiredService<MenuExtensionDispatcherProxy>()
+        );
         AddSingleton<MainMenu>(service);
         AddSingleton<ZClassMenu>(service);
 
         AddSingleton<ZombiePlagueApi>(service);
+    }
+
+    private void AddDatabase(ServiceCollection service)
+    {
+        var connectionProvider = new DatabaseConnectionProvider(core);
+        var connectionString = connectionProvider.GetPostgreSqlConnectionString(DatabaseConnectionName);
+
+        service.AddDbContextFactory<ZombiePlagueDbContext>(options =>
+        {
+            options
+                .UseNpgsql(
+                    connectionString,
+                    npgsqlOptions =>
+                    {
+                        npgsqlOptions.CommandTimeout(10);
+                        npgsqlOptions.MigrationsHistoryTable(
+                            "__ef_migrations_history",
+                            ZombiePlagueDbContext.SchemaName
+                        );
+                    }
+                )
+                .ConfigureWarnings(warnings =>
+                {
+                    warnings.Ignore(RelationalEventId.CommandExecuted);
+                });
+        });
     }
 }
