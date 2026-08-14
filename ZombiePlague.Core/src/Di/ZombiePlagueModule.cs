@@ -108,6 +108,7 @@ public sealed class ZombiePlagueModule(ISwiftlyCore core) : BaseModule(core)
         AddSingleton<IZClassRegistrator, ZClassRegistrator>(service);
 
         AddSingleton<IPlayerService, PlayerService>(service);
+        AddSingleton<IMapService, MapService>(service);
         AddSingleton<IRoundService, RoundService>(service);
         AddSingleton<IInfectionService, InfectionService>(service);
         AddSingleton<IKnockbackService, KnockbackService>(service);
