@@ -58,4 +58,22 @@ public static class SoundExt
         sound.Recipients.AddAllPlayers();
         sound.Emit();
     }
+    
+    /// <summary>
+    /// Воспроизводит локальный позиционный звук для конкретного игрока (слышит только сам игрок).
+    /// </summary>
+    /// <param name="source">Игрок, для которого воспроизводится звук и от чьего персонажа он исходит.</param>
+    /// <param name="soundName">Имя звукового ресурса или события.</param>
+    /// <param name="volume">Уровень громкости (от 0.0 до 1.0).</param>
+    public static void PlayLocalSound(IPlayer source, string soundName, float volume)
+    {
+        using var sound = new SoundEvent
+        {
+            Name = soundName,
+            Volume = volume,
+            SourceEntityIndex = (int)source.RequiredPlayerPawn.Index
+        };
+        sound.Recipients.AddRecipient(source.PlayerID);
+        sound.Emit();
+    }
 }

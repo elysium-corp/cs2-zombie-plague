@@ -17,7 +17,7 @@ internal sealed class EquipmentShopCatalog(IItemRegistry itemRegistry) : IEquipm
             throw new ArgumentException("Shop item InternalName cannot be empty!", nameof(item));
         }
 
-        if (item.Price < 0)
+        if (item.Price.Item < 0)
         {
             throw new ArgumentOutOfRangeException(nameof(item), item.Price, "Shop item price cannot be negative!");
         }

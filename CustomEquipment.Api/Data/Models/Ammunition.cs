@@ -1,4 +1,4 @@
-﻿namespace CustomEquipment.Data.Equipments.Models;
+﻿namespace CustomEquipment.Api.Data.Models;
 
 public sealed class Ammunition
 {

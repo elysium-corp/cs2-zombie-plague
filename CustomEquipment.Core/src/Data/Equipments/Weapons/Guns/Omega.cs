@@ -51,7 +51,11 @@ internal sealed class Omega : WeaponItemBase, IShopItem
         CycleTime = [0.8f, 1.0f],
     };
     
-    public int Price => 5_000;
+    public Price Price => new()
+    {
+        Item = 1500,
+        Ammo = 100
+    };
 
     public ItemRarity Rarity => ItemRarity.Uncommon;
 }

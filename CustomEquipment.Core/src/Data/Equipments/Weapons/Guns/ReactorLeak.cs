@@ -38,7 +38,11 @@ internal sealed class ReactorLeak : WeaponItemBase, IShopItem
         CycleTime = [0.15f, 1.0f],
     };
     
-    public int Price => 2_500;
+    public Price Price => new()
+    {
+        Item = 1500,
+        Ammo = 100
+    };
 
     public ItemRarity Rarity => ItemRarity.Uncommon;
 }
