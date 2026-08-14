@@ -1,4 +1,5 @@
-﻿using CustomEquipment.Api.Enums;
+﻿using CustomEquipment.Api.Data.Models;
+using CustomEquipment.Api.Enums;
 
 namespace CustomEquipment.Api.Data.Contracts;
 
@@ -10,7 +11,7 @@ public interface IShopItem
 
     WeaponType WeaponType { get; }
     
-    int Price { get; }
+    Price Price { get; }
 
     ItemRarity Rarity { get; }
 }

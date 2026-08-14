@@ -52,7 +52,11 @@ internal sealed class Reaver : WeaponItemBase, IShopItem
         CycleTime = [1.0f, 1.0f],
     };
     
-    public int Price => 4_500;
+    public Price Price => new()
+    {
+        Item = 1500,
+        Ammo = 100
+    };
 
     public ItemRarity Rarity => ItemRarity.Uncommon;
 }

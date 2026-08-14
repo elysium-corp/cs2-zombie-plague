@@ -14,4 +14,12 @@ internal static class StringExt
             return !string.IsNullOrWhiteSpace(value);
         }
     }
+
+    extension(ICollection<String> collection)
+    {
+        public String GetRandomString()
+        {
+            return collection.Count > 0 ? collection.ElementAt(Numeric.Random(0, collection.Count)) : "";
+        }
+    }
 }

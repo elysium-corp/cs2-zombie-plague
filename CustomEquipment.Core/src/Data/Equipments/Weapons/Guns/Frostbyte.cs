@@ -47,7 +47,11 @@ internal sealed class Frostbyte : WeaponItemBase, IShopItem
         CycleTime = [0.2f, 1.0f],
     };
     
-    public int Price => 3_00;
+    public Price Price => new()
+    {
+        Item = 1500,
+        Ammo = 100
+    };
 
     public ItemRarity Rarity => ItemRarity.Uncommon;
 }

@@ -10,5 +10,8 @@
   "Menu.Equipment.Category.SniperRifle": "Sniper Rifles",
   "Menu.Equipment.Category.MachineGun": "Machine Guns",
   "Menu.Equipment.Category.Grenade": "Grenades",
-  "Menu.Equipment.Category.Equipment": "Экипировка"
+  "Menu.Equipment.Category.Equipment": "Equipment",
+
+  "Ammo.Warning.NotEnoughMoney": "You don't have enough money",
+  "Ammo.Warning.EnoughAmmo": "Ammo full"
 }

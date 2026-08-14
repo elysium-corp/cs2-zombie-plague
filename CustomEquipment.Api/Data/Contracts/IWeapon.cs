@@ -1,4 +1,5 @@
-﻿using CustomEquipment.Api.Enums;
+﻿using CustomEquipment.Api.Data.Models;
+using CustomEquipment.Api.Enums;
 using CustomEquipment.Data.Equipments.Models;
 
 namespace CustomEquipment.Api.Data.Contracts;

@@ -38,7 +38,11 @@ internal sealed class Blackline : WeaponItemBase, IShopItem
         CycleTime = [0.2f, 1.0f],
     };
 
-    public int Price => 5500;
+    public Price Price => new()
+    {
+        Item = 1500,
+        Ammo = 100
+    };
 
     public ItemRarity Rarity => ItemRarity.Uncommon;
 }

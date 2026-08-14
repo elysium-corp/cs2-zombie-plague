@@ -43,7 +43,11 @@ internal sealed class X3 : WeaponItemBase, IShopItem
         ReserveAmmo = 15
     };
     
-    public int Price => 7_000;
+    public Price Price => new()
+    {
+        Item = 1500,
+        Ammo = 100
+    };
 
     public ItemRarity Rarity => ItemRarity.Uncommon;
 }

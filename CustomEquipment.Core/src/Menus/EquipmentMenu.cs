@@ -91,7 +91,7 @@ internal sealed class EquipmentMenu(
 
         foreach (var item in items)
         {
-            var price = item.Price;
+            var price = item.Price.Item;
             
             var option = new ButtonMenuOption
             {
@@ -121,7 +121,7 @@ internal sealed class EquipmentMenu(
 
     private void BuyItem(IPlayer player, IShopItem item)
     {
-        if (economyApi.TrySpendMoney(player, item.Price))
+        if (economyApi.TrySpendMoney(player, item.Price.Item))
         {
             equipmentService.GiveWeapon(player, item.InternalName);
         }
