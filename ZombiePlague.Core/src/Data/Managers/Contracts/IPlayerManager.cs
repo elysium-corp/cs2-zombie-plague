@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using SwiftlyS2.Shared.Players;
+using ZombiePlague.Core.Data.Entities;
 using ZombiePlague.Core.Data.Entities.Human;
 using ZombiePlague.Core.Data.Entities.Zombie;
 
@@ -52,6 +53,11 @@ internal interface IPlayerManager
     bool TryGetZombie(
         IPlayer player,
         [NotNullWhen(true)] out IZombie? zombie
+    );
+    
+    bool TryGetRole(
+        IPlayer player,
+        [NotNullWhen(true)] out IPlayerRole? role
     );
 
     bool Remove(IPlayer player);

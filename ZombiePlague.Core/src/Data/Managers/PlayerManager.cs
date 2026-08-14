@@ -23,7 +23,7 @@ internal sealed class PlayerManager(
     {
         return _players.Values.Select(player => player.Owner);
     }
-    
+
     public IEnumerable<IPlayer> GetAllHumans()
     {
         return _players.Values
@@ -37,7 +37,7 @@ internal sealed class PlayerManager(
             .OfType<IZombie>()
             .Select(static zombie => zombie.Owner);
     }
-    
+
     public IEnumerable<IPlayer> GetAllAliveHumans()
     {
         return _players.Values
@@ -114,7 +114,7 @@ internal sealed class PlayerManager(
     public bool TrySetNemesis(IPlayer player, [NotNullWhen(true)] out IZombie? nemesis)
     {
         nemesis = null;
-        
+
         if (!player.IsValid || !player.IsAlive)
         {
             return false;
@@ -133,11 +133,11 @@ internal sealed class PlayerManager(
 
         return true;
     }
-    
+
     public bool TrySetSurvivor(IPlayer player, [NotNullWhen(true)] out IHuman? survivor)
     {
         survivor = null;
-        
+
         if (!player.IsValid || !player.IsAlive)
         {
             return false;
@@ -157,7 +157,8 @@ internal sealed class PlayerManager(
 
     public bool TryRespawn(IPlayer player)
     {
-        if (!player.IsValid || player.IsAlive || !_players.TryGetValue(player, out var role)) {
+        if (!player.IsValid || player.IsAlive || !_players.TryGetValue(player, out var role))
+        {
             return false;
         }
 
@@ -166,10 +167,10 @@ internal sealed class PlayerManager(
         MoveToRoleTeam(role);
 
         player.Respawn();
-        
+
         return true;
     }
-    
+
     public bool TryApplyRole(IPlayer player)
     {
         if (!player.IsValid || !player.IsAlive || !_players.TryGetValue(player, out var role))
@@ -184,7 +185,7 @@ internal sealed class PlayerManager(
 
         return true;
     }
-    
+
     public bool TryDeactivateRole(IPlayer player)
     {
         if (!_players.TryGetValue(player, out var role))
@@ -223,6 +224,12 @@ internal sealed class PlayerManager(
     {
         zombie = _players.GetValueOrDefault(player) as IZombie;
         return zombie is not null;
+    }
+
+    public bool TryGetRole(IPlayer player, [NotNullWhen(true)] out IPlayerRole? role)
+    {
+        role = _players.GetValueOrDefault(player);
+        return role is not null;
     }
 
     public bool Remove(int playerId)
@@ -276,7 +283,7 @@ internal sealed class PlayerManager(
             nextRole.Bind();
         }
     }
-    
+
     private static void MoveToRoleTeam(IPlayerRole role)
     {
         var team = role switch
