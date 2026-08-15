@@ -23,7 +23,7 @@ public class ShakeNade : GrenadeItemBase
 
     public override WeaponType WeaponType => WeaponType.Grenade;
 
-    public override string Model => "weapons/luci/sifi_hegrenade/sifi_hegrenade_ag2.vmdl";
+    public override string Model => "models/throwhead/throwhead_ag2.vmdl";
 
     private readonly DisorientSettings _settings = new DisorientSettings(10.0f);
     
