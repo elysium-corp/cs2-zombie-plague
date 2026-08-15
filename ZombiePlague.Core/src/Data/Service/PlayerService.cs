@@ -3,6 +3,7 @@ using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Misc;
 using ZombiePlague.Core.Data.Coordinators;
+using ZombiePlague.Core.Data.Coordinators.Contracts;
 using ZombiePlague.Core.Data.Managers.Contracts;
 using ZombiePlague.Core.Data.Service.Contracts;
 
@@ -14,7 +15,7 @@ internal sealed class PlayerService(
     ISwiftlyCore core,
     IPlayerManager playerManager,
     IRoundManager roundManager,
-    PlayerPreferencesCoordinator playerPreferencesCoordinator
+    IPlayerPreferencesCoordinator playerPreferencesCoordinator
 ) : IPlayerService
 {
     private Guid _playerConnectGuid = Guid.Empty;
