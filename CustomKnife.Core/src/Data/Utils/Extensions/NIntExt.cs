@@ -10,13 +10,26 @@ internal static class NIntExt
     {
         public IPlayer? FindPlayerByPawnAddress()
         {
+            if (address == nint.Zero)
+            {
+                return null;
+            }
+            
             var core = DependencyResolver.GetRequiredService<ISwiftlyCore>();
             
-            foreach (var player in core.PlayerManager.GetAllPlayers())
+            foreach (var player in core.PlayerManager.GetAllValidPlayers())
             {
-                var pawnAddress = player.RequiredPlayerPawn.Address;
+                var pawn = player.PlayerPawn;
 
-                if (pawnAddress == address) return player;
+                if (pawn is not { IsValid: true })
+                {
+                    continue;
+                }
+
+                if (pawn.Address == address)
+                {
+                    return player;
+                }
             }
 
             return null;

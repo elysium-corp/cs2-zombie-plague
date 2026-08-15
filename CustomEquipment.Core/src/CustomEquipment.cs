@@ -178,5 +178,6 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
         equipmentService.GiveGrenade<BarrierNade>(player);
         equipmentService.GiveGrenade<JumpNade>(player);
         equipmentService.GiveGrenade<ShakeNade>(player);
+        equipmentService.GiveGrenade<FireNade>(player);
     }
 }
