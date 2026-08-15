@@ -1,5 +1,6 @@
 ﻿using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Players;
+using ZombiePlague.Core.Data.Entities.Zombie.Classes;
 using ZombiePlague.Core.Data.Zombies.Controller;
 using ZombiePlague.Core.Utils.Extensions;
 
@@ -8,15 +9,15 @@ namespace ZombiePlague.Core.Data.Entities.Zombie;
 internal sealed class Zombie : IZombie
 {
     public IZClass ZClass { get; }
-    
+
     public IPlayer Owner { get; }
-    
+
     private ISoundController? SoundController { get; set; }
-    
+
     private readonly ISwiftlyCore _core;
 
     private bool _isBindScheduled;
-    
+
     private Zombie(ISwiftlyCore core, IPlayer owner, IZClass zClass)
     {
         _core = core;
@@ -27,7 +28,7 @@ internal sealed class Zombie : IZombie
     public void Bind()
     {
         if (_isBindScheduled) return;
-        
+
         _isBindScheduled = true;
         _core.Scheduler.NextWorldUpdate(InternalBind);
     }
@@ -35,12 +36,12 @@ internal sealed class Zombie : IZombie
     public void Unbind()
     {
         _isBindScheduled = false;
-        
+
         foreach (var ability in ZClass.Abilities)
         {
             ability.UnHook();
         }
-        
+
         SoundController?.Dispose();
         SoundController = null;
     }
@@ -58,30 +59,35 @@ internal sealed class Zombie : IZombie
             _isBindScheduled = false;
             return;
         }
-        
+
         Owner.SetHealth(ZClass.Health);
         Owner.SetSpeed(ZClass.Speed);
         Owner.SetGravity(ZClass.Gravity);
-        
+
         if (!string.IsNullOrWhiteSpace(ZClass.Model))
         {
             pawn.SetModel(ZClass.Model);
         }
-        
+
         itemServices.RemoveItems();
         itemServices.GiveItem(ZombieKnife);
-        
+
         foreach (var ability in ZClass.Abilities)
         {
             ability.SetCaster(Owner);
         }
 
         SoundController = new ZombieSoundController(_core, this);
+
+        if (ZClass is not ZNemesis)
+        {
+            SoundExt.PlayAt(Owner, ZClass.InfectionSound, 1f);
+        }
     }
 
     public static IZombie Create(ISwiftlyCore core, IPlayer player, IZClass zClass)
     {
-       return new Zombie(core, player, zClass);
+        return new Zombie(core, player, zClass);
     }
 
     private const string ZombieKnife = "weapon_knife_t";

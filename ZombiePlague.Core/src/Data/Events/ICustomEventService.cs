@@ -4,5 +4,5 @@ namespace ZombiePlague.Core.Data.Events;
 
 public interface ICustomEventService
 {
-    void FireFakeDeath(IPlayer attacker, IPlayer? victim);
+    void ShowInfection(IPlayer? attacker, IPlayer? victim);
 }

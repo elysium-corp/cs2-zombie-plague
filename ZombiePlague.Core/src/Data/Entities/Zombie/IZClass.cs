@@ -13,7 +13,9 @@ internal interface IZClass : IClass
     public float Knockback { get; set; }
     
     public int Gravity { get; set; }
-
+    
+    public string InfectionSound { get; set; }
+    
     public List<string> HurtSounds { get; set; }
     
     public List<IAbility> Abilities { get; set; }

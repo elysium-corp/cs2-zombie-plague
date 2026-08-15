@@ -117,6 +117,17 @@ public sealed class PlagueConfig : IRoundConfig
     /// Минимальное количество людей, необходимое для начала раунда.
     /// </summary>
     public int MinimumHumansRequired { get; init; } = 5;
+    
+    /// <summary>
+    /// Проигрывать ли музыку (<see cref="MusicSoundName"/>) в начале раунда.
+    /// </summary>
+    public bool IsMusicEnabled { get; set; } = true;
+    
+    /// <summary>
+    /// Имя звукового события, проигрываемого в начале раунда.
+    /// Учитывается только при <see cref="IsMusicEnabled"/> = <c>true</c>.
+    /// </summary>
+    public string MusicSoundName { get; set; } = "ZombiePlagueAbility.Plague";
 }
 
 public interface INemesisConfig

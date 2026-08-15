@@ -21,6 +21,8 @@ internal class ZNemesis(ZombieNemesis config, IAbilityFactory abilityFactory) : 
 
     public int Gravity { get; set; } = config.Gravity;
     
+    public string InfectionSound { get; set; } = config.InfectionSound;
+    
     public List<string> HurtSounds { get; set; } = config.HurtSounds;
 
     public List<IAbility> Abilities { get; set; } = abilityFactory.CreateFromStrings(config.Abilities);

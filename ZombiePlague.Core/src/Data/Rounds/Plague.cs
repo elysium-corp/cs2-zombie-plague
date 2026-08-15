@@ -6,6 +6,7 @@ using ZombiePlague.Api.Events;
 using ZombiePlague.Core.Config.Round;
 using ZombiePlague.Core.Data.Managers.Contracts;
 using ZombiePlague.Core.Data.Rounds.Contracts;
+using ZombiePlague.Core.Utils.Extensions;
 
 namespace ZombiePlague.Core.Data.Rounds;
 
@@ -56,6 +57,11 @@ internal sealed class Plague(
             {
                 break;
             }
+        }
+        
+        if (config.IsMusicEnabled && !string.IsNullOrWhiteSpace(config.MusicSoundName))
+        {
+            SoundExt.PlayGlobal(config.MusicSoundName);
         }
         
         Core.PlayerManager.SendCenter($"Массовое заражение!");

@@ -6,11 +6,12 @@ namespace ZombiePlague.Core.Data.Events;
 
 public class CustomEventsService(ISwiftlyCore core) : ICustomEventService
 {
-    public void FireFakeDeath(IPlayer attacker, IPlayer? victim)
+    public void ShowInfection(IPlayer? attacker, IPlayer? victim)
     {
         if (attacker != null)
         {
             var matchStats = attacker.Controller.ActionTrackingServices?.MatchStats;
+            
             if (matchStats == null)
             {
                 return;
@@ -23,9 +24,10 @@ public class CustomEventsService(ISwiftlyCore core) : ICustomEventService
             attacker.Controller.ScoreUpdated();
         }
 
-        if (victim != null)
+        if (victim != null && attacker != null)
         {
             var matchStats = victim.Controller.ActionTrackingServices?.MatchStats;
+            
             if (matchStats == null)
             {
                 return;
@@ -39,7 +41,7 @@ public class CustomEventsService(ISwiftlyCore core) : ICustomEventService
         {
             @event.UserId = victim.UserID;
             @event.Attacker = attacker.UserID;
-            @event.Weapon = "knife";
+            @event.Weapon = "biohazard";
             @event.Assister = -1;
         });
     }
