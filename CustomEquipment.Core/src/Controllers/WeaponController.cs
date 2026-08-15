@@ -135,12 +135,8 @@ internal sealed class WeaponController(
 
         var reserveAmmo = weapon?.AttachedWeapon.ReserveAmmo[0];
 
-        var localizer = core.Translation.GetPlayerLocalizer(player);
-
         if (reserveAmmo >= weapon?.Ammunition?.ReserveAmmo)
         {
-            player.SendChat(localizer["Ammo.Warning.EnoughAmmo"]);
-
             SoundExt.PlayLocalSound(player, CancelSound, 1f);
 
             return;
@@ -152,10 +148,6 @@ internal sealed class WeaponController(
             weapon?.AttachedWeapon.ReserveAmmoUpdated();
 
             SoundExt.PlayLocalSound(player, BuySounds.GetRandomString(), 1f);
-        }
-        else
-        {
-            player.SendChat(localizer["Ammo.Warning.NotEnoughMoney"]);
         }
     }
 

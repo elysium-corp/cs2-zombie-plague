@@ -159,7 +159,7 @@ internal sealed class EquipmentMenu(
     {
         var weaponColor = item.Rarity.ToColor();
         var weaponText = HtmlHelper.TextWithColor(item.DisplayName, weaponColor);
-        var price = $"{item.Price}$";
+        var price = $"{item.Price.Item}$";
         var priceText = $"{HtmlHelper.TextWithColor(price, "#E0C216")}";
 
         return $"{weaponText} [{priceText}]";

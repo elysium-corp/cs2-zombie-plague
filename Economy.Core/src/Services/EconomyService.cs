@@ -1,10 +1,12 @@
-﻿using MSApi.Exceptions;
+﻿using Economy.Core.Data.Configs;
+using Microsoft.Extensions.Options;
+using MSApi.Exceptions;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace Economy.Core.Services;
 
-internal sealed class EconomyService : IEconomyService
+internal sealed class EconomyService(IOptions<EconomyConfig> config) : IEconomyService
 {
     public int GetBalance(IPlayer player)
     {
@@ -16,7 +18,7 @@ internal sealed class EconomyService : IEconomyService
         ArgumentOutOfRangeException.ThrowIfNegative(amount);
 
         var moneyServices = GetMoneyServices(player);
-        
+
         moneyServices.Account = amount;
         moneyServices.AccountUpdated();
     }
@@ -28,12 +30,15 @@ internal sealed class EconomyService : IEconomyService
 
     public void GiveMoney(IPlayer player, int amount)
     {
-        if (amount == 0)
-        {
-            return;
-        }
+        if (amount == 0) return;
 
         var moneyServices = GetMoneyServices(player);
+
+        if (moneyServices.Account + amount >= config.Value.MaxMoney)
+        {
+            SetBalance(player, config.Value.MaxMoney);
+            return;
+        }
 
         SetBalance(player, moneyServices.Account + amount);
     }
@@ -61,6 +66,7 @@ internal sealed class EconomyService : IEconomyService
     {
         ArgumentNullException.ThrowIfNull(player);
 
-        return player.Controller.InGameMoneyServices ?? throw new MoneyServicesNotFoundException("Player money services were not found!");
+        return player.Controller.InGameMoneyServices ??
+               throw new MoneyServicesNotFoundException("Player money services were not found!");
     }
 }
