@@ -16,7 +16,7 @@ using ZombiePlague.Api;
 namespace Economy.Core;
 
 [PluginMetadata(
-    Id = "Economy.Core", 
+    Id = "Economy.Core",
     Version = "0.1.0",
     Name = "Economy",
     Author = "illusion & fdrinv",
@@ -25,22 +25,25 @@ namespace Economy.Core;
 internal sealed partial class Economy(ISwiftlyCore core) : Plugin<EconomyModule>(core)
 {
     private readonly Dictionary<ulong, int> _balancesBeforeRestart = [];
-    
+
     private Guid _guidOnPlayerHurtPost = Guid.Empty;
     private Guid _guidOnPlayerConnectFullPost = Guid.Empty;
     private Guid _guidOnPlayerPlayerDisconnectPre = Guid.Empty;
     private Guid _csPreRestartHook = Guid.Empty;
     private Guid _roundPoststartHook = Guid.Empty;
-    
+
     private IZombiePlagueApi _zombiePlagueApi = null!;
 
-    private readonly Lazy<EconomyDatabaseInitializer> _economyDatabaseInitializer = GetRequiredServiceLazy<EconomyDatabaseInitializer>();
-    
+    private readonly Lazy<EconomyDatabaseInitializer> _economyDatabaseInitializer =
+        GetRequiredServiceLazy<EconomyDatabaseInitializer>();
+
     private readonly Lazy<IEconomyService> _economyServiceLazy = GetRequiredServiceLazy<IEconomyService>();
     private readonly Lazy<IOptions<EconomyConfig>> _config = GetRequiredServiceLazy<IOptions<EconomyConfig>>();
-    private readonly Lazy<IAccountPersistenceService> _accountPersistenceService = GetRequiredServiceLazy<IAccountPersistenceService>();
-    
-    
+
+    private readonly Lazy<IAccountPersistenceService> _accountPersistenceService =
+        GetRequiredServiceLazy<IAccountPersistenceService>();
+
+
     protected override void OnSharedInterfacesInjected(IInterfaceManager interfaceManager)
     {
         _zombiePlagueApi = interfaceManager.GetSharedInterface<IZombiePlagueApi>(IZombiePlagueApi.SharedApiKey);
@@ -75,10 +78,10 @@ internal sealed partial class Economy(ISwiftlyCore core) : Plugin<EconomyModule>
         Core.GameEvent.Unhook(_guidOnPlayerPlayerDisconnectPre);
         Core.GameEvent.Unhook(_csPreRestartHook);
         Core.GameEvent.Unhook(_roundPoststartHook);
-        
+
         _zombiePlagueApi.EventSubscriber.OnPlayerInfected -= OnPlayerInfected;
     }
-    
+
     private void OnPlayerInfected(IPlayer _, IPlayer? infector)
     {
         if (infector is not { IsValid: true })
@@ -89,7 +92,7 @@ internal sealed partial class Economy(ISwiftlyCore core) : Plugin<EconomyModule>
         var config = _config.Value.Value;
         _economyServiceLazy.Value.GiveMoney(infector, config.MoneyForInfection);
     }
-    
+
     private HookResult OnPlayerHurtPost(EventPlayerHurt @event)
     {
         var player = @event.AttackerPlayer;
@@ -102,7 +105,9 @@ internal sealed partial class Economy(ISwiftlyCore core) : Plugin<EconomyModule>
             return HookResult.Continue;
         }
 
-        _economyServiceLazy.Value.GiveMoney(player, @event.DmgHealth);
+        var money = (int)Math.Floor(@event.ActualDmgHealth * _config.Value.Value.MoneyForDamage);
+
+        _economyServiceLazy.Value.GiveMoney(player, money);
 
         return HookResult.Continue;
     }
@@ -122,7 +127,7 @@ internal sealed partial class Economy(ISwiftlyCore core) : Plugin<EconomyModule>
         var balance = _accountPersistenceService.Value.LoadOrCreateBalance(steamId, initialBalance);
 
         _economyServiceLazy.Value.SetBalance(player, balance);
-        
+
         return HookResult.Continue;
     }
 
@@ -134,15 +139,15 @@ internal sealed partial class Economy(ISwiftlyCore core) : Plugin<EconomyModule>
         {
             return HookResult.Continue;
         }
-        
+
         var steamId = (long)player.SteamID;
         var balance = _economyServiceLazy.Value.GetBalance(player);
-        
+
         _accountPersistenceService.Value.SaveBalance(steamId, balance);
-        
+
         return HookResult.Continue;
     }
-    
+
     private HookResult OnCsPreRestart(EventCsPreRestart @event)
     {
         _balancesBeforeRestart.Clear();
@@ -159,14 +164,9 @@ internal sealed partial class Economy(ISwiftlyCore core) : Plugin<EconomyModule>
 
         return HookResult.Continue;
     }
-    
+
     private HookResult OnRoundPoststart(EventRoundPoststart @event)
     {
-        if (_balancesBeforeRestart.Count == 0)
-        {
-            return HookResult.Continue;
-        }
-
         var balances = _balancesBeforeRestart.ToArray();
         _balancesBeforeRestart.Clear();
 

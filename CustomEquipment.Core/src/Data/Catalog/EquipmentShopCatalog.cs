@@ -63,7 +63,7 @@ internal sealed class EquipmentShopCatalog(IItemRegistry itemRegistry) : IEquipm
 
         return items.Values
             .OrderBy(item => item.WeaponType)
-            .ThenBy(item => item.Price)
+            .ThenBy(item => item.Price.Item)
             .ThenBy(item => item.DisplayName)
             .ToArray();
     }
@@ -72,7 +72,7 @@ internal sealed class EquipmentShopCatalog(IItemRegistry itemRegistry) : IEquipm
     {
         return GetAll()
             .Where(item => item.WeaponType == weaponType)
-            .OrderBy(item => item.Price)
+            .OrderBy(item => item.Price.Item)
             .ThenBy(item => item.DisplayName)
             .ToArray();
     }
@@ -82,7 +82,7 @@ internal sealed class EquipmentShopCatalog(IItemRegistry itemRegistry) : IEquipm
         return GetAll()
             .Where(item => item.Rarity == rarity)
             .OrderBy(item => item.WeaponType)
-            .ThenBy(item => item.Price)
+            .ThenBy(item => item.Price.Item)
             .ThenBy(item => item.DisplayName)
             .ToArray();
     }
