@@ -29,6 +29,7 @@ public class ZombieCleric : IZClassConfig
     public float Speed { get; set; } = 260f;
     public float Knockback { get; set; } = 0.9f;
     public int Gravity { get; set; } = 600;
+    public string InfectionSound { get; set; } = "ZombiePlagueAbility.Infection.infection1";
     public List<string> HurtSounds { get; set; } = ["ZombiePlagueSounds.zombie_pain_1"];
     public List<string> Abilities { get; set; } = ["heal", "leap"];
 }
@@ -44,6 +45,7 @@ public class ZombieHunter : IZClassConfig
     public float Speed { get; set; } = 260f;
     public float Knockback { get; set; } = 0.9f;
     public int Gravity { get; set; } = 600;
+    public string InfectionSound { get; set; } = "ZombiePlagueAbility.Infection.infection2";
     public List<string> HurtSounds { get; set; } = ["ZombiePlagueSounds.zombie_hurt_2"];
     public List<string> Abilities { get; set; } = ["trap", "leap"];
 }
@@ -59,6 +61,7 @@ public class ZombieAssassin : IZClassConfig
     public float Speed { get; set; } = 280f;
     public float Knockback { get; set; } = 0.9f;
     public int Gravity { get; set; } = 600;
+    public string InfectionSound { get; set; } = "ZombiePlagueAbility.Infection.infection3";
     public List<string> HurtSounds { get; set; } = ["ZombiePlagueSounds.zombie_hurt_3"];
     public List<string> Abilities { get; set; } = ["charge", "leap"];
 }
@@ -74,6 +77,7 @@ public class ZombieHeavy : IZClassConfig
     public float Speed { get; set; } = 250f;
     public float Knockback { get; set; } = 0.9f;
     public int Gravity { get; set; } = 700;
+    public string InfectionSound { get; set; } = "ZombiePlagueAbility.Infection.infection1";
     public List<string> HurtSounds { get; set; } = ["ZombiePlagueSounds.zombie_hurt_4"];
     public List<string> Abilities { get; set; } = ["blind", "leap"];
 }
@@ -89,6 +93,7 @@ public class ZombieSmoker : IZClassConfig
     public float Speed { get; set; } = 250f;
     public float Knockback { get; set; } = 0.9f;
     public int Gravity { get; set; } = 800;
+    public string InfectionSound { get; set; } = "ZombiePlagueAbility.Infection.infection2";
     public List<string> HurtSounds { get; set; } = ["ZombiePlagueSounds.zombie_hurt_5"];
     public List<string> Abilities { get; set; } = ["catch"];
 }
@@ -104,6 +109,7 @@ public class ZombieNemesis : IZClassConfig
     public float Speed { get; set; } = 280f;
     public float Knockback { get; set; } = 1f;
     public int Gravity { get; set; } = 400;
+    public string InfectionSound { get; set; } = "";
     public List<string> HurtSounds { get; set; } = ["ZombiePlagueSounds.zombie_hurt_2"];
     public List<string> Abilities { get; set; } = ["leap"];
 }

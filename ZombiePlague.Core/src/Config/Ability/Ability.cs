@@ -190,6 +190,12 @@ public sealed class CatchConfig : IAbilityConfig
     
     // Кол-во синего в цвете эффекта от 0..255
     public byte BlueColorEffect { get; set; } = 0;
+    
+    // Звук промаха
+    public string MissSound { get; set; } = "ZombiePlagueAbility.Zombie.Smoker.smoker_miss";
+    
+    // Звук попадания
+    public string ShotSound { get; set; } = "ZombiePlagueAbility.Zombie.Smoker.smoker_drag1";
 }
 
 public sealed class DoubleJumpConfig : IAbilityConfig

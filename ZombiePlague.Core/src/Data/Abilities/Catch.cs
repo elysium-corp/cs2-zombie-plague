@@ -40,6 +40,7 @@ internal sealed class Catch(ISwiftlyCore core, CatchConfig config) : BaseActiveA
 
         if (!TryFindTarget(out var target))
         {
+            SoundExt.PlayAt(Caster, config.MissSound, 1f);
             base.Use();
             return;
         }
@@ -280,5 +281,10 @@ internal sealed class Catch(ISwiftlyCore core, CatchConfig config) : BaseActiveA
         var direction = offset.Normalized();
         targetPawn.AbsVelocity = direction * config.Strength;
         return true;
+    }
+    
+    public override void PlaySound()
+    {
+        SoundExt.PlayAt(Caster, config.ShotSound, 1f);
     }
 }

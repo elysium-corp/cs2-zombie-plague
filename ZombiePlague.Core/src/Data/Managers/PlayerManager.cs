@@ -7,6 +7,7 @@ using ZombiePlague.Core.Data.Entities.Human;
 using ZombiePlague.Core.Data.Entities.Human.Classes;
 using ZombiePlague.Core.Data.Entities.Zombie;
 using ZombiePlague.Core.Data.Entities.Zombie.Classes;
+using ZombiePlague.Core.Data.Events;
 using ZombiePlague.Core.Data.Managers.Contracts;
 
 namespace ZombiePlague.Core.Data.Managers;
@@ -14,7 +15,8 @@ namespace ZombiePlague.Core.Data.Managers;
 internal sealed class PlayerManager(
     HumanController humanController,
     ZombieController zombieController,
-    IEventPublisher eventPublisher
+    IEventPublisher eventPublisher,
+    ICustomEventService eventService
 ) : IPlayerManager
 {
     private readonly Dictionary<IPlayer, IPlayerRole> _players = [];
@@ -67,9 +69,11 @@ internal sealed class PlayerManager(
         {
             return false;
         }
-
+        
         AddOrReplaceRole(zombie);
-
+        
+        eventService.ShowInfection(infector, player);
+        
         eventPublisher.OnPlayerInfected(player, infector);
 
         return true;

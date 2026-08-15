@@ -12,7 +12,7 @@ public abstract class BaseLaserMineEntity(ISwiftlyCore core)
     public virtual string LaserMineModel =>
         "models/de_overpass/decorations/security_camera/security_camera_1_base.vmdl";
 
-    public CDynamicProp? LaserMine { get; private set; }
+    public CBaseModelEntity? LaserMine { get; private set; }
     public virtual float TriggerInterval => 0f;
     public virtual float TracerDistance => 2000f;
     public virtual float MaxDistanceToAttach => 100f;
@@ -28,10 +28,24 @@ public abstract class BaseLaserMineEntity(ISwiftlyCore core)
         if (LaserMine != null) return;
 
         Owner = owner;
-
-        LaserMine = core.EntitySystem.CreateEntity<CDynamicProp>();
-        LaserMine.SetModel(LaserMineModel);
+        
+        var playerPawn = owner.PlayerPawn;
+        
+        if(playerPawn == null) return;
+        
+        LaserMine = core.EntitySystem.CreateEntityByDesignerName<CBaseModelEntity>("prop_dynamic_override");
         LaserMine.DispatchSpawn();
+        
+        core.Scheduler.NextTick(() =>
+        {
+            LaserMine.SetModel(LaserMineModel);
+
+            LaserMine.OwnerEntity.Raw = playerPawn.Index;
+            LaserMine.OwnerEntityUpdated();
+        
+            LaserMine.Health = LaserMine.MaxHealth;
+            LaserMine.HealthUpdated();
+        });
 
         LaserMineTracer = core.EntitySystem.CreateEntity<CBeam>();
         LaserMineTracer.Width = BeamWidth;
