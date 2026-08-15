@@ -5,6 +5,8 @@ namespace ZombiePlague.Core.Database;
 
 internal sealed class DatabaseConnectionProvider(ISwiftlyCore core)
 {
+    private const int DefaultConnectionTimeoutSeconds = 5;
+
     public string GetPostgreSqlConnectionString(string connectionName)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(connectionName);
@@ -21,12 +23,12 @@ internal sealed class DatabaseConnectionProvider(ISwiftlyCore core)
 
         if (string.IsNullOrWhiteSpace(connection.Host))
         {
-            throw new InvalidOperationException($"Host is not configured for '{connectionName}'.");
+            throw new InvalidOperationException($"Host is not configured for '{connectionName}'!");
         }
 
         if (string.IsNullOrWhiteSpace(connection.Database))
         {
-            throw new InvalidOperationException($"Database is not configured for '{connectionName}'.");
+            throw new InvalidOperationException($"Database is not configured for '{connectionName}'!");
         }
 
         var builder = new NpgsqlConnectionStringBuilder
@@ -36,13 +38,11 @@ internal sealed class DatabaseConnectionProvider(ISwiftlyCore core)
             Database = connection.Database,
             Username = connection.User,
             Password = connection.Pass,
-            Pooling = true
+            Pooling = true,
+            Timeout = connection.Timeout > 0
+                ? checked((int)connection.Timeout)
+                : DefaultConnectionTimeoutSeconds
         };
-
-        if (connection.Timeout > 0)
-        {
-            builder.Timeout = checked((int)connection.Timeout);
-        }
 
         return builder.ConnectionString;
     }

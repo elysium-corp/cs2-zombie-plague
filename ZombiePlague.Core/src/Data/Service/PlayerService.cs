@@ -2,6 +2,7 @@ using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Misc;
+using ZombiePlague.Core.Data.Coordinators;
 using ZombiePlague.Core.Data.Managers.Contracts;
 using ZombiePlague.Core.Data.Service.Contracts;
 
@@ -54,11 +55,11 @@ internal sealed class PlayerService(
             return;
         }
 
-        var bot = core.PlayerManager.GetPlayer(@event.PlayerId);
+        var player = core.PlayerManager.GetPlayer(@event.PlayerId);
 
-        if (bot != null)
+        if (player != null)
         {
-            playerManager.TrySetHuman(bot);
+            playerManager.TrySetHuman(player);
         }
     }
 

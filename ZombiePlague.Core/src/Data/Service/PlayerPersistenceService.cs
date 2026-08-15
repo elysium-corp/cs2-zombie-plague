@@ -6,9 +6,7 @@ using ZombiePlague.Core.Store.Data;
 
 namespace ZombiePlague.Core.Data.Service;
 
-internal sealed class PlayerPersistenceService(
-    IDbContextFactory<ZombiePlagueDbContext> dbContextFactory
-) : IPlayerPersistenceService
+internal sealed class PlayerPersistenceService(IDbContextFactory<ZombiePlagueDbContext> dbContextFactory) : IPlayerPersistenceService
 {
     public void InitializeDatabase()
     {

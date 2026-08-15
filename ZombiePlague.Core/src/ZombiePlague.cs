@@ -5,6 +5,7 @@ using SwiftlyS2.Shared;
 using ZombiePlague.Api;
 using ZombiePlague.Core.Api;
 using ZombiePlague.Core.Data;
+using ZombiePlague.Core.Data.Coordinators;
 using ZombiePlague.Core.Data.Managers.Contracts;
 using ZombiePlague.Core.Data.Plugins.AdminMenu;
 using ZombiePlague.Core.Data.Plugins.ResourceLoader;
@@ -27,7 +28,7 @@ namespace ZombiePlague.Core;
 public sealed partial class ZombiePlague(ISwiftlyCore core) : Plugin<ZombiePlagueModule>(core)
 {
     private readonly Lazy<IResourceLoader> _resourceLoader = GetRequiredServiceLazy<IResourceLoader>();
-    private readonly Lazy<ICoreCoordinator> _coordinator = GetRequiredServiceLazy<ICoreCoordinator>();
+    private readonly Lazy<IZombiePlagueCoordinator> _coordinator = GetRequiredServiceLazy<IZombiePlagueCoordinator>();
     private readonly Lazy<ZombiePlagueApi> _api = GetRequiredServiceLazy<ZombiePlagueApi>();
     private readonly Lazy<MenuExtensionDispatcherProxy> _menuApiBridge = GetRequiredServiceLazy<MenuExtensionDispatcherProxy>();
     private readonly Lazy<IPlayerPersistenceService> _playerPersistenceService = GetRequiredServiceLazy<IPlayerPersistenceService>();

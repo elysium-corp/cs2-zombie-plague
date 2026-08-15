@@ -3,9 +3,9 @@ using ZombiePlague.Core.Data.Rounds.Registrator;
 using ZombiePlague.Core.Data.Service;
 using ZombiePlague.Core.Data.Service.Contracts;
 
-namespace ZombiePlague.Core.Data;
+namespace ZombiePlague.Core.Data.Coordinators;
 
-internal sealed class CoreCoordinator(
+internal sealed class ZombiePlagueCoordinator(
     IPlayerService playerService,
     IRoundService roundService,
     IInfectionService infectionService,
@@ -14,7 +14,7 @@ internal sealed class CoreCoordinator(
     IRoundRegistrator roundRegistrator,
     IZClassRegistrator zClassRegistrator,
     ICommandService commandService
-) : ICoreCoordinator
+) : IZombiePlagueCoordinator
 {
     public void Start()
     {
