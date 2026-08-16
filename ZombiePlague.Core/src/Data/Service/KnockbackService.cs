@@ -115,7 +115,7 @@ internal sealed class KnockbackService(
             }
         }
 
-        var isHeadShot = @event.HitGroup == (int)HitGroup_t.HITGROUP_HEAD;
+        var isHeadShot = @event.ActualHitGroup == HitGroup_t.HITGROUP_HEAD;
 
         if (!TryCalculateVelocity(
                 attacker,
