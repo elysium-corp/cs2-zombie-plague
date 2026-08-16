@@ -16,17 +16,17 @@ namespace CustomEquipment.Data.Equipments.Weapons.Equipments;
 public sealed class LaserMine : EquipmentItemBase
 {
     public override string InheritorName => WeaponName.LaserMine;
-    
+
     public override string DisplayName => "Laser Mine";
-    
+
     public override string InternalName => "custom_equipment:laser_mine";
-    
+
     public override string SubclassName => "";
-    
+
     public override Slot Slot => Slot.Equipment;
-    
+
     public override string Model => "";
-    
+
     public override WeaponType WeaponType => WeaponType.Equipment;
 
     private const float SetupDuration = 3.0f;
@@ -185,7 +185,7 @@ public sealed class LaserMineEntity(ISwiftlyCore core) : BaseLaserMineEntity(cor
     private void ApplyDamage(IPlayer target)
     {
         if (target.PlayerPawn?.Team == Team.T)
-            target.PlayerPawn?.TakeDamage(DamagePerTrigger, DamageType, Owner?.PlayerPawn);
+            target.PlayerPawn?.TakeDamage(DamagePerTrigger, DamageType, LaserMine);
     }
 
     private void UpdateTracer(Vector hitPoint)

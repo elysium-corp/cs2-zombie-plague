@@ -35,14 +35,14 @@ public class CustomEventsService(ISwiftlyCore core) : ICustomEventService
             
             matchStats.Deaths++;
             matchStats.DeathsUpdated();
+            
+            core.GameEvent.FireAsync<EventPlayerDeath>((@event) =>
+            {
+                @event.UserId = victim.UserID;
+                @event.Attacker = attacker.UserID;
+                @event.Weapon = "biohazard";
+                @event.Assister = -1;
+            });
         }
-
-        core.GameEvent.FireAsync<EventPlayerDeath>((@event) =>
-        {
-            @event.UserId = victim.UserID;
-            @event.Attacker = attacker.UserID;
-            @event.Weapon = "biohazard";
-            @event.Assister = -1;
-        });
     }
 }
