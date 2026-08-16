@@ -19,5 +19,5 @@ public interface IKnifeService
 
     IReadOnlyCollection<IKnife> GetRegisteredKnives();
 
-    void SelectKnife(IPlayer player, IKnife knife);
+    Task SelectKnifeAsync(IPlayer player, IKnife knife, CancellationToken cancellationToken = default);
 }

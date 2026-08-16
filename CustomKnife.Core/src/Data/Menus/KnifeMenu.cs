@@ -72,17 +72,15 @@ internal sealed class KnifeMenu(
             Comment = knife.Description
         };
 
-        option.Click += (_, args) =>
+        option.Click += async (_, args) =>
         {
             var player = args.Player;
-            
-            knifeService.SelectKnife(player, knife);
 
-            player.SendChatAsync($"Вы успешно выбрали нож: {knife.DisplayName}");
+            await knifeService.SelectKnifeAsync(player, knife);
+
+            await player.SendChatAsync($"Вы успешно выбрали нож: {knife.DisplayName}");
 
             core.MenusAPI.CloseActiveMenu(player);
-            
-            return ValueTask.CompletedTask;
         };
 
         return option;

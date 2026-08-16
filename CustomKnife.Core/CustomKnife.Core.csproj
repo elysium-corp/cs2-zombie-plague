@@ -7,21 +7,97 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+
         <PublishDir>$(OutputPath)publish/CustomKnife</PublishDir>
+
         <PackageId>CustomKnife.Core</PackageId>
         <RootNamespace>CustomKnife</RootNamespace>
+
+        <Configurations>Debug;Release;Migrations</Configurations>
     </PropertyGroup>
 
+    <!-- EF Core -->
     <ItemGroup>
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" ExcludeAssets="runtime" PrivateAssets="all"/>
-        <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.0" ExcludeAssets="runtime" PrivateAssets="all"/>
-        <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.0" ExcludeAssets="runtime" PrivateAssets="all"/>
-        <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.0" ExcludeAssets="runtime" PrivateAssets="all"/>
-        <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.0" ExcludeAssets="runtime" PrivateAssets="all"/>
-        <PackageReference Include="SwiftlyS2.CS2" Version="1.4.4" ExcludeAssets="runtime" PrivateAssets="all">
-          <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        <PackageReference Include="Microsoft.EntityFrameworkCore"
+                          Version="10.0.0" />
+
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design"
+                          Version="10.0.0">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="System.Reflection" Version="4.3.0" />
+
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL"
+                          Version="10.0.0" />
+
+        <PackageReference Include="System.Reflection"
+                          Version="4.3.0" />
+    </ItemGroup>
+
+    <!-- Обычная сборка плагина -->
+    <ItemGroup Condition="'$(Configuration)' != 'Migrations'">
+
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection"
+                          Version="10.0.0"
+                          ExcludeAssets="runtime"
+                          PrivateAssets="all" />
+
+        <PackageReference Include="Microsoft.Extensions.Configuration"
+                          Version="10.0.0"
+                          ExcludeAssets="runtime"
+                          PrivateAssets="all" />
+
+        <PackageReference Include="Microsoft.Extensions.Configuration.Json"
+                          Version="10.0.0"
+                          ExcludeAssets="runtime"
+                          PrivateAssets="all" />
+
+        <PackageReference Include="Microsoft.Extensions.Configuration.Binder"
+                          Version="10.0.0"
+                          ExcludeAssets="runtime"
+                          PrivateAssets="all" />
+
+        <PackageReference Include="Microsoft.Extensions.Logging"
+                          Version="10.0.0"
+                          ExcludeAssets="runtime"
+                          PrivateAssets="all" />
+
+        <PackageReference Include="SwiftlyS2.CS2"
+                          Version="1.4.4-beta.7"
+                          ExcludeAssets="runtime"
+                          PrivateAssets="all">
+            <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+
+    </ItemGroup>
+
+    <!-- Только для dotnet ef -->
+    <ItemGroup Condition="'$(Configuration)' == 'Migrations'">
+
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection"
+                          Version="10.0.0"
+                          PrivateAssets="all" />
+
+        <PackageReference Include="Microsoft.Extensions.Configuration"
+                          Version="10.0.0"
+                          PrivateAssets="all" />
+
+        <PackageReference Include="Microsoft.Extensions.Configuration.Json"
+                          Version="10.0.0"
+                          PrivateAssets="all" />
+
+        <PackageReference Include="Microsoft.Extensions.Configuration.Binder"
+                          Version="10.0.0"
+                          PrivateAssets="all" />
+
+        <PackageReference Include="Microsoft.Extensions.Logging"
+                          Version="10.0.0"
+                          PrivateAssets="all" />
+
+        <PackageReference Include="SwiftlyS2.CS2"
+                          Version="1.4.4-beta.7"
+                          PrivateAssets="all" />
+
     </ItemGroup>
 
     <ItemGroup>
@@ -35,9 +111,13 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Common.Di\Common.Di.csproj" />
-      <ProjectReference Include="..\Menu.Api\Menu.Api.csproj" />
-      <ProjectReference Include="..\ZombiePlague.Api\ZombiePlague.Api.csproj" />
+        <ProjectReference Include="..\Common.Di\Common.Di.csproj" />
+        <ProjectReference Include="..\Menu.Api\Menu.Api.csproj" />
+        <ProjectReference Include="..\ZombiePlague.Api\ZombiePlague.Api.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Folder Include="src\Database\Migrations\" />
     </ItemGroup>
 
     <Target Name="CreateZip" AfterTargets="Publish">
@@ -45,7 +125,10 @@
             <PublishFiles Include="$(PublishDir)**\*.*"/>
         </ItemGroup>
 
-        <ZipDirectory SourceDirectory="$(PublishDir)../" DestinationFile="$(OutputPath)../$(AssemblyName).zip" Overwrite="true"/>
+        <ZipDirectory
+                SourceDirectory="$(PublishDir)../"
+                DestinationFile="$(OutputPath)../$(AssemblyName).zip"
+                Overwrite="true"/>
     </Target>
 
-</Project> 
+</Project>

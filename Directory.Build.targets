@@ -4,6 +4,7 @@
         <ModulePrefix>$([System.Text.RegularExpressions.Regex]::Replace('$(MSBuildProjectName)', '(\.Core|Core)$', ''))</ModulePrefix>
 
         <IsZombiePlagueCoreProject Condition="'$(MSBuildProjectName)' == 'ZombiePlague.Core'">True</IsZombiePlagueCoreProject>
+        <IsMigrationsBuild Condition="'$(Configuration)' == 'Migrations'">True</IsMigrationsBuild>
     </PropertyGroup>
 
     <!-- Автокопирование resources/** для проектов, где такая папка есть -->
@@ -14,28 +15,44 @@
         </Content>
     </ItemGroup>
 
-    <!-- Оставляем в output Core только:
-         - свою dll
-         - свой deps.json
-         - свои .resources.dll
-         - resources/**
+    <!--
+        Для обычного Core оставляем в output только:
+        - свою dll
+        - свой pdb
+        - свой deps.json
+        - свои .resources.dll
+        - resources/**
+        - разрешённые runtime-зависимости
+        - runtimes/**
+        - runtimeconfig.json
+
+        Для Configuration=Migrations этот target НЕ запускается,
+        чтобы dotnet ef получил полный набор зависимостей.
     -->
     <Target Name="KeepOnlyOwnAssemblyDepsAndResources"
             AfterTargets="Build"
-            Condition="'$(IsCoreProject)' == 'True'">
+            Condition="'$(IsCoreProject)' == 'True' and '$(IsMigrationsBuild)' != 'True'">
 
         <ItemGroup>
             <FilesToKeep Include="$(TargetPath)" />
+
             <FilesToKeep
                     Include="$(TargetDir)$(TargetName).pdb"
-                    Condition="Exists('$(TargetDir)$(TargetName).pdb')"
-            />
+                    Condition="Exists('$(TargetDir)$(TargetName).pdb')" />
+
             <FilesToKeep Include="$(OutDir)$(TargetName).deps.json" />
+
             <FilesToKeep Include="$(OutDir)**\$(TargetName).resources.dll" />
+
             <FilesToKeep Include="$(OutDir)resources\**\*" />
+
             <FilesToKeep Include="@(ReferenceCopyLocalPaths->'$(OutDir)%(DestinationSubDirectory)%(Filename)%(Extension)')" />
+
             <FilesToKeep Include="$(OutDir)runtimes\**\*" />
-            <FilesToKeep Include="$(TargetDir)$(TargetName).runtimeconfig.json" Condition="Exists('$(TargetDir)$(TargetName).runtimeconfig.json')"/>
+
+            <FilesToKeep
+                    Include="$(TargetDir)$(TargetName).runtimeconfig.json"
+                    Condition="Exists('$(TargetDir)$(TargetName).runtimeconfig.json')" />
         </ItemGroup>
 
         <ItemGroup>
@@ -46,13 +63,19 @@
         <Delete Files="@(FilesToDelete)" />
     </Target>
 
-    <!-- Для обычного Core: копируем только соответствующий Api -->
+    <!--
+        Для обычного Core копируем только соответствующий Api.
+        Для Configuration=Migrations ничего не экспортируем.
+    -->
     <Target Name="ExportMatchingApiToCore"
             AfterTargets="KeepOnlyOwnAssemblyDepsAndResources"
-            Condition="'$(IsCoreProject)' == 'True' and '$(IsZombiePlagueCoreProject)' != 'True'">
+            Condition="'$(IsCoreProject)' == 'True'
+                       and '$(IsZombiePlagueCoreProject)' != 'True'
+                       and '$(IsMigrationsBuild)' != 'True'">
 
-        <RemoveDir Directories="$(OutDir)resources\exports"
-                   Condition="Exists('$(OutDir)resources\exports')" />
+        <RemoveDir
+                Directories="$(OutDir)resources\exports"
+                Condition="Exists('$(OutDir)resources\exports')" />
 
         <MakeDir Directories="$(OutDir)resources\exports" />
 
@@ -75,13 +98,20 @@
               Condition="'@(MatchingApiAssemblies)' != ''" />
     </Target>
 
-    <!-- Для ZombiePlague.Core: копируем все Common.* + только свой Api -->
+    <!--
+        Для ZombiePlague.Core:
+        копируем все Common.* + только ZombiePlague.Api.
+
+        Для Configuration=Migrations этот target не запускается.
+    -->
     <Target Name="ExportAllCommonAndOwnApiToZombiePlagueCore"
             AfterTargets="KeepOnlyOwnAssemblyDepsAndResources"
-            Condition="'$(IsZombiePlagueCoreProject)' == 'True'">
+            Condition="'$(IsZombiePlagueCoreProject)' == 'True'
+                       and '$(IsMigrationsBuild)' != 'True'">
 
-        <RemoveDir Directories="$(OutDir)resources\exports"
-                   Condition="Exists('$(OutDir)resources\exports')" />
+        <RemoveDir
+                Directories="$(OutDir)resources\exports"
+                Condition="Exists('$(OutDir)resources\exports')" />
 
         <MakeDir Directories="$(OutDir)resources\exports" />
 
@@ -117,5 +147,32 @@
               DestinationFolder="$(OutDir)resources\exports\"
               SkipUnchangedFiles="true"
               Condition="'@(ZombieApiAssemblies)' != ''" />
+    </Target>
+
+    <!--
+    Для EF migrations кладём assembly всех прямых ProjectReference
+    рядом с Core assembly.
+
+    dotnet ef загружает CustomKnife.Core.dll как обычную .NET assembly,
+    поэтому Common.Di, Menu.Api, ZombiePlague.Api должны физически
+    находиться рядом в design-time output.
+-->
+    <Target Name="CopyProjectReferencesForMigrations"
+            AfterTargets="Build"
+            Condition="'$(IsMigrationsBuild)' == 'True'">
+
+        <MSBuild Projects="@(ProjectReference)"
+                 Targets="GetTargetPath"
+                 BuildInParallel="true"
+                 Properties="Configuration=$(Configuration);TargetFramework=$(TargetFramework)">
+            <Output TaskParameter="TargetOutputs"
+                    ItemName="MigrationProjectReferenceAssemblies" />
+        </MSBuild>
+
+        <Copy SourceFiles="@(MigrationProjectReferenceAssemblies)"
+              DestinationFolder="$(TargetDir)"
+              SkipUnchangedFiles="true"
+              Condition="'@(MigrationProjectReferenceAssemblies)' != ''" />
+
     </Target>
 </Project>

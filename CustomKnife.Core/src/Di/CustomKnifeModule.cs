@@ -7,8 +7,11 @@ using CustomKnife.Data.Models;
 using CustomKnife.Data.Registrator;
 using CustomKnife.Data.Services;
 using CustomKnife.Data.Services.Contracts;
+using CustomKnife.Data.Store;
+using CustomKnife.Database;
 using CustomKnife.Initializer;
 using Menu.Api.Extensions;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;
@@ -24,6 +27,8 @@ internal sealed class CustomKnifeModule(ISwiftlyCore core) : BaseModule(core)
 
         service.AddSwiftly(core);
 
+        BuildDatabase(service);
+        
         BuildConfigs(service);
         BuildKnifeConfigs(service);
         BuildSingletons(service);
@@ -51,6 +56,9 @@ internal sealed class CustomKnifeModule(ISwiftlyCore core) : BaseModule(core)
         AddSingleton<IKnivesRegistry, KnivesRegistry>(service);
         AddSingleton<KnifeRegistryInitializer>(service);
         AddSingleton<MenuApiBridge>(service);
+        AddSingleton<IPlayerKnifePersistenceService, PlayerKnifePersistenceService>(service);
+        AddSingleton<PlayerKnifeStore>(service);
+        AddSingleton<IPlayerKnifeService, PlayerKnifeService>(service);
         
         AddSingleton<IMenuExtensionDispatcher>(service, provider => provider.GetRequiredService<MenuApiBridge>());
     }
@@ -85,5 +93,28 @@ internal sealed class CustomKnifeModule(ISwiftlyCore core) : BaseModule(core)
         service.AddSingleton<KatanaConfig>(provider =>
             provider.GetRequiredService<IOptions<KnifeConfig>>().Value.KatanaConfig
         );
+    }
+    
+    private void BuildDatabase(ServiceCollection service)
+    {
+        using var connection = core.Database.GetConnection("custom_knife");
+
+        var connectionString = connection.ConnectionString;
+
+        service.AddDbContextFactory<CustomKnifeDbContext>(options =>
+        {
+            options.UseNpgsql(
+                connectionString,
+                npgsql =>
+                {
+                    npgsql.MigrationsHistoryTable(
+                        "__EFMigrationsHistory",
+                        CustomKnifeDbContext.SchemaName
+                    );
+
+                    npgsql.CommandTimeout(5);
+                }
+            );
+        });
     }
 }

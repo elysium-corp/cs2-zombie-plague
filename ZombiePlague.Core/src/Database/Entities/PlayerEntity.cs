@@ -17,6 +17,7 @@ internal sealed class PlayerEntity
 
     [Key]
     [Column("id")]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
 
     [Column("steam_id")]
