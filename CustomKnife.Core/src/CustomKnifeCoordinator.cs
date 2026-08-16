@@ -155,12 +155,14 @@ internal sealed class CustomKnifeCoordinator(
     
     private HookResult OnPlayerDisconnect(EventPlayerDisconnect @event)
     {
-        if (@event.XuID == 0)
+        var steamId = @event.XuID;
+        
+        if (steamId == 0)
         {
             return HookResult.Continue;
         }
 
-        _ = playerKnifeService.RemoveAsync(@event.XuID);
+        playerKnifeService.Remove(steamId);
 
         return HookResult.Continue;
     }
@@ -174,6 +176,6 @@ internal sealed class CustomKnifeCoordinator(
             return;
         }
 
-        _ = playerKnifeService.InitializeAsync(player.SteamID);
+        playerKnifeService.Initialize(player.SteamID);
     }
 }

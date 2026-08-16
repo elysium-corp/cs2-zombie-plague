@@ -1,4 +1,5 @@
-﻿using CustomKnife.Data.Knives;
+﻿using Common.Database.Tasks;
+using CustomKnife.Data.Knives;
 using CustomKnife.Data.Services.Contracts;
 using CustomKnife.Data.Store;
 
@@ -6,23 +7,13 @@ namespace CustomKnife.Data.Services;
 
 internal sealed class PlayerKnifeService(
     PlayerKnifeStore store,
-    IPlayerKnifePersistenceService persistenceService
+    IPlayerKnifePersistenceService persistenceService,
+    DatabaseTaskTracker databaseTasks
 ) : IPlayerKnifeService
 {
-    public async Task InitializeAsync(ulong steamId, CancellationToken cancellationToken = default)
+    public void Initialize(ulong steamId)
     {
-        var preferences = store.GetOrCreate(steamId, KnifeDefaults.DefaultKnifeId);
-
-        var databaseKnifeId = await persistenceService
-            .LoadAsync(steamId, cancellationToken)
-            .ConfigureAwait(false);
-
-        if (databaseKnifeId is null)
-        {
-            return;
-        }
-
-        store.TrySetKnifeId(steamId, preferences, databaseKnifeId);
+        databaseTasks.Run(() => InitializeAsync(steamId));
     }
 
     public string? GetKnifeId(ulong steamId)
@@ -41,7 +32,28 @@ internal sealed class PlayerKnifeService(
             .ConfigureAwait(false);
     }
 
-    public async Task RemoveAsync(ulong steamId, CancellationToken cancellationToken = default)
+    public void Remove(ulong steamId)
+    {
+        databaseTasks.Run(() => RemoveAsync(steamId));
+    }
+
+    private async Task InitializeAsync(ulong steamId, CancellationToken cancellationToken = default)
+    {
+        var preferences = store.GetOrCreate(steamId, KnifeDefaults.DefaultKnifeId);
+
+        var dbKnifeId = await persistenceService
+            .LoadAsync(steamId, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (dbKnifeId is null)
+        {
+            return;
+        }
+
+        store.TrySetKnifeId(steamId, preferences, dbKnifeId);
+    }
+
+    private async Task RemoveAsync(ulong steamId, CancellationToken cancellationToken = default)
     {
         var preferences = store.Get(steamId);
 

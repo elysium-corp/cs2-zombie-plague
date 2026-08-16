@@ -1,4 +1,6 @@
 ﻿using System.Reflection;
+using Common.Database;
+using Common.Database.Utils;
 using Common.Di;
 using Common.Di.Utils;
 using CustomKnife.Data.Configs;
@@ -9,6 +11,7 @@ using CustomKnife.Data.Services;
 using CustomKnife.Data.Services.Contracts;
 using CustomKnife.Data.Store;
 using CustomKnife.Database;
+using CustomKnife.Database.Entities;
 using CustomKnife.Initializer;
 using Menu.Api.Extensions;
 using Microsoft.EntityFrameworkCore;
@@ -97,24 +100,18 @@ internal sealed class CustomKnifeModule(ISwiftlyCore core) : BaseModule(core)
     
     private void BuildDatabase(ServiceCollection service)
     {
-        using var connection = core.Database.GetConnection("custom_knife");
-
-        var connectionString = connection.ConnectionString;
-
-        service.AddDbContextFactory<CustomKnifeDbContext>(options =>
+        var options = new DatabaseOptions
         {
-            options.UseNpgsql(
-                connectionString,
-                npgsql =>
-                {
-                    npgsql.MigrationsHistoryTable(
-                        "__EFMigrationsHistory",
-                        CustomKnifeDbContext.SchemaName
-                    );
+            ConnectionName = "custom_knife",
+            Schema = CustomKnifeDbContext.SchemaName,
 
-                    npgsql.CommandTimeout(5);
-                }
-            );
-        });
+            CommandTimeoutSeconds = 5,
+
+            RetryCount = 2,
+            MaxRetryDelay = TimeSpan.FromSeconds(3)
+        };
+        
+        service.AddPostgreSqlDatabase<CustomKnifeDbContext>(core, options);
+        service.AddSteamEntityStore<CustomKnifeDbContext, PlayerKnifeEntity>();
     }
 }

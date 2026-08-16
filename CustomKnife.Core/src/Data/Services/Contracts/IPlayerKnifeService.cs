@@ -2,11 +2,11 @@
 
 internal interface IPlayerKnifeService
 {
-    Task InitializeAsync(ulong steamId, CancellationToken cancellationToken = default);
+    void Initialize(ulong steamId);
 
     string? GetKnifeId(ulong steamId);
 
     Task SetKnifeIdAsync(ulong steamId, string knifeId, CancellationToken cancellationToken = default);
 
-    Task RemoveAsync(ulong steamId, CancellationToken cancellationToken = default);
+    void Remove(ulong steamId);
 }

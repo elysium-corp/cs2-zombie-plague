@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Common.Database;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 
 namespace CustomKnife.Database;
@@ -7,8 +8,10 @@ internal sealed class CustomKnifeDbContextDesignTimeFactory : IDesignTimeDbConte
 {
     public CustomKnifeDbContext CreateDbContext(string[] args)
     {
-        var connectionString = Environment.GetEnvironmentVariable("CUSTOM_KNIFE_DB_CONNECTION")
-                               ?? "Host=127.0.0.1;Port=5432;Database=elysium_zp_server_1;Username=elysium_game";
+        var connectionString = Environment.GetEnvironmentVariable("CUSTOM_KNIFE_DB_CONNECTION") ?? 
+                               "Host=127.0.0.1;Port=5432;" + 
+                               "Database=elysium_zp_server_1;" +
+                               "Username=elysium_game";
 
         var options = new DbContextOptionsBuilder<CustomKnifeDbContext>();
 
@@ -17,7 +20,7 @@ internal sealed class CustomKnifeDbContextDesignTimeFactory : IDesignTimeDbConte
             npgsql =>
             {
                 npgsql.MigrationsHistoryTable(
-                    "__EFMigrationsHistory",
+                    DatabaseOptions.DefaultMigrationsHistoryTable,
                     CustomKnifeDbContext.SchemaName
                 );
 
