@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Common.Database.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using ZombiePlague.Core.Store.Data;
 
@@ -11,23 +12,22 @@ namespace ZombiePlague.Core.Database.Entities;
     IsUnique = true
 )]
 [Table("players", Schema = ZombiePlagueDbContext.SchemaName)]
-internal sealed class PlayerEntity
+internal sealed class PlayerEntity : ISteamEntity
 {
     private const int ClassIdMaxLength = 64;
 
     [Key]
     [Column("id")]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
 
     [Column("steam_id")]
     public long SteamId { get; set; }
 
-    [Required]
     [MaxLength(ClassIdMaxLength)]
     [Column("zombie_class")]
     public string ZombieClassId { get; set; } = PlayerPreferences.DefaultZombieClassId;
 
-    [Required]
     [MaxLength(ClassIdMaxLength)]
     [Column("human_class")]
     public string HumanClassId { get; set; } = PlayerPreferences.DefaultHumanClassId;

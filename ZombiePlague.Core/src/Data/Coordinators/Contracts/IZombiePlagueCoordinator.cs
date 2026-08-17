@@ -1,4 +1,4 @@
-﻿namespace ZombiePlague.Core.Data.Coordinators;
+﻿namespace ZombiePlague.Core.Data.Coordinators.Contracts;
 
 public interface IZombiePlagueCoordinator
 {

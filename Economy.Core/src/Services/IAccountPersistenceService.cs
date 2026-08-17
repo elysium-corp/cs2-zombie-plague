@@ -2,7 +2,7 @@
 
 internal interface IAccountPersistenceService
 {
-    public int LoadOrCreateBalance(long steamId, int initialBalance);
+    Task<int?> LoadAsync(ulong steamId, CancellationToken cancellationToken = default);
 
-    public void SaveBalance(long steamId, int balance);
+    Task SaveAsync(ulong steamId, int balance, CancellationToken cancellationToken = default);
 }
