@@ -1,11 +1,12 @@
+using Common.Database.Migrator;
 using Common.Di;
-using Common.Di.Utils;
 using Economy.Api;
 using Economy.Core.Api;
 using Economy.Core.Data.Configs;
+using Economy.Core.Database;
 using Economy.Core.Di;
-using Economy.Core.Initializer;
 using Economy.Core.Services;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
@@ -24,22 +25,17 @@ namespace Economy.Core;
 )]
 internal sealed partial class Economy(ISwiftlyCore core) : Plugin<EconomyModule>(core)
 {
-    private readonly Dictionary<ulong, int> _balancesBeforeRestart = [];
-
     private Guid _guidOnPlayerHurtPost = Guid.Empty;
     private Guid _guidOnPlayerConnectFullPost = Guid.Empty;
     private Guid _guidOnPlayerPlayerDisconnectPre = Guid.Empty;
-    private Guid _csPreRestartHook = Guid.Empty;
     private Guid _roundPoststartHook = Guid.Empty;
 
     private IZombiePlagueApi _zombiePlagueApi = null!;
-
-    private readonly Lazy<EconomyDatabaseInitializer> _economyDatabaseInitializer = GetRequiredServiceLazy<EconomyDatabaseInitializer>();
     
     private readonly Lazy<IEconomyService> _economyServiceLazy = GetRequiredServiceLazy<IEconomyService>();
     private readonly Lazy<IOptions<EconomyConfig>> _config = GetRequiredServiceLazy<IOptions<EconomyConfig>>();
-    private readonly Lazy<IAccountPersistenceService> _accountPersistenceService = GetRequiredServiceLazy<IAccountPersistenceService>();
-    
+    private readonly Lazy<PlayerAccountService> _playerAccountService = GetRequiredServiceLazy<PlayerAccountService>();
+    private readonly Lazy<DatabaseMigrator<EconomyDbContext>> _databaseMigrator = GetRequiredServiceLazy<DatabaseMigrator<EconomyDbContext>>();
     
     protected override void OnSharedInterfacesInjected(IInterfaceManager interfaceManager)
     {
@@ -54,7 +50,7 @@ internal sealed partial class Economy(ISwiftlyCore core) : Plugin<EconomyModule>
 
     protected override void OnStart()
     {
-        _economyDatabaseInitializer.Value.Initialize();
+        TryMigrateDatabase();
     }
 
     protected override void OnReady()
@@ -62,8 +58,7 @@ internal sealed partial class Economy(ISwiftlyCore core) : Plugin<EconomyModule>
         _guidOnPlayerHurtPost = Core.GameEvent.HookPost<EventPlayerHurt>(OnPlayerHurtPost);
         _guidOnPlayerConnectFullPost = Core.GameEvent.HookPost<EventPlayerConnectFull>(OnPlayerConnectFull);
         _guidOnPlayerPlayerDisconnectPre = Core.GameEvent.HookPre<EventPlayerDisconnect>(OnPlayerDisconnect);
-        _csPreRestartHook = Core.GameEvent.HookPre<EventCsPreRestart>(OnCsPreRestart);
-        _roundPoststartHook = Core.GameEvent.HookPost<EventRoundPoststart>(OnRoundPoststart);
+        _roundPoststartHook = Core.GameEvent.HookPost<EventRoundPoststart>(OnRoundPostStart);
 
         _zombiePlagueApi.EventSubscriber.OnPlayerInfected += OnPlayerInfected;
     }
@@ -73,10 +68,11 @@ internal sealed partial class Economy(ISwiftlyCore core) : Plugin<EconomyModule>
         Core.GameEvent.Unhook(_guidOnPlayerHurtPost);
         Core.GameEvent.Unhook(_guidOnPlayerConnectFullPost);
         Core.GameEvent.Unhook(_guidOnPlayerPlayerDisconnectPre);
-        Core.GameEvent.Unhook(_csPreRestartHook);
         Core.GameEvent.Unhook(_roundPoststartHook);
 
         _zombiePlagueApi.EventSubscriber.OnPlayerInfected -= OnPlayerInfected;
+        
+        _playerAccountService.Value.SaveAllAndWait();
     }
 
     private void OnPlayerInfected(IPlayer _, IPlayer? infector)
@@ -113,17 +109,12 @@ internal sealed partial class Economy(ISwiftlyCore core) : Plugin<EconomyModule>
     {
         var player = @event.UserIdPlayer;
 
-        if (player == null || !player.IsValid || !player.IsAuthorized || player.IsFakeClient)
+        if (player is not { IsValid: true, IsAuthorized: true, IsFakeClient: false })
         {
             return HookResult.Continue;
         }
 
-        var steamId = (long)player.SteamID;
-        var initialBalance = _config.Get().StartMoney;
-
-        var balance = _accountPersistenceService.Value.LoadOrCreateBalance(steamId, initialBalance);
-
-        _economyServiceLazy.Value.SetBalance(player, balance);
+        _playerAccountService.Value.Initialize(player);
 
         return HookResult.Continue;
     }
@@ -132,61 +123,48 @@ internal sealed partial class Economy(ISwiftlyCore core) : Plugin<EconomyModule>
     {
         var player = @event.UserIdPlayer;
 
-        if (player == null || !player.IsValid || player.IsFakeClient)
+        if (player is null || player.IsFakeClient)
         {
             return HookResult.Continue;
         }
 
-        var steamId = (long)player.SteamID;
-        var balance = _economyServiceLazy.Value.GetBalance(player);
-
-        _accountPersistenceService.Value.SaveBalance(steamId, balance);
+        _playerAccountService.Value.Remove(player);
 
         return HookResult.Continue;
     }
 
-    private HookResult OnCsPreRestart(EventCsPreRestart @event)
+    private HookResult OnRoundPostStart(EventRoundPoststart @event)
     {
-        _balancesBeforeRestart.Clear();
-
-        foreach (var player in Core.PlayerManager.GetAllValidPlayers())
-        {
-            if (player.IsFakeClient || !player.IsAuthorized)
-            {
-                continue;
-            }
-
-            _balancesBeforeRestart[player.SteamID] = _economyServiceLazy.Value.GetBalance(player);
-        }
-
-        return HookResult.Continue;
-    }
-
-    private HookResult OnRoundPoststart(EventRoundPoststart @event)
-    {
-        if (_balancesBeforeRestart.Count == 0)
-        {
-            return HookResult.Continue;
-        }
-
-        var balances = _balancesBeforeRestart.ToArray();
-        _balancesBeforeRestart.Clear();
-
         Core.Scheduler.NextWorldUpdate(() =>
         {
-            foreach (var (steamId, balance) in balances)
+            foreach (var player in Core.PlayerManager.GetAllValidPlayers())
             {
-                var player = Core.PlayerManager.GetPlayerFromSteamId(steamId, allowUnauthorized: false);
-
-                if (player == null || !player.IsValid)
+                if (player.IsFakeClient || !player.IsAuthorized)
                 {
                     continue;
                 }
 
-                _economyServiceLazy.Value.SetBalance(player, balance);
+                _playerAccountService.Value.RefreshProjection(player);
             }
         });
 
         return HookResult.Continue;
+    }
+    
+    private void TryMigrateDatabase()
+    {
+        try
+        {
+            _databaseMigrator
+                .Value
+                .Migrate();
+        }
+        catch (Exception exception)
+        {
+            Core.Logger.LogError(
+                exception,
+                "Economy database migration failed. Temporary balances will be used."
+            );
+        }
     }
 }

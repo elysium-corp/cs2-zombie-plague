@@ -4,7 +4,6 @@ using ZombiePlague.Api.Data.Store;
 using ZombiePlague.Core.Data.Entities.Zombie;
 using ZombiePlague.Core.Data.Entities.Zombie.Classes;
 using ZombiePlague.Core.Data.Entities.Zombie.Factory;
-using ZombiePlague.Core.Store.Contracts;
 
 namespace ZombiePlague.Core.Data.Controllers;
 

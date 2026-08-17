@@ -5,6 +5,7 @@ using Menu.Api.Extensions;
 using SwiftlyS2.Core.Menus.OptionsBase;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Commands;
+using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.GameHooks;
 using SwiftlyS2.Shared.Misc;
@@ -15,6 +16,7 @@ namespace CustomKnife;
 internal sealed class CustomKnifeCoordinator(
     ISwiftlyCore core,
     IKnifeService knifeService,
+    IPlayerKnifeService playerKnifeService,
     KnifeRegistryInitializer knifeRegistryInitializer,
     KnifeMenu knifeMenu,
     MenuApiBridge menuApiBridge
@@ -24,6 +26,7 @@ internal sealed class CustomKnifeCoordinator(
     private Guid _playerSpawnHook = Guid.Empty;
     private Guid _playerHurtHook = Guid.Empty;
     private Guid _roundStartHook = Guid.Empty;
+    private Guid _playerDisconnectHook = Guid.Empty;
 
     private IDisposable? _mainMenuSubscription;
 
@@ -49,10 +52,13 @@ internal sealed class CustomKnifeCoordinator(
 
     private void RegisterEvents()
     {
+        core.Event.OnClientSteamAuthorize += OnClientSteamAuthorize;
+        
         _playerEquipHook = core.GameEvent.HookPost<EventItemEquip>(OnPlayerEquip);
         _playerSpawnHook = core.GameEvent.HookPost<EventPlayerSpawn>(OnPlayerSpawn);
         _playerHurtHook = core.GameEvent.HookPost<EventPlayerHurt>(OnPlayerHurt);
         _roundStartHook = core.GameEvent.HookPost<EventRoundStart>(OnRoundStart);
+        _playerDisconnectHook = core.GameEvent.HookPost<EventPlayerDisconnect>(OnPlayerDisconnect);
 
         core.GameHooks.Entities.TakeDamage.Pre += OnEntityTakeDamage;
     }
@@ -67,10 +73,13 @@ internal sealed class CustomKnifeCoordinator(
 
     private void UnregisterEvents()
     {
+        core.Event.OnClientSteamAuthorize -= OnClientSteamAuthorize;
+        
         core.GameEvent.Unhook(_playerEquipHook);
         core.GameEvent.Unhook(_playerSpawnHook);
         core.GameEvent.Unhook(_playerHurtHook);
         core.GameEvent.Unhook(_roundStartHook);
+        core.GameEvent.Unhook(_playerDisconnectHook);
 
         core.GameHooks.Entities.TakeDamage.Pre -= OnEntityTakeDamage;
     }
@@ -142,5 +151,31 @@ internal sealed class CustomKnifeCoordinator(
         knifeService.TryApplyProperties(@event.UserIdPlayer);
 
         return HookResult.Continue;
+    }
+    
+    private HookResult OnPlayerDisconnect(EventPlayerDisconnect @event)
+    {
+        var steamId = @event.XuID;
+        
+        if (steamId == 0)
+        {
+            return HookResult.Continue;
+        }
+
+        playerKnifeService.Remove(steamId);
+
+        return HookResult.Continue;
+    }
+    
+    private void OnClientSteamAuthorize(IOnClientSteamAuthorizeEvent @event)
+    {
+        var player = core.PlayerManager.GetPlayer(@event.PlayerId);
+
+        if (player is null || player.IsFakeClient || player.SteamID == 0)
+        {
+            return;
+        }
+
+        playerKnifeService.Initialize(player.SteamID);
     }
 }

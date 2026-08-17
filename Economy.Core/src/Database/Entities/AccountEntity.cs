@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Common.Database.Abstractions;
 using Microsoft.EntityFrameworkCore;
 
 namespace Economy.Core.Database.Entities;
@@ -9,8 +10,8 @@ namespace Economy.Core.Database.Entities;
     Name = "ux_accounts_steam_id",
     IsUnique = true
 )]
-[Table("accounts", Schema = "economy")]
-internal sealed class Account
+[Table("accounts", Schema = EconomyDbContext.SchemaName)]
+internal sealed class AccountEntity : ISteamEntity
 {
     [Key]
     [Column("id")]

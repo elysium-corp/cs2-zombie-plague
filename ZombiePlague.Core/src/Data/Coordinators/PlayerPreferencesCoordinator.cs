@@ -1,10 +1,11 @@
-using Microsoft.Extensions.Logging;
+using Common.Database.Sessions;
+using Common.Database.Storages;
+using Common.Database.Tasks;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Players;
 using ZombiePlague.Core.Data.Coordinators.Contracts;
 using ZombiePlague.Core.Data.Managers.Contracts;
 using ZombiePlague.Core.Data.Service.Contracts;
-using ZombiePlague.Core.Store.Contracts;
 using ZombiePlague.Core.Store.Data;
 
 namespace ZombiePlague.Core.Data.Coordinators;
@@ -12,19 +13,12 @@ namespace ZombiePlague.Core.Data.Coordinators;
 internal sealed class PlayerPreferencesCoordinator(
     ISwiftlyCore core,
     IPlayerManager playerManager,
-    IPlayerStore playerStore,
-    IPlayerPersistenceService playerPersistenceService
+    PlayerSessionStore<PlayerPreferences> sessions,
+    IPlayerPersistenceService playerPersistenceService,
+    DatabaseTaskTracker databaseTasks,
+    SteamIdOperationQueue databaseOperations
 ) : IPlayerPreferencesCoordinator
 {
-    // - активные операции с бд
-    private readonly object _databaseTasksLock = new();
-    private readonly HashSet<Task> _databaseTasks = [];
-    // - игроки для которых уже был получен результат из бд
-    private readonly HashSet<ulong> _playersReadyForSave = [];
-
-    // - если плагин будет выключен, чтобы избежать модификаций PlayerStore
-    private volatile bool _canApplyLoadedPreferences = true;
-
     public void Initialize(IPlayer player)
     {
         if (!CanInitialize(player))
@@ -32,108 +26,112 @@ internal sealed class PlayerPreferencesCoordinator(
             return;
         }
 
-        var defaults = new PlayerPreferences();
         var steamId = player.SteamID;
 
-        // - не ждем бд, записываем сразу же в стор
-        playerStore.Set(player, defaults);
-        // - запрещаем для новой сессии игрока сохранение
-        _playersReadyForSave.Remove(steamId);
+        var session = sessions.Create(
+            steamId,
+            new PlayerPreferences()
+        );
 
-        // - запускаем асинхронную загрузку 
-        RunDatabaseTask(LoadAsync(steamId, defaults));
+        databaseTasks.Run(
+            () => LoadAsync(steamId, session),
+            $"Load player preferences {steamId}"
+        );
     }
 
     public void SaveAndRemove(IPlayer player)
     {
         var steamId = player.SteamID;
 
-        var isReadyForSave = _playersReadyForSave.Remove(steamId);
-
-        if (CanSave(player) && isReadyForSave && playerStore.TryGet(player, out var preferences))
+        if (!sessions.TryRemove(steamId, out var session) || session is null)
         {
-            RunDatabaseTask(SaveAsync(steamId, preferences));
+            return;
         }
 
-        playerStore.Remove(player);
+        databaseTasks.Run(
+            () => SaveAsync(steamId, session),
+            $"Save player preferences {steamId}"
+        );
     }
 
     public void SaveAllAndWait()
     {
-        _canApplyLoadedPreferences = false;
-
-        foreach (var player in core.PlayerManager.GetAllValidPlayers())
+        foreach (var (steamId, _) in sessions.GetAll())
         {
-            SaveAndRemove(player);
-        }
-
-        WaitForDatabaseTasks();
-        _playersReadyForSave.Clear();
-    }
-
-    private async Task LoadAsync(ulong steamId, PlayerPreferences defaults)
-    {
-        try
-        {
-            var loaded = await playerPersistenceService
-                .LoadAsync(steamId)
-                .ConfigureAwait(false) ?? defaults;
-
-            if (!_canApplyLoadedPreferences)
+            if (!sessions.TryRemove(steamId, out var session) || session is null)
             {
-                return;
+                continue;
             }
 
-            // - переключаемся на игровой поток для внесения изменений
-            core.Scheduler.NextWorldUpdate(() =>
-            {
-                ApplyLoadedPreferences(steamId, defaults, loaded);
-            });
+            databaseTasks.Run(() => SaveAsync(steamId, session), $"Save player preferences {steamId}");
         }
-        catch (Exception exception)
-        {
-            core.Logger.LogError(exception,
-                "Failed to load preferences for SteamID {SteamId} from Database. " +
-                "Defaults will remain in memory and will not be saved until the database is read successfully!",
-                steamId
-            );
-        }
+
+        databaseTasks.StopAndWait();
     }
 
-    private void ApplyLoadedPreferences(ulong steamId, PlayerPreferences defaults, PlayerPreferences loaded)
+    private async Task LoadAsync(
+        ulong steamId,
+        PersistentSession<PlayerPreferences> session,
+        CancellationToken cancellationToken = default)
     {
-        if (!_canApplyLoadedPreferences)
+        var shouldApply = await databaseOperations
+            .RunAsync(
+                steamId,
+                async () =>
+                {
+                    var loaded = await playerPersistenceService
+                        .LoadAsync(steamId)
+                        .ConfigureAwait(false);
+
+                    if (loaded is null)
+                    {
+                        session.CompleteLoadAsNew();
+
+                        return false;
+                    }
+
+                    session.CompleteLoadMerged(current =>
+                        {
+                            if (current.ZClassId == PlayerPreferences.DefaultZombieClassId)
+                            {
+                                current.ZClassId = loaded.ZClassId;
+                            }
+
+                            if (current.HClassId == PlayerPreferences.DefaultHumanClassId)
+                            {
+                                current.HClassId = loaded.HClassId;
+                            }
+                        }
+                    );
+
+                    return true;
+                }
+            )
+            .ConfigureAwait(false);
+
+        if (!shouldApply)
         {
             return;
         }
 
-        // - нужно получить актуального игрока
-        var player = core.PlayerManager.GetPlayerFromSteamId(steamId, false);
+        core.Scheduler.NextWorldUpdate(() => { ApplyLoadedPreferences(steamId, session); }
+        );
+    }
 
-        if (
-            player is not { IsValid: true, IsAuthorized: true, IsFakeClient: false } || 
-            !playerStore.TryGet(player, out var current))
+    private void ApplyLoadedPreferences(ulong steamId, PersistentSession<PlayerPreferences> session)
+    {
+        if (!sessions.IsCurrent(steamId, session))
         {
             return;
         }
 
-        var merged = loaded with
+        var player = core.PlayerManager
+            .GetPlayerFromSteamId(steamId, false);
+
+        if (player is not { IsValid: true, IsAuthorized: true, IsFakeClient: false })
         {
-            ZClassId = current.ZClassId == defaults.ZClassId
-                ? loaded.ZClassId
-                : current.ZClassId,
-
-            HClassId = current.HClassId == defaults.HClassId
-                ? loaded.HClassId
-                : current.HClassId,
-
-            KnifeId = current.KnifeId
-        };
-
-        playerStore.Set(player, merged);
-        
-        // - теперь при выходе данные игрока можно перезаписать
-        _playersReadyForSave.Add(steamId);
+            return;
+        }
 
         if (!player.IsAlive && playerManager.IsHuman(player))
         {
@@ -141,64 +139,51 @@ internal sealed class PlayerPreferencesCoordinator(
         }
     }
 
-    private async Task SaveAsync(ulong steamId, PlayerPreferences preferences)
+    private Task SaveAsync(
+        ulong steamId,
+        PersistentSession<PlayerPreferences> session,
+        CancellationToken cancellationToken = default)
     {
-        try
-        {
-            await playerPersistenceService
-                .SaveAsync(steamId, preferences)
-                .ConfigureAwait(false);
-        }
-        catch (Exception exception)
-        {
-            core.Logger.LogError(
-                exception,
-                "Failed to save preferences for SteamID {SteamId} " +
-                "after all database retries. Session changes were lost.",
-                steamId
-            );
-        }
-    }
-
-    private void RunDatabaseTask(Task task)
-    {
-        lock (_databaseTasksLock)
-        {
-            _databaseTasks.Add(task);
-        }
-
-        _ = RemoveCompletedTaskAsync(task);
-    }
-
-    private async Task RemoveCompletedTaskAsync(Task task)
-    {
-        try
-        {
-            await task.ConfigureAwait(false);
-        }
-        catch (Exception exception)
-        {
-            core.Logger.LogError(exception, "Unhandled player database operation error.");
-        }
-        finally
-        {
-            lock (_databaseTasksLock)
+        return databaseOperations.RunAsync(
+            steamId,
+            async () =>
             {
-                _databaseTasks.Remove(task);
+                await session.SaveLock
+                    .WaitAsync(cancellationToken)
+                    .ConfigureAwait(false);
+
+                try
+                {
+                    var snapshot = session.CreateSnapshot(data =>
+                        new PlayerPreferences
+                        {
+                            ZClassId = data.ZClassId,
+
+                            HClassId = data.HClassId,
+
+                            KnifeId = data.KnifeId
+                        }
+                    );
+
+                    if (!snapshot.IsLoaded || !snapshot.IsDirty)
+                    {
+                        return;
+                    }
+
+                    await playerPersistenceService
+                        .SaveAsync(steamId, snapshot.Data)
+                        .ConfigureAwait(false);
+
+                    session.MarkSaved(
+                        snapshot.Revision
+                    );
+                }
+                finally
+                {
+                    session.SaveLock.Release();
+                }
             }
-        }
-    }
-
-    private void WaitForDatabaseTasks()
-    {
-        Task[] tasks;
-
-        lock (_databaseTasksLock)
-        {
-            tasks = [.. _databaseTasks];
-        }
-
-        Task.WhenAll(tasks).GetAwaiter().GetResult();
+        );
     }
 
     private static bool CanInitialize(IPlayer player)
@@ -206,15 +191,6 @@ internal sealed class PlayerPreferencesCoordinator(
         return player is
         {
             IsValid: true,
-            IsAuthorized: true,
-            IsFakeClient: false
-        } && player.SteamID != 0;
-    }
-
-    private static bool CanSave(IPlayer player)
-    {
-        return player is
-        {
             IsAuthorized: true,
             IsFakeClient: false
         } && player.SteamID != 0;

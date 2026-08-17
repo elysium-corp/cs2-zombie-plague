@@ -47,6 +47,9 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\Common.Database\Common.Database.csproj">
+            <Private>true</Private>
+        </ProjectReference>
         <ProjectReference Include="..\Common.Di\Common.Di.csproj">
             <Private Condition="'$(Configuration)' == 'Migrations'">true</Private>
         </ProjectReference>
