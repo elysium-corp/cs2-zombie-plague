@@ -77,11 +77,4 @@ internal sealed class PlayerRepository(
                 data.KnifeId = knifeId;
             });
     }
-
-    public bool Remove(IPlayer player)
-    {
-        ArgumentNullException.ThrowIfNull(player);
-
-        return sessions.TryRemove(player.SteamID, out _);
-    }
 }

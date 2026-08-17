@@ -6,8 +6,6 @@ internal interface IEconomyService
 {
     public int GetBalance(IPlayer player);
     
-    public void SetBalance(IPlayer player, int amount);
-
     public bool HasEnoughMoney(IPlayer player, int amount);
     
     public void GiveMoney(IPlayer player, int amount);

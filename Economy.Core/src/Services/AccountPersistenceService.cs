@@ -1,30 +1,39 @@
-﻿using Microsoft.Extensions.Options;
-using Economy.Core.Data.Configs;
-using Economy.Core.Data.Repository;
+﻿using Common.Database.Abstractions;
+using Economy.Core.Database.Entities;
 
 namespace Economy.Core.Services;
 
-internal sealed class AccountPersistenceService(IAccountRepository accountRepository, IOptions<EconomyConfig> config) : IAccountPersistenceService
+internal sealed class AccountPersistenceService(
+    ISteamEntityStore<AccountEntity> store
+) : IAccountPersistenceService
 {
-    public int LoadOrCreateBalance(long steamId, int initialBalance = -1)
+    public async Task<int?> LoadAsync(ulong steamId, CancellationToken cancellationToken = default)
     {
-        if (initialBalance < 0)
-        {
-            initialBalance = config.Value.StartMoney;
-        }
+        var account = await store
+            .FindAsync(steamId, cancellationToken)
+            .ConfigureAwait(false);
 
-        var account = accountRepository.FindBySteamId(steamId) ?? accountRepository.Create(steamId, initialBalance);
-
-        return account.Balance;
+        return account?.Balance;
     }
 
-    public void SaveBalance(long steamId, int balance)
+    public Task SaveAsync(ulong steamId, int balance, CancellationToken cancellationToken = default)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(balance);
 
-        if (!accountRepository.UpdateBalance(steamId, balance))
-        {
-            throw new InvalidOperationException($"Account for SteamID {steamId} was not found.");
-        }
+        var now = DateTime.UtcNow;
+
+        return store.UpsertAsync(
+            steamId,
+            update: account =>
+            {
+                account.Balance = balance;
+                account.UpdatedAt = now;
+            },
+            initialize: account =>
+            {
+                account.CreatedAt = now;
+            },
+            cancellationToken
+        );
     }
 }

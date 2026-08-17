@@ -10,7 +10,8 @@ namespace CustomKnife.Data.Services;
 internal sealed class PlayerKnifeService(
     PlayerSessionStore<PlayerKnifePreferences> sessions,
     IPlayerKnifePersistenceService persistenceService,
-    DatabaseTaskTracker databaseTasks
+    DatabaseTaskTracker databaseTasks,
+    SteamIdOperationQueue databaseOperations
 ) : IPlayerKnifeService
 {
     public void Initialize(ulong steamId)
@@ -66,62 +67,78 @@ internal sealed class PlayerKnifeService(
         );
     }
 
-    private async Task InitializeAsync(
+    private Task InitializeAsync(
         ulong steamId,
         PersistentSession<PlayerKnifePreferences> session,
         CancellationToken cancellationToken = default)
     {
-        var databaseKnifeId = await persistenceService
-            .LoadAsync(steamId, cancellationToken)
-            .ConfigureAwait(false);
-
-        if (!sessions.IsCurrent(steamId, session))
-        {
-            return;
-        }
-
-        if (databaseKnifeId is null)
-        {
-            session.CompleteLoadAsNew();
-
-            return;
-        }
-
-        session.CompleteLoad(
-            data =>
+        return databaseOperations.RunAsync(
+            steamId,
+            async () =>
             {
-                data.KnifeId = databaseKnifeId;
+                var databaseKnifeId = await persistenceService
+                        .LoadAsync(steamId, cancellationToken)
+                        .ConfigureAwait(false);
+
+                if (!sessions.IsCurrent(steamId, session))
+                {
+                    return;
+                }
+
+                if (databaseKnifeId is null)
+                {
+                    session.CompleteLoadAsNew();
+
+                    return;
+                }
+
+                session.CompleteLoad(
+                    data =>
+                    {
+                        data.KnifeId = databaseKnifeId;
+                    }
+                );
             }
         );
     }
 
-    private async Task SaveOnDisconnectAsync(
+    private Task SaveOnDisconnectAsync(
         ulong steamId,
         PersistentSession<PlayerKnifePreferences> session,
         CancellationToken cancellationToken = default)
     {
-        await session.SaveLock
-            .WaitAsync(cancellationToken)
-            .ConfigureAwait(false);
-
-        try
-        {
-            var snapshot = session.CreateSnapshot(data => data.KnifeId);
-
-            if (!snapshot.IsLoaded || !snapshot.IsDirty)
+        return databaseOperations.RunAsync(
+            steamId,
+            async () =>
             {
-                return;
+                await session.SaveLock
+                    .WaitAsync(cancellationToken)
+                    .ConfigureAwait(false);
+
+                try
+                {
+                    var snapshot = session.CreateSnapshot(
+                        data => data.KnifeId
+                    );
+
+                    if (!snapshot.IsLoaded || !snapshot.IsDirty)
+                    {
+                        return;
+                    }
+
+                    await persistenceService
+                        .SaveAsync(steamId, snapshot.Data, cancellationToken)
+                        .ConfigureAwait(false);
+
+                    session.MarkSaved(
+                        snapshot.Revision
+                    );
+                }
+                finally
+                {
+                    session.SaveLock.Release();
+                }
             }
-
-            await persistenceService
-                .SaveAsync(steamId, snapshot.Data, cancellationToken)
-                .ConfigureAwait(false);
-
-            session.MarkSaved(snapshot.Revision);
-        }
-        finally
-        {
-            session.SaveLock.Release();
-        }
+        );
     }
 }

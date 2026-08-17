@@ -15,7 +15,8 @@ internal sealed class PlayerPreferencesCoordinator(
     IPlayerManager playerManager,
     PlayerSessionStore<PlayerPreferences> sessions,
     IPlayerPersistenceService playerPersistenceService,
-    DatabaseTaskTracker databaseTasks
+    DatabaseTaskTracker databaseTasks,
+    SteamIdOperationQueue databaseOperations
 ) : IPlayerPreferencesCoordinator
 {
     public void Initialize(IPlayer player)
@@ -47,11 +48,6 @@ internal sealed class PlayerPreferencesCoordinator(
             return;
         }
 
-        if (!CanSave(player))
-        {
-            return;
-        }
-
         databaseTasks.Run(
             () => SaveAsync(steamId, session),
             $"Save player preferences {steamId}"
@@ -73,38 +69,58 @@ internal sealed class PlayerPreferencesCoordinator(
         databaseTasks.StopAndWait();
     }
 
-    private async Task LoadAsync(ulong steamId, PersistentSession<PlayerPreferences> session, CancellationToken cancellationToken = default)
+    private async Task LoadAsync(
+        ulong steamId,
+        PersistentSession<PlayerPreferences> session,
+        CancellationToken cancellationToken = default)
     {
-        var loaded = await playerPersistenceService
-            .LoadAsync(steamId)
+        var shouldApply = await databaseOperations
+            .RunAsync(
+                steamId,
+                async () =>
+                {
+                    var loaded = await playerPersistenceService
+                        .LoadAsync(steamId)
+                        .ConfigureAwait(false);
+
+                    if (!sessions.IsCurrent(steamId, session))
+                    {
+                        return false;
+                    }
+
+                    if (loaded is null)
+                    {
+                        session.CompleteLoadAsNew();
+
+                        return false;
+                    }
+
+                    session.CompleteLoadMerged(current =>
+                        {
+                            if (current.ZClassId == PlayerPreferences.DefaultZombieClassId)
+                            {
+                                current.ZClassId = loaded.ZClassId;
+                            }
+
+                            if (current.HClassId == PlayerPreferences.DefaultHumanClassId)
+                            {
+                                current.HClassId = loaded.HClassId;
+                            }
+                        }
+                    );
+
+                    return true;
+                }
+            )
             .ConfigureAwait(false);
 
-        if (!sessions.IsCurrent(steamId, session))
+        if (!shouldApply)
         {
             return;
         }
 
-        if (loaded is null)
-        {
-            session.CompleteLoadAsNew();
-
-            return;
-        }
-
-        session.CompleteLoadMerged(current =>
-        {
-            if (current.ZClassId == PlayerPreferences.DefaultZombieClassId)
-            {
-                current.ZClassId = loaded.ZClassId;
-            }
-
-            if (current.HClassId == PlayerPreferences.DefaultHumanClassId)
-            {
-                current.HClassId = loaded.HClassId;
-            }
-        });
-
-        core.Scheduler.NextWorldUpdate(() => { ApplyLoadedPreferences(steamId, session); });
+        core.Scheduler.NextWorldUpdate(() => { ApplyLoadedPreferences(steamId, session); }
+        );
     }
 
     private void ApplyLoadedPreferences(ulong steamId, PersistentSession<PlayerPreferences> session)
@@ -128,53 +144,58 @@ internal sealed class PlayerPreferencesCoordinator(
         }
     }
 
-    private async Task SaveAsync(ulong steamId, PersistentSession<PlayerPreferences> session, CancellationToken cancellationToken = default)
+    private Task SaveAsync(
+        ulong steamId,
+        PersistentSession<PlayerPreferences> session,
+        CancellationToken cancellationToken = default)
     {
-        await session.SaveLock
-            .WaitAsync(cancellationToken)
-            .ConfigureAwait(false);
-
-        try
-        {
-            var snapshot = session.CreateSnapshot(data => new PlayerPreferences
-                {
-                    ZClassId = data.ZClassId,
-                    HClassId = data.HClassId,
-                    KnifeId = data.KnifeId
-                }
-            );
-
-            if (!snapshot.IsLoaded || !snapshot.IsDirty)
+        return databaseOperations.RunAsync(
+            steamId,
+            async () =>
             {
-                return;
+                await session.SaveLock
+                    .WaitAsync(cancellationToken)
+                    .ConfigureAwait(false);
+
+                try
+                {
+                    var snapshot = session.CreateSnapshot(data =>
+                        new PlayerPreferences
+                        {
+                            ZClassId = data.ZClassId,
+
+                            HClassId = data.HClassId,
+
+                            KnifeId = data.KnifeId
+                        }
+                    );
+
+                    if (!snapshot.IsLoaded || !snapshot.IsDirty)
+                    {
+                        return;
+                    }
+
+                    await playerPersistenceService
+                        .SaveAsync(steamId, snapshot.Data)
+                        .ConfigureAwait(false);
+
+                    session.MarkSaved(
+                        snapshot.Revision
+                    );
+                }
+                finally
+                {
+                    session.SaveLock.Release();
+                }
             }
-
-            await playerPersistenceService
-                .SaveAsync(steamId, snapshot.Data)
-                .ConfigureAwait(false);
-
-            session.MarkSaved(snapshot.Revision);
-        }
-        finally
-        {
-            session.SaveLock.Release();
-        }
+        );
     }
-    
+
     private static bool CanInitialize(IPlayer player)
     {
         return player is
         {
             IsValid: true,
-            IsAuthorized: true,
-            IsFakeClient: false
-        } && player.SteamID != 0;
-    }
-
-    private static bool CanSave(IPlayer player)
-    {
-        return player is
-        {
             IsAuthorized: true,
             IsFakeClient: false
         } && player.SteamID != 0;

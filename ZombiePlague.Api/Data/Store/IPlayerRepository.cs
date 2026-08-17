@@ -15,6 +15,4 @@ public interface IPlayerRepository
     public void SetHClassId(IPlayer player, string classId);
 
     public void SetKnifeId(IPlayer player, string knifeId);
-
-    public bool Remove(IPlayer player);
 }

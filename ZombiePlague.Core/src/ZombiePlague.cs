@@ -7,6 +7,7 @@ using ZombiePlague.Api;
 using ZombiePlague.Core.Api;
 using ZombiePlague.Core.Data;
 using ZombiePlague.Core.Data.Coordinators;
+using ZombiePlague.Core.Data.Coordinators.Contracts;
 using ZombiePlague.Core.Data.Managers.Contracts;
 using ZombiePlague.Core.Data.Plugins.AdminMenu;
 using ZombiePlague.Core.Data.Plugins.ResourceLoader;

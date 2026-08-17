@@ -33,6 +33,23 @@ public sealed class PersistentSession<TData>(TData data) where TData : class
         }
     }
 
+    public bool TryUpdate(Func<TData, bool> update)
+    {
+        ArgumentNullException.ThrowIfNull(update);
+
+        lock (_lock)
+        {
+            if (!update(data))
+            {
+                return false;
+            }
+
+            _revision++;
+
+            return true;
+        }
+    }
+
     public void CompleteLoad(Action<TData> applyLoadedData)
     {
         ArgumentNullException.ThrowIfNull(applyLoadedData);

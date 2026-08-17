@@ -64,6 +64,7 @@ public static class DatabaseServiceCollectionExt
             });
             
             services.TryAddSingleton<DatabaseTaskTracker>();
+            services.TryAddSingleton<SteamIdOperationQueue>();
             
             services.AddSingleton<DatabaseMigrator<TContext>>();
 

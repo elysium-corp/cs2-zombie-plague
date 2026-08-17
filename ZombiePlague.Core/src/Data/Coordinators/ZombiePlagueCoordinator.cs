@@ -1,4 +1,5 @@
-﻿using ZombiePlague.Core.Data.Entities.Registrator;
+﻿using ZombiePlague.Core.Data.Coordinators.Contracts;
+using ZombiePlague.Core.Data.Entities.Registrator;
 using ZombiePlague.Core.Data.Rounds.Registrator;
 using ZombiePlague.Core.Data.Service;
 using ZombiePlague.Core.Data.Service.Contracts;

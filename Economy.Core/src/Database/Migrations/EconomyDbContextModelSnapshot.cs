@@ -23,7 +23,7 @@ namespace Economy.Core.src.Database.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Economy.Core.Database.Entities.Account", b =>
+            modelBuilder.Entity("Economy.Core.Database.Entities.AccountEntity", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
