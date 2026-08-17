@@ -17,9 +17,8 @@ namespace ZombiePlague.Core.Data.Managers;
 internal sealed class PlayerManager(
     HumanController humanController,
     ZombieController zombieController,
-    IHookPublisher hooks,
-    IEventPublisher eventPublisher,
-    ICustomEventService eventService
+    ICustomEventService eventService,
+    IHookPublisher hooks
 ) : IPlayerManager
 {
     private readonly Dictionary<IPlayer, IPlayerRole> _players = [];
@@ -89,15 +88,15 @@ internal sealed class PlayerManager(
 
         AddOrReplaceRole(zombie);
 
-        eventService.ShowInfection(preContext.Infector, preContext.Player);
+        eventService.ShowInfection(
+            preContext.Infector,
+            preContext.Player
+        );
 
-        // Старое событие временно сохраняем
-        eventPublisher.OnPlayerInfected(
+        var postContext = new PlayerInfectPostContext(
             preContext.Player,
             preContext.Infector
         );
-
-        var postContext = new PlayerInfectPostContext(preContext.Player, preContext.Infector);
 
         hooks.Dispatch(ref postContext);
 
@@ -117,9 +116,7 @@ internal sealed class PlayerManager(
         }
 
         AddOrReplaceRole(human);
-
-        eventPublisher.OnPlayerDisinfected(player);
-
+        
         return true;
     }
 
@@ -157,9 +154,7 @@ internal sealed class PlayerManager(
         }
 
         AddOrReplaceRole(nemesis);
-
-        eventPublisher.OnPlayerInfected(player);
-
+        
         return true;
     }
 

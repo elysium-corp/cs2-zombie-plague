@@ -11,8 +11,6 @@ public interface IZombiePlagueApi
 {
     public IZombiePlagueEvents Events { get; }
     
-    public IEventSubscriber EventSubscriber { get; }
-    
     public IPlayerRepository PlayerRepository { get; }
 
     public bool IsInfected(IPlayer player);

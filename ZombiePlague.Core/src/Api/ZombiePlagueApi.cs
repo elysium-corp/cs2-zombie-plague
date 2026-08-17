@@ -14,15 +14,12 @@ namespace ZombiePlague.Core.Api;
 
 internal sealed class ZombiePlagueApi(
     ZombiePlagueEvents events,
-    IEventSubscriber eventSubscriber,
     IPlayerManager playerManager,
     IKnockbackService knockbackService,
     IPlayerRepository playerRepository
 ) : IZombiePlagueApi
 {
     public IZombiePlagueEvents Events => events;
-    
-    public IEventSubscriber EventSubscriber => eventSubscriber;
     
     public IPlayerRepository PlayerRepository => playerRepository;
 
