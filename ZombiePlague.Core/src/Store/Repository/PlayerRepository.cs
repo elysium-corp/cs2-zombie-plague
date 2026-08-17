@@ -1,88 +1,87 @@
-﻿using SwiftlyS2.Shared.Players;
+﻿using Common.Database.Storages;
+using SwiftlyS2.Shared.Players;
 using ZombiePlague.Api.Data.Store;
-using ZombiePlague.Core.Store.Contracts;
 using ZombiePlague.Core.Store.Data;
 
 namespace ZombiePlague.Core.Store.Repository;
 
-internal class PlayerRepository(IPlayerStore playerStore) : IPlayerRepository
+internal sealed class PlayerRepository(
+    PlayerSessionStore<PlayerPreferences> sessions
+) : IPlayerRepository
 {
     public string GetZClassId(IPlayer player)
     {
-        return GetOrCreate(player).ZClassId;
+        ArgumentNullException.ThrowIfNull(player);
+
+        return sessions
+            .Get(player.SteamID)?
+            .Read(data => data.ZClassId)
+            ?? PlayerPreferences.DefaultZombieClassId;
     }
 
     public string GetHClassId(IPlayer player)
     {
-        return GetOrCreate(player).HClassId;
+        ArgumentNullException.ThrowIfNull(player);
+
+        return sessions
+            .Get(player.SteamID)?
+            .Read(data => data.HClassId)
+            ?? PlayerPreferences.DefaultHumanClassId;
     }
 
     public string GetKnifeId(IPlayer player)
     {
-        return GetOrCreate(player).KnifeId;
+        ArgumentNullException.ThrowIfNull(player);
+
+        return sessions
+            .Get(player.SteamID)?
+            .Read(data => data.KnifeId)
+            ?? PlayerPreferences.DefaultKnifeId;
     }
 
     public void SetZClassId(IPlayer player, string classId)
     {
+        ArgumentNullException.ThrowIfNull(player);
         ArgumentException.ThrowIfNullOrWhiteSpace(classId);
 
-        var preferences = GetOrCreate(player);
-
-        playerStore.Set(
-            player,
-            preferences with
+        sessions
+            .Get(player.SteamID)?
+            .Update(data =>
             {
-                ZClassId = classId
-            }
-        );
+                data.ZClassId = classId;
+            });
     }
-    
+
     public void SetHClassId(IPlayer player, string classId)
     {
+        ArgumentNullException.ThrowIfNull(player);
         ArgumentException.ThrowIfNullOrWhiteSpace(classId);
 
-        var preferences = GetOrCreate(player);
-
-        playerStore.Set(
-            player,
-            preferences with
+        sessions
+            .Get(player.SteamID)?
+            .Update(data =>
             {
-                HClassId = classId
-            }
-        );
+                data.HClassId = classId;
+            });
     }
 
     public void SetKnifeId(IPlayer player, string knifeId)
     {
+        ArgumentNullException.ThrowIfNull(player);
         ArgumentException.ThrowIfNullOrWhiteSpace(knifeId);
 
-        var preferences = GetOrCreate(player);
-
-        playerStore.Set(
-            player,
-            preferences with
+        sessions
+            .Get(player.SteamID)?
+            .Update(data =>
             {
-                KnifeId = knifeId
-            }
-        );
+                data.KnifeId = knifeId;
+            });
     }
 
     public bool Remove(IPlayer player)
     {
-        return playerStore.Remove(player);
-    }
+        ArgumentNullException.ThrowIfNull(player);
 
-    private PlayerPreferences GetOrCreate(IPlayer player)
-    {
-        if (playerStore.TryGet(player, out var preferences))
-        {
-            return preferences;
-        }
-
-        var createdPreferences = new PlayerPreferences();
-
-        playerStore.Set(player, createdPreferences);
-
-        return createdPreferences;
+        return sessions.TryRemove(player.SteamID, out _);
     }
 }

@@ -1,3 +1,4 @@
+using Common.Database.Migrator;
 using Common.Di;
 using Menu.Api;
 using Microsoft.Extensions.Logging;
@@ -12,6 +13,7 @@ using ZombiePlague.Core.Data.Plugins.ResourceLoader;
 using ZombiePlague.Core.Data.Rounds.Contracts;
 using ZombiePlague.Core.Data.Rounds.Registrator;
 using ZombiePlague.Core.Data.Service.Contracts;
+using ZombiePlague.Core.Database;
 using ZombiePlague.Core.Di;
 using ZombiePlague.Core.Generated;
 using ZombiePlague.Core.Menus;
@@ -31,8 +33,8 @@ public sealed partial class ZombiePlague(ISwiftlyCore core) : Plugin<ZombiePlagu
     private readonly Lazy<IZombiePlagueCoordinator> _coordinator = GetRequiredServiceLazy<IZombiePlagueCoordinator>();
     private readonly Lazy<ZombiePlagueApi> _api = GetRequiredServiceLazy<ZombiePlagueApi>();
     private readonly Lazy<MenuExtensionDispatcherProxy> _menuApiBridge = GetRequiredServiceLazy<MenuExtensionDispatcherProxy>();
-    private readonly Lazy<IPlayerPersistenceService> _playerPersistenceService = GetRequiredServiceLazy<IPlayerPersistenceService>();
-
+    private readonly Lazy<DatabaseMigrator<ZombiePlagueDbContext>> _databaseMigrator = GetRequiredServiceLazy<DatabaseMigrator<ZombiePlagueDbContext>>();
+    
     protected override void OnConfigureSharedInterfaces(IInterfaceManager interfaceManager)
     {
         interfaceManager.AddSharedInterface<IZombiePlagueApi, ZombiePlagueApi>(
@@ -50,7 +52,8 @@ public sealed partial class ZombiePlague(ISwiftlyCore core) : Plugin<ZombiePlagu
 
     protected override void OnStart()
     {
-        TryInitializeDatabase();
+        TryMigrateDatabase();
+        
         _resourceLoader.Value.Initialize();
         _coordinator.Value.Start();
 
@@ -69,17 +72,17 @@ public sealed partial class ZombiePlague(ISwiftlyCore core) : Plugin<ZombiePlagu
         _resourceLoader.Value.Uninitialize();
     }
 
-    private void TryInitializeDatabase()
+    private void TryMigrateDatabase()
     {
         try
         {
-            _playerPersistenceService.Value.InitializeDatabase();
+            _databaseMigrator.Value.Migrate();
         }
         catch (Exception exception)
         {
             core.Logger.LogError(
                 exception,
-                "Zombie Plague database initialization failed. Default player preferences will be used."
+                "Zombie Plague database migration failed. Default player preferences will be used."
             );
         }
     }

@@ -65,6 +65,24 @@ public sealed class PersistentSession<TData>(TData data) where TData : class
             _savedRevision = 0;
         }
     }
+    
+    public void CompleteLoadMerged(Action<TData> mergeLoadedData)
+    {
+        ArgumentNullException.ThrowIfNull(mergeLoadedData);
+
+        lock (_lock)
+        {
+            if (_isLoaded)
+            {
+                return;
+            }
+
+            mergeLoadedData(data);
+
+            _isLoaded = true;
+            _savedRevision = 0;
+        }
+    }
 
     public void CompleteLoadAsNew()
     {
