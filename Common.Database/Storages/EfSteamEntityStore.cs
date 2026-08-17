@@ -1,7 +1,7 @@
 ﻿using Common.Database.Abstractions;
 using Microsoft.EntityFrameworkCore;
 
-namespace Common.Database.Storage;
+namespace Common.Database.Storages;
 
 internal sealed class EfSteamEntityStore<TContext, TEntity>(IDbContextFactory<TContext> contextFactory) : ISteamEntityStore<TEntity>
     where TContext : DbContext

@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using Common.Database;
+using Common.Database.Storages;
 using Common.Database.Utils;
 using Common.Di;
 using Common.Di.Utils;
@@ -60,7 +61,7 @@ internal sealed class CustomKnifeModule(ISwiftlyCore core) : BaseModule(core)
         AddSingleton<KnifeRegistryInitializer>(service);
         AddSingleton<MenuApiBridge>(service);
         AddSingleton<IPlayerKnifePersistenceService, PlayerKnifePersistenceService>(service);
-        AddSingleton<PlayerKnifeStore>(service);
+        AddSingleton<PlayerSessionStore<PlayerKnifePreferences>>(service);
         AddSingleton<IPlayerKnifeService, PlayerKnifeService>(service);
         
         AddSingleton<IMenuExtensionDispatcher>(service, provider => provider.GetRequiredService<MenuApiBridge>());

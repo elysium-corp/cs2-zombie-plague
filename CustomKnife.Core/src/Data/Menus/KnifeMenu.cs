@@ -76,7 +76,7 @@ internal sealed class KnifeMenu(
         {
             var player = args.Player;
 
-            await knifeService.SelectKnifeAsync(player, knife);
+            knifeService.SelectKnife(player, knife);
 
             await player.SendChatAsync($"Вы успешно выбрали нож: {knife.DisplayName}");
 

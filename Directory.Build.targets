@@ -118,6 +118,8 @@
         <ItemGroup>
             <!-- Все Common проекты -->
             <AllCommonProjects Include="$(RepoRoot)**\Common.*.csproj" />
+            <!-- Common.Database является private runtime dependency плагинов -->
+            <AllCommonProjects Remove="$(RepoRoot)**\Common.Database.csproj" />
 
             <!-- Только ZombiePlague.Api -->
             <ZombieApiProjects Include="$(RepoRoot)**\ZombiePlague.Api.csproj" />

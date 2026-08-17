@@ -1,7 +1,7 @@
 ﻿using Common.Database.Abstractions;
 using Common.Database.Migrator;
 using Common.Database.Providers;
-using Common.Database.Storage;
+using Common.Database.Storages;
 using Common.Database.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;

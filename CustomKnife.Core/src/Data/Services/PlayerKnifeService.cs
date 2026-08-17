@@ -1,4 +1,6 @@
-﻿using Common.Database.Tasks;
+﻿using Common.Database.Sessions;
+using Common.Database.Storages;
+using Common.Database.Tasks;
 using CustomKnife.Data.Knives;
 using CustomKnife.Data.Services.Contracts;
 using CustomKnife.Data.Store;
@@ -6,71 +8,120 @@ using CustomKnife.Data.Store;
 namespace CustomKnife.Data.Services;
 
 internal sealed class PlayerKnifeService(
-    PlayerKnifeStore store,
+    PlayerSessionStore<PlayerKnifePreferences> sessions,
     IPlayerKnifePersistenceService persistenceService,
     DatabaseTaskTracker databaseTasks
 ) : IPlayerKnifeService
 {
     public void Initialize(ulong steamId)
     {
-        databaseTasks.Run(() => InitializeAsync(steamId));
+        var preferences = new PlayerKnifePreferences
+        {
+            KnifeId = KnifeDefaults.DefaultKnifeId
+        };
+
+        var session = sessions.Create(steamId, preferences);
+
+        databaseTasks.Run(
+            () => InitializeAsync(
+                steamId,
+                session
+            )
+        );
     }
 
     public string? GetKnifeId(ulong steamId)
     {
-        return store
+        return sessions
             .Get(steamId)?
-            .KnifeId;
+            .Read(data => data.KnifeId);
     }
 
-    public async Task SetKnifeIdAsync(ulong steamId, string knifeId, CancellationToken cancellationToken = default)
+    public void SetKnifeId(
+        ulong steamId,
+        string knifeId)
     {
-        store.SetKnifeId(steamId, knifeId);
-
-        await persistenceService
-            .SaveAsync(steamId, knifeId, cancellationToken)
-            .ConfigureAwait(false);
+        sessions
+            .Get(steamId)?
+            .Update(
+                data =>
+                {
+                    data.KnifeId = knifeId;
+                }
+            );
     }
 
     public void Remove(ulong steamId)
     {
-        databaseTasks.Run(() => RemoveAsync(steamId));
+        if (!sessions.TryRemove(steamId, out var session) || session is null)
+        {
+            return;
+        }
+
+        databaseTasks.Run(
+            () => SaveOnDisconnectAsync(
+                steamId,
+                session
+            )
+        );
     }
 
-    private async Task InitializeAsync(ulong steamId, CancellationToken cancellationToken = default)
+    private async Task InitializeAsync(
+        ulong steamId,
+        PersistentSession<PlayerKnifePreferences> session,
+        CancellationToken cancellationToken = default)
     {
-        var preferences = store.GetOrCreate(steamId, KnifeDefaults.DefaultKnifeId);
-
-        var dbKnifeId = await persistenceService
+        var databaseKnifeId = await persistenceService
             .LoadAsync(steamId, cancellationToken)
             .ConfigureAwait(false);
 
-        if (dbKnifeId is null)
+        if (!sessions.IsCurrent(steamId, session))
         {
             return;
         }
 
-        store.TrySetKnifeId(steamId, preferences, dbKnifeId);
+        if (databaseKnifeId is null)
+        {
+            session.CompleteLoadAsNew();
+
+            return;
+        }
+
+        session.CompleteLoad(
+            data =>
+            {
+                data.KnifeId = databaseKnifeId;
+            }
+        );
     }
 
-    private async Task RemoveAsync(ulong steamId, CancellationToken cancellationToken = default)
+    private async Task SaveOnDisconnectAsync(
+        ulong steamId,
+        PersistentSession<PlayerKnifePreferences> session,
+        CancellationToken cancellationToken = default)
     {
-        var preferences = store.Get(steamId);
-
-        if (preferences is null)
-        {
-            return;
-        }
+        await session.SaveLock
+            .WaitAsync(cancellationToken)
+            .ConfigureAwait(false);
 
         try
         {
+            var snapshot = session.CreateSnapshot(data => data.KnifeId);
+
+            if (!snapshot.IsLoaded || !snapshot.IsDirty)
+            {
+                return;
+            }
+
             await persistenceService
-                .SaveAsync(steamId, preferences.KnifeId, cancellationToken)
+                .SaveAsync(steamId, snapshot.Data, cancellationToken)
                 .ConfigureAwait(false);
+
+            session.MarkSaved(snapshot.Revision);
         }
         finally
         {
-            store.Remove(steamId);
+            session.SaveLock.Release();
         }
     }
 }

@@ -38,7 +38,7 @@ internal sealed class KnifeService(
         return true;
     }
 
-    public async Task SelectKnifeAsync(IPlayer player, IKnife knife, CancellationToken cancellationToken = default)
+    public void SelectKnife(IPlayer player, IKnife knife)
     {
         ArgumentNullException.ThrowIfNull(player);
         ArgumentNullException.ThrowIfNull(knife);
@@ -48,9 +48,10 @@ internal sealed class KnifeService(
             throw new ArgumentException($"Knife '{knife.InternalName}' is not registered!", nameof(knife));
         }
 
-        await playerKnifeService
-            .SetKnifeIdAsync(player.SteamID, knife.InternalName, cancellationToken)
-            .ConfigureAwait(false);
+        playerKnifeService.SetKnifeId(
+            player.SteamID,
+            knife.InternalName
+        );
 
         TryGiveKnife(player);
     }
