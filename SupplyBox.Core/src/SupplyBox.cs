@@ -17,6 +17,7 @@ using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Players;
 using ZombiePlague.Api;
 using ZombiePlague.Api.Data;
+using ZombiePlague.Api.Events.Contexts;
 using IEventSubscriber = SupplyBox.Events.IEventSubscriber;
 
 namespace SupplyBox;
@@ -60,8 +61,10 @@ internal sealed partial class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxMod
     {
         _guidOnEventRoundEndPost = core.GameEvent.HookPost<EventRoundEnd>(OnRoundEnd);
         _guidOnEventCsPreRestartPost = core.GameEvent.HookPost<EventCsPreRestart>(OnGameRestart);
-        ZombiePlagueApi.EventSubscriber.OnRoundStarted += OnRoundStarted;
+        
         _eventSubscriber.Value.OnSupplyBoxPickedUp += OnSupplyBoxPickedUp;
+        ZombiePlagueApi.Events.Post.RoundStartEvent += OnRoundStarted;
+        
         core.Event.OnMapLoad += OnMapLoad;
         
         Core.Command.RegisterCommand(
@@ -75,8 +78,10 @@ internal sealed partial class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxMod
     {
         Core.GameEvent.Unhook(_guidOnEventRoundEndPost);
         Core.GameEvent.Unhook(_guidOnEventCsPreRestartPost);
-        ZombiePlagueApi.EventSubscriber.OnRoundStarted -= OnRoundStarted;
+        
+        ZombiePlagueApi.Events.Post.RoundStartEvent -= OnRoundStarted;
         _eventSubscriber.Value.OnSupplyBoxPickedUp -= OnSupplyBoxPickedUp;
+        
         core.Event.OnMapLoad -= OnMapLoad;
     }
     
@@ -120,9 +125,9 @@ internal sealed partial class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxMod
         _droppedSupplyBoxes.Remove(box);
     }
     
-    private void OnRoundStarted(IRound round)
+    private void OnRoundStarted(ref RoundStartPostContext context)
     {
-        CreateRespawnTimer(round);
+        CreateRespawnTimer(context.Round);
     }
     
     private void OnMapLoad(IOnMapLoadEvent @event)

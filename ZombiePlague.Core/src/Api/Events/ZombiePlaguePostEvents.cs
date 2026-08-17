@@ -12,4 +12,10 @@ internal sealed class ZombiePlaguePostEvents(IHookSubscriber hooks ) : IZombiePl
         add => hooks.Hook(value);
         remove => hooks.Unhook(value);
     }
+    
+    public event HookHandler<RoundStartPostContext> RoundStartEvent
+    {
+        add => hooks.Hook(value);
+        remove => hooks.Unhook(value);
+    }
 }

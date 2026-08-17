@@ -1,8 +1,8 @@
-﻿using SwiftlyS2.Shared;
+﻿using Common.Hooks.Abstractions;
+using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Players;
-using ZombiePlague.Api.Events;
 using ZombiePlague.Core.Config.Round;
 using ZombiePlague.Core.Data.Managers.Contracts;
 using ZombiePlague.Core.Data.Rounds.Contracts;
@@ -13,9 +13,9 @@ namespace ZombiePlague.Core.Data.Rounds;
 internal sealed class Plague(
     ISwiftlyCore core,
     IPlayerManager playerManager,
-    IEventPublisher eventPublisher,
+    IHookPublisher hooks,
     PlagueConfig config
-) : InfectionBase(core, playerManager, eventPublisher)
+) : InfectionBase(core, playerManager, hooks)
 {
     private readonly Dictionary<int, CancellationTokenSource> _respawnTimers = [];
     

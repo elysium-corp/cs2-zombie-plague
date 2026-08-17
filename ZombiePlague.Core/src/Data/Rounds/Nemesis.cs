@@ -1,6 +1,6 @@
-﻿using SwiftlyS2.Shared;
+﻿using Common.Hooks.Abstractions;
+using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameHooks;
-using ZombiePlague.Api.Events;
 using ZombiePlague.Core.Config.Round;
 using ZombiePlague.Core.Data.Abilities;
 using ZombiePlague.Core.Data.Managers.Contracts;
@@ -12,9 +12,9 @@ namespace ZombiePlague.Core.Data.Rounds;
 internal sealed class Nemesis(
     ISwiftlyCore core,
     IPlayerManager playerManager,
-    IEventPublisher eventPublisher,
+    IHookPublisher hooks,
     NemesisConfig config
-) : RoundBase(core, playerManager, eventPublisher)
+) : RoundBase(core, playerManager, hooks)
 {
     public override string Name => config.Name;
     

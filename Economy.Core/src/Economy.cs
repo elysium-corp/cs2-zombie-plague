@@ -13,6 +13,7 @@ using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Players;
 using ZombiePlague.Api;
+using ZombiePlague.Api.Events.Contexts;
 
 namespace Economy.Core;
 
@@ -60,7 +61,7 @@ internal sealed partial class Economy(ISwiftlyCore core) : Plugin<EconomyModule>
         _guidOnPlayerPlayerDisconnectPre = Core.GameEvent.HookPre<EventPlayerDisconnect>(OnPlayerDisconnect);
         _roundPoststartHook = Core.GameEvent.HookPost<EventRoundPoststart>(OnRoundPostStart);
 
-        _zombiePlagueApi.EventSubscriber.OnPlayerInfected += OnPlayerInfected;
+        _zombiePlagueApi.Events.Post.PlayerInfectEvent += OnPlayerInfected;
     }
 
     protected override void OnUnload()
@@ -70,19 +71,22 @@ internal sealed partial class Economy(ISwiftlyCore core) : Plugin<EconomyModule>
         Core.GameEvent.Unhook(_guidOnPlayerPlayerDisconnectPre);
         Core.GameEvent.Unhook(_roundPoststartHook);
 
-        _zombiePlagueApi.EventSubscriber.OnPlayerInfected -= OnPlayerInfected;
-        
+        _zombiePlagueApi.Events.Post.PlayerInfectEvent -= OnPlayerInfected;
+
         _playerAccountService.Value.SaveAllAndWait();
     }
 
-    private void OnPlayerInfected(IPlayer _, IPlayer? infector)
+    private void OnPlayerInfected(ref PlayerInfectPostContext context)
     {
+        var infector = context.Infector;
+
         if (infector is not { IsValid: true })
         {
             return;
         }
 
         var config = _config.Value.Value;
+
         _economyServiceLazy.Value.GiveMoney(infector, config.MoneyForInfection);
     }
 
