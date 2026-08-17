@@ -4,11 +4,9 @@ using Common.Database.Utils;
 using Common.Di;
 using Microsoft.Extensions.DependencyInjection;
 using Economy.Core.Data.Configs;
-using Economy.Core.Data.Repository;
 using Economy.Core.Data.Store;
 using Economy.Core.Database;
 using Economy.Core.Database.Entities;
-using Economy.Core.Initializer;
 using Economy.Core.Services;
 using SwiftlyS2.Shared;
 

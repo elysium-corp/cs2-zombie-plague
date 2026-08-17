@@ -13,6 +13,6 @@ public sealed class EconomyDbContext(DbContextOptions<EconomyDbContext> options)
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.HasDefaultSchema("economy");
+        modelBuilder.HasDefaultSchema(SchemaName);
     }
 }

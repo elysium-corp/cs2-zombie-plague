@@ -114,7 +114,7 @@ internal sealed class EconomyService(
             return false;
         }
 
-        var snapshot = session.CreateSnapshot(data => data.Balance;
+        var snapshot = session.CreateSnapshot(data => data.Balance);
 
         if (!snapshot.IsLoaded)
         {

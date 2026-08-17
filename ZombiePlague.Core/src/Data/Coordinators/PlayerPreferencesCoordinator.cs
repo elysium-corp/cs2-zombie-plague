@@ -83,11 +83,6 @@ internal sealed class PlayerPreferencesCoordinator(
                         .LoadAsync(steamId)
                         .ConfigureAwait(false);
 
-                    if (!sessions.IsCurrent(steamId, session))
-                    {
-                        return false;
-                    }
-
                     if (loaded is null)
                     {
                         session.CompleteLoadAsNew();

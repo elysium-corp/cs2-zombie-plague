@@ -108,11 +108,6 @@ internal sealed class PlayerAccountService(
                             .LoadAsync(steamId, cancellationToken)
                             .ConfigureAwait(false);
 
-                    if (!sessions.IsCurrent(steamId, session))
-                    {
-                        return false;
-                    }
-
                     if (databaseBalance is null)
                     {
                         session.CompleteLoadAsNew();
@@ -153,7 +148,7 @@ internal sealed class PlayerAccountService(
 
     private void ApplyLoadedBalance(ulong steamId, PersistentSession<PlayerAccountState> session)
     {
-        if (!sessions.IsCurrent(steamId))
+        if (!sessions.IsCurrent(steamId, session))
         {
             return;
         }

@@ -1,12 +1,10 @@
 using Common.Database.Migrator;
 using Common.Di;
-using Common.Di.Utils;
 using Economy.Api;
 using Economy.Core.Api;
 using Economy.Core.Data.Configs;
 using Economy.Core.Database;
 using Economy.Core.Di;
-using Economy.Core.Initializer;
 using Economy.Core.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;

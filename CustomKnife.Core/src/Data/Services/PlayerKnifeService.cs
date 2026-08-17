@@ -80,11 +80,6 @@ internal sealed class PlayerKnifeService(
                         .LoadAsync(steamId, cancellationToken)
                         .ConfigureAwait(false);
 
-                if (!sessions.IsCurrent(steamId, session))
-                {
-                    return;
-                }
-
                 if (databaseKnifeId is null)
                 {
                     session.CompleteLoadAsNew();

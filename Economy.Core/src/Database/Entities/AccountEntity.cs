@@ -10,7 +10,7 @@ namespace Economy.Core.Database.Entities;
     Name = "ux_accounts_steam_id",
     IsUnique = true
 )]
-[Table("accounts", Schema = "economy")]
+[Table("accounts", Schema = EconomyDbContext.SchemaName)]
 internal sealed class AccountEntity : ISteamEntity
 {
     [Key]
