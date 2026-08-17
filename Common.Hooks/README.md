@@ -1,115 +1,251 @@
 # Common.Hooks
 
-`Common.Hooks` — небольшой универсальный механизм синхронных хуков для взаимодействия между модулями проекта.
+`Common.Hooks` — небольшой механизм событий между модулями проекта.
 
-Он позволяет модулю-производителю события:
+Он позволяет одному модулю сообщить другим:
 
-- публиковать `Pre` и `Post` события;
-- передавать изменяемый контекст через `ref`;
-- позволять подписчикам отменять операцию на стадии `Pre`;
-- управлять порядком выполнения обработчиков через приоритеты;
-- изолировать ошибки отдельных подписчиков;
-- скрывать внутренний `HookService` за обычным C# API с `+=` / `-=`.
+> «Сейчас что-то произойдёт»
 
-`Common.Hooks` не содержит зависимостей от SwiftlyS2, ZombiePlague или других игровых модулей.
+или:
 
----
+> «Что-то уже произошло»
 
-## Основная идея
-
-Есть две стороны:
-
-1. **Publisher** — модуль, в котором событие происходит.
-2. **Subscriber** — модуль, который хочет отреагировать на событие.
-
-Например:
+Например `ZombiePlague.Core` может сообщить другим плагинам:
 
 ```text
-ZombiePlague.Core
-      |
-      | игрок заражается
-      v
-PlayerInfectPreContext
-      |
-      v
-   HookService
-      |
-      +------> Economy.Core
-      |
-      +------> Другой плагин
-      |
-      v
-ZombiePlague.Core продолжает заражение
+Игрок собирается заразиться
+          ↓
+     Pre-событие
+          ↓
+      Заражение
+          ↓
+     Post-событие
 ```
 
-Общая архитектура:
+Другие модули могут подписаться на эти события:
+
+```csharp
+zombiePlague.Events.Pre.PlayerInfectEvent += OnPlayerInfect;
+```
+
+или:
+
+```csharp
+zombiePlague.Events.Post.PlayerInfectEvent += OnPlayerInfected;
+```
+
+---
+
+# 1. Как это работает
+
+У системы есть три основных участника:
 
 ```mermaid
-flowchart TD
-    Consumer["Внешний модуль<br/>Economy / SupplyBox / etc."]
-    Api["Feature.Api<br/>Events.Pre / Events.Post"]
-    Subscriber["IHookSubscriber"]
-    Service["HookService"]
-    Publisher["IHookPublisher"]
-    Core["Feature.Core"]
+flowchart LR
+    Core["ZombiePlague.Core<br/>происходит событие"]
 
-    Consumer -->|" += / -="| Api
-    Api --> Subscriber
-    Subscriber --> Service
+    Hooks["HookService"]
 
-    Core --> Publisher
-    Publisher --> Service
+    Plugin["Другой плагин<br/>Economy / SupplyBox / etc."]
 
-    Service -->|"Dispatch(ref context)"| Consumer
+    Core -->|"Dispatch"| Hooks
+    Hooks -->|"вызывает подписчиков"| Plugin
 ```
+
+Например происходит заражение игрока.
+
+`ZombiePlague.Core` создаёт контекст:
+
+```csharp
+var context = new PlayerInfectPreContext(
+    player,
+    infector
+);
+```
+
+Затем отправляет его:
+
+```csharp
+hooks.Dispatch(ref context);
+```
+
+`HookService` находит всех подписчиков:
+
+```text
+PlayerInfectPreContext
+        │
+        ├── Plugin A
+        ├── Plugin B
+        └── Plugin C
+```
+
+и вызывает их по очереди.
+
+После этого управление возвращается обратно в `ZombiePlague.Core`.
 
 ---
 
-# Основные компоненты
+# 2. Самый простой пример
 
-## `IHookContext`
+Представим событие:
 
-Базовый marker-интерфейс для любого hook-контекста.
-
-```csharp
-public interface IHookContext;
+```text
+Игрок заражается
 ```
 
-Сам по себе он не задаёт никакого поведения.
+Мы хотим дать другим плагинам возможность узнать об этом.
 
-Он нужен для ограничения generic API:
-
-```csharp
-where TContext : struct, IHookContext
-```
-
----
-
-## `IPreHookContext`
-
-Контекст события, которое происходит **до выполнения операции**.
+## Шаг 1 — создаём контекст
 
 ```csharp
-public interface IPreHookContext : IHookContext
+public struct PlayerInfectPostContext(
+    IPlayer player,
+    IPlayer? infector
+) : IPostHookContext
 {
-    bool IsCancelled { get; }
+    public IPlayer Player { get; set; } = player;
 
-    void Cancel();
+    public IPlayer? Infector { get; set; } = infector;
 }
 ```
 
-`Pre`-событие позволяет:
+Контекст содержит данные события:
 
-- изменить параметры операции;
-- отменить операцию;
-- проверить, отменил ли её предыдущий обработчик.
+```text
+PlayerInfectPostContext
+│
+├── Player
+└── Infector
+```
 
-Пример:
+---
+
+## Шаг 2 — Core отправляет событие
+
+После заражения:
+
+```csharp
+var context = new PlayerInfectPostContext(
+    player,
+    infector
+);
+
+hooks.Dispatch(ref context);
+```
+
+Получается:
+
+```mermaid
+flowchart LR
+    Infect["Игрок заражён"]
+
+    Context["PlayerInfectPostContext"]
+
+    Dispatch["Dispatch"]
+
+    Subscribers["Подписчики"]
+
+    Infect --> Context
+    Context --> Dispatch
+    Dispatch --> Subscribers
+```
+
+---
+
+## Шаг 3 — другой плагин подписывается
+
+Например `Economy.Core` хочет выдать деньги заражающему.
+
+```csharp
+zombiePlague.Events.Post.PlayerInfectEvent += OnPlayerInfected;
+```
+
+Обработчик:
+
+```csharp
+private void OnPlayerInfected(
+    ref PlayerInfectPostContext context)
+{
+    if (context.Infector is null)
+    {
+        return;
+    }
+
+    GiveMoney(context.Infector);
+}
+```
+
+Теперь при каждом заражении:
+
+```text
+ZombiePlague.Core
+        │
+        │ заражение произошло
+        ▼
+PlayerInfectPostContext
+        │
+        ▼
+    HookService
+        │
+        ▼
+   Economy.Core
+        │
+        ▼
+   GiveMoney()
+```
+
+---
+
+# 3. Pre и Post
+
+Hooks делятся на два основных типа:
+
+```mermaid
+flowchart LR
+    Pre["PRE<br/>до операции"]
+
+    Operation["ОПЕРАЦИЯ"]
+
+    Post["POST<br/>после операции"]
+
+    Pre --> Operation
+    Operation --> Post
+```
+
+Например заражение:
+
+```text
+PlayerInfectPreContext
+          ↓
+     заражение
+          ↓
+PlayerInfectPostContext
+```
+
+---
+
+# 4. Pre Hook
+
+`Pre` вызывается **до выполнения действия**.
+
+Он используется, когда подписчикам нужно:
+
+- проверить действие;
+- изменить параметры;
+- отменить действие.
+
+Контекст реализует:
+
+```csharp
+IPreHookContext
+```
+
+Например:
 
 ```csharp
 public struct PlayerInfectPreContext(
     IPlayer player,
-    IPlayer? infector = null
+    IPlayer? infector
 ) : IPreHookContext
 {
     public IPlayer Player { get; set; } = player;
@@ -125,158 +261,54 @@ public struct PlayerInfectPreContext(
 }
 ```
 
----
-
-## `IPostHookContext`
-
-Контекст события, которое происходит **после успешного выполнения операции**.
+Core:
 
 ```csharp
-public interface IPostHookContext : IHookContext;
-```
-
-У `Post`-контекста намеренно нет `Cancel()`.
-
-После выполнения операции отменять уже нечего.
-
-Пример:
-
-```csharp
-public struct PlayerInfectPostContext(
-    IPlayer player,
-    IPlayer? infector = null
-) : IPostHookContext
-{
-    public IPlayer Player { get; set; } = player;
-
-    public IPlayer? Infector { get; set; } = infector;
-}
-```
-
----
-
-# Жизненный цикл события
-
-Типичная операция состоит из трёх этапов:
-
-```mermaid
-flowchart TD
-    Start["Core начинает операцию"]
-    Pre["Создаёт PreContext"]
-    DispatchPre["Dispatch(ref preContext)"]
-    Cancel{"IsCancelled?"}
-    Operation["Выполняет операцию"]
-    Post["Создаёт PostContext"]
-    DispatchPost["Dispatch(ref postContext)"]
-    End["Операция завершена"]
-    Stop["Операция отменена"]
-
-    Start --> Pre
-    Pre --> DispatchPre
-    DispatchPre --> Cancel
-
-    Cancel -->|"Да"| Stop
-    Cancel -->|"Нет"| Operation
-
-    Operation --> Post
-    Post --> DispatchPost
-    DispatchPost --> End
-```
-
-На примере заражения игрока:
-
-```csharp
-var preContext = new PlayerInfectPreContext(
+var context = new PlayerInfectPreContext(
     player,
     infector
 );
 
-hooks.Dispatch(ref preContext);
+hooks.Dispatch(ref context);
 
-if (preContext.IsCancelled)
+if (context.IsCancelled)
 {
     return false;
 }
+```
 
-var zombie = zombieController.Create(
-    preContext.Player
-);
+Полный путь:
 
-// заражение игрока
+```mermaid
+flowchart TD
+    Start["TryInfect()"]
 
-var postContext = new PlayerInfectPostContext(
-    preContext.Player,
-    preContext.Infector
-);
+    Context["Создать<br/>PlayerInfectPreContext"]
 
-hooks.Dispatch(ref postContext);
+    Dispatch["Dispatch"]
+
+    Plugins["Вызвать подписчиков"]
+
+    Cancel{"IsCancelled?"}
+
+    Infect["Заразить игрока"]
+
+    Stop["Отменить заражение"]
+
+    Start --> Context
+    Context --> Dispatch
+    Dispatch --> Plugins
+    Plugins --> Cancel
+
+    Cancel -->|"Да"| Stop
+    Cancel -->|"Нет"| Infect
 ```
 
 ---
 
-# Почему контекст передаётся через `ref`
+# 5. Как отменить действие
 
-Обработчик объявляется так:
-
-```csharp
-public delegate void HookHandler<TContext>(
-    ref TContext context
-)
-    where TContext : struct, IHookContext;
-```
-
-Контекст является `struct`.
-
-Без `ref` обработчик получил бы копию структуры:
-
-```text
-Core context
-     |
-     | копирование
-     v
-Plugin context
-
-изменения не вернутся обратно
-```
-
-При использовании `ref`:
-
-```text
-            один context
-                 |
-        +--------+--------+
-        |                 |
-        v                 v
-      Core             Plugin
-                          |
-                          | context.Infector = ...
-                          v
-                  Core видит изменение
-```
-
-Например внешний плагин может изменить заражающего:
-
-```csharp
-private void OnPlayerInfect(
-    ref PlayerInfectPreContext context)
-{
-    context.Infector = anotherPlayer;
-}
-```
-
-После возвращения из `Dispatch` producer увидит новое значение:
-
-```csharp
-preContext.Infector
-```
-
----
-
-# Отмена операции
-
-`Cancel()` используется только в `Pre`-контекстах.
-
-Например:
+Подписчик может сделать:
 
 ```csharp
 private void OnPlayerInfect(
@@ -289,7 +321,13 @@ private void OnPlayerInfect(
 }
 ```
 
-После завершения всех обработчиков producer проверяет:
+После этого:
+
+```csharp
+context.IsCancelled == true
+```
+
+Core увидит это:
 
 ```csharp
 hooks.Dispatch(ref context);
@@ -302,107 +340,207 @@ if (context.IsCancelled)
 
 Важно:
 
-> `Cancel()` отменяет операцию, но не прекращает распространение hook-события.
+```text
+Cancel()
+```
 
-То есть:
+не останавливает остальные hooks.
+
+Например:
 
 ```text
-Handler A
-    |
-    | Cancel()
-    v
+Plugin A
+   │
+   │ Cancel()
+   ▼
 IsCancelled = true
-    |
-    v
-Handler B
-    |
-    v
-Handler C
+   │
+   ▼
+Plugin B
+   │
+   ▼
+Plugin C
 ```
 
-Оставшиеся обработчики всё равно вызываются.
+Все подписчики всё равно получат событие.
 
-Они могут увидеть:
+`Cancel()` означает только:
 
-```csharp
-context.IsCancelled == true
-```
-
-Это намеренное поведение.
-
-Если когда-нибудь понадобится остановка распространения самого события, для этого следует добавить отдельный механизм вроде:
-
-```csharp
-StopPropagation()
-```
-
-`Cancel()` не должен выполнять две разные задачи.
+> После Dispatch producer не должен выполнять операцию.
 
 ---
 
-# Подписка
+# 6. Post Hook
 
-Низкоуровневая подписка выполняется через:
-
-```csharp
-IHookSubscriber
-```
+`Post` вызывается после того, как действие уже произошло.
 
 Например:
 
 ```csharp
-hooks.Hook<PlayerInfectPreContext>(
-    OnPlayerInfect
+var zombie = zombieController.Create(player);
+
+AddOrReplaceRole(zombie);
+
+var context = new PlayerInfectPostContext(
+    player,
+    infector
 );
+
+hooks.Dispatch(ref context);
 ```
 
-Обработчик:
+Схема:
+
+```text
+Игрок человек
+      │
+      ▼
+  заражение
+      │
+      ▼
+Игрок зомби
+      │
+      ▼
+Post Hook
+      │
+      ├── Economy выдаёт деньги
+      ├── Rating записывает заражение
+      └── другой plugin реагирует
+```
+
+У `Post` нет:
+
+```csharp
+Cancel()
+```
+
+Потому что операция уже произошла.
+
+---
+
+# 7. Почему используется `ref`
+
+Все контексты являются `struct`.
+
+Например:
+
+```csharp
+public struct PlayerInfectPreContext
+```
+
+Если передать `struct` обычным способом, будет создана копия.
+
+```text
+Core Context
+     │
+     │ copy
+     ▼
+Plugin Context
+```
+
+Тогда изменения plugin не попадут обратно в Core.
+
+Поэтому используется:
+
+```csharp
+ref
+```
 
 ```csharp
 private void OnPlayerInfect(
     ref PlayerInfectPreContext context)
 {
+    context.Infector = anotherPlayer;
 }
 ```
 
-Отписка:
+Теперь обе стороны работают с одним контекстом:
+
+```mermaid
+flowchart LR
+    Core["Core"]
+
+    Context["PlayerInfectPreContext"]
+
+    Plugin["Plugin"]
+
+    Core <-->|"ref"| Context
+    Plugin <-->|"ref"| Context
+```
+
+Plugin может изменить:
 
 ```csharp
-hooks.Unhook<PlayerInfectPreContext>(
-    OnPlayerInfect
-);
+context.Player
+context.Infector
 ```
+
+а Core увидит новые значения после `Dispatch`.
 
 ---
 
-# Публичный API модуля
+# 8. Как создать новое событие
 
-Внешним плагинам обычно не следует напрямую показывать:
+Допустим мы хотим добавить:
 
-```csharp
-Hook<TContext>()
-Unhook<TContext>()
+```text
+RoundStartEvent
 ```
 
-Вместо этого feature API оборачивает их в обычные C# events.
+Сначала создаём контекст.
+
+Например Post-событие:
+
+```csharp
+public struct RoundStartPostContext(
+    IRound round
+) : IPostHookContext
+{
+    public IRound Round { get; set; } = round;
+}
+```
+
+Теперь Core может вызвать:
+
+```csharp
+var context = new RoundStartPostContext(this);
+
+hooks.Dispatch(ref context);
+```
+
+На этом уровне `Common.Hooks` уже умеет работать с новым событием.
+
+Никаких изменений в самом `HookService` не требуется.
+
+---
+
+# 9. Как вывести событие в публичный API
+
+Обычно внешний plugin не должен работать напрямую с:
+
+```csharp
+hooks.Hook(...)
+```
+
+Вместо этого мы создаём красивый C# event.
 
 Например:
 
 ```csharp
-public interface IZombiePlaguePreEvents
+public interface IZombiePlaguePostEvents
 {
-    event HookHandler<PlayerInfectPreContext> PlayerInfectEvent;
+    event HookHandler<RoundStartPostContext> RoundStartEvent;
 }
 ```
 
 Реализация:
 
 ```csharp
-internal sealed class ZombiePlaguePreEvents(
+internal sealed class ZombiePlaguePostEvents(
     IHookSubscriber hooks
-) : IZombiePlaguePreEvents
+) : IZombiePlaguePostEvents
 {
-    public event HookHandler<PlayerInfectPreContext> PlayerInfectEvent
+    public event HookHandler<RoundStartPostContext> RoundStartEvent
     {
         add => hooks.Hook(value);
         remove => hooks.Unhook(value);
@@ -410,34 +548,42 @@ internal sealed class ZombiePlaguePreEvents(
 }
 ```
 
-Теперь внешний модуль получает естественный API:
+Теперь пользователь API пишет:
 
 ```csharp
-zombiePlague.Events.Pre.PlayerInfectEvent +=
-    OnPlayerInfect;
+zombiePlague.Events.Post.RoundStartEvent += OnRoundStarted;
 ```
 
-и:
+а не:
 
 ```csharp
-zombiePlague.Events.Pre.PlayerInfectEvent -=
-    OnPlayerInfect;
+hooks.Hook<RoundStartPostContext>(...);
 ```
 
-Полная структура:
+---
+
+# 10. Полная схема публичного API
+
+Для ZombiePlague получается:
 
 ```mermaid
-flowchart LR
+flowchart TD
     Api["IZombiePlagueApi"]
+
     Events["Events"]
+
     Pre["Pre"]
+
     Post["Post"]
 
-    InfectPre["PlayerInfectEvent<br/>PlayerInfectPreContext"]
-    InfectPost["PlayerInfectEvent<br/>PlayerInfectPostContext"]
-    RoundStart["RoundStartEvent<br/>RoundStartPostContext"]
+    InfectPre["PlayerInfectEvent"]
+
+    InfectPost["PlayerInfectEvent"]
+
+    RoundStart["RoundStartEvent"]
 
     Api --> Events
+
     Events --> Pre
     Events --> Post
 
@@ -447,187 +593,110 @@ flowchart LR
     Post --> RoundStart
 ```
 
-Использование:
+Использование выглядит просто:
 
 ```csharp
-zombiePlague.Events.Pre.PlayerInfectEvent +=
-    OnPlayerInfect;
+zombiePlague.Events.Pre.PlayerInfectEvent += OnPlayerInfect;
+```
 
-zombiePlague.Events.Post.PlayerInfectEvent +=
-    OnPlayerInfected;
+```csharp
+zombiePlague.Events.Post.PlayerInfectEvent += OnPlayerInfected;
+```
+
+```csharp
+zombiePlague.Events.Post.RoundStartEvent += OnRoundStarted;
 ```
 
 ---
 
-# Publisher
+# 11. Подписка и отписка
 
-Публиковать события может `IHookPublisher`.
+Подписываемся:
 
 ```csharp
-public interface IHookPublisher
+protected override void OnReady()
 {
-    void Dispatch<TContext>(
-        ref TContext context
-    ) where TContext : struct, IHookContext;
+    zombiePlague.Events.Post.PlayerInfectEvent +=
+        OnPlayerInfected;
 }
 ```
 
-Например:
+Обязательно отписываемся:
 
 ```csharp
-var context = new RoundStartPostContext(this);
+protected override void OnUnload()
+{
+    zombiePlague.Events.Post.PlayerInfectEvent -=
+        OnPlayerInfected;
+}
+```
 
+Полный пример:
+
+```csharp
+protected override void OnReady()
+{
+    zombiePlague.Events.Post.PlayerInfectEvent +=
+        OnPlayerInfected;
+}
+
+protected override void OnUnload()
+{
+    zombiePlague.Events.Post.PlayerInfectEvent -=
+        OnPlayerInfected;
+}
+
+private void OnPlayerInfected(
+    ref PlayerInfectPostContext context)
+{
+    Console.WriteLine(
+        $"Player infected: {context.Player.SteamID}"
+    );
+}
+```
+
+---
+
+# 12. Что происходит внутри HookService
+
+Все подписки хранятся по типу контекста.
+
+Упрощённо:
+
+```text
+HookService
+│
+├── PlayerInfectPreContext
+│   ├── PluginA.OnPlayerInfect
+│   └── PluginB.OnPlayerInfect
+│
+├── PlayerInfectPostContext
+│   ├── Economy.OnPlayerInfected
+│   └── Rating.OnPlayerInfected
+│
+└── RoundStartPostContext
+    └── SupplyBox.OnRoundStarted
+```
+
+Когда Core делает:
+
+```csharp
 hooks.Dispatch(ref context);
 ```
 
-`Dispatch` является синхронным.
-
-Это значит, что:
+`HookService` смотрит:
 
 ```csharp
-hooks.Dispatch(ref context);
-
-// здесь уже выполнились все подписчики
+typeof(TContext)
 ```
+
+и вызывает только подписчиков этого контекста.
 
 ---
 
-# Почему Subscriber и Publisher разделены
+# 13. Порядок выполнения
 
-`HookService` реализует сразу два интерфейса:
-
-```csharp
-public sealed class HookService :
-    IHookSubscriber,
-    IHookPublisher
-```
-
-Но назначение у них разное.
-
-```mermaid
-flowchart TD
-    Service["HookService"]
-
-    Subscriber["IHookSubscriber<br/>Hook / Unhook"]
-    Publisher["IHookPublisher<br/>Dispatch"]
-
-    External["Внешние потребители"]
-    Core["Producer Core"]
-
-    External --> Subscriber
-    Subscriber --> Service
-
-    Core --> Publisher
-    Publisher --> Service
-```
-
-Внешнему модулю обычно нужно только право подписки.
-
-Он не должен иметь возможность сделать:
-
-```csharp
-Dispatch(...)
-```
-
-за другой модуль.
-
-Например `Economy.Core` может слушать:
-
-```csharp
-ZombiePlague.Events.Post.PlayerInfectEvent
-```
-
-но не должен иметь возможность самостоятельно опубликовать:
-
-```text
-PlayerInfectPostContext
-```
-
-от имени ZombiePlague.
-
----
-
-# Регистрация через DI
-
-Для одного producer-модуля должен существовать один экземпляр `HookService`.
-
-Например:
-
-```csharp
-AddSingleton<HookService>(service);
-
-AddSingleton<IHookSubscriber>(
-    service,
-    provider => provider.GetRequiredService<HookService>()
-);
-
-AddSingleton<IHookPublisher>(
-    service,
-    provider => provider.GetRequiredService<HookService>()
-);
-```
-
-Важно, что:
-
-```text
-IHookSubscriber ──────┐
-                     |
-                     v
-                 HookService
-                     ^
-                     |
-IHookPublisher ──────┘
-```
-
-Это один и тот же объект.
-
-Нельзя создавать отдельно:
-
-```text
-HookService #1 -> подписки
-
-HookService #2 -> Dispatch
-```
-
-Иначе publisher никогда не увидит зарегистрированные callbacks.
-
----
-
-# HookService принадлежит producer-модулю
-
-`Common.Hooks` не является глобальной event-шиной всего сервера.
-
-Каждый producer создаёт собственный экземпляр:
-
-```text
-ZombiePlague
-    |
-    +-- HookService #1
-
-Economy
-    |
-    +-- HookService #2
-
-CustomKnife
-    |
-    +-- HookService #3
-```
-
-Подписка:
-
-```csharp
-zombiePlague.Events.Post.PlayerInfectEvent += handler;
-```
-
-регистрируется именно внутри `HookService`, принадлежащего `ZombiePlague`.
-
-Это предотвращает смешивание независимых API.
-
----
-
-# Приоритеты
-
-При регистрации можно указать приоритет:
+Hooks могут иметь priority:
 
 ```csharp
 hooks.Hook<PlayerInfectPreContext>(
@@ -636,283 +705,275 @@ hooks.Hook<PlayerInfectPreContext>(
 );
 ```
 
-Доступные значения:
-
-```csharp
-HookPriority.Low
-HookPriority.Normal
-HookPriority.High
-```
-
-Обработчики с большим приоритетом выполняются раньше.
+Есть:
 
 ```text
 High
- |
- v
 Normal
- |
- v
 Low
 ```
 
-Например:
+Порядок:
 
-```text
-Handler B : High
-Handler A : Normal
-Handler C : Low
+```mermaid
+flowchart TD
+    High["High"]
+    Normal["Normal"]
+    Low["Low"]
+
+    High --> Normal
+    Normal --> Low
 ```
 
-порядок:
+Если priority одинаковый, обработчики выполняются в порядке регистрации:
 
 ```text
-1. Handler B
-2. Handler A
-3. Handler C
+1. Plugin A
+2. Plugin B
+3. Plugin C
 ```
 
----
-
-# Одинаковый приоритет
-
-Если несколько обработчиков имеют одинаковый priority, используется порядок регистрации.
-
-Например:
+Обычный публичный API через:
 
 ```csharp
-hooks.Hook(OnFirst);
-hooks.Hook(OnSecond);
-hooks.Hook(OnThird);
++=
 ```
 
-Все используют:
+использует:
 
 ```csharp
 HookPriority.Normal
 ```
 
-Поэтому порядок будет:
-
-```text
-1. OnFirst
-2. OnSecond
-3. OnThird
-```
-
-Для этого `HookService` хранит внутренний:
-
-```csharp
-_registrationOrder
-```
-
 ---
 
-# Повторная подписка
+# 14. Что будет, если plugin упадёт
 
-Один callback может быть зарегистрирован несколько раз:
-
-```csharp
-hooks.Hook<PlayerInfectPreContext>(
-    OnPlayerInfect
-);
-
-hooks.Hook<PlayerInfectPreContext>(
-    OnPlayerInfect
-);
-```
-
-Тогда он будет вызван два раза:
-
-```text
-Dispatch
-   |
-   +--> OnPlayerInfect
-   |
-   +--> OnPlayerInfect
-```
-
-Это соответствует поведению обычных C# events.
-
-Один `Unhook` удаляет одну регистрацию:
-
-```csharp
-hooks.Unhook<PlayerInfectPreContext>(
-    OnPlayerInfect
-);
-```
-
-После этого одна подписка останется.
-
----
-
-# Экземпляры классов и delegates
-
-Для instance-методов delegate содержит:
-
-```text
-Target + Method
-```
+Каждый subscriber вызывается независимо.
 
 Например:
 
+```text
+Economy
+   │
+   X Exception
+   │
+   ▼
+Exception Handler
+   │
+   ▼
+RoundRatingNotify
+```
+
+Ошибка `Economy` не должна мешать вызову `RoundRatingNotify`.
+
+Упрощённо `Dispatch` работает так:
+
 ```csharp
-listenerA.OnPlayerInfect
-listenerB.OnPlayerInfect
+foreach (var handler in handlers)
+{
+    try
+    {
+        handler(ref context);
+    }
+    catch (Exception exception)
+    {
+        exceptionHandler?.Invoke(...);
+    }
+}
 ```
 
-Несмотря на одинаковое название метода, это разные delegates:
-
-```text
-Target = listenerA
-Method = OnPlayerInfect
-```
-
-и:
-
-```text
-Target = listenerB
-Method = OnPlayerInfect
-```
-
-Поэтому отписка одного объекта не удаляет подписку другого.
+Это особенно важно, потому что hooks позволяют внешним плагинам выполнять код внутри lifecycle другого модуля.
 
 ---
 
-# Snapshot dispatch
+# 15. Почему создаётся snapshot
 
-Перед выполнением обработчиков `HookService` создаёт snapshot:
-
-```csharp
-registrations = [.. registeredHooks];
-```
-
-Это означает, что коллекция подписчиков не меняется непосредственно во время текущего обхода.
-
-Сценарий:
+Перед вызовом подписчиков создаётся копия текущего списка:
 
 ```text
-Handler A
-    |
-    | Unhook Handler B
-    v
+Исходные подписчики:
 
-текущий snapshot:
+A
+B
+C
+
+        ↓ snapshot
+
 [A, B, C]
 ```
 
-`Handler B` всё ещё может быть вызван в текущем `Dispatch`.
+Допустим `A` делает:
 
-Но в следующем:
+```text
+Unhook(B)
+```
+
+Текущий snapshot всё ещё:
+
+```text
+[A, B, C]
+```
+
+поэтому `B` может быть вызван ещё один раз.
+
+Следующее событие уже получит:
 
 ```text
 [A, C]
 ```
 
-его уже не будет.
-
-Это делает поведение предсказуемым и позволяет безопасно делать `Hook` / `Unhook` внутри callback.
+Это позволяет безопасно подписываться и отписываться внутри callback.
 
 ---
 
-# Исключения в обработчиках
+# 16. Где должен жить HookService
 
-Ошибка одного subscriber не должна ломать producer или остальные плагины.
+`HookService` принадлежит producer-модулю.
 
 Например:
 
 ```text
-PlayerInfectPostContext
-        |
-        v
-    Economy
-        |
-        X Exception
-        |
-        v
- exception handler
-        |
-        v
-RoundRatingNotify
+ZombiePlague.Core
+      │
+      └── HookService
+
+Economy.Core
+      │
+      └── свой HookService
+
+CustomKnife.Core
+      │
+      └── свой HookService
 ```
 
-Для этого каждый callback выполняется отдельно:
+Это НЕ одна глобальная шина событий для всего сервера.
+
+Если `Economy` слушает ZombiePlague:
 
 ```csharp
-try
-{
-    handler(ref context);
-}
-catch (Exception exception)
-{
-    _exceptionHandler?.Invoke(
-        exception,
-        contextType,
-        registration.Handler
-    );
-}
+zombiePlague.Events.Post.PlayerInfectEvent += ...
 ```
 
-Можно передать внешний обработчик ошибок:
-
-```csharp
-var hooks = new HookService(
-    (exception, contextType, handler) =>
-    {
-        // логирование средствами host-модуля
-    }
-);
-```
-
-`Common.Hooks` сам не зависит от конкретного logger.
-
-Это позволяет использовать:
+подписка попадает именно в:
 
 ```text
-Swiftly logger
-Microsoft ILogger
-Console
-собственную систему логирования
+ZombiePlague HookService
 ```
-
-без добавления этих зависимостей в `Common.Hooks`.
 
 ---
 
-# Пример полного Pre/Post события
+# 17. DI
 
-Контексты:
-
-```csharp
-public struct PlayerInfectPreContext(
-    IPlayer player,
-    IPlayer? infector
-) : IPreHookContext
-{
-    public IPlayer Player { get; set; } = player;
-
-    public IPlayer? Infector { get; set; } = infector;
-
-    public bool IsCancelled { get; private set; }
-
-    public void Cancel()
-    {
-        IsCancelled = true;
-    }
-}
-```
+Producer создаёт один `HookService`.
 
 ```csharp
-public struct PlayerInfectPostContext(
-    IPlayer player,
-    IPlayer? infector
-) : IPostHookContext
-{
-    public IPlayer Player { get; set; } = player;
-
-    public IPlayer? Infector { get; set; } = infector;
-}
+AddSingleton<HookService>(service);
 ```
+
+И этот же объект используется как subscriber:
+
+```csharp
+AddSingleton<IHookSubscriber>(
+    service,
+    provider => provider.GetRequiredService<HookService>()
+);
+```
+
+и publisher:
+
+```csharp
+AddSingleton<IHookPublisher>(
+    service,
+    provider => provider.GetRequiredService<HookService>()
+);
+```
+
+Схема:
+
+```mermaid
+flowchart TD
+    HookService["Один HookService"]
+
+    Subscriber["IHookSubscriber"]
+
+    Publisher["IHookPublisher"]
+
+    Api["Public Events API"]
+
+    Core["Core"]
+
+    HookService --> Subscriber
+    HookService --> Publisher
+
+    Subscriber --> Api
+    Publisher --> Core
+```
+
+Важно:
+
+`IHookSubscriber` и `IHookPublisher` должны ссылаться на **один экземпляр**.
+
+---
+
+# 18. Где хранить контексты
+
+`Common.Hooks` содержит только общий механизм:
+
+```text
+Common.Hooks
+│
+├── IHookContext
+├── IPreHookContext
+├── IPostHookContext
+├── IHookSubscriber
+├── IHookPublisher
+├── HookHandler
+├── HookPriority
+└── HookService
+```
+
+Конкретные события туда добавлять нельзя.
+
+Например:
+
+```text
+PlayerInfectPreContext
+```
+
+относится к ZombiePlague.
+
+Поэтому он находится:
+
+```text
+ZombiePlague.Api
+└── Events
+    └── Contexts
+        └── PlayerInfectPreContext.cs
+```
+
+Так зависимости остаются правильными:
+
+```mermaid
+flowchart LR
+    Common["Common.Hooks"]
+
+    Api["ZombiePlague.Api"]
+
+    Core["ZombiePlague.Core"]
+
+    Economy["Economy.Core"]
+
+    Api --> Common
+    Core --> Api
+    Economy --> Api
+```
+
+`Common.Hooks` ничего не знает про ZombiePlague.
+
+---
+
+# 19. Полный пример
 
 Producer:
 
@@ -933,7 +994,9 @@ public bool TryInfect(
         return false;
     }
 
-    // Выполнение заражения.
+    InfectPlayer(
+        preContext.Player
+    );
 
     var postContext = new PlayerInfectPostContext(
         preContext.Player,
@@ -974,11 +1037,9 @@ private void OnPlayerInfect(
 private void OnPlayerInfected(
     ref PlayerInfectPostContext context)
 {
-    // Игрок уже заражён.
+    GiveReward(context.Infector);
 }
 ```
-
-Отписка:
 
 ```csharp
 protected override void OnUnload()
@@ -991,146 +1052,81 @@ protected override void OnUnload()
 }
 ```
 
----
-
-# Где должны находиться контексты
-
-`Common.Hooks` содержит только инфраструктуру.
-
-Он не должен знать о конкретных игровых событиях:
-
-```text
-Common.Hooks
-├── IHookContext
-├── IPreHookContext
-├── IPostHookContext
-├── IHookSubscriber
-├── IHookPublisher
-├── HookHandler
-├── HookPriority
-└── HookService
-```
-
-Feature-specific контексты располагаются в публичном API соответствующего модуля:
-
-```text
-ZombiePlague.Api
-└── Events
-    ├── Contexts
-    │   ├── PlayerInfectPreContext
-    │   ├── PlayerInfectPostContext
-    │   └── RoundStartPostContext
-    │
-    ├── IZombiePlaguePreEvents
-    ├── IZombiePlaguePostEvents
-    └── IZombiePlagueEvents
-```
-
-Таким образом зависимости направлены правильно:
-
-```mermaid
-flowchart LR
-    Common["Common.Hooks"]
-    Api["ZombiePlague.Api"]
-    Core["ZombiePlague.Core"]
-    Consumer["Economy.Core"]
-
-    Api --> Common
-    Core --> Api
-    Core --> Common
-    Consumer --> Api
-```
-
-`Common.Hooks` ничего не знает о `ZombiePlague`.
-
----
-
-# Основные правила
-
-1. Контекст всегда должен быть `struct`.
-2. Контекст всегда передаётся через `ref`.
-3. `Pre` используется для изменения параметров и отмены операции.
-4. `Post` вызывается только после успешного завершения операции.
-5. `Cancel()` не прекращает распространение события.
-6. Producer обязан самостоятельно проверить `IsCancelled`.
-7. `Dispatch` является синхронным.
-8. Ошибка одного subscriber не должна ломать остальных.
-9. Внешний API желательно предоставлять через обычные C# events.
-10. Внешнему consumer не следует предоставлять `IHookPublisher`.
-11. Один producer использует один экземпляр `HookService`.
-12. Feature-specific контексты не должны находиться в `Common.Hooks`.
-
----
-
-# Краткая схема
+И вся цепочка выглядит так:
 
 ```mermaid
 sequenceDiagram
     participant Core as ZombiePlague.Core
     participant Hooks as HookService
-    participant A as Plugin A
-    participant B as Plugin B
+    participant Plugin as External Plugin
 
     Core->>Hooks: Dispatch(ref PreContext)
 
-    Hooks->>A: handler(ref context)
-    A-->>Hooks: context изменён
+    Hooks->>Plugin: OnPlayerInfect(ref context)
 
-    Hooks->>B: handler(ref context)
-    B-->>Hooks: context.Cancel()
+    Plugin-->>Hooks: context изменён / Cancel()
 
     Hooks-->>Core: Dispatch завершён
 
-    alt IsCancelled
-        Core->>Core: операция отменяется
-    else не отменено
-        Core->>Core: выполняется операция
+    alt IsCancelled = true
+        Core->>Core: заражение отменено
+    else IsCancelled = false
+        Core->>Core: заразить игрока
+
         Core->>Hooks: Dispatch(ref PostContext)
-        Hooks->>A: post handler
-        Hooks->>B: post handler
+
+        Hooks->>Plugin: OnPlayerInfected(ref context)
+
+        Plugin-->>Hooks: завершено
+
         Hooks-->>Core: Dispatch завершён
     end
 ```
 
 ---
 
-# Итог
+# Коротко
 
-`Common.Hooks` является инфраструктурным слоем.
-
-Он отвечает только за:
+Если нужно добавить новое событие:
 
 ```text
-регистрацию
-    +
-отписку
-    +
-порядок выполнения
-    +
-Dispatch
-    +
-изоляцию ошибок
+1. Создать Context
+          ↓
+2. Выбрать Pre или Post
+          ↓
+3. В Core вызвать Dispatch
+          ↓
+4. Добавить event в публичный API
+          ↓
+5. Подписываться через +=
+          ↓
+6. Отписываться через -=
 ```
 
-А смысл конкретного события определяется feature-модулем:
+Пример:
 
 ```text
-Common.Hooks
-      |
-      +-- механизм
-
-ZombiePlague.Api
-      |
-      +-- PlayerInfectEvent
-      +-- RoundStartEvent
-
-Economy.Api
-      |
-      +-- MoneyChangedEvent
-
-CustomKnife.Api
-      |
-      +-- KnifeSelectedEvent
+RoundStartPostContext
+        ↓
+hooks.Dispatch(ref context)
+        ↓
+Events.Post.RoundStartEvent
+        ↓
+SupplyBox.Core
 ```
 
-Это позволяет использовать один и тот же механизм hooks во всех модулях проекта без связывания их бизнес-логики между собой.
+На этом всё.
+
+В большинстве случаев разработчику, который использует `Common.Hooks`,
+не нужно знать внутреннее устройство `HookService`.
+
+Достаточно помнить:
+
+```text
+Pre  = до действия
+Post = после действия
+ref  = можно менять context
+Cancel = отменить действие
++=   = подписаться
+-=   = отписаться
+```
