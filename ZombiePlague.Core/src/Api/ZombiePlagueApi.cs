@@ -1,10 +1,11 @@
-﻿using SwiftlyS2.Shared.GameEventDefinitions;
+﻿using Common.Hooks.Abstractions;
+using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Players;
 using ZombiePlague.Api;
 using ZombiePlague.Api.Data;
 using ZombiePlague.Api.Data.Store;
 using ZombiePlague.Api.Events;
-using ZombiePlague.Core.Data.Managers;
+using ZombiePlague.Core.Api.Events;
 using ZombiePlague.Core.Data.Managers.Contracts;
 using ZombiePlague.Core.Data.Rounds;
 using ZombiePlague.Core.Data.Service.Contracts;
@@ -12,12 +13,15 @@ using ZombiePlague.Core.Data.Service.Contracts;
 namespace ZombiePlague.Core.Api;
 
 internal sealed class ZombiePlagueApi(
+    ZombiePlagueEvents events,
     IEventSubscriber eventSubscriber,
     IPlayerManager playerManager,
     IKnockbackService knockbackService,
     IPlayerRepository playerRepository
 ) : IZombiePlagueApi
 {
+    public IZombiePlagueEvents Events => events;
+    
     public IEventSubscriber EventSubscriber => eventSubscriber;
     
     public IPlayerRepository PlayerRepository => playerRepository;
