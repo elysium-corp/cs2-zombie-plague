@@ -22,14 +22,14 @@ internal sealed partial class RoundRatingNotify(ISwiftlyCore core) : Plugin<Roun
 
     private Guid _guidOnEventRoundEndPost = Guid.Empty;
     private Guid _guidOnEvEventPlayerHurtPost = Guid.Empty;
-    
+
     private IZombiePlagueApi _zombiePlagueApi = null!;
-    
+
     protected override void OnUseSharedInterfaces(IInterfaceManager interfaceManager)
     {
         _zombiePlagueApi = interfaceManager.GetSharedInterface<IZombiePlagueApi>(IZombiePlagueApi.SharedApiKey);
     }
-    
+
     protected override void OnReady()
     {
         _guidOnEventRoundEndPost = core.GameEvent.HookPost<EventRoundEnd>(OnEventRoundEnd);
@@ -47,7 +47,7 @@ internal sealed partial class RoundRatingNotify(ISwiftlyCore core) : Plugin<Roun
     private HookResult OnEventPlayerHurt(EventPlayerHurt @event)
     {
         var player = @event.AttackerPlayer;
-        
+
         if (player == null || !player.IsValid || _zombiePlagueApi.IsInfected(player))
         {
             return HookResult.Continue;
@@ -64,9 +64,9 @@ internal sealed partial class RoundRatingNotify(ISwiftlyCore core) : Plugin<Roun
     private HookResult OnEventRoundEnd(EventRoundEnd @event)
     {
         SendNotifyInChat();
-        
+
         Clear();
-        
+
         return HookResult.Continue;
     }
 
@@ -92,30 +92,34 @@ internal sealed partial class RoundRatingNotify(ISwiftlyCore core) : Plugin<Roun
 
     private void SendNotifyInChat()
     {
-        var humanKeyValuesPair = GetTopPlayerAndResultInRound(Team.CT);
-        var zombieKeyValuePair = GetTopPlayerAndResultInRound(Team.T);
+        var humanTopPlayer = GetTopPlayerAndResultInRound(Team.CT);
+        var zombieTopPlayer = GetTopPlayerAndResultInRound(Team.T);
 
-        var humanPlayer = humanKeyValuesPair.Key;
+        var humanPlayer = humanTopPlayer.Key;
+
         if (humanPlayer == null)
         {
             return;
         }
 
         var humanName = humanPlayer.Name;
-        var humanDamage = humanKeyValuesPair.Value;
-        
-        core.PlayerManager.SendChat($"[blue]Лучший игрок за людей: {humanName} — нанес {humanDamage} [blue]урона.");
+        var humanDamage = humanTopPlayer.Value;
 
-        var zombiePlayer = zombieKeyValuePair.Key;
+        core.PlayerManager.SendChat(
+            $"{core.Localizer["RoundRatingNotify.prefix"]} [blue]Лучший игрок за людей: {humanName} — нанес {humanDamage} [blue]урона.");
+
+        var zombiePlayer = zombieTopPlayer.Key;
+
         if (zombiePlayer == null)
         {
             return;
         }
 
         var zombieName = zombiePlayer.Name;
-        var zombieInfect = zombieKeyValuePair.Value;
-        
-        core.PlayerManager.SendChat($"[red]Лучший игрок за зомби: {zombieName} — заразил {zombieInfect} [red]игроков.");
+        var zombieInfect = zombieTopPlayer.Value;
+
+        core.PlayerManager.SendChat(
+            $"{core.Localizer["RoundRatingNotify.prefix"]} [red]Лучший игрок за зомби: {zombieName} — заразил {zombieInfect} [red]игроков.");
     }
 
     private void Clear()

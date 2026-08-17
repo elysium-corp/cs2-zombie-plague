@@ -4,7 +4,7 @@ internal sealed record PlayerPreferences
 {
     internal const string DefaultZombieClassId = "zombie_cleric";
     internal const string DefaultHumanClassId = "human_mercenary";
-    internal const string DefaultKnifeId = "knife_ancient";
+    internal const string DefaultKnifeId = "knife_spike";
 
     public string ZClassId { get; init; } = DefaultZombieClassId;
 

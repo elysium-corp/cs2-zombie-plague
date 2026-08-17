@@ -36,7 +36,7 @@ internal sealed class CustomKnifeModule(ISwiftlyCore core) : BaseModule(core)
     {
         AddConfig<KnifeConfig>(
             service: service,
-            name: "knifes.json",
+            name: "knives.json",
             section: "KnifeConfig"
         );
     }
@@ -73,14 +73,14 @@ internal sealed class CustomKnifeModule(ISwiftlyCore core) : BaseModule(core)
     
     private static void BuildKnifeConfigs(ServiceCollection service)
     {
-        service.AddSingleton<AncientConfig>(provider => 
-            provider.GetRequiredService<IOptions<KnifeConfig>>().Value.AncientConfig
+        service.AddSingleton<SpikeConfig>(provider => 
+            provider.GetRequiredService<IOptions<KnifeConfig>>().Value.SpikeConfig
         );
-        service.AddSingleton<MonarchConfig>(provider =>
-            provider.GetRequiredService<IOptions<KnifeConfig>>().Value.MonarchConfig
+        service.AddSingleton<PiercerConfig>(provider =>
+            provider.GetRequiredService<IOptions<KnifeConfig>>().Value.PiercerConfig
         );
-        service.AddSingleton<GaiasVengeanceConfig>(provider =>
-            provider.GetRequiredService<IOptions<KnifeConfig>>().Value.GaiasVengeanceConfig
+        service.AddSingleton<AxeConfig>(provider =>
+            provider.GetRequiredService<IOptions<KnifeConfig>>().Value.AxeConfig
         );
         service.AddSingleton<KatanaConfig>(provider =>
             provider.GetRequiredService<IOptions<KnifeConfig>>().Value.KatanaConfig

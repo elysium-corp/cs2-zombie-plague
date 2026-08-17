@@ -1,8 +1,11 @@
-﻿using SwiftlyS2.Shared;
+﻿using Microsoft.Extensions.Options;
+using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.GameHooks;
 using SwiftlyS2.Shared.Misc;
+using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
+using ZombiePlague.Core.Config.Core;
 using ZombiePlague.Core.Data.Managers.Contracts;
 using ZombiePlague.Core.Data.Service.Contracts;
 using ZombiePlague.Core.Utils.Extensions;
@@ -11,7 +14,10 @@ namespace ZombiePlague.Core.Data.Service;
 
 internal interface IRoundService : IService;
 
-internal sealed class RoundService(ISwiftlyCore core, IRoundManager roundManager) : IRoundService
+internal sealed class RoundService(
+    ISwiftlyCore core,
+    IRoundManager roundManager,
+    IOptions<ZombiePlagueCoreConfig> config) : IRoundService
 {
     private bool _isRoundEnded;
 
@@ -54,6 +60,8 @@ internal sealed class RoundService(ISwiftlyCore core, IRoundManager roundManager
 
         roundManager.Prepare();
 
+        PlayAmbientAll();
+
         return HookResult.Continue;
     }
 
@@ -75,6 +83,8 @@ internal sealed class RoundService(ISwiftlyCore core, IRoundManager roundManager
 
     private HookResult OnPlayerConnected(EventPlayerConnectFull @event)
     {
+        PlayAmbientLocal(@event.UserIdPlayer);
+
         return roundManager.OnPlayerConnected(@event);
     }
 
@@ -116,5 +126,25 @@ internal sealed class RoundService(ISwiftlyCore core, IRoundManager roundManager
         {
             weapon.Despawn();
         }
+    }
+
+    private void PlayAmbientAll()
+    {
+        var sound = config.Value.AmbienceSounds.GetRandomString();
+
+        if (sound.IsNullOrEmpty()) return;
+
+        SoundExt.PlayGlobal(sound);
+    }
+
+    private void PlayAmbientLocal(IPlayer? recipient)
+    {
+        if (recipient == null) return;
+
+        var sound = config.Value.AmbienceSounds.GetRandomString();
+
+        if (sound.IsNullOrEmpty()) return;
+
+        SoundExt.PlayLocal(recipient, sound);
     }
 }

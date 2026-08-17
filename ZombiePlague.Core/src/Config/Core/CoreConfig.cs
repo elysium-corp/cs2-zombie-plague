@@ -28,4 +28,7 @@ public sealed class ZombiePlagueCoreConfig
     
     // Стандартная модель человека
     public string DefaultHumanModel { get; set; } = "characters/models/ctm_sas/ctm_sas.vmdl";
+    
+    // Музыка окружения
+    public List<string> AmbienceSounds { get; set; } = ["ZombiePlague.Ambience.ambience1","ZombiePlague.Ambience.ambience2","ZombiePlague.Ambience.ambience3"];
 }
