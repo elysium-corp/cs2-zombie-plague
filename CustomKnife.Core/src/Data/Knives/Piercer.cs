@@ -4,7 +4,7 @@ using ZombiePlague.Api.Data;
 
 namespace CustomKnife.Data.Knives;
 
-internal sealed class GaiasVengeance(GaiasVengeanceConfig config) : IKnife
+internal sealed class Piercer(PiercerConfig config) : IKnife
 {
     public bool Enabled { get; } = config.Enabled;
     

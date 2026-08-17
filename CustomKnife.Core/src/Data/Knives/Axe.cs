@@ -4,7 +4,7 @@ using ZombiePlague.Api.Data;
 
 namespace CustomKnife.Data.Knives;
 
-internal sealed class Ancient(AncientConfig config) : IKnife
+internal sealed class Axe(AxeConfig config) : IKnife
 {
     public bool Enabled { get; } = config.Enabled;
     

@@ -143,7 +143,7 @@ internal sealed class Infection(
             }
 
             SoundExt.PlayAt(player, config.MusicSoundName, 1.5f);
-
+            
             Core.PlayerManager.SendCenter($"Первый заражённый => {player.Name}");
         }
     }

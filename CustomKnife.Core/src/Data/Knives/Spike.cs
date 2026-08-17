@@ -4,7 +4,7 @@ using ZombiePlague.Api.Data;
 
 namespace CustomKnife.Data.Knives;
 
-internal sealed class MonarchKnife(MonarchConfig config) : IKnife
+internal sealed class Spike(SpikeConfig config) : IKnife
 {
     public bool Enabled { get; } = config.Enabled;
     
