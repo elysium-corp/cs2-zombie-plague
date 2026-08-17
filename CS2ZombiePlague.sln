@@ -41,6 +41,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Menu.Api", "Menu.Api\Menu.A
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomEquipment.Api", "CustomEquipment.Api\CustomEquipment.Api.csproj", "{4F30ACB2-C7BA-407D-BCFA-814DBFCDBD5F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MovementUnlocker", "MovementUnlocker\MovementUnlocker.csproj", "{4F30ACB2-C7BA-407D-BCFA-814DBFCDBD5F}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.Database", "Common.Database\Common.Database.csproj", "{05448527-9492-4777-8594-45BA7B5E4A2E}"
 EndProject
 Global
