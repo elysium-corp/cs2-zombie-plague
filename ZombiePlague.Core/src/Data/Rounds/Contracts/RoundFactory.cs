@@ -33,7 +33,7 @@ internal class RoundFactory(
             PlagueConfig value => new Plague(core, playerManager, hooks, value),
             NemesisConfig value => new Nemesis(core, playerManager, hooks, value),
             SurvivorConfig value => new Survivor(core, playerManager, hooks, value),
-            _ => throw new NotSupportedException($"RoundFactory: config '{config.GetType().Name}' is not supported.")
+            _ => throw new NotSupportedException($"RoundFactory: config '{roundConfig.GetType().Name}' is not supported.")
         };
     }
 }

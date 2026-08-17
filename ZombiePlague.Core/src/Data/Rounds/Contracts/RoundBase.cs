@@ -31,17 +31,10 @@ internal abstract class RoundBase(
 
     public virtual void Start()
     {
-        try
-        {
-            _isRoundEnded = false;
+        _isRoundEnded = false;
 
-            OnStart();
-        }
-        catch (Exception exception)
-        {
-            return;
-        }
-        
+        OnStart();
+
         var context = new RoundStartPostContext(this);
 
         hooks.Dispatch(ref context);

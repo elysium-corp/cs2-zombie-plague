@@ -2,13 +2,15 @@ using Common.Hooks.Abstractions;
 
 namespace Common.Hooks;
 
-public sealed class HookService : IHookSubscriber, IHookPublisher
+public sealed class HookService(Action<Exception, Type, Delegate>? exceptionHandler = null) : IHookSubscriber, IHookPublisher
 {
     private readonly Lock _sync = new();
 
     private readonly Dictionary<Type, List<HookRegistration>> _hooks = [];
 
     private long _registrationOrder;
+    
+    private readonly Action<Exception, Type, Delegate>? _exceptionHandler;
 
     public void Hook<TContext>(
         HookHandler<TContext> handler,
@@ -100,7 +102,14 @@ public sealed class HookService : IHookSubscriber, IHookPublisher
         {
             var handler = (HookHandler<TContext>)registration.Handler;
 
-            handler(ref context);
+            try
+            {
+                handler(ref context);
+            }
+            catch (Exception exception)
+            {
+                _exceptionHandler?.Invoke(exception, contextType, registration.Handler);
+            }
         }
     }
 

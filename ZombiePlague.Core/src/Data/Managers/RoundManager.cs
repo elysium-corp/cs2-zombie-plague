@@ -71,13 +71,15 @@ internal sealed class RoundManager(
     {
         _remainingPreparationTime = 0;
         _countdownSoundPlayed = false;
-            
+        
         _preparationTimer?.Cancel();
         _preparationTimer = null;
-        
-        var round = CurrentRound = CreateRandomRoundOrDefault();
-        
+    
+        var round = CreateRandomRoundOrDefault();
+
         round.Start();
+
+        CurrentRound = round;
     }
 
     public void End()
