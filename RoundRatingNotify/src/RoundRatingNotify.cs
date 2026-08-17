@@ -5,6 +5,7 @@ using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Players;
 using ZombiePlague.Api;
+using ZombiePlague.Core.Utils.Extensions;
 
 namespace RoundRatingNotify;
 
@@ -17,8 +18,8 @@ namespace RoundRatingNotify;
 )]
 internal sealed partial class RoundRatingNotify(ISwiftlyCore core) : Plugin<RoundRatingNotifyModule>(core)
 {
-    private readonly Dictionary<IPlayer, int> _playersDamage = new();
-    private readonly Dictionary<IPlayer, int> _playersInfect = new();
+    private readonly Dictionary<string, int> _playersDamage = new();
+    private readonly Dictionary<string, int> _playersInfect = new();
 
     private Guid _guidOnEventRoundEndPost = Guid.Empty;
     private Guid _guidOnEvEventPlayerHurtPost = Guid.Empty;
@@ -53,9 +54,9 @@ internal sealed partial class RoundRatingNotify(ISwiftlyCore core) : Plugin<Roun
             return HookResult.Continue;
         }
 
-        if (!_playersDamage.TryAdd(player, @event.DmgHealth))
+        if (!_playersDamage.TryAdd(player.Name, @event.ActualDmgHealth))
         {
-            _playersDamage[player] += @event.DmgHealth;
+            _playersDamage[player.Name] += @event.ActualDmgHealth;
         }
 
         return HookResult.Continue;
@@ -77,13 +78,13 @@ internal sealed partial class RoundRatingNotify(ISwiftlyCore core) : Plugin<Roun
             return;
         }
 
-        if (!_playersInfect.TryAdd(infector, 1))
+        if (!_playersInfect.TryAdd(infector.Name, 1))
         {
-            _playersInfect[infector]++;
+            _playersInfect[infector.Name]++;
         }
     }
 
-    private KeyValuePair<IPlayer?, int> GetTopPlayerAndResultInRound(Team team)
+    private KeyValuePair<string, int> GetTopPlayerAndResultInRound(Team team)
     {
         var searchDict = team == Team.CT ? _playersDamage : _playersInfect;
         var keyValuesPair = searchDict.OrderByDescending(pair => pair.Value).FirstOrDefault();
@@ -94,32 +95,18 @@ internal sealed partial class RoundRatingNotify(ISwiftlyCore core) : Plugin<Roun
     {
         var humanTopPlayer = GetTopPlayerAndResultInRound(Team.CT);
         var zombieTopPlayer = GetTopPlayerAndResultInRound(Team.T);
-
-        var humanPlayer = humanTopPlayer.Key;
-
-        if (humanPlayer == null)
+        
+        if (humanTopPlayer.Key.IsNotNullOrEmpty())
         {
-            return;
+            core.PlayerManager.SendChat(
+                $"{core.Localizer["RoundRatingNotify.prefix"]} [blue]Лучший игрок за людей: {humanTopPlayer.Key} — нанес {humanTopPlayer.Value} [blue]урона.");
         }
-
-        var humanName = humanPlayer.Name;
-        var humanDamage = humanTopPlayer.Value;
-
-        core.PlayerManager.SendChat(
-            $"{core.Localizer["RoundRatingNotify.prefix"]} [blue]Лучший игрок за людей: {humanName} — нанес {humanDamage} [blue]урона.");
-
-        var zombiePlayer = zombieTopPlayer.Key;
-
-        if (zombiePlayer == null)
+        
+        if (zombieTopPlayer.Key.IsNotNullOrEmpty())
         {
-            return;
+            core.PlayerManager.SendChat(
+                $"{core.Localizer["RoundRatingNotify.prefix"]} [red]Лучший игрок за зомби: {zombieTopPlayer.Key} — заразил {zombieTopPlayer.Value} [red]игроков.");
         }
-
-        var zombieName = zombiePlayer.Name;
-        var zombieInfect = zombieTopPlayer.Value;
-
-        core.PlayerManager.SendChat(
-            $"{core.Localizer["RoundRatingNotify.prefix"]} [red]Лучший игрок за зомби: {zombieName} — заразил {zombieInfect} [red]игроков.");
     }
 
     private void Clear()

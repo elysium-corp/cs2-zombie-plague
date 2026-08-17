@@ -134,7 +134,7 @@ internal sealed class RoundService(
 
         if (sound.IsNullOrEmpty()) return;
 
-        SoundExt.PlayGlobal(sound);
+        SoundExt.PlayGlobal(sound, 1f);
     }
 
     private void PlayAmbientLocal(IPlayer? recipient)
@@ -145,6 +145,6 @@ internal sealed class RoundService(
 
         if (sound.IsNullOrEmpty()) return;
 
-        SoundExt.PlayLocal(recipient, sound);
+        SoundExt.PlayLocal(recipient, sound, 1f);
     }
 }
