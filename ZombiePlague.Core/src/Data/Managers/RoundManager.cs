@@ -79,7 +79,15 @@ internal sealed class RoundManager(
 
         round.Start();
 
-        CurrentRound = round;
+        try
+        {
+            round.Start();
+        }
+        catch
+        {
+            CurrentRound = null;
+            throw;
+        }
     }
 
     public void End()

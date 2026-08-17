@@ -9,8 +9,6 @@ public sealed class HookService(Action<Exception, Type, Delegate>? exceptionHand
     private readonly Dictionary<Type, List<HookRegistration>> _hooks = [];
 
     private long _registrationOrder;
-    
-    private readonly Action<Exception, Type, Delegate>? _exceptionHandler;
 
     public void Hook<TContext>(
         HookHandler<TContext> handler,
@@ -108,7 +106,7 @@ public sealed class HookService(Action<Exception, Type, Delegate>? exceptionHand
             }
             catch (Exception exception)
             {
-                _exceptionHandler?.Invoke(exception, contextType, registration.Handler);
+                exceptionHandler?.Invoke(exception, contextType, registration.Handler);
             }
         }
     }
