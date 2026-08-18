@@ -2,7 +2,9 @@
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Commands;
 using SwiftlyS2.Shared.Menus;
+using SwiftlyS2.Shared.Players;
 using ZombiePlague.Core.Data.Managers.Contracts;
+using ZombiePlague.Core.Data.Rounds;
 using ZombiePlague.Core.Data.Rounds.Contracts;
 using ZombiePlague.Core.Data.Rounds.Registrator;
 
@@ -227,25 +229,21 @@ internal sealed class AdminMenu(
 
             option.Click += (_, args) =>
             {
-                var selectedRound = roundFactory.Create(round);
+                var player = args.Player;
 
-                if (!selectedRound.CanStart())
+                core.Scheduler.NextTick(() =>
                 {
-                    args.Player.SendChatAsync($"Раунд «{round.Name}» сейчас нельзя запустить: не выполнены условия.");
+                    if (!player.IsValid)
+                    {
+                        return;
+                    }
 
-                    return ValueTask.CompletedTask;
-                }
+                    var selectedRound = roundFactory.Create(round);
 
-                if (!roundManager.TryStartRound(selectedRound))
-                {
-                    args.Player.SendChatAsync($"Не удалось запустить раунд «{round.Name}».");
+                    var result = roundManager.TryStartRound(selectedRound);
 
-                    return ValueTask.CompletedTask;
-                }
-
-                var startedRound = roundManager.CurrentRound;
-
-                args.Player.SendChatAsync($"Запущен раунд: {startedRound?.Name ?? round.Name}.");
+                    SendRoundStartResult(player, round.Name, result);
+                });
 
                 return ValueTask.CompletedTask;
             };
@@ -280,18 +278,32 @@ internal sealed class AdminMenu(
 
             option.Click += (_, args) =>
             {
-                var selectedRound = roundFactory.Create(round);
+                var player = args.Player;
 
-                roundManager.SelectNextRound(selectedRound);
+                core.Scheduler.NextTick(() =>
+                {
+                    if (!player.IsValid)
+                    {
+                        return;
+                    }
 
-                if (selectedRound.CanStart())
-                {
-                    args.Player.SendChatAsync($"Следующий раунд: {round.Name}");
-                }
-                else
-                {
-                    args.Player.SendChatAsync($"Следующий раунд: {round.Name}. Сейчас условия не выполнены, они будут проверены перед запуском");
-                }
+                    var selectedRound = roundFactory.Create(round);
+
+                    roundManager.SelectNextRound(selectedRound);
+
+                    if (selectedRound.CanStart())
+                    {
+                        player.SendChatAsync(
+                            $"Следующий раунд: {round.Name}"
+                        );
+                    }
+                    else
+                    {
+                        player.SendChatAsync(
+                            $"Следующий раунд: {round.Name}. Сейчас условия не выполнены, они будут проверены перед запуском"
+                        );
+                    }
+                });
 
                 return ValueTask.CompletedTask;
             };
@@ -308,13 +320,67 @@ internal sealed class AdminMenu(
 
         option.Click += (_, args) =>
         {
-            roundManager.ClearNextRound();
+            var player = args.Player;
 
-            args.Player.SendChatAsync("Следующий раунд будет выбран автоматически.");
+            core.Scheduler.NextTick(() =>
+            {
+                if (!player.IsValid)
+                {
+                    return;
+                }
+
+                roundManager.ClearNextRound();
+
+                player.SendChatAsync("Следующий раунд будет выбран автоматически.");
+            });
 
             return ValueTask.CompletedTask;
         };
 
         menu.AddOption(option);
+    }
+    
+    private void SendRoundStartResult(IPlayer player, string requestedRoundName, RoundStartResult result)
+    {
+        switch (result)
+        {
+            case RoundStartResult.Started:
+            {
+                var startedRound = roundManager.CurrentRound;
+
+                player.SendChatAsync(
+                    $"Раунд запущен: {startedRound?.Name ?? requestedRoundName}"
+                );
+
+                break;
+            }
+
+            case RoundStartResult.NotPreparing:
+            {
+                player.SendChatAsync(
+                    "Невозможно запустить раунд: стадия подготовки уже завершена"
+                );
+
+                break;
+            }
+
+            case RoundStartResult.CannotStart:
+            {
+                player.SendChatAsync(
+                    $"Раунд «{requestedRoundName}» сейчас нельзя запустить: не выполнены условия"
+                );
+
+                break;
+            }
+
+            case RoundStartResult.Cancelled:
+            {
+                player.SendChatAsync(
+                    $"Запуск раунда «{requestedRoundName}» был отменён"
+                );
+
+                break;
+            }
+        }
     }
 }
