@@ -3,6 +3,7 @@ using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Players;
+using ZombiePlague.Api.Data.Rounds;
 using ZombiePlague.Core.Config.Round;
 using ZombiePlague.Core.Data.Abilities;
 using ZombiePlague.Core.Data.Managers.Contracts;
@@ -14,11 +15,12 @@ namespace ZombiePlague.Core.Data.Rounds;
 internal sealed class Infection(
     ISwiftlyCore core,
     IPlayerManager playerManager,
-    IHookPublisher hooks,
     InfectionConfig config
-) : InfectionBase(core, playerManager, hooks)
+) : InfectionBase(core, playerManager)
 {
     private readonly Dictionary<int, CancellationTokenSource> _respawnTimers = [];
+    
+    public override string Id => RoundIds.Infection;
     
     public override string Name => config.Name;
     

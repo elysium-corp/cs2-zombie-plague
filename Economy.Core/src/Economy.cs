@@ -14,6 +14,7 @@ using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Players;
 using ZombiePlague.Api;
 using ZombiePlague.Api.Events.Contexts;
+using ZombiePlague.Api.Events.Contexts.Player;
 
 namespace Economy.Core;
 

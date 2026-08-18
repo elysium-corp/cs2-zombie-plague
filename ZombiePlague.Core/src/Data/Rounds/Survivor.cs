@@ -1,5 +1,6 @@
 ﻿using Common.Hooks.Abstractions;
 using SwiftlyS2.Shared;
+using ZombiePlague.Api.Data.Rounds;
 using ZombiePlague.Core.Config.Round;
 using ZombiePlague.Core.Data.Managers.Contracts;
 using ZombiePlague.Core.Data.Rounds.Contracts;
@@ -10,10 +11,11 @@ namespace ZombiePlague.Core.Data.Rounds;
 internal sealed class Survivor(
     ISwiftlyCore core,
     IPlayerManager playerManager,
-    IHookPublisher hooks,
     SurvivorConfig config
-) : RoundBase(core, playerManager, hooks)
+) : RoundBase(core, playerManager)
 {
+    public override string Id => RoundIds.Survivor;
+    
     public override string Name => config.Name;
     
     protected override void OnStart()

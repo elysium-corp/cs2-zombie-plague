@@ -1,8 +1,10 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Common.Hooks.Abstractions;
+using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.GameHooks;
 using SwiftlyS2.Shared.Misc;
+using ZombiePlague.Api.Events.Contexts.Round;
 using ZombiePlague.Core.Config.Core;
 using ZombiePlague.Core.Config.Round;
 using ZombiePlague.Core.Data.Managers.Contracts;
@@ -17,31 +19,36 @@ internal sealed class RoundManager(
     ISwiftlyCore core,
     IOptions<ZombiePlagueCoreConfig> coreConfig,
     IPlayerManager playerManager,
-    IRoundRegistrator roundRegistrator, 
-    IRoundFactory roundFactory
+    IRoundRegistrator roundRegistrator,
+    IRoundFactory roundFactory,
+    IHookPublisher hooks
 ) : IRoundManager
 {
-    public RoundBase? CurrentRound { get; set; }
-    public RoundBase? NextRound { get; set; }
+    public RoundBase? CurrentRound { get; private set; }
+
+    public RoundBase? NextRound { get; private set; }
 
     private CancellationTokenSource? _preparationTimer;
+
     private int _remainingPreparationTime;
+
     private bool _countdownSoundPlayed;
 
     private const float DelayPreparationTimer = 1.5f;
+
     private const int PeriodSecondsPreparationTask = 1;
 
     private const string RoundStartSoundName = "ZombiePlagueSounds.round_start";
     
     public void Prepare()
     {
-        CurrentRound = null;
-        
+        End();
+
         if (IsWarmupActive())
         {
             return;
         }
-        
+
         SoundExt.PlayGlobal(RoundStartSoundName, 1.5f);
 
         var allPlayers = core.PlayerManager.GetAllPlayers();
@@ -50,61 +57,73 @@ internal sealed class RoundManager(
         {
             playerManager.TrySetHuman(player);
         }
-        
+
         _remainingPreparationTime = coreConfig.Value.PreStartDelay;
+
         _countdownSoundPlayed = false;
 
-        if (_preparationTimer != null)
-        {
-            _preparationTimer?.Cancel();
-            _preparationTimer = null;
-        }
-        
         _preparationTimer = core.Scheduler.DelayAndRepeatBySeconds(
-            delaySeconds: DelayPreparationTimer, 
-            periodSeconds: PeriodSecondsPreparationTask, 
+            delaySeconds: DelayPreparationTimer,
+            periodSeconds: PeriodSecondsPreparationTask,
             task: OnPrepareTask
         );
     }
-    
+
     public void Start()
     {
-        _remainingPreparationTime = 0;
-        _countdownSoundPlayed = false;
-        
-        _preparationTimer?.Cancel();
-        _preparationTimer = null;
+        if (_preparationTimer is null)
+        {
+            return;
+        }
+
+        var round = TakeNextRound() ?? CreateRandomRoundOrDefault();
+
+        if (round is null)
+        {
+            StopPreparation();
+
+            return;
+        }
+
+        StartRound(round);
+    }
     
-        var round = CreateRandomRoundOrDefault();
-
-        round.Start();
-
-        try
+    public bool TryStartRound(RoundBase round)
+    {
+        if (_preparationTimer is null)
         {
-            round.Start();
+            return false;
         }
-        catch
+
+        if (!round.CanStart())
         {
-            CurrentRound = null;
-            throw;
+            return false;
         }
+
+        StartRound(round);
+
+        return true;
     }
 
     public void End()
     {
-        if (_preparationTimer != null)
-        {
-            _preparationTimer.Cancel();
-            _preparationTimer = null;
-        }
-        
-        CurrentRound?.End();
-        CurrentRound = null;
-    }
+        StopPreparation();
 
-    public void SelectCurrentRound(RoundBase round)
-    {
-        CurrentRound = round;
+        var round = CurrentRound;
+
+        if (round is null)
+        {
+            return;
+        }
+
+        try
+        {
+            round.End();
+        }
+        finally
+        {
+            CurrentRound = null;
+        }
     }
 
     public void SelectNextRound(RoundBase round)
@@ -139,11 +158,11 @@ internal sealed class RoundManager(
 
     private void OnPrepareTask()
     {
-        if (_preparationTimer == null)
+        if (_preparationTimer is null)
         {
             return;
         }
-        
+
         _remainingPreparationTime--;
 
         if (!_countdownSoundPlayed && _remainingPreparationTime == 10)
@@ -157,34 +176,34 @@ internal sealed class RoundManager(
 
             return;
         }
-        
+
         core.PlayerManager.SendCenterAsync($"До заражения {_remainingPreparationTime} секунд");
     }
-    
-    private RoundBase CreateRandomRoundOrDefault()
+
+    private RoundBase? TakeNextRound()
     {
-        if (CurrentRound != null)
+        if (NextRound is null)
         {
-            return CurrentRound;
+            return null;
         }
 
-        if (NextRound != null)
-        {
-            var round = NextRound;
-            NextRound = null;
-            return round;
-        }
-        
-        var candidates = roundRegistrator.GetAllEnabled().ToList();
+        return NextRound.CanStart() ? NextRound : null;
+    }
+
+    private RoundBase? CreateRandomRoundOrDefault()
+    {
+        var candidates = roundRegistrator
+            .GetAllEnabled()
+            .ToList();
 
         while (candidates.Count > 0)
         {
             var selectedConfig = SelectByWeight(candidates, Random.Shared);
 
-            // Чтобы неподходящий раунд больше не выпадал.
             candidates.Remove(selectedConfig);
 
-            var selectedRound = roundFactory.Create(selectedConfig);
+            var selectedRound =
+                roundFactory.Create(selectedConfig);
 
             if (selectedRound.CanStart())
             {
@@ -192,16 +211,20 @@ internal sealed class RoundManager(
             }
         }
 
-        return roundFactory.Create<Infection>();
+        var infectionRound = roundFactory.Create<Infection>();
+
+        return infectionRound.CanStart()
+            ? infectionRound
+            : null;
     }
-    
+
     private static IRoundConfig SelectByWeight(IReadOnlyCollection<IRoundConfig> candidates, Random random)
     {
-        var totalWeight = candidates.Sum(
-            static round => (long)round.Weight
+        var totalWeight = candidates.Sum(static round => (long)round.Weight
         );
 
         var roll = random.NextInt64(totalWeight);
+
         long accumulatedWeight = 0;
 
         foreach (var candidate in candidates)
@@ -217,9 +240,69 @@ internal sealed class RoundManager(
         throw new InvalidOperationException("Failed to select a round by weight!");
     }
 
+    private void StopPreparation()
+    {
+        _remainingPreparationTime = 0;
+        _countdownSoundPlayed = false;
+
+        _preparationTimer?.Cancel();
+        _preparationTimer = null;
+    }
+    
+    private bool StartRound(RoundBase round)
+    {
+        StopPreparation();
+
+        NextRound = null;
+
+        var preContext = new RoundStartPreContext(round.Id);
+
+        hooks.Dispatch(ref preContext);
+
+        if (preContext.IsCancelled)
+        {
+            return false;
+        }
+
+        if (preContext.RoundId != round.Id)
+        {
+            if (!roundFactory.TryCreate(preContext.RoundId, out var replacementRound))
+            {
+                return false;
+            }
+
+            round = replacementRound;
+        }
+
+        if (!round.CanStart())
+        {
+            return false;
+        }
+
+        CurrentRound = round;
+
+        try
+        {
+            round.Start();
+        }
+        catch
+        {
+            CurrentRound = null;
+
+            throw;
+        }
+
+        var postContext = new RoundStartPostContext(round);
+
+        hooks.Dispatch(ref postContext);
+
+        return true;
+    }
+
     private void PlayCountdownSound()
     {
         SoundExt.PlayGlobal("ZombiePlagueSounds.countdown", 2f);
+
         _countdownSoundPlayed = true;
     }
 

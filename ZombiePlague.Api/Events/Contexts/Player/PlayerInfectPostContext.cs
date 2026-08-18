@@ -1,7 +1,7 @@
 using Common.Hooks.Abstractions;
 using SwiftlyS2.Shared.Players;
 
-namespace ZombiePlague.Api.Events.Contexts;
+namespace ZombiePlague.Api.Events.Contexts.Player;
 
 public struct PlayerInfectPostContext(IPlayer player, IPlayer? infector = null) : IPostHookContext
 {

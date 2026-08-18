@@ -1,5 +1,4 @@
-﻿using Common.Hooks.Abstractions;
-using SwiftlyS2.Shared;
+﻿using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameHooks;
 using SwiftlyS2.Shared.Players;
 using ZombiePlague.Core.Data.Managers.Contracts;
@@ -9,9 +8,8 @@ namespace ZombiePlague.Core.Data.Rounds.Contracts;
 
 internal abstract class InfectionBase(
     ISwiftlyCore core, 
-    IPlayerManager playerManager,
-    IHookPublisher hooks
-) : RoundBase(core, playerManager, hooks)
+    IPlayerManager playerManager
+) : RoundBase(core, playerManager)
 {
     protected override void OnTakeDamage(ref TakeDamageEntityPreContext context)
     {

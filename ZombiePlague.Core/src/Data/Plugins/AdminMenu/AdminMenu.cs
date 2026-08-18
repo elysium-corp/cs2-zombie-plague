@@ -169,42 +169,67 @@ internal sealed class AdminMenu(
 
     private IMenuAPI SetRound()
     {
-        var menu = core.MenusAPI.CreateBuilder().Design.SetMenuTitle("Управление игровыми раундами");
-        var currentRound = roundManager.CurrentRound?.Name ?? "Не определен";
-        var nextRound = roundManager.NextRound?.Name ?? "Не определен";
-        var currentRoundTextOption = new TextMenuOption
-        {
-            Text = $"Текущий раунд: {currentRound}"
-        };
-        var nextRoundTextOption = new TextMenuOption
-        {
-            Text = $"Следующий раунд: {nextRound}"
-        };
+        var menu = core.MenusAPI
+            .CreateBuilder()
+            .Design.SetMenuTitle("Управление игровыми раундами");
 
-        menu.AddOption(currentRoundTextOption);
-        menu.AddOption(nextRoundTextOption);
-        menu.AddOption(new SubmenuMenuOption("Установить текущий раунд", SetCurrentRound()));
-        menu.AddOption(new SubmenuMenuOption("Установить следующий раунд", SetNextRound()));
+        var currentRound = roundManager.CurrentRound?.Name ?? "Не определен";
+        var nextRound = roundManager.NextRound?.Name ?? "Не выбран";
+
+        menu.AddOption(
+            new TextMenuOption
+            {
+                Text = $"Текущий раунд: {currentRound}"
+            }
+        );
+
+        menu.AddOption(
+            new TextMenuOption
+            {
+                Text = $"Следующий раунд: {nextRound}"
+            }
+        );
+
+        menu.AddOption(
+            new SubmenuMenuOption("Запустить раунд сейчас", StartRoundNow())
+        );
+
+        menu.AddOption(
+            new SubmenuMenuOption(
+                "Выбрать следующий раунд",
+                SetNextRound()
+            )
+        );
 
         return menu.Build();
     }
-
-    private IMenuAPI SetCurrentRound()
+    
+    private IMenuAPI StartRoundNow()
     {
-        var menu = core.MenusAPI.CreateBuilder()
-            .Design.SetMenuTitle($"Установить текущий раунд");
+        var menu = core.MenusAPI
+            .CreateBuilder()
+            .Design.SetMenuTitle("Запустить раунд сейчас");
 
         foreach (var round in roundRegistrator.GetAll())
         {
-            var enable = round is { Enable: true, Weight: > 0 } ? "[+]" : "[-]";
-            var text = $"{round.Name} {enable}";
-            var option = new ButtonMenuOption(text);
+            var option = new ButtonMenuOption()
+            {
+                Text = $"{round.Name}",
+                Enabled = round is { Enable: true, Weight: > 0 }
+            };
 
             option.Click += (_, args) =>
             {
-                args.Player.SendChatAsync($"Установлен текущий раунд: {round.Name}");
-                
-                roundManager.SelectNextRound(roundFactory.Create(round));
+                var selectedRound = roundFactory.Create(round);
+
+                if (!roundManager.TryStartRound(selectedRound))
+                {
+                    args.Player.SendChatAsync($"Невозможно запустить раунд: {round.Name}");
+
+                    return ValueTask.CompletedTask;
+                }
+
+                args.Player.SendChatAsync($"Раунд запущен: {round.Name}");
 
                 return ValueTask.CompletedTask;
             };

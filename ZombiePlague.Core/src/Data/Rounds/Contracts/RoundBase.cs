@@ -1,22 +1,21 @@
-﻿using Common.Hooks.Abstractions;
-using SwiftlyS2.Shared;
+﻿using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.GameHooks;
 using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
-using ZombiePlague.Api.Data;
-using ZombiePlague.Api.Events.Contexts;
+using ZombiePlague.Api.Data.Rounds;
 using ZombiePlague.Core.Data.Managers.Contracts;
 
 namespace ZombiePlague.Core.Data.Rounds.Contracts;
 
 internal abstract class RoundBase(
     ISwiftlyCore core, 
-    IPlayerManager playerManager,
-    IHookPublisher hooks
+    IPlayerManager playerManager
 ) : IRound
 {
+    public abstract string Id { get; }
+    
     public abstract string Name { get; }
 
     protected IPlayerManager PlayerManager { get; } = playerManager;
@@ -34,10 +33,6 @@ internal abstract class RoundBase(
         _isRoundEnded = false;
 
         OnStart();
-
-        var context = new RoundStartPostContext(this);
-
-        hooks.Dispatch(ref context);
     }
 
     public virtual void End()

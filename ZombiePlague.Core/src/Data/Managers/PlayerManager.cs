@@ -3,6 +3,7 @@ using Common.Hooks.Abstractions;
 using SwiftlyS2.Shared.Players;
 using ZombiePlague.Api.Events;
 using ZombiePlague.Api.Events.Contexts;
+using ZombiePlague.Api.Events.Contexts.Player;
 using ZombiePlague.Core.Data.Controllers;
 using ZombiePlague.Core.Data.Entities;
 using ZombiePlague.Core.Data.Entities.Human;
