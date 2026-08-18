@@ -62,16 +62,16 @@ public sealed class HookService(Action<Exception, Type, Delegate>? exceptionHand
                 return;
             }
 
-            var index = registrations.FindLastIndex(registration =>
-                Equals(registration.Handler, handler)
-            );
+            var registration = registrations
+                .Where(registration => Equals(registration.Handler, handler))
+                .MaxBy(registration => registration.Order);
 
-            if (index < 0)
+            if (registration is null)
             {
                 return;
             }
 
-            registrations.RemoveAt(index);
+            registrations.Remove(registration);
 
             if (registrations.Count == 0)
             {

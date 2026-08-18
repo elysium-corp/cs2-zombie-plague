@@ -1,5 +1,4 @@
-﻿using Common.Hooks.Abstractions;
-using SwiftlyS2.Shared.GameEventDefinitions;
+﻿using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Players;
 using ZombiePlague.Api;
 using ZombiePlague.Api.Data;

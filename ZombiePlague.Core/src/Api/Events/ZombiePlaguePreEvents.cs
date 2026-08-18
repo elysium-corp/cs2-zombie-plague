@@ -7,9 +7,13 @@ namespace ZombiePlague.Core.Api.Events;
 
 internal sealed class ZombiePlaguePreEvents(IHookSubscriber hooks) : IZombiePlaguePreEvents
 {
+    private readonly HookEvent<PlayerInfectPreContext> _playerInfect = new(hooks);
+
+    public IHookSubscription<PlayerInfectPreContext> PlayerInfect => _playerInfect;
+
     public event HookHandler<PlayerInfectPreContext> PlayerInfectEvent
     {
-        add => hooks.Hook(value);
-        remove => hooks.Unhook(value);
+        add => _playerInfect.Event += value;
+        remove => _playerInfect.Event -= value;
     }
 }
