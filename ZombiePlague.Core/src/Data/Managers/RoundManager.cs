@@ -78,31 +78,24 @@ internal sealed class RoundManager(
 
         var round = TakeNextRound() ?? CreateRandomRoundOrDefault();
 
-        if (round is null)
-        {
-            StopPreparation();
-
-            return;
-        }
-
         StartRound(round);
     }
     
-    public bool TryStartRound(RoundBase round)
+    public RoundStartResult TryStartRound(RoundBase round)
     {
         if (_preparationTimer is null)
         {
-            return false;
+            return RoundStartResult.NotPreparing;
         }
 
         if (!round.CanStart())
         {
-            return false;
+            return RoundStartResult.CannotStart;
         }
 
-        StartRound(round);
-
-        return true;
+        return StartRound(round)
+            ? RoundStartResult.Started
+            : RoundStartResult.Cancelled;
     }
 
     public void End()
@@ -129,6 +122,11 @@ internal sealed class RoundManager(
     public void SelectNextRound(RoundBase round)
     {
         NextRound = round;
+    }
+    
+    public void ClearNextRound()
+    {
+        NextRound = null;
     }
 
     public HookResult OnPlayerConnected(EventPlayerConnectFull @event)
@@ -190,7 +188,7 @@ internal sealed class RoundManager(
         return NextRound.CanStart() ? NextRound : null;
     }
 
-    private RoundBase? CreateRandomRoundOrDefault()
+    private RoundBase CreateRandomRoundOrDefault()
     {
         var candidates = roundRegistrator
             .GetAllEnabled()
@@ -202,8 +200,7 @@ internal sealed class RoundManager(
 
             candidates.Remove(selectedConfig);
 
-            var selectedRound =
-                roundFactory.Create(selectedConfig);
+            var selectedRound = roundFactory.Create(selectedConfig);
 
             if (selectedRound.CanStart())
             {
@@ -211,11 +208,7 @@ internal sealed class RoundManager(
             }
         }
 
-        var infectionRound = roundFactory.Create<Infection>();
-
-        return infectionRound.CanStart()
-            ? infectionRound
-            : null;
+        return roundFactory.Create<Infection>();
     }
 
     private static IRoundConfig SelectByWeight(IReadOnlyCollection<IRoundConfig> candidates, Random random)
@@ -251,33 +244,33 @@ internal sealed class RoundManager(
     
     private bool StartRound(RoundBase round)
     {
-        StopPreparation();
+        var originalRound = round;
 
-        NextRound = null;
-
-        var preContext = new RoundStartPreContext(round.Id);
+        var preContext = new RoundStartPreContext(originalRound.Id);
 
         hooks.Dispatch(ref preContext);
 
         if (preContext.IsCancelled)
         {
+            StopPreparation();
+
+            NextRound = null;
+
             return false;
         }
 
-        if (preContext.RoundId != round.Id)
+        if (
+            preContext.RoundId != originalRound.Id && 
+            roundFactory.TryCreate(preContext.RoundId, out var replacementRound) && 
+            replacementRound.CanStart()
+        )
         {
-            if (!roundFactory.TryCreate(preContext.RoundId, out var replacementRound))
-            {
-                return false;
-            }
-
             round = replacementRound;
         }
 
-        if (!round.CanStart())
-        {
-            return false;
-        }
+        StopPreparation();
+
+        NextRound = null;
 
         CurrentRound = round;
 
@@ -288,7 +281,6 @@ internal sealed class RoundManager(
         catch
         {
             CurrentRound = null;
-
             throw;
         }
 

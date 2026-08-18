@@ -1,6 +1,7 @@
 ﻿using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.GameHooks;
 using SwiftlyS2.Shared.Misc;
+using ZombiePlague.Core.Data.Rounds;
 using ZombiePlague.Core.Data.Rounds.Contracts;
 
 namespace ZombiePlague.Core.Data.Managers.Contracts;
@@ -17,9 +18,11 @@ internal interface IRoundManager
 
     void End();
 
-    bool TryStartRound(RoundBase round);
+    RoundStartResult TryStartRound(RoundBase round);
     
     void SelectNextRound(RoundBase round);
+    
+    void ClearNextRound();
 
     HookResult OnPlayerConnected(EventPlayerConnectFull @event)
     {

@@ -171,27 +171,30 @@ internal sealed class AdminMenu(
     {
         var menu = core.MenusAPI
             .CreateBuilder()
-            .Design.SetMenuTitle("Управление игровыми раундами");
+            .Design.SetMenuTitle("Управление раундами");
 
-        var currentRound = roundManager.CurrentRound?.Name ?? "Не определен";
-        var nextRound = roundManager.NextRound?.Name ?? "Не выбран";
+        var currentRound = roundManager.CurrentRound?.Name ?? "Подготовка";
+        var nextRound = roundManager.NextRound?.Name ?? "Автоматически";
 
         menu.AddOption(
             new TextMenuOption
             {
-                Text = $"Текущий раунд: {currentRound}"
+                Text = $"Текущий: {currentRound}"
             }
         );
 
         menu.AddOption(
             new TextMenuOption
             {
-                Text = $"Следующий раунд: {nextRound}"
+                Text = $"Следующий: {nextRound}"
             }
         );
 
         menu.AddOption(
-            new SubmenuMenuOption("Запустить раунд сейчас", StartRoundNow())
+            new SubmenuMenuOption(
+                "Запустить раунд сейчас",
+                StartRoundNow()
+            )
         );
 
         menu.AddOption(
@@ -203,7 +206,7 @@ internal sealed class AdminMenu(
 
         return menu.Build();
     }
-    
+
     private IMenuAPI StartRoundNow()
     {
         var menu = core.MenusAPI
@@ -212,24 +215,37 @@ internal sealed class AdminMenu(
 
         foreach (var round in roundRegistrator.GetAll())
         {
-            var option = new ButtonMenuOption()
+            var option = new ButtonMenuOption
             {
-                Text = $"{round.Name}",
-                Enabled = round is { Enable: true, Weight: > 0 }
+                Text = round.Name,
+                Enabled = round is
+                {
+                    Enable: true,
+                    Weight: > 0
+                }
             };
 
             option.Click += (_, args) =>
             {
                 var selectedRound = roundFactory.Create(round);
 
-                if (!roundManager.TryStartRound(selectedRound))
+                if (!selectedRound.CanStart())
                 {
-                    args.Player.SendChatAsync($"Невозможно запустить раунд: {round.Name}");
+                    args.Player.SendChatAsync($"Раунд «{round.Name}» сейчас нельзя запустить: не выполнены условия.");
 
                     return ValueTask.CompletedTask;
                 }
 
-                args.Player.SendChatAsync($"Раунд запущен: {round.Name}");
+                if (!roundManager.TryStartRound(selectedRound))
+                {
+                    args.Player.SendChatAsync($"Не удалось запустить раунд «{round.Name}».");
+
+                    return ValueTask.CompletedTask;
+                }
+
+                var startedRound = roundManager.CurrentRound;
+
+                args.Player.SendChatAsync($"Запущен раунд: {startedRound?.Name ?? round.Name}.");
 
                 return ValueTask.CompletedTask;
             };
@@ -242,20 +258,40 @@ internal sealed class AdminMenu(
 
     private IMenuAPI SetNextRound()
     {
-        var menu = core.MenusAPI.CreateBuilder()
-            .Design.SetMenuTitle($"Установить следующий раунд");
+        var menu = core.MenusAPI
+            .CreateBuilder()
+            .Design.SetMenuTitle("Выбрать следующий раунд");
+
+        AddAutomaticRoundOption(menu);
 
         foreach (var round in roundRegistrator.GetAll())
         {
-            var enable = round is { Enable: true, Weight: > 0 } ? "[+]" : "[-]";
-            var text = $"{round.Name} {enable}";
-            var option = new ButtonMenuOption(text);
+            var enabled = round is
+            {
+                Enable: true,
+                Weight: > 0
+            };
+
+            var option = new ButtonMenuOption
+            {
+                Text = $"{round.Name}",
+                Enabled = enabled
+            };
 
             option.Click += (_, args) =>
             {
-                args.Player.SendChatAsync($"Установлен следующий раунд: {round.Name}");
-                
-                roundManager.SelectNextRound(roundFactory.Create(round));
+                var selectedRound = roundFactory.Create(round);
+
+                roundManager.SelectNextRound(selectedRound);
+
+                if (selectedRound.CanStart())
+                {
+                    args.Player.SendChatAsync($"Следующий раунд: {round.Name}");
+                }
+                else
+                {
+                    args.Player.SendChatAsync($"Следующий раунд: {round.Name}. Сейчас условия не выполнены, они будут проверены перед запуском");
+                }
 
                 return ValueTask.CompletedTask;
             };
@@ -264,5 +300,21 @@ internal sealed class AdminMenu(
         }
 
         return menu.Build();
+    }
+    
+    private void AddAutomaticRoundOption(IMenuBuilderAPI menu)
+    {
+        var option = new ButtonMenuOption("Автоматический выбор");
+
+        option.Click += (_, args) =>
+        {
+            roundManager.ClearNextRound();
+
+            args.Player.SendChatAsync("Следующий раунд будет выбран автоматически.");
+
+            return ValueTask.CompletedTask;
+        };
+
+        menu.AddOption(option);
     }
 }
