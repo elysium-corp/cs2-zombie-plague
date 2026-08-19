@@ -44,9 +44,4 @@ internal sealed class PrivilegeRegistry : IPrivilegeRegistry
     {
         return _privileges.Values;
     }
-
-    private static string CreateKey(string group, string id)
-    {
-        return $"{group}.{id}";
-    }
 }

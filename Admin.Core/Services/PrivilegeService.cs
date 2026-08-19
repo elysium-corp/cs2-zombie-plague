@@ -1,6 +1,6 @@
 ﻿using Admin.Api.Data;
-using Admin.Core.Di.Store;
 using Admin.Core.Registry;
+using Admin.Core.Store;
 
 namespace Admin.Core.Services;
 

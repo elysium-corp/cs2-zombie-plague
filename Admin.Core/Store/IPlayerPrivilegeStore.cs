@@ -1,4 +1,4 @@
-﻿namespace Admin.Core.Di.Store;
+﻿namespace Admin.Core.Store;
 
 internal interface IPlayerPrivilegeStore
 {

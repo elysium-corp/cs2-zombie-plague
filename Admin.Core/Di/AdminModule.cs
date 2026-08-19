@@ -1,6 +1,6 @@
-﻿using Admin.Core.Di.Store;
-using Admin.Core.Registry;
+﻿using Admin.Core.Registry;
 using Admin.Core.Services;
+using Admin.Core.Store;
 using Common.Di;
 using Microsoft.Extensions.DependencyInjection;
 using SwiftlyS2.Shared;

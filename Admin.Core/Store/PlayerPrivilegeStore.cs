@@ -1,7 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Frozen;
 
-namespace Admin.Core.Di.Store;
+namespace Admin.Core.Store;
 
 internal sealed class PlayerPrivilegeStore : IPlayerPrivilegeStore
 {
