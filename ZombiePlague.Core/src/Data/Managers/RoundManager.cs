@@ -4,6 +4,7 @@ using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.GameHooks;
 using SwiftlyS2.Shared.Misc;
+using ZombiePlague.Api.Data.Rounds;
 using ZombiePlague.Api.Events.Contexts.Round;
 using ZombiePlague.Core.Config.Core;
 using ZombiePlague.Core.Config.Round;
@@ -27,6 +28,8 @@ internal sealed class RoundManager(
     public RoundBase? CurrentRound { get; private set; }
 
     public RoundBase? NextRound { get; private set; }
+    
+    public bool IsPreparing => _preparationTimer is not null;
 
     private CancellationTokenSource? _preparationTimer;
 
@@ -93,9 +96,19 @@ internal sealed class RoundManager(
             return RoundStartResult.CannotStart;
         }
 
-        return StartRound(round)
-            ? RoundStartResult.Started
-            : RoundStartResult.Cancelled;
+        return StartRound(round);
+    }
+    
+    public RoundStartResult TryStartRandomRound()
+    {
+        if (!IsPreparing)
+        {
+            return RoundStartResult.NotPreparing;
+        }
+
+        var round = CreateRandomRoundOrDefault();
+
+        return StartRound(round);
     }
 
     public void End()
@@ -242,7 +255,7 @@ internal sealed class RoundManager(
         _preparationTimer = null;
     }
     
-    private bool StartRound(RoundBase round)
+    private RoundStartResult StartRound(RoundBase round)
     {
         var originalRound = round;
 
@@ -256,12 +269,11 @@ internal sealed class RoundManager(
 
             NextRound = null;
 
-            return false;
+            return RoundStartResult.Cancelled;
         }
 
-        if (
-            preContext.RoundId != originalRound.Id && 
-            roundFactory.TryCreate(preContext.RoundId, out var replacementRound) && 
+        if (preContext.RoundId != originalRound.Id &&
+            roundFactory.TryCreate(preContext.RoundId, out var replacementRound) &&
             replacementRound.CanStart()
         )
         {
@@ -272,23 +284,71 @@ internal sealed class RoundManager(
 
         NextRound = null;
 
+        if (!TryStartRoundOrFallback(round, out var startedRound))
+        {
+            CurrentRound = null;
+
+            return RoundStartResult.CannotStart;
+        }
+
+        var postContext = new RoundStartPostContext(startedRound);
+
+        hooks.Dispatch(ref postContext);
+
+        return RoundStartResult.Started;
+    }
+    
+    private bool TryStartRoundOrFallback(RoundBase round, out RoundBase? startedRound)
+    {
+        if (TryStartRoundInternal(round))
+        {
+            startedRound = round;
+
+            return true;
+        }
+
+        if (round.Id == RoundIds.Infection)
+        {
+            startedRound = null;
+
+            return false;
+        }
+
+        var infection = roundFactory.Create<Infection>();
+
+        if (TryStartRoundInternal(infection))
+        {
+            startedRound = infection;
+
+            return true;
+        }
+
+        startedRound = null;
+
+        return false;
+    }
+    
+    private bool TryStartRoundInternal(RoundBase round)
+    {
         CurrentRound = round;
 
         try
         {
-            round.Start();
+            if (round.TryStart())
+            {
+                return true;
+            }
         }
         catch
         {
             CurrentRound = null;
+
             throw;
         }
 
-        var postContext = new RoundStartPostContext(round);
+        CurrentRound = null;
 
-        hooks.Dispatch(ref postContext);
-
-        return true;
+        return false;
     }
 
     private void PlayCountdownSound()

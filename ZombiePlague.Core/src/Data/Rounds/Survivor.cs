@@ -18,33 +18,48 @@ internal sealed class Survivor(
     
     public override string Name => config.Name;
     
-    protected override void OnStart()
+    protected override bool OnStart()
     {
         var humans = PlayerManager.GetAllAliveHumans().ToList();
-        var selectedHuman = humans[Random.Shared.Next(humans.Count)];
-        
-        if (!PlayerManager.TrySetSurvivor(selectedHuman, out var survivor))
+
+        if (humans.Count == 0)
         {
-            return;
+            return false;
         }
-        
+
+        var selectedHuman = humans[Random.Shared.Next(humans.Count)];
+
         humans.Remove(selectedHuman);
 
         foreach (var human in humans)
         {
-            PlayerManager.TryInfect(human);
+            if (!PlayerManager.TryInfect(human))
+            {
+                return false;
+            }
         }
-        
+
+        if (!PlayerManager.TrySetSurvivor(selectedHuman, out var survivor))
+        {
+            return false;
+        }
+
         var health = survivor.HClass.Health + config.SurvivorBonusHealthPerZombie * humans.Count;
 
-        survivor.HClass.Health = Math.Clamp(health, survivor.HClass.Health, int.MaxValue);
-        
+        survivor.HClass.Health = Math.Clamp(
+            health,
+            survivor.HClass.Health,
+            int.MaxValue
+        );
+
         if (config.IsMusicEnabled && !string.IsNullOrWhiteSpace(config.MusicSoundName))
         {
             SoundExt.PlayGlobal(config.MusicSoundName);
         }
 
         Core.PlayerManager.SendCenter($"Выживший => {selectedHuman.Name}");
+
+        return true;
     }
 
     protected override void OnEnd() { }
@@ -53,6 +68,6 @@ internal sealed class Survivor(
     {
         var humansCount = PlayerManager.GetAllAliveHumans().Count();
         
-        return humansCount > config.MinimumHumansRequired;
+        return humansCount >= config.MinimumHumansRequired;
     }
 }

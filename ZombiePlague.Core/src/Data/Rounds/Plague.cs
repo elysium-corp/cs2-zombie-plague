@@ -23,17 +23,22 @@ internal sealed class Plague(
     
     public override string Name => config.Name;
     
-    protected override void OnStart()
+    protected override bool OnStart()
     {
         var humans = PlayerManager
-            .GetAllAliveHumans()
-            .ToArray();
+                .GetAllAliveHumans()
+                .ToArray();
+
+        if (humans.Length < 2)
+        {
+            return false;
+        }
 
         var infectionRatio = config.ZombieSpawnRatio;
 
         if (infectionRatio is <= 0.0f or >= 1.0f)
         {
-            throw new InvalidOperationException($"{nameof(config.ZombieSpawnRatio)} must be between 0 and 1.");
+            throw new InvalidOperationException($"{nameof(config.ZombieSpawnRatio)} must be between 0 and 1!");
         }
 
         var targetInfectedCount = Math.Clamp(
@@ -60,13 +65,20 @@ internal sealed class Plague(
                 break;
             }
         }
-        
+
+        if (successfulInfections < targetInfectedCount)
+        {
+            return false;
+        }
+
         if (config.IsMusicEnabled && !string.IsNullOrWhiteSpace(config.MusicSoundName))
         {
             SoundExt.PlayGlobal(config.MusicSoundName);
         }
-        
-        Core.PlayerManager.SendCenter($"Массовое заражение!");
+
+        Core.PlayerManager.SendCenter("Массовое заражение!");
+
+        return true;
     }
     
     protected override void OnEnd()

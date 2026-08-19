@@ -11,6 +11,8 @@ internal interface IRoundManager
     RoundBase? CurrentRound { get; }
 
     RoundBase? NextRound { get; }
+    
+    bool IsPreparing { get; }
 
     void Prepare();
 
@@ -19,6 +21,8 @@ internal interface IRoundManager
     void End();
 
     RoundStartResult TryStartRound(RoundBase round);
+    
+    RoundStartResult TryStartRandomRound();
     
     void SelectNextRound(RoundBase round);
     

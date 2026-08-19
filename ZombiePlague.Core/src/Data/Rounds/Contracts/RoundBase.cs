@@ -9,10 +9,7 @@ using ZombiePlague.Core.Data.Managers.Contracts;
 
 namespace ZombiePlague.Core.Data.Rounds.Contracts;
 
-internal abstract class RoundBase(
-    ISwiftlyCore core, 
-    IPlayerManager playerManager
-) : IRound
+internal abstract class RoundBase(ISwiftlyCore core, IPlayerManager playerManager) : IRound
 {
     public abstract string Id { get; }
     
@@ -24,15 +21,27 @@ internal abstract class RoundBase(
 
     private bool _isRoundEnded;
 
-    protected abstract void OnStart();
+    protected abstract bool OnStart();
 
     protected abstract void OnEnd();
 
     public virtual void Start()
     {
+        TryStart();
+    }
+    
+    public bool TryStart()
+    {
         _isRoundEnded = false;
 
-        OnStart();
+        if (OnStart())
+        {
+            return true;
+        }
+
+        _isRoundEnded = true;
+
+        return false;
     }
 
     public virtual void End()
