@@ -29,16 +29,6 @@ internal sealed class PlayerRepository(
             ?? PlayerPreferences.DefaultHumanClassId;
     }
 
-    public string GetKnifeId(IPlayer player)
-    {
-        ArgumentNullException.ThrowIfNull(player);
-
-        return sessions
-            .Get(player.SteamID)?
-            .Read(data => data.KnifeId)
-            ?? PlayerPreferences.DefaultKnifeId;
-    }
-
     public void SetZClassId(IPlayer player, string classId)
     {
         ArgumentNullException.ThrowIfNull(player);
@@ -62,19 +52,6 @@ internal sealed class PlayerRepository(
             .Update(data =>
             {
                 data.HClassId = classId;
-            });
-    }
-
-    public void SetKnifeId(IPlayer player, string knifeId)
-    {
-        ArgumentNullException.ThrowIfNull(player);
-        ArgumentException.ThrowIfNullOrWhiteSpace(knifeId);
-
-        sessions
-            .Get(player.SteamID)?
-            .Update(data =>
-            {
-                data.KnifeId = knifeId;
             });
     }
 }

@@ -159,9 +159,7 @@ internal sealed class PlayerPreferencesCoordinator(
                         {
                             ZClassId = data.ZClassId,
 
-                            HClassId = data.HClassId,
-
-                            KnifeId = data.KnifeId
+                            HClassId = data.HClassId
                         }
                     );
 
