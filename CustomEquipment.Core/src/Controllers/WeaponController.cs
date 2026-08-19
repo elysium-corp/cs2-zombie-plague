@@ -127,7 +127,7 @@ internal sealed class WeaponController(
 
         if (@event.Key != KeyKind.E || !@event.Pressed) return;
 
-        var weapon = equipmentService.GetActiveWeapon<WeaponItemBase>(player);
+        var weapon = equipmentService.GetActiveItem<WeaponItemBase>(player);
 
         var shopItem = weapon as IShopItem;
 
@@ -157,7 +157,7 @@ internal sealed class WeaponController(
 
         if (attacker == null || !attacker.IsValid) return HookResult.Continue;
 
-        var activeWeapon = equipmentService.GetActiveWeapon<WeaponItemBase>(attacker);
+        var activeWeapon = equipmentService.GetActiveItem<WeaponItemBase>(attacker);
 
         if (activeWeapon == null) return HookResult.Continue;
 

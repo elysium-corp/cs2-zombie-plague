@@ -10,6 +10,8 @@ internal sealed class X3 : WeaponItemBase, IShopItem
 {
     public override string InheritorName => WeaponName.M4A1S;
 
+    public override AccessFlags AccessFlags => AccessFlags.Human;
+    
     public override string DisplayName => "M4A1-S X3";
     
     public override string InternalName => "custom_equipment:x3";

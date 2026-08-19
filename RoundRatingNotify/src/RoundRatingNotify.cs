@@ -6,6 +6,8 @@ using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Players;
 using ZombiePlague.Api;
 using ZombiePlague.Core.Utils.Extensions;
+using ZombiePlague.Api.Events.Contexts;
+using ZombiePlague.Api.Events.Contexts.Player;
 
 namespace RoundRatingNotify;
 
@@ -35,14 +37,16 @@ internal sealed partial class RoundRatingNotify(ISwiftlyCore core) : Plugin<Roun
     {
         _guidOnEventRoundEndPost = core.GameEvent.HookPost<EventRoundEnd>(OnEventRoundEnd);
         _guidOnEvEventPlayerHurtPost = core.GameEvent.HookPost<EventPlayerHurt>(OnEventPlayerHurt);
-        _zombiePlagueApi.EventSubscriber.OnPlayerInfected += OnPlayerInfected;
+        
+        _zombiePlagueApi.Events.Post.PlayerInfectEvent += OnPlayerInfected;
     }
 
     protected override void OnUnload()
     {
         core.GameEvent.Unhook(_guidOnEventRoundEndPost);
         core.GameEvent.Unhook(_guidOnEvEventPlayerHurtPost);
-        _zombiePlagueApi.EventSubscriber.OnPlayerInfected -= OnPlayerInfected;
+        
+        _zombiePlagueApi.Events.Post.PlayerInfectEvent -= OnPlayerInfected;
     }
 
     private HookResult OnEventPlayerHurt(EventPlayerHurt @event)
@@ -71,8 +75,10 @@ internal sealed partial class RoundRatingNotify(ISwiftlyCore core) : Plugin<Roun
         return HookResult.Continue;
     }
 
-    private void OnPlayerInfected(IPlayer _, IPlayer? infector)
+    private void OnPlayerInfected(ref PlayerInfectPostContext context)
     {
+        var infector = context.Infector;
+
         if (infector is not { IsValid: true })
         {
             return;

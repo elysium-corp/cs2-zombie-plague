@@ -79,6 +79,7 @@ internal sealed class InfectionService(
     private static bool IsAllowedForZombie(string? weaponName)
     {
         return weaponName?.Contains("knife", StringComparison.OrdinalIgnoreCase) == true ||
-               weaponName?.Contains("smoke", StringComparison.OrdinalIgnoreCase) == true;
+               weaponName?.Contains("smoke", StringComparison.OrdinalIgnoreCase) == true ||
+               weaponName?.Contains("hegrenade", StringComparison.OrdinalIgnoreCase) == true;
     }
 }

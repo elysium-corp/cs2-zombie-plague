@@ -10,6 +10,8 @@ internal sealed class Ajm : WeaponItemBase, IShopItem
 {
     public override string InheritorName => WeaponName.Cz75A;
 
+    public override AccessFlags AccessFlags => AccessFlags.Human;
+
     public override string DisplayName => "CZ75 Ajm";
 
     public override string InternalName => "custom_equipment:ajm";

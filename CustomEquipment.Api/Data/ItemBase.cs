@@ -7,6 +7,8 @@ namespace CustomEquipment.Api.Data;
 
 public abstract class ItemBase : IItem
 {
+    public virtual AccessFlags AccessFlags => AccessFlags.All;
+    
     public virtual CEconEntity AttachedEntity
     {
         get => field ?? throw new NotAttachedEntityException();

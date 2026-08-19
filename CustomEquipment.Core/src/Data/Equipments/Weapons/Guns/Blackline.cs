@@ -10,6 +10,8 @@ internal sealed class Blackline : WeaponItemBase, IShopItem
 {
     public override string InheritorName => WeaponName.Mp9;
 
+    public override AccessFlags AccessFlags => AccessFlags.Human;
+    
     public override string DisplayName => "MP9 Blackline";
 
     public override string InternalName => "custom_equipment:blackline";

@@ -1,6 +1,9 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using Common.Hooks.Abstractions;
 using SwiftlyS2.Shared.Players;
 using ZombiePlague.Api.Events;
+using ZombiePlague.Api.Events.Contexts;
+using ZombiePlague.Api.Events.Contexts.Player;
 using ZombiePlague.Core.Data.Controllers;
 using ZombiePlague.Core.Data.Entities;
 using ZombiePlague.Core.Data.Entities.Human;
@@ -15,8 +18,8 @@ namespace ZombiePlague.Core.Data.Managers;
 internal sealed class PlayerManager(
     HumanController humanController,
     ZombieController zombieController,
-    IEventPublisher eventPublisher,
-    ICustomEventService eventService
+    ICustomEventService eventService,
+    IHookPublisher hooks
 ) : IPlayerManager
 {
     private readonly Dictionary<IPlayer, IPlayerRole> _players = [];
@@ -63,18 +66,40 @@ internal sealed class PlayerManager(
             return false;
         }
 
-        var zombie = zombieController.Create(player);
+        var preContext = new PlayerInfectPreContext(player, infector);
+
+        hooks.Dispatch(ref preContext);
+
+        if (preContext.IsCancelled)
+        {
+            return false;
+        }
+
+        if (!preContext.Player.IsValid || !IsHuman(preContext.Player))
+        {
+            return false;
+        }
+
+        var zombie = zombieController.Create(preContext.Player);
 
         if (zombie is null)
         {
             return false;
         }
-        
+
         AddOrReplaceRole(zombie);
-        
-        eventService.ShowInfection(infector, player);
-        
-        eventPublisher.OnPlayerInfected(player, infector);
+
+        eventService.ShowInfection(
+            preContext.Infector,
+            preContext.Player
+        );
+
+        var postContext = new PlayerInfectPostContext(
+            preContext.Player,
+            preContext.Infector
+        );
+
+        hooks.Dispatch(ref postContext);
 
         return true;
     }
@@ -92,9 +117,7 @@ internal sealed class PlayerManager(
         }
 
         AddOrReplaceRole(human);
-
-        eventPublisher.OnPlayerDisinfected(player);
-
+        
         return true;
     }
 
@@ -132,9 +155,7 @@ internal sealed class PlayerManager(
         }
 
         AddOrReplaceRole(nemesis);
-
-        eventPublisher.OnPlayerInfected(player);
-
+        
         return true;
     }
 

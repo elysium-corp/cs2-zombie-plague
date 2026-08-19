@@ -1,8 +1,9 @@
-﻿using SwiftlyS2.Shared;
+﻿using Common.Hooks.Abstractions;
+using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Players;
-using ZombiePlague.Api.Events;
+using ZombiePlague.Api.Data.Rounds;
 using ZombiePlague.Core.Config.Round;
 using ZombiePlague.Core.Data.Managers.Contracts;
 using ZombiePlague.Core.Data.Rounds.Contracts;
@@ -13,25 +14,31 @@ namespace ZombiePlague.Core.Data.Rounds;
 internal sealed class Plague(
     ISwiftlyCore core,
     IPlayerManager playerManager,
-    IEventPublisher eventPublisher,
     PlagueConfig config
-) : InfectionBase(core, playerManager, eventPublisher)
+) : InfectionBase(core, playerManager)
 {
     private readonly Dictionary<int, CancellationTokenSource> _respawnTimers = [];
     
+    public override string Id => RoundIds.Plague;
+    
     public override string Name => config.Name;
     
-    protected override void OnStart()
+    protected override bool OnStart()
     {
         var humans = PlayerManager
-            .GetAllAliveHumans()
-            .ToArray();
+                .GetAllAliveHumans()
+                .ToArray();
+
+        if (humans.Length < 2)
+        {
+            return false;
+        }
 
         var infectionRatio = config.ZombieSpawnRatio;
 
         if (infectionRatio is <= 0.0f or >= 1.0f)
         {
-            throw new InvalidOperationException($"{nameof(config.ZombieSpawnRatio)} must be between 0 and 1.");
+            throw new InvalidOperationException($"{nameof(config.ZombieSpawnRatio)} must be between 0 and 1!");
         }
 
         var targetInfectedCount = Math.Clamp(
@@ -58,13 +65,20 @@ internal sealed class Plague(
                 break;
             }
         }
-        
+
+        if (successfulInfections < targetInfectedCount)
+        {
+            return false;
+        }
+
         if (config.IsMusicEnabled && !string.IsNullOrWhiteSpace(config.MusicSoundName))
         {
             SoundExt.PlayGlobal(config.MusicSoundName);
         }
-        
-        Core.PlayerManager.SendCenter($"Массовое заражение!");
+
+        Core.PlayerManager.SendCenter("Массовое заражение!");
+
+        return true;
     }
     
     protected override void OnEnd()

@@ -10,6 +10,8 @@ internal sealed class ReactorLeak : WeaponItemBase, IShopItem
 {
     public override string InheritorName => WeaponName.Ump45;
     
+    public override AccessFlags AccessFlags => AccessFlags.Human;
+    
     public override string DisplayName => "UMP45 ReactorLeak";
     
     public override string InternalName => "custom_equipment:reactorleak";

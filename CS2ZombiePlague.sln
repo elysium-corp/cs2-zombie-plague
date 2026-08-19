@@ -45,6 +45,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MovementUnlocker", "Movemen
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.Database", "Common.Database\Common.Database.csproj", "{05448527-9492-4777-8594-45BA7B5E4A2E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.Hooks", "Common.Hooks\Common.Hooks.csproj", "{BB48492F-DB1E-41BD-ADBD-EE3258AAA744}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -279,6 +281,10 @@ Global
 		{4F30ACB2-C7BA-407D-BCFA-814DBFCDBD5F}.Debug|x86.Build.0 = Debug|Any CPU
 		{4F30ACB2-C7BA-407D-BCFA-814DBFCDBD5F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4F30ACB2-C7BA-407D-BCFA-814DBFCDBD5F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB48492F-DB1E-41BD-ADBD-EE3258AAA744}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB48492F-DB1E-41BD-ADBD-EE3258AAA744}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB48492F-DB1E-41BD-ADBD-EE3258AAA744}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB48492F-DB1E-41BD-ADBD-EE3258AAA744}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4F30ACB2-C7BA-407D-BCFA-814DBFCDBD5F}.Release|x64.ActiveCfg = Release|Any CPU
 		{4F30ACB2-C7BA-407D-BCFA-814DBFCDBD5F}.Release|x64.Build.0 = Release|Any CPU
 		{4F30ACB2-C7BA-407D-BCFA-814DBFCDBD5F}.Release|x86.ActiveCfg = Release|Any CPU

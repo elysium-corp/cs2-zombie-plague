@@ -1,48 +1,54 @@
 ﻿using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.GameHooks;
 using SwiftlyS2.Shared.Misc;
+using ZombiePlague.Core.Data.Rounds;
 using ZombiePlague.Core.Data.Rounds.Contracts;
 
 namespace ZombiePlague.Core.Data.Managers.Contracts;
 
 internal interface IRoundManager
 {
-    public RoundBase? CurrentRound { get; set; }
+    RoundBase? CurrentRound { get; }
+
+    RoundBase? NextRound { get; }
     
-    public RoundBase? NextRound { get; set; }
+    bool IsPreparing { get; }
+
+    void Prepare();
+
+    void Start();
+
+    void End();
+
+    RoundStartResult TryStartRound(RoundBase round);
     
-    public void Prepare();
-
-    public void Start();
-
-    public void End();
-
-    public void SelectCurrentRound(RoundBase round);
-
-    public void SelectNextRound(RoundBase round);
+    RoundStartResult TryStartRandomRound();
     
-    public HookResult OnPlayerConnected(EventPlayerConnectFull @event)
+    void SelectNextRound(RoundBase round);
+    
+    void ClearNextRound();
+
+    HookResult OnPlayerConnected(EventPlayerConnectFull @event)
     {
         return HookResult.Continue;
     }
 
-    public HookResult OnPlayerDeath(EventPlayerDeath @event)
+    HookResult OnPlayerDeath(EventPlayerDeath @event)
     {
         return HookResult.Continue;
     }
 
-    public HookResult OnPlayerDisconnect(EventPlayerDisconnect @event)
+    HookResult OnPlayerDisconnect(EventPlayerDisconnect @event)
     {
         return HookResult.Continue;
     }
 
-    public HookResult OnPlayerTeam(EventPlayerTeam @event)
+    HookResult OnPlayerTeam(EventPlayerTeam @event)
     {
         return HookResult.Continue;
     }
 
-    public virtual void OnTakeDamage(ref TakeDamageEntityPreContext context)
+    void OnTakeDamage(ref TakeDamageEntityPreContext context)
     {
-        
     }
 }

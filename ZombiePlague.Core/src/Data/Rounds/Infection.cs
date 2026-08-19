@@ -1,8 +1,9 @@
-﻿using SwiftlyS2.Shared;
+﻿using Common.Hooks.Abstractions;
+using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Players;
-using ZombiePlague.Api.Events;
+using ZombiePlague.Api.Data.Rounds;
 using ZombiePlague.Core.Config.Round;
 using ZombiePlague.Core.Data.Abilities;
 using ZombiePlague.Core.Data.Managers.Contracts;
@@ -14,35 +15,37 @@ namespace ZombiePlague.Core.Data.Rounds;
 internal sealed class Infection(
     ISwiftlyCore core,
     IPlayerManager playerManager,
-    IEventPublisher eventPublisher,
     InfectionConfig config
-) : InfectionBase(core, playerManager, eventPublisher)
+) : InfectionBase(core, playerManager)
 {
     private readonly Dictionary<int, CancellationTokenSource> _respawnTimers = [];
     
+    public override string Id => RoundIds.Infection;
+    
     public override string Name => config.Name;
     
-    protected override void OnStart()
+    protected override bool OnStart()
     {
         var humans = PlayerManager.GetAllAliveHumans().ToArray();
+
         var zombies = PlayerManager.GetAllAliveZombies().ToArray();
-        
+
         if (zombies.Length > 0)
         {
             var zombie = zombies[Random.Shared.Next(zombies.Length)];
-            
-            SetFirstZombie(zombie);
 
-            return;
+            return SetFirstZombie(zombie);
         }
-        
-        if (humans.Length == 0) return;
-        
-        var randomIndex = Random.Shared.Next(humans.Length);
-        
-        var candidate = humans[randomIndex];
 
-        SetFirstZombie(candidate);
+        if (humans.Length == 0)
+        {
+            return false;
+        }
+
+        var candidate =
+            humans[Random.Shared.Next(humans.Length)];
+
+        return SetFirstZombie(candidate);
     }
     
     protected override void OnEnd()
@@ -126,26 +129,39 @@ internal sealed class Infection(
         );
     }
     
-    private void SetFirstZombie(IPlayer player)
+    private bool SetFirstZombie(IPlayer player)
     {
-        PlayerManager.TryInfect(player);
-
-        if (PlayerManager.TryGetZombie(player, out var firstZombie))
+        if (!PlayerManager.IsZombie(player) && !PlayerManager.TryInfect(player))
         {
-            var health = (int)Math.Round(firstZombie.ZClass.Health * config.FirstZombieHealthRatio);
-
-            player.SetHealth(health);
-
-            if (!config.FirstZombieLeap)
-            {
-                var leap = firstZombie.ZClass.Abilities.OfType<Leap>().FirstOrDefault();
-                leap?.UnHook();
-            }
-
-            SoundExt.PlayAt(player, config.MusicSoundName, 1.5f);
-            
-            Core.PlayerManager.SendCenter($"Первый заражённый => {player.Name}");
+            return false;
         }
+
+        if (!PlayerManager.TryGetZombie(player, out var firstZombie))
+        {
+            return false;
+        }
+
+        var health = (int)Math.Round(
+            firstZombie.ZClass.Health *
+            config.FirstZombieHealthRatio
+        );
+
+        player.SetHealth(health);
+
+        if (!config.FirstZombieLeap)
+        {
+            var leap = firstZombie.ZClass.Abilities
+                .OfType<Leap>()
+                .FirstOrDefault();
+
+            leap?.UnHook();
+        }
+
+        SoundExt.PlayAt(player, config.MusicSoundName, 1.5f);
+
+        Core.PlayerManager.SendCenter($"Первый заражённый => {player.Name}");
+
+        return true;
     }
     
     private void Respawn(IPlayer player)

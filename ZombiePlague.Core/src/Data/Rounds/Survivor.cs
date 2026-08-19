@@ -1,5 +1,6 @@
-﻿using SwiftlyS2.Shared;
-using ZombiePlague.Api.Events;
+﻿using Common.Hooks.Abstractions;
+using SwiftlyS2.Shared;
+using ZombiePlague.Api.Data.Rounds;
 using ZombiePlague.Core.Config.Round;
 using ZombiePlague.Core.Data.Managers.Contracts;
 using ZombiePlague.Core.Data.Rounds.Contracts;
@@ -10,39 +11,55 @@ namespace ZombiePlague.Core.Data.Rounds;
 internal sealed class Survivor(
     ISwiftlyCore core,
     IPlayerManager playerManager,
-    IEventPublisher eventPublisher,
     SurvivorConfig config
-) : RoundBase(core, playerManager, eventPublisher)
+) : RoundBase(core, playerManager)
 {
+    public override string Id => RoundIds.Survivor;
+    
     public override string Name => config.Name;
     
-    protected override void OnStart()
+    protected override bool OnStart()
     {
         var humans = PlayerManager.GetAllAliveHumans().ToList();
-        var selectedHuman = humans[Random.Shared.Next(humans.Count)];
-        
-        if (!PlayerManager.TrySetSurvivor(selectedHuman, out var survivor))
+
+        if (humans.Count == 0)
         {
-            return;
+            return false;
         }
-        
+
+        var selectedHuman = humans[Random.Shared.Next(humans.Count)];
+
         humans.Remove(selectedHuman);
 
         foreach (var human in humans)
         {
-            PlayerManager.TryInfect(human);
+            if (!PlayerManager.TryInfect(human))
+            {
+                return false;
+            }
         }
-        
+
+        if (!PlayerManager.TrySetSurvivor(selectedHuman, out var survivor))
+        {
+            return false;
+        }
+
         var health = survivor.HClass.Health + config.SurvivorBonusHealthPerZombie * humans.Count;
 
-        survivor.HClass.Health = Math.Clamp(health, survivor.HClass.Health, int.MaxValue);
-        
+        survivor.HClass.Health = Math.Clamp(
+            health,
+            survivor.HClass.Health,
+            int.MaxValue
+        );
+
         if (config.IsMusicEnabled && !string.IsNullOrWhiteSpace(config.MusicSoundName))
         {
             SoundExt.PlayGlobal(config.MusicSoundName);
         }
 
         Core.PlayerManager.SendCenter($"Выживший => {selectedHuman.Name}");
+
+        return true;
     }
 
     protected override void OnEnd() { }
@@ -51,6 +68,6 @@ internal sealed class Survivor(
     {
         var humansCount = PlayerManager.GetAllAliveHumans().Count();
         
-        return humansCount > config.MinimumHumansRequired;
+        return humansCount >= config.MinimumHumansRequired;
     }
 }
