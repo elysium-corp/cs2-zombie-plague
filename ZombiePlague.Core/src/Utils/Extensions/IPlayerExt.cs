@@ -3,6 +3,7 @@ using Common.Effects;
 using Common.Effects.Effects;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Players;
+using ZombiePlague.Api;
 
 namespace ZombiePlague.Core.Utils.Extensions;
 
@@ -84,6 +85,13 @@ internal static class IPlayerExt
             var effectService = EffectService.Provide(core);
 
             return effectService.HasEffect<Freeze>(player);
+        }
+        
+        public bool IsZombie()
+        {
+            var api = DependencyResolver.GetRequiredService<IZombiePlagueApi>();
+
+            return api.IsInfected(player);
         }
     }
 }

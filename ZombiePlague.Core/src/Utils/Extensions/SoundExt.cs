@@ -1,4 +1,5 @@
 ﻿using SwiftlyS2.Shared.Players;
+using SwiftlyS2.Shared.SchemaDefinitions;
 using SwiftlyS2.Shared.Sounds;
 
 namespace ZombiePlague.Core.Utils.Extensions;
@@ -48,6 +49,24 @@ public static class SoundExt
             Name = soundName,
             Volume = volume,
             SourceEntityIndex = (int)source.RequiredPlayerPawn.Index
+        };
+        sound.Recipients.AddAllPlayers();
+        sound.Emit();
+    }
+    
+    /// <summary>
+    /// Воспроизводит позиционный звук, привязанный к конкретному игроку (например, использование способностей).
+    /// </summary>
+    /// <param name="sourceIndex">Индекс сущности, от которой будет исходить звук.</param>
+    /// <param name="soundName">Имя звукового файла или события.</param>
+    /// <param name="volume">Громкость воспроизведения.</param>
+    public static void PlayAtEntity(int sourceIndex, string soundName, float volume)
+    {
+        using var sound = new SoundEvent
+        {
+            Name = soundName,
+            Volume = volume,
+            SourceEntityIndex = sourceIndex
         };
         sound.Recipients.AddAllPlayers();
         sound.Emit();

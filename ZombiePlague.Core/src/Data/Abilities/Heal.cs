@@ -4,6 +4,7 @@ using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
 using SwiftlyS2.Shared.Sounds;
+using SwiftlyS2.Shared.Trace;
 using ZombiePlague.Core.Config.Ability;
 using ZombiePlague.Core.Data.Abilities.Contracts;
 using ZombiePlague.Core.Utils;
@@ -26,24 +27,16 @@ internal sealed class Heal(ISwiftlyCore core, HealConfig config) : BaseActiveAbi
         var casterPawn = Caster.RequiredPlayerPawn;
 
         var origin = casterPawn.AbsOrigin;
-        if (origin is null)
-        {
-            return;
-        }
+
+        if (origin is null) return;
 
         var forward = MathAlgorithm.ForwardFromAngles(casterPawn.EyeAngles);
         var start = origin.Value + new Vector(0f, 0f, EyePositionZ) + forward * 50;
         var end = start + forward * config.MaxHealDistance;
 
-        if (!TryFindHealTarget(casterPawn, start, end, out var target))
-        {
-            return;
-        }
+        if (!TryFindHealTarget(casterPawn, start, end, out var target)) return;
 
-        if (target.Controller.Team != Caster.Controller.Team)
-        {
-            return;
-        }
+        if (target.Controller.Team != Caster.Controller.Team) return;
 
         Target = target;
         ApplyHeal(target.RequiredPlayerPawn);
@@ -53,15 +46,9 @@ internal sealed class Heal(ISwiftlyCore core, HealConfig config) : BaseActiveAbi
 
     protected override bool CanUse()
     {
-        if (!Caster.IsValid)
-        {
-            return false;
-        }
+        if (!Caster.IsValid) return false;
 
-        if (!Caster.IsAlive)
-        {
-            return false;
-        }
+        if (!Caster.IsAlive) return false;
 
         return true;
     }
@@ -70,27 +57,25 @@ internal sealed class Heal(ISwiftlyCore core, HealConfig config) : BaseActiveAbi
     {
         target = null!;
 
-        var trace = new CGameTrace();
-        core.Trace.SimpleTrace(
+        var trace = core.Trace.TraceShapeLine(
             start,
             end,
-            RayType_t.RAY_TYPE_LINE,
-            RnQueryObjectSet.AllGameEntities | RnQueryObjectSet.Static,
-            MaskTrace.Solid | MaskTrace.Player,
-            MaskTrace.Empty,
-            MaskTrace.Empty,
-            CollisionGroup.Player,
-            ref trace,
-            casterPawn
+            new TraceParams
+            {
+                ObjectQuery = RnQueryObjectSet.AllGameEntities,
+                InteractWith = MaskTrace.Player,
+                InteractExclude = MaskTrace.Empty,
+                InteractAs = MaskTrace.Empty,
+                EntitiesToIgnore = [casterPawn]
+            }
         );
 
         var entity = trace.Entity;
-        if (entity is null)
-            return false;
+
+        if (entity is null) return false;
 
         var found = entity.Address.FindPlayerByPawnAddress();
-        if (found is null || !found.IsValid || !found.Controller.PawnIsAlive)
-            return false;
+        if (found is null || !found.IsValid || !found.Controller.PawnIsAlive) return false;
 
         target = found;
         return true;
@@ -118,19 +103,13 @@ internal sealed class Heal(ISwiftlyCore core, HealConfig config) : BaseActiveAbi
             Target is not { IsValid: true } target ||
             target.PlayerPawn is not { IsValid: true } pawn ||
             config.ParticleEffectNames.Count == 0
-        )
-        {
-            return;
-        }
+        ) return;
 
         var particleEffectName = config.ParticleEffectNames[
             Random.Shared.Next(config.ParticleEffectNames.Count)
         ];
 
-        if (string.IsNullOrWhiteSpace(particleEffectName))
-        {
-            return;
-        }
+        if (string.IsNullOrWhiteSpace(particleEffectName)) return;
 
         var particle = core.EntitySystem.CreateEntity<CParticleSystem>();
         particle.EffectName = particleEffectName;
@@ -185,19 +164,13 @@ internal sealed class Heal(ISwiftlyCore core, HealConfig config) : BaseActiveAbi
 
     public override void PlaySound()
     {
-        if (config.SoundEffectNames.Count == 0)
-        {
-            return;
-        }
+        if (config.SoundEffectNames.Count == 0) return;
 
         var soundName = config.SoundEffectNames[
             Random.Shared.Next(config.SoundEffectNames.Count)
         ];
 
-        if (string.IsNullOrWhiteSpace(soundName))
-        {
-            return;
-        }
+        if (string.IsNullOrWhiteSpace(soundName)) return;
 
         using var sound = new SoundEvent(soundName);
 
