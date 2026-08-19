@@ -2,9 +2,9 @@
 
 public interface IPrivilege
 {
-    string Id { get; init; }
+    string Id { get; }
 
-    string Group { get; init; }
+    string Group { get; }
 
-    IReadOnlySet<string> Permissions { get; init; }
+    IReadOnlySet<string> Permissions { get; }
 }

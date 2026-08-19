@@ -9,6 +9,6 @@ internal sealed class Privilege : IPrivilege
     public required string Group { get; init; }
 
     public required IReadOnlySet<string> Permissions { get; init; }
-    
+
     public string Key => $"{Group}.{Id}";
 }
