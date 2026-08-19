@@ -4,6 +4,7 @@ using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.GameHooks;
 using SwiftlyS2.Shared.Misc;
+using SwiftlyS2.Shared.ProtobufDefinitions;
 using ZombiePlague.Api.Data.Rounds;
 using ZombiePlague.Api.Events.Contexts.Round;
 using ZombiePlague.Core.Config.Core;
@@ -28,7 +29,7 @@ internal sealed class RoundManager(
     public RoundBase? CurrentRound { get; private set; }
 
     public RoundBase? NextRound { get; private set; }
-    
+
     public bool IsPreparing => _preparationTimer is not null;
 
     private CancellationTokenSource? _preparationTimer;
@@ -36,13 +37,15 @@ internal sealed class RoundManager(
     private int _remainingPreparationTime;
 
     private bool _countdownSoundPlayed;
+    private uint _countdownSoundEvent;
+    private uint _preparationSoundEvent;
 
     private const float DelayPreparationTimer = 1.5f;
 
     private const int PeriodSecondsPreparationTask = 1;
 
     private const string RoundStartSoundName = "ZombiePlagueSounds.round_start";
-    
+
     public void Prepare()
     {
         End();
@@ -52,7 +55,7 @@ internal sealed class RoundManager(
             return;
         }
 
-        SoundExt.PlayGlobal(RoundStartSoundName, 1.5f);
+        _preparationSoundEvent = SoundExt.PlayGlobal(RoundStartSoundName, 1.5f);
 
         var allPlayers = core.PlayerManager.GetAllPlayers();
 
@@ -83,7 +86,7 @@ internal sealed class RoundManager(
 
         StartRound(round);
     }
-    
+
     public RoundStartResult TryStartRound(RoundBase round)
     {
         if (_preparationTimer is null)
@@ -98,7 +101,7 @@ internal sealed class RoundManager(
 
         return StartRound(round);
     }
-    
+
     public RoundStartResult TryStartRandomRound()
     {
         if (!IsPreparing)
@@ -136,7 +139,7 @@ internal sealed class RoundManager(
     {
         NextRound = round;
     }
-    
+
     public void ClearNextRound()
     {
         NextRound = null;
@@ -253,8 +256,10 @@ internal sealed class RoundManager(
 
         _preparationTimer?.Cancel();
         _preparationTimer = null;
+
+        CancelPreparationSounds();
     }
-    
+
     private RoundStartResult StartRound(RoundBase round)
     {
         var originalRound = round;
@@ -275,7 +280,7 @@ internal sealed class RoundManager(
         if (preContext.RoundId != originalRound.Id &&
             roundFactory.TryCreate(preContext.RoundId, out var replacementRound) &&
             replacementRound.CanStart()
-        )
+           )
         {
             round = replacementRound;
         }
@@ -297,7 +302,7 @@ internal sealed class RoundManager(
 
         return RoundStartResult.Started;
     }
-    
+
     private bool TryStartRoundOrFallback(RoundBase round, out RoundBase? startedRound)
     {
         if (TryStartRoundInternal(round))
@@ -327,7 +332,7 @@ internal sealed class RoundManager(
 
         return false;
     }
-    
+
     private bool TryStartRoundInternal(RoundBase round)
     {
         CurrentRound = round;
@@ -353,9 +358,33 @@ internal sealed class RoundManager(
 
     private void PlayCountdownSound()
     {
-        SoundExt.PlayGlobal("ZombiePlagueSounds.countdown", 2f);
+        _countdownSoundEvent = SoundExt.PlayGlobal("ZombiePlagueSounds.countdown", 2f);
 
         _countdownSoundPlayed = true;
+    }
+
+    private void CancelPreparationSounds()
+    {
+        if (_countdownSoundEvent != 0)
+        {
+            core.NetMessage.Send<CMsgSosStopSoundEvent>(message =>
+            {
+                message.SoundeventGuid = unchecked((int)_countdownSoundEvent);
+                message.Recipients.AddAllPlayers();
+            });
+        }
+
+        if (_preparationSoundEvent != 0)
+        {
+            core.NetMessage.Send<CMsgSosStopSoundEvent>(message =>
+            {
+                message.SoundeventGuid = unchecked((int)_preparationSoundEvent);
+                message.Recipients.AddAllPlayers();
+            });
+        }
+
+        _countdownSoundEvent = 0;
+        _preparationSoundEvent = 0;
     }
 
     private bool IsWarmupActive()
