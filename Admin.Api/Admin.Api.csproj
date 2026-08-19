@@ -6,4 +6,14 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <ItemGroup>
+      <PackageReference Include="SwiftlyS2.CS2" Version="1.4.4" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="SwiftlyS2.CS2">
+        <HintPath>..\..\..\..\servers\cs2-zombie-plague\server\game\csgo\addons\swiftlys2\bin\managed\SwiftlyS2.CS2.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
 </Project>

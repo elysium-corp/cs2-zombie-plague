@@ -6,7 +6,7 @@ internal interface IPrivilegeRegistry
 {
     IPrivilege Register(PrivilegeDefinition definition);
 
-    IPrivilege? Find(string group, string id);
+    IPrivilege? Find(string key);
 
     IReadOnlyCollection<IPrivilege> GetAll();
 }

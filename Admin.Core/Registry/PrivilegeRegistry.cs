@@ -35,10 +35,9 @@ internal sealed class PrivilegeRegistry : IPrivilegeRegistry
         return privilege;
     }
 
-    public IPrivilege? Find(string group, string id
-    )
+    public IPrivilege? Find(string key)
     {
-        return _privileges.GetValueOrDefault(CreateKey(group, id));
+        return _privileges.GetValueOrDefault(key);
     }
 
     public IReadOnlyCollection<IPrivilege> GetAll()

@@ -1,4 +1,6 @@
-﻿using Admin.Core.Registry;
+﻿using Admin.Core.Di.Store;
+using Admin.Core.Registry;
+using Admin.Core.Services;
 using Common.Di;
 using Microsoft.Extensions.DependencyInjection;
 using SwiftlyS2.Shared;
@@ -14,6 +16,8 @@ internal sealed class AdminModule(ISwiftlyCore core) : BaseModule(core)
         service.AddSwiftly(Core);
         
         AddSingleton<IPrivilegeRegistry, PrivilegeRegistry>(service);
+        AddSingleton<IPlayerPrivilegeStore, PlayerPrivilegeStore>(service);
+        AddSingleton<IPrivilegeService, PrivilegeService>(service);
 
         return (service.BuildServiceProvider(), service);
     }

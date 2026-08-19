@@ -11,4 +11,8 @@
       <ProjectReference Include="..\Common.Di\Common.Di.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="SwiftlyS2.CS2" Version="1.4.4" />
+    </ItemGroup>
+
 </Project>
