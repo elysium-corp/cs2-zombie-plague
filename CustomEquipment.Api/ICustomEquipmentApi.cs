@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using CustomEquipment.Api.Data;
 using CustomEquipment.Api.Data.Contracts;
 using CustomEquipment.Api.Enums;
 using CustomEquipment.Api.Registration;
@@ -11,17 +10,13 @@ public interface ICustomEquipmentApi
 {
     IEquipmentRegistrar Registrar { get; }
 
-    IReadOnlyCollection<IWeapon> GetRegisteredWeapons();
+    IReadOnlyCollection<IItem> GetRegisteredItems();
 
-    bool TryGetRegisteredWeapon(string internalName, [NotNullWhen(true)] out IWeapon? weapon);
-    
-    WeaponItemBase? GiveWeapon(IPlayer player, string internalName, GiveAction action = GiveAction.Drop);
+    bool TryGetRegisteredItem(string internalName, [NotNullWhen(true)] out IItem? item);
 
-    TWeapon? GiveWeapon<TWeapon>(IPlayer player, GiveAction action = GiveAction.Drop) where TWeapon : WeaponItemBase;
+    void GiveItem(IPlayer player, string internalName, GiveAction action = GiveAction.Drop);
 
-    WeaponItemBase CreateWeapon(string internalName);
-
-    TWeapon CreateWeapon<TWeapon>() where TWeapon : WeaponItemBase;
+    IItem CreateItem(string internalName);
 
     static readonly string SharedApiKey = "CustomEquipment.Api.ICustomEquipmentApi";
 }

@@ -127,17 +127,18 @@ internal sealed class EquipmentMenu(
         if (!equipmentService.CanUseItem(player, item.InternalName))
         {
             player.SendChat("Не возможно купить для текущей роли!");
+
             return;
         }
-        
-        if (economyApi.TrySpendMoney(player, item.Price.Item))
-        {
-            equipmentService.GiveWeapon(player, item.InternalName);
-        }
-        else
+
+        if (!economyApi.TrySpendMoney(player, item.Price.Item))
         {
             player.SendChat("Недостаточно денег!");
+
+            return;
         }
+
+        equipmentService.GiveItem(player, item.InternalName);
     }
     
     private static Category WeaponTypeToCategory(WeaponType weaponType, int index)

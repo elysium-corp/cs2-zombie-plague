@@ -1,8 +1,6 @@
 ﻿using CustomEquipment.Api.Data;
 using CustomEquipment.Api.Enums;
-using CustomEquipment.Api.Events;
 using CustomEquipment.Mappers;
-using CustomEquipment.Registry;
 using CustomEquipment.Utils;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Players;
@@ -10,11 +8,7 @@ using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace CustomEquipment.Giver;
 
-internal sealed class ItemGiver(
-    ISwiftlyCore core,
-    IItemRegistry itemRegistry,
-    IEventPublisher eventPublisher
-) : IItemGiver
+internal sealed class ItemGiver(ISwiftlyCore core) : IItemGiver
 {
     public void GiveItem(IPlayer player, ItemBase item, GiveAction action, Action<ItemBase> onCompleted)
     {
@@ -25,7 +19,7 @@ internal sealed class ItemGiver(
                 break;
 
             case GrenadeItemBase grenade:
-                GiveGrenade(player, grenade, action);
+                GiveGrenade(player, grenade, action, onCompleted);
                 break;
 
             case EquipmentItemBase equipment:
@@ -37,14 +31,18 @@ internal sealed class ItemGiver(
         }
     }
 
-    private void GiveWeapon(IPlayer player, WeaponItemBase weapon, GiveAction action, Action<ItemBase> onCompleted)
+    private void GiveWeapon(
+        IPlayer player,
+        WeaponItemBase weapon,
+        GiveAction action,
+        Action<ItemBase> onCompleted
+    )
     {
         var pawn = player.RequiredPlayerPawn;
         var itemServices = pawn.ItemServices;
         var weaponServices = pawn.WeaponServices;
 
-        if (itemServices == null ||
-            weaponServices == null)
+        if (itemServices == null || weaponServices == null)
         {
             return;
         }
@@ -132,5 +130,35 @@ internal sealed class ItemGiver(
 
             onCompleted(grenade);
         });
+    }
+    
+    private static void GiveEquipment(IPlayer player, EquipmentItemBase equipment, Action<ItemBase> onCompleted)
+    {
+        equipment.OnPurchase(player);
+
+        onCompleted(equipment);
+    }
+    
+    private static CCSWeaponBase? CreateOriginalWeapon(CPlayer_ItemServices itemServices, CPlayer_WeaponServices weaponServices, string name)
+    {
+        var weaponsBefore = weaponServices
+            .MyValidWeapons
+            .Select(weapon => (int)weapon.Index)
+            .ToHashSet();
+
+        itemServices.GiveItem(name);
+
+        return weaponServices.MyValidWeapons
+            .FirstOrDefault(weapon => !weaponsBefore.Contains((int)weapon.Index) && weapon.DesignerName.Contains(name))
+            ?.As<CCSWeaponBase>();
+    }
+    
+    private static string ResolveInheritorName(string inheritorName)
+    {
+        const string prefix = "weapon_";
+
+        return inheritorName.StartsWith(prefix)
+            ? inheritorName
+            : $"{prefix}{inheritorName}";
     }
 }

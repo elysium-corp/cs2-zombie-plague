@@ -72,18 +72,6 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
         );
         
         Core.Command.RegisterCommand(
-            commandName: "r",
-            handler: Register,
-            registerRaw: true
-        );
-        
-        Core.Command.RegisterCommand(
-            commandName: "d",
-            handler: Debug,
-            registerRaw: true
-        );
-        
-        Core.Command.RegisterCommand(
             commandName: "mine",
             handler: (ICommandContext context) =>
             {
@@ -118,46 +106,6 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
 
         context.Options.Add(option, 3);
     }
-
-    private void Debug(ICommandContext context)
-    {
-        var player = context.Sender;
-        
-        if (player == null) return;
-
-        if (!context.IsSentByPlayer) return;
-
-        var equipmentService = (EquipmentService)_equipmentService.Value;
-
-        var weapons = equipmentService.GetAllItems();
-
-        Core.PlayerManager.SendChat($"========== WEAPONS ==========");
-        
-        foreach (var weapon in weapons)
-        {
-            Core.PlayerManager.SendChat($"weapon = {weapon.DisplayName}");
-        }
-    }
-    
-    private void Register(ICommandContext context)
-    {
-        var player = context.Sender;
-        
-        if (player == null) return;
-
-        if (!context.IsSentByPlayer) return;
-        
-        var items = _itemRegistry.Value.GetDefinitions();
-
-        Core.PlayerManager.SendChat($"========== REGISTER ==========");
-        
-        foreach (var item in items)
-        {
-            Core.PlayerManager.SendChat(
-                $"{item.DisplayName} — {item.InternalName}"
-            );
-        }
-    }
     
     private void GunHandler(ICommandContext context)
     {
@@ -174,12 +122,9 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
             .GetDefinitions()
             .Where(item => item is WeaponItemBase or GrenadeItemBase);
 
-        // foreach (var item in items)
-        // {
-        //    equipmentService.GiveItem(
-        //        player,
-        //        item.InternalName
-        //    );
-        // }
+        foreach (var item in items)
+        {
+            equipmentService.GiveItem(player, item.InternalName);
+        }
     }
 }

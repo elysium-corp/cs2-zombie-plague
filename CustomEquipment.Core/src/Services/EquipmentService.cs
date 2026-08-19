@@ -57,13 +57,7 @@ internal sealed class EquipmentService(
     {
         projectile.SetModel(grenade.Model);
     }
-
-    public IEnumerable<ItemBase> GetAllItems() => _items;
-
-    public IEnumerable<WeaponItemBase> GetAllWeapons() => _items.OfType<WeaponItemBase>();
-
-    public IEnumerable<GrenadeItemBase> GetAllGrenades() => _items.OfType<GrenadeItemBase>();
-
+    
     public bool CanUseItem(IPlayer player, ItemBase item)
     {
         ArgumentNullException.ThrowIfNull(player);
@@ -135,7 +129,12 @@ internal sealed class EquipmentService(
             throw new InvalidOperationException($"Item '{internalName}' is not an ItemBase!");
         }
 
-        itemGiver.GiveItem(player, item, action, completedItem => { OnItemGiven(player, completedItem); });
+        itemGiver.GiveItem(
+            player,
+            item,
+            action,
+            completedItem => OnItemGiven(player, completedItem)
+        );
     }
 
     public TItem? GetActiveItem<TItem>(IPlayer player) where TItem : ItemBase
@@ -265,7 +264,9 @@ internal sealed class EquipmentService(
 
     private GrenadeItemBase? GetGrenadeByIndex(uint index)
     {
-        return GetAllGrenades().ToList().Find(wp => wp.AttachedEntity.Index == index);
+        return _items
+            .OfType<GrenadeItemBase>()
+            .FirstOrDefault(grenade => grenade.AttachedEntity.Index == index);
     }
 
     private GrenadeItemBase? ResolveGrenadeByProjectile(CBaseCSGrenadeProjectile projectile)
