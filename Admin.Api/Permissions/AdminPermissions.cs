@@ -2,5 +2,6 @@
 
 public class AdminPermissions
 {
-    public const string Owner = "admin.owner";
+    public const string Kick = "admin.kick";
+    public const string Ban = "admin.kick";
 }

@@ -51,6 +51,14 @@ internal sealed class PlayerPrivilegeManager(
         databaseTasks.StopAndWait();
     }
     
+    public Task ReloadAllAsync()
+    {
+        var tasks = _sessions.Keys
+            .Select(ReloadAsync);
+
+        return Task.WhenAll(tasks);
+    }
+    
     public Task<bool> ExtendAsync(ulong steamId, string privilegeKey, TimeSpan duration)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(privilegeKey);
@@ -120,6 +128,38 @@ internal sealed class PlayerPrivilegeManager(
             .ConfigureAwait(false);
 
         ApplyLoaded(steamId, sessionId, privileges);
+    }
+    
+    public Task<bool> ReloadAsync(ulong steamId)
+    {
+        if (!_sessions.TryGetValue(steamId, out var sessionId))
+        {
+            return Task.FromResult(false);
+        }
+
+        return databaseTasks.RunAsync(
+            () => ReloadInternalAsync(steamId, sessionId),
+            $"Reload admin privileges {steamId}"
+        );
+    }
+    
+    private async Task<bool> ReloadInternalAsync(ulong steamId, long sessionId)
+    {
+        var privileges = await databaseOperations
+            .RunAsync(
+                steamId,
+                () => persistenceService.LoadAsync(steamId)
+            )
+            .ConfigureAwait(false);
+
+        if (!_sessions.TryGetValue(steamId, out var currentSessionId) || currentSessionId != sessionId)
+        {
+            return false;
+        }
+
+        playerPrivilegeStore.Set(steamId, privileges);
+
+        return true;
     }
     
     public Task<bool> GrantAsync(ulong steamId, string privilegeKey, DateTime? expiresAtUtc = null)
