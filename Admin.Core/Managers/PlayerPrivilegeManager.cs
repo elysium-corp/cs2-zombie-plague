@@ -76,7 +76,7 @@ internal sealed class PlayerPrivilegeManager(
             return false;
         }
 
-        var canonicalKey = $"{privilege.Group}.{privilege.Id}";
+        var canonicalKey = privilege.Key;
 
         databaseTasks.Run(
             () => GrantAsync(steamId, canonicalKey, expiresAtUtc),
@@ -100,7 +100,7 @@ internal sealed class PlayerPrivilegeManager(
         ArgumentException.ThrowIfNullOrWhiteSpace(privilegeKey);
 
         var privilege = privilegeRegistry.Find(privilegeKey);
-        var canonicalKey = privilege == null ? privilegeKey : $"{privilege.Group}.{privilege.Id}";
+        var canonicalKey = privilege?.Key ?? privilegeKey;
 
         databaseTasks.Run(
             () => RevokeAsync(steamId, canonicalKey),
