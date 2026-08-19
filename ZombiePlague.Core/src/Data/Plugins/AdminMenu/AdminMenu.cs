@@ -2,9 +2,12 @@
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Commands;
 using SwiftlyS2.Shared.Menus;
+using SwiftlyS2.Shared.Players;
 using ZombiePlague.Core.Data.Managers.Contracts;
+using ZombiePlague.Core.Data.Rounds;
 using ZombiePlague.Core.Data.Rounds.Contracts;
 using ZombiePlague.Core.Data.Rounds.Registrator;
+using ZombiePlague.Core.Utils.Helpers;
 
 namespace ZombiePlague.Core.Data.Plugins.AdminMenu;
 
@@ -16,6 +19,13 @@ internal sealed class AdminMenu(
     IRoundFactory roundFactory
 )
 {
+    private const string AccentColor = "#7DD3FC";
+    private const string SuccessColor = "#86EFAC";
+    private const string WarningColor = "#FDBA74";
+    private const string DisabledColor = "#94A3B8";
+    private const string DangerColor = "#FCA5A5";
+    private const string TextColor = "#E2E8F0";
+
     public void Load()
     {
         core.Command.RegisterCommand(
@@ -169,75 +179,228 @@ internal sealed class AdminMenu(
 
     private IMenuAPI SetRound()
     {
-        var menu = core.MenusAPI.CreateBuilder().Design.SetMenuTitle("Управление игровыми раундами");
-        var currentRound = roundManager.CurrentRound?.Name ?? "Не определен";
-        var nextRound = roundManager.NextRound?.Name ?? "Не определен";
-        var currentRoundTextOption = new TextMenuOption
+        var menu = core.MenusAPI
+            .CreateBuilder()
+            .Design.SetMenuTitle("Управление раундами");
+
+        var currentRoundName =
+            roundManager.CurrentRound?.Name ??
+            (roundManager.IsPreparing ? "Подготовка" : "Нет");
+
+        var currentRoundColor =
+            roundManager.CurrentRound is not null
+                ? SuccessColor
+                : WarningColor;
+
+        var nextRoundName = roundManager.NextRound?.Name ?? "Автоматически";
+
+        var currentOption = new TextMenuOption
         {
-            Text = $"Текущий раунд: {currentRound}"
+            Text = $"{HtmlHelper.TextWithColor("Текущий:", TextColor)} " + HtmlHelper.TextWithColor(currentRoundName, currentRoundColor),
+
+            MaxWidth = 34f,
+            TextSize = MenuOptionTextSize.SmallMedium
         };
-        var nextRoundTextOption = new TextMenuOption
+
+        menu.AddOption(currentOption);
+
+        var nextOption = new TextMenuOption
         {
-            Text = $"Следующий раунд: {nextRound}"
+            Text = $"{HtmlHelper.TextWithColor("Следующий:", TextColor)} " + HtmlHelper.TextWithColor(nextRoundName, AccentColor)
         };
 
-        menu.AddOption(currentRoundTextOption);
-        menu.AddOption(nextRoundTextOption);
-        menu.AddOption(new SubmenuMenuOption("Установить текущий раунд", SetCurrentRound()));
-        menu.AddOption(new SubmenuMenuOption("Установить следующий раунд", SetNextRound()));
+        menu.AddOption(nextOption);
 
-        return menu.Build();
-    }
+        AddStartImmediatelyOption(menu);
 
-    private IMenuAPI SetCurrentRound()
-    {
-        var menu = core.MenusAPI.CreateBuilder()
-            .Design.SetMenuTitle($"Установить текущий раунд");
-
-        foreach (var round in roundRegistrator.GetAll())
-        {
-            var enable = round is { Enable: true, Weight: > 0 } ? "[+]" : "[-]";
-            var text = $"{round.Name} {enable}";
-            var option = new ButtonMenuOption(text);
-
-            option.Click += (_, args) =>
-            {
-                args.Player.SendChatAsync($"Установлен текущий раунд: {round.Name}");
-                
-                roundManager.SelectNextRound(roundFactory.Create(round));
-
-                return ValueTask.CompletedTask;
-            };
-
-            menu.AddOption(option);
-        }
+        menu.AddOption(
+            new SubmenuMenuOption(
+                HtmlHelper.TextWithColor("Выбрать следующий раунд", AccentColor),
+                SetNextRound
+            )
+        );
 
         return menu.Build();
     }
 
     private IMenuAPI SetNextRound()
     {
-        var menu = core.MenusAPI.CreateBuilder()
-            .Design.SetMenuTitle($"Установить следующий раунд");
+        var menu = core.MenusAPI.CreateBuilder();
 
-        foreach (var round in roundRegistrator.GetAll())
+        menu.Design.SetMenuTitle("Следующий раунд");
+        menu.Design.SetDisabledColor(DisabledColor);
+
+        AddAutomaticRoundOption(menu);
+
+        foreach (var roundConfig in roundRegistrator.GetAll())
         {
-            var enable = round is { Enable: true, Weight: > 0 } ? "[+]" : "[-]";
-            var text = $"{round.Name} {enable}";
-            var option = new ButtonMenuOption(text);
-
-            option.Click += (_, args) =>
+            var enabled = roundConfig is
             {
-                args.Player.SendChatAsync($"Установлен следующий раунд: {round.Name}");
-                
-                roundManager.SelectNextRound(roundFactory.Create(round));
+                Enable: true,
+                Weight: > 0
+            };
+
+            var round = roundFactory.Create(roundConfig);
+
+            var isSelected = roundManager.NextRound?.Id == round.Id;
+
+            if (!enabled)
+            {
+                var disabledOption = new ButtonMenuOption
+                {
+                    Text = round.Name,
+                    Enabled = false
+                };
+
+                menu.AddOption(disabledOption);
+
+                continue;
+            }
+
+            var canStart = !roundManager.IsPreparing || round.CanStart();
+
+            var color = canStart ? SuccessColor : WarningColor;
+
+            var prefix = isSelected ? "✓ " : string.Empty;
+
+            var roundOption = new ButtonMenuOption
+            {
+                Text = HtmlHelper.TextWithColor($"{prefix}{round.Name}", color),
+                Enabled = true
+            };
+
+            roundOption.Click += (_, args) =>
+            {
+                var player = args.Player;
+
+                core.Scheduler.NextTick(() =>
+                {
+                    if (!player.IsValid)
+                    {
+                        return;
+                    }
+
+                    roundManager.SelectNextRound(round);
+
+                    if (roundManager.IsPreparing && !round.CanStart())
+                    {
+                        player.SendChatAsync($"Следующий раунд: {round.Name}. " + "Сейчас условия не выполнены, они будут проверены перед запуском.");
+
+                        return;
+                    }
+
+                    player.SendChatAsync($"Следующий раунд: {round.Name}");
+                });
 
                 return ValueTask.CompletedTask;
             };
 
-            menu.AddOption(option);
+            menu.AddOption(roundOption);
         }
 
         return menu.Build();
+    }
+
+    private void SendRandomRoundStartResult(IPlayer player, RoundStartResult result)
+    {
+        switch (result)
+        {
+            case RoundStartResult.Started:
+            {
+                var startedRound =
+                    roundManager.CurrentRound;
+
+                player.SendChatAsync($"Запущен раунд: {startedRound?.Name ?? "Неизвестно"}");
+
+                break;
+            }
+
+            case RoundStartResult.NotPreparing:
+            {
+                player.SendChatAsync("Невозможно запустить раунд: подготовка уже завершена");
+
+                break;
+            }
+
+            case RoundStartResult.CannotStart:
+            {
+                player.SendChatAsync("Не удалось подобрать раунд для запуска");
+
+                break;
+            }
+
+            case RoundStartResult.Cancelled:
+            {
+                player.SendChatAsync("Запуск раунда был отменён");
+
+                break;
+            }
+        }
+    }
+
+    private void AddStartImmediatelyOption(IMenuBuilderAPI menu)
+    {
+        var option = new ButtonMenuOption
+        {
+            Text = HtmlHelper.TextWithColor("⚡ Запустить немедленно", DangerColor),
+            Enabled = roundManager.IsPreparing
+        };
+
+        option.Click += (_, args) =>
+        {
+            var player = args.Player;
+
+            core.Scheduler.NextTick(() =>
+            {
+                if (!player.IsValid)
+                {
+                    return;
+                }
+
+                var result = roundManager.TryStartRandomRound();
+
+                SendRandomRoundStartResult(
+                    player,
+                    result
+                );
+            });
+
+            return ValueTask.CompletedTask;
+        };
+
+        menu.AddOption(option);
+    }
+
+    private void AddAutomaticRoundOption(IMenuBuilderAPI menu)
+    {
+        var text = roundManager.NextRound is null
+            ? "✓ Автоматически"
+            : "Автоматически";
+
+        var option = new ButtonMenuOption
+        {
+            Text = HtmlHelper.TextWithColor(text, AccentColor)
+        };
+
+        option.Click += (_, args) =>
+        {
+            var player = args.Player;
+
+            core.Scheduler.NextTick(() =>
+            {
+                if (!player.IsValid)
+                {
+                    return;
+                }
+
+                roundManager.ClearNextRound();
+
+                player.SendChatAsync("Следующий раунд будет выбран автоматически.");
+            });
+
+            return ValueTask.CompletedTask;
+        };
+
+        menu.AddOption(option);
     }
 }
