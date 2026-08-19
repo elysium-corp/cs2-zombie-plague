@@ -1,4 +1,5 @@
 ﻿using Admin.Api.Data;
+using Admin.Core.Data;
 using Admin.Core.Registry;
 using Admin.Core.Store;
 
@@ -10,9 +11,14 @@ internal sealed class PrivilegeService(IPrivilegeRegistry privilegeRegistry, IPl
     {
         var result = new List<IPrivilege>();
 
-        foreach (var key in playerPrivilegeStore.Get(steamId))
+        foreach (var playerPrivilege in playerPrivilegeStore.Get(steamId).Values)
         {
-            var privilege = privilegeRegistry.Find(key);
+            if (!IsActive(playerPrivilege))
+            {
+                continue;
+            }
+
+            var privilege = privilegeRegistry.Find(playerPrivilege.Key);
 
             if (privilege != null)
             {
@@ -25,14 +31,19 @@ internal sealed class PrivilegeService(IPrivilegeRegistry privilegeRegistry, IPl
 
     public bool HasPrivilege(ulong steamId, string privilegeKey)
     {
-        return playerPrivilegeStore.Get(steamId).Contains(privilegeKey);
+        return playerPrivilegeStore.Get(steamId).TryGetValue(privilegeKey, out var privilege) && IsActive(privilege);
     }
 
     public bool HasPermission(ulong steamId, string permission)
     {
-        foreach (var key in playerPrivilegeStore.Get(steamId))
+        foreach (var playerPrivilege in playerPrivilegeStore.Get(steamId).Values)
         {
-            var privilege = privilegeRegistry.Find(key);
+            if (!IsActive(playerPrivilege))
+            {
+                continue;
+            }
+
+            var privilege = privilegeRegistry.Find(playerPrivilege.Key);
 
             if (privilege?.Permissions.Contains(permission) == true)
             {
@@ -41,5 +52,10 @@ internal sealed class PrivilegeService(IPrivilegeRegistry privilegeRegistry, IPl
         }
 
         return false;
+    }
+    
+    private static bool IsActive(PlayerPrivilege privilege)
+    {
+        return privilege.ExpiresAtUtc == null || privilege.ExpiresAtUtc > DateTime.UtcNow;
     }
 }

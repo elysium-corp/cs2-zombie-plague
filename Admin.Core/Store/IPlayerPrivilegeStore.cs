@@ -1,10 +1,12 @@
-﻿namespace Admin.Core.Store;
+﻿using Admin.Core.Data;
+
+namespace Admin.Core.Store;
 
 internal interface IPlayerPrivilegeStore
 {
-    IReadOnlySet<string> Get(ulong steamId);
+    IReadOnlyDictionary<string, PlayerPrivilege> Get(ulong steamId);
 
-    void Set(ulong steamId, IEnumerable<string> privilegeKeys);
+    void Set(ulong steamId, IEnumerable<PlayerPrivilege> privileges);
 
     void Remove(ulong steamId);
 }
