@@ -29,7 +29,7 @@ internal sealed partial class Admin(ISwiftlyCore core) : Plugin<AdminModule>(cor
     private readonly Lazy<IPrivilegeRegistry> _privilegeRegistry = GetRequiredServiceLazy<IPrivilegeRegistry>();
     private readonly Lazy<IPrivilegeService> _privilegeService = GetRequiredServiceLazy<IPrivilegeService>();
     private readonly Lazy<DatabaseMigrator<AdminDbContext>> _databaseMigrator = GetRequiredServiceLazy<DatabaseMigrator<AdminDbContext>>();
-    private readonly Lazy<PlayerPrivilegeManager> _playerPrivilegeManager = GetRequiredServiceLazy<PlayerPrivilegeManager>();
+    private readonly Lazy<IPlayerPrivilegeManager> _playerPrivilegeManager = GetRequiredServiceLazy<IPlayerPrivilegeManager>();
     
     protected override void OnStart()
     {

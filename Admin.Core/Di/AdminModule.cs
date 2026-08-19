@@ -31,7 +31,7 @@ internal sealed class AdminModule(ISwiftlyCore core) : BaseModule(core)
         AddSingleton<IPlayerPrivilegeStore, PlayerPrivilegeStore>(service);
         AddSingleton<IPrivilegeService, PrivilegeService>(service);
         AddSingleton<IPlayerPrivilegePersistenceService, PlayerPrivilegePersistenceService>(service);
-        AddSingleton<PlayerPrivilegeManager>(service);
+        AddSingleton<IPlayerPrivilegeManager, PlayerPrivilegeManager>(service);
     }
 
     private void AddDatabase(ServiceCollection service)

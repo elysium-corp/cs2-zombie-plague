@@ -4,6 +4,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Admin.Core.Database.Entities;
 
+/// <summary>
+/// Представляет сохранённое назначение привилегии игроку
+/// в таблице <c>admin.player_privileges</c>.
+/// </summary>
+/// <remarks>
+/// Пара <see cref="SteamId"/> + <see cref="PrivilegeKey"/> уникальна,
+/// поэтому одна и та же привилегия не может быть назначена
+/// одному игроку более одного раза.
+/// </remarks>
 [Index(nameof(SteamId), nameof(PrivilegeKey), Name = "ux_player_privileges_steam_privilege", IsUnique = true)]
 [Table("player_privileges", Schema = AdminDbContext.SchemaName)]
 internal sealed class PlayerPrivilegeEntity

@@ -10,7 +10,7 @@ namespace Admin.Core.Api;
 internal sealed class AdminApi(
     IPrivilegeRegistry privilegeRegistry,
     IPrivilegeService privilegeService,
-    PlayerPrivilegeManager playerPrivilegeManager) : IAdminApi
+    IPlayerPrivilegeManager playerPrivilegeManager) : IAdminApi
 {
     public IPrivilege RegisterPrivilege(PrivilegeDefinition definition)
     {

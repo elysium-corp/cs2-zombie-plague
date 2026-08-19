@@ -13,10 +13,16 @@ internal sealed class PlayerPrivilegeManager(
     IPlayerPrivilegeStore playerPrivilegeStore,
     IPlayerPrivilegePersistenceService persistenceService,
     DatabaseTaskTracker databaseTasks,
-    SteamIdOperationQueue databaseOperations)
+    SteamIdOperationQueue databaseOperations) : IPlayerPrivilegeManager
 {
+    // Для каждого подключения игрока создаётся уникальный идентификатор сессии.
+    //
+    // Он защищает runtime-хранилище от устаревших результатов асинхронных запросов:
+    // если игрок вышел и успел подключиться снова, результат запроса от старого
+    // подключения не должен перезаписать состояние новой сессии.
     private readonly ConcurrentDictionary<ulong, long> _sessions = new();
 
+    // Используется для выдачи монотонно возрастающих идентификаторов игровых сессий.
     private long _nextSessionId;
 
     public void Initialize(IPlayer player)
@@ -81,25 +87,6 @@ internal sealed class PlayerPrivilegeManager(
         );
     }
     
-    private async Task<bool> ExtendInternalAsync(ulong steamId, string privilegeKey, TimeSpan duration)
-    {
-        var playerPrivilege = await databaseOperations
-            .RunAsync(
-                steamId,
-                () => persistenceService.ExtendAsync(steamId, privilegeKey, duration)
-            )
-            .ConfigureAwait(false);
-
-        if (playerPrivilege == null)
-        {
-            return false;
-        }
-
-        ApplyGranted(steamId, playerPrivilege);
-
-        return true;
-    }
-    
     public Task<PlayerPrivilege?> FindAsync(ulong steamId, string privilegeKey)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(privilegeKey);
@@ -119,6 +106,25 @@ internal sealed class PlayerPrivilegeManager(
             ),
             $"Find privilege {canonicalKey} for {steamId}"
         );
+    }
+    
+    private async Task<bool> ExtendInternalAsync(ulong steamId, string privilegeKey, TimeSpan duration)
+    {
+        var playerPrivilege = await databaseOperations
+            .RunAsync(
+                steamId,
+                () => persistenceService.ExtendAsync(steamId, privilegeKey, duration)
+            )
+            .ConfigureAwait(false);
+
+        if (playerPrivilege == null)
+        {
+            return false;
+        }
+
+        ApplyGranted(steamId, playerPrivilege);
+
+        return true;
     }
 
     private async Task LoadAsync(ulong steamId, long sessionId)
