@@ -31,6 +31,11 @@ internal sealed class PrivilegeService(IPrivilegeRegistry privilegeRegistry, IPl
 
     public bool HasPrivilege(ulong steamId, string privilegeKey)
     {
+        if (privilegeRegistry.Find(privilegeKey) == null)
+        {
+            return false;
+        }
+
         return playerPrivilegeStore.Get(steamId).TryGetValue(privilegeKey, out var privilege) && IsActive(privilege);
     }
 

@@ -1,4 +1,5 @@
 ﻿using Admin.Core.Database;
+using Admin.Core.Managers;
 using Admin.Core.Registry;
 using Admin.Core.Services;
 using Admin.Core.Store;
@@ -30,6 +31,7 @@ internal sealed class AdminModule(ISwiftlyCore core) : BaseModule(core)
         AddSingleton<IPlayerPrivilegeStore, PlayerPrivilegeStore>(service);
         AddSingleton<IPrivilegeService, PrivilegeService>(service);
         AddSingleton<IPlayerPrivilegePersistenceService, PlayerPrivilegePersistenceService>(service);
+        AddSingleton<PlayerPrivilegeManager>(service);
     }
 
     private void AddDatabase(ServiceCollection service)
