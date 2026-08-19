@@ -1,6 +1,9 @@
-﻿using Admin.Core.Registry;
+﻿using Admin.Core.Database;
+using Admin.Core.Registry;
 using Admin.Core.Services;
 using Admin.Core.Store;
+using Common.Database;
+using Common.Database.Utils;
 using Common.Di;
 using Microsoft.Extensions.DependencyInjection;
 using SwiftlyS2.Shared;
@@ -15,10 +18,31 @@ internal sealed class AdminModule(ISwiftlyCore core) : BaseModule(core)
         
         service.AddSwiftly(Core);
         
+        BuildSingletons(service);
+        AddDatabase(service);
+
+        return (service.BuildServiceProvider(), service);
+    }
+    
+    private void BuildSingletons(ServiceCollection service)
+    {
         AddSingleton<IPrivilegeRegistry, PrivilegeRegistry>(service);
         AddSingleton<IPlayerPrivilegeStore, PlayerPrivilegeStore>(service);
         AddSingleton<IPrivilegeService, PrivilegeService>(service);
+        AddSingleton<IPlayerPrivilegePersistenceService, PlayerPrivilegePersistenceService>(service);
+    }
 
-        return (service.BuildServiceProvider(), service);
+    private void AddDatabase(ServiceCollection service)
+    {
+        var options = new DatabaseOptions
+        {
+            ConnectionName = "elysium_zp_server_1",
+            Schema = AdminDbContext.SchemaName,
+            CommandTimeoutSeconds = 5,
+            RetryCount = 2,
+            MaxRetryDelay = TimeSpan.FromSeconds(3)
+        };
+
+        service.AddPostgreSqlDatabase<AdminDbContext>(Core, options);
     }
 }
