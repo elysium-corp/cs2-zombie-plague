@@ -191,7 +191,7 @@ internal sealed class KnockbackService(
 
         var attackerOrigin = attackerPawn.AbsOrigin.Value;
         var victimOrigin = victimPawn.AbsOrigin.Value;
-        var direction = (victimOrigin - attackerOrigin).Normalized();
+        var direction = (victimOrigin - attackerOrigin).Normalized2D();
         var distance = GetDistance(victimOrigin, attackerOrigin);
         var recoil = GetWeaponRecoil(
             distance,
@@ -211,9 +211,10 @@ internal sealed class KnockbackService(
         var hitGroupMultiplier = isHeadShot
             ? config.Value.KnockbackHeadMultiply
             : config.Value.KnockbackBodyMultiply;
+        
         var currentVelocity = victimPawn.AbsVelocity;
         var multiplier = recoil * zombieKnockback * hitGroupMultiplier;
-
+        
         velocity = new Vector(
             currentVelocity.X + direction.X * multiplier,
             currentVelocity.Y + direction.Y * multiplier,
