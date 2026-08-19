@@ -50,6 +50,68 @@ internal sealed class PlayerPrivilegeManager(
 
         databaseTasks.StopAndWait();
     }
+    
+    public Task<bool> ExtendAsync(ulong steamId, string privilegeKey, TimeSpan duration)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(privilegeKey);
+
+        if (steamId == 0 || duration <= TimeSpan.Zero)
+        {
+            return Task.FromResult(false);
+        }
+
+        var privilege = privilegeRegistry.Find(privilegeKey);
+
+        if (privilege == null)
+        {
+            return Task.FromResult(false);
+        }
+
+        return databaseTasks.RunAsync(
+            () => ExtendInternalAsync(steamId, privilege.Key, duration),
+            $"Extend privilege {privilege.Key} for {steamId}"
+        );
+    }
+    
+    private async Task<bool> ExtendInternalAsync(ulong steamId, string privilegeKey, TimeSpan duration)
+    {
+        var playerPrivilege = await databaseOperations
+            .RunAsync(
+                steamId,
+                () => persistenceService.ExtendAsync(steamId, privilegeKey, duration)
+            )
+            .ConfigureAwait(false);
+
+        if (playerPrivilege == null)
+        {
+            return false;
+        }
+
+        ApplyGranted(steamId, playerPrivilege);
+
+        return true;
+    }
+    
+    public Task<PlayerPrivilege?> FindAsync(ulong steamId, string privilegeKey)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(privilegeKey);
+
+        if (steamId == 0)
+        {
+            return Task.FromResult<PlayerPrivilege?>(null);
+        }
+
+        var privilege = privilegeRegistry.Find(privilegeKey);
+        var canonicalKey = privilege?.Key ?? privilegeKey;
+
+        return databaseTasks.RunAsync(
+            () => databaseOperations.RunAsync(
+                steamId,
+                () => persistenceService.FindAsync(steamId, canonicalKey)
+            ),
+            $"Find privilege {canonicalKey} for {steamId}"
+        );
+    }
 
     private async Task LoadAsync(ulong steamId, long sessionId)
     {

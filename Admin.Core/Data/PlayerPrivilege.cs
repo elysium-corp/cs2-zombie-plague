@@ -1,3 +1,7 @@
 ﻿namespace Admin.Core.Data;
 
-internal sealed record PlayerPrivilege(string Key, DateTime? ExpiresAtUtc);
+internal sealed record PlayerPrivilege(
+    string Key,
+    DateTime? ExpiresAtUtc,
+    DateTime CreatedAtUtc,
+    DateTime UpdatedAtUtc);

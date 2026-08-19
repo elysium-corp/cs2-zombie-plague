@@ -54,4 +54,28 @@ internal sealed class AdminApi(
     {
         return playerPrivilegeManager.RevokeAsync(steamId, privilegeKey);
     }
+    
+    public async Task<PlayerPrivilegeInfo?> FindPlayerPrivilegeAsync(ulong steamId, string privilegeKey)
+    {
+        var playerPrivilege = await playerPrivilegeManager
+            .FindAsync(steamId, privilegeKey)
+            .ConfigureAwait(false);
+
+        if (playerPrivilege == null)
+        {
+            return null;
+        }
+
+        return new PlayerPrivilegeInfo(
+            playerPrivilege.Key,
+            playerPrivilege.ExpiresAtUtc,
+            playerPrivilege.CreatedAtUtc,
+            playerPrivilege.UpdatedAtUtc
+        );
+    }
+
+    public Task<bool> ExtendPrivilegeAsync(ulong steamId, string privilegeKey, TimeSpan duration)
+    {
+        return playerPrivilegeManager.ExtendAsync(steamId, privilegeKey, duration);
+    }
 }
