@@ -4,13 +4,11 @@ using Admin.Core.Registry;
 using Admin.Core.Services;
 using Admin.Core.Store;
 using Common.Database.Tasks;
-using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Players;
 
 namespace Admin.Core.Managers;
 
 internal sealed class PlayerPrivilegeManager(
-    ISwiftlyCore core,
     IPrivilegeRegistry privilegeRegistry,
     IPlayerPrivilegeStore playerPrivilegeStore,
     IPlayerPrivilegePersistenceService persistenceService,
@@ -59,56 +57,71 @@ internal sealed class PlayerPrivilegeManager(
             .RunAsync(steamId, () => persistenceService.LoadAsync(steamId))
             .ConfigureAwait(false);
 
-        core.Scheduler.NextWorldUpdate(() => ApplyLoaded(steamId, sessionId, privileges));
+        ApplyLoaded(steamId, sessionId, privileges);
     }
     
-    public bool Grant(ulong steamId, string privilegeKey, DateTime? expiresAtUtc = null)
+    public Task<bool> GrantAsync(ulong steamId, string privilegeKey, DateTime? expiresAtUtc = null)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(privilegeKey);
+
+        if (steamId == 0)
+        {
+            return Task.FromResult(false);
+        }
+
         var privilege = privilegeRegistry.Find(privilegeKey);
 
         if (privilege == null)
         {
-            return false;
+            return Task.FromResult(false);
+        }
+
+        if (expiresAtUtc is { Kind: not DateTimeKind.Utc })
+        {
+            throw new ArgumentException("Privilege expiration date must be UTC!", nameof(expiresAtUtc));
         }
 
         if (expiresAtUtc is { } expiresAt && expiresAt <= DateTime.UtcNow)
         {
-            return false;
+            return Task.FromResult(false);
         }
 
-        var canonicalKey = privilege.Key;
-
-        databaseTasks.Run(
-            () => GrantAsync(steamId, canonicalKey, expiresAtUtc),
-            $"Grant privilege {canonicalKey} to {steamId}"
+        return databaseTasks.RunAsync(
+            () => GrantInternalAsync(steamId, privilege.Key, expiresAtUtc),
+            $"Grant privilege {privilege.Key} to {steamId}"
         );
-
-        return true;
     }
     
-    private async Task GrantAsync(ulong steamId, string privilegeKey, DateTime? expiresAtUtc)
+    private async Task<bool> GrantInternalAsync(ulong steamId, string privilegeKey, DateTime? expiresAtUtc)
     {
         var playerPrivilege = await databaseOperations
             .RunAsync(steamId, () => persistenceService.UpsertAsync(steamId, privilegeKey, expiresAtUtc))
             .ConfigureAwait(false);
 
-        core.Scheduler.NextWorldUpdate(() => ApplyGranted(steamId, playerPrivilege));
+        ApplyGranted(steamId, playerPrivilege);
+
+        return true;
     }
     
-    public void Revoke(ulong steamId, string privilegeKey)
+    public Task<bool> RevokeAsync(ulong steamId, string privilegeKey)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(privilegeKey);
+
+        if (steamId == 0)
+        {
+            return Task.FromResult(false);
+        }
 
         var privilege = privilegeRegistry.Find(privilegeKey);
         var canonicalKey = privilege?.Key ?? privilegeKey;
 
-        databaseTasks.Run(
-            () => RevokeAsync(steamId, canonicalKey),
+        return databaseTasks.RunAsync(
+            () => RevokeInternalAsync(steamId, canonicalKey),
             $"Revoke privilege {canonicalKey} from {steamId}"
         );
     }
     
-    private async Task RevokeAsync(ulong steamId, string privilegeKey)
+    private async Task<bool> RevokeInternalAsync(ulong steamId, string privilegeKey)
     {
         var removed = await databaseOperations
             .RunAsync(steamId, () => persistenceService.DeleteAsync(steamId, privilegeKey))
@@ -116,10 +129,12 @@ internal sealed class PlayerPrivilegeManager(
 
         if (!removed)
         {
-            return;
+            return false;
         }
 
-        core.Scheduler.NextWorldUpdate(() => ApplyRevoked(steamId, privilegeKey));
+        ApplyRevoked(steamId, privilegeKey);
+
+        return true;
     }
 
     private void ApplyLoaded(ulong steamId, long sessionId, IReadOnlyCollection<PlayerPrivilege> privileges)

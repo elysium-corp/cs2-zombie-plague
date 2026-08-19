@@ -16,6 +16,10 @@ public interface IAdminApi
     bool HasPrivilege(IPlayer player, string privilegeKey);
 
     bool HasPermission(IPlayer player, string permission);
+    
+    Task<bool> GrantPrivilegeAsync(ulong steamId, string privilegeKey, DateTime? expiresAtUtc = null);
+
+    Task<bool> RevokePrivilegeAsync(ulong steamId, string privilegeKey);
 
     public static readonly string SharedApiKey = "Admin.Api.IAdminApi";
 }

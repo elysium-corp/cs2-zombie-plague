@@ -52,7 +52,11 @@ internal sealed partial class Admin(ISwiftlyCore core) : Plugin<AdminModule>(cor
     
     protected override void OnConfigureSharedInterfaces(IInterfaceManager interfaceManager)
     {
-        var api = new AdminApi(_privilegeRegistry.Value, _privilegeService.Value);
+        var api = new AdminApi(
+            _privilegeRegistry.Value,
+            _privilegeService.Value,
+            _playerPrivilegeManager.Value
+        );
 
         interfaceManager.AddSharedInterface<IAdminApi, AdminApi>(IAdminApi.SharedApiKey, api);
     }
