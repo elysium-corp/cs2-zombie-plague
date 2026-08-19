@@ -8,6 +8,8 @@ namespace CustomEquipment.Giver;
 internal interface IItemGiver
 {
     public TItem? GiveItem<TItem>(IPlayer player, GiveAction action = GiveAction.Drop) where TItem : class, IItem;
+    
+    ItemBase? GiveItem(IPlayer player, string internalName, GiveAction action = GiveAction.Drop);
 
     public TWeapon? GiveWeapon<TWeapon>(IPlayer player, GiveAction action = GiveAction.Drop) where TWeapon : WeaponItemBase;
 

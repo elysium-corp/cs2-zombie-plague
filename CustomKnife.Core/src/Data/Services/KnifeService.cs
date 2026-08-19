@@ -255,6 +255,7 @@ internal sealed class KnifeService(
             }
 
             var playerPawn = player.PlayerPawn;
+
             if (playerPawn == null || !playerPawn.IsValid)
             {
                 return;
@@ -268,9 +269,10 @@ internal sealed class KnifeService(
                 return;
             }
 
+            var knife = GetKnife(player);
+
             RemoveOldAndGiveNewKnife(weaponService, itemService);
 
-            var knife = GetKnife(player);
             var newKnife = ModifyKnife(player, knife);
 
             SelectKnifeOnNextWorldUpdate(player, newKnife);

@@ -1,20 +1,18 @@
 using Common.Di;
 using CustomEquipment.Api;
+using CustomEquipment.Api.Data;
 using CustomEquipment.Controllers;
 using CustomEquipment.Data.Equipments.Weapons.Equipments;
-using CustomEquipment.Data.Equipments.Weapons.Grenades;
-using CustomEquipment.Data.Equipments.Weapons.Guns;
 using CustomEquipment.Di;
 using CustomEquipment.Menus;
 using CustomEquipment.Registry;
 using CustomEquipment.Services;
+using Economy.Api;
 using Menu.Api;
 using Menu.Api.Extensions;
-using Economy.Api;
 using SwiftlyS2.Core.Menus.OptionsBase;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Commands;
-using SwiftlyS2.Shared.Players;
 using ZombiePlague.Api;
 using ZombiePlague.Api.Menus;
 
@@ -164,18 +162,24 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
     private void GunHandler(ICommandContext context)
     {
         var player = context.Sender;
-        
-        if (player == null) return;
 
-        if (!context.IsSentByPlayer) return;
+        if (player is null || !context.IsSentByPlayer)
+        {
+            return;
+        }
 
         var equipmentService = _equipmentService.Value;
 
-        var items = _itemRegistry.Value.GetDefinitions();
+        var items = _itemRegistry.Value
+            .GetDefinitions()
+            .Where(item => item is WeaponItemBase or GrenadeItemBase);
 
-        foreach (var item in items)
-        {
-            equipmentService.GiveWeapon(player, item.InternalName);
-        }
+        // foreach (var item in items)
+        // {
+        //    equipmentService.GiveItem(
+        //        player,
+        //        item.InternalName
+        //    );
+        // }
     }
 }

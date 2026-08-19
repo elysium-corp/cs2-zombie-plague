@@ -6,12 +6,15 @@ using CustomEquipment.Api.Exceptions;
 using CustomEquipment.Data.Equipments.Weapons;
 using CustomEquipment.Mappers;
 using CustomEquipment.Registry;
+using CustomEquipment.Utils;
+using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace CustomEquipment.Giver;
 
 internal sealed class ItemGiver(
+    ISwiftlyCore core,
     IItemRegistry itemRegistry, 
     IEventPublisher eventPublisher
 ) : IItemGiver
@@ -21,6 +24,18 @@ internal sealed class ItemGiver(
         var item = itemRegistry.Create<TItem>();
 
         return GiveCreatedItem(player, item, action) as TItem;
+    }
+    
+    public ItemBase? GiveItem(IPlayer player, string internalName, GiveAction action = GiveAction.Drop)
+    {
+        var item = itemRegistry.Create(internalName);
+
+        if (item is not ItemBase itemBase)
+        {
+            return null;
+        }
+
+        return GiveCreatedItem(player, itemBase, action) as ItemBase;
     }
     
     public WeaponItemBase? GiveWeapon(IPlayer player, string internalName, GiveAction action = GiveAction.Drop)
@@ -45,33 +60,69 @@ internal sealed class ItemGiver(
         return GiveItem<TGrenade>(player, action);
     }
 
-    private GrenadeItemBase? GiveGrenadeInternal(IPlayer player, GrenadeItemBase grenade, GiveAction action = GiveAction.Drop)
+    private GrenadeItemBase GiveGrenadeInternal(
+        IPlayer player,
+        GrenadeItemBase grenade,
+        GiveAction action = GiveAction.Drop
+    )
     {
         var pawn = player.RequiredPlayerPawn;
         var itemServices = pawn.ItemServices;
         var weaponService = pawn.WeaponServices;
-        
-        if (itemServices == null || weaponService == null) return null;
-        
-        var inheritorName = grenade.InheritorName;
-        var resolvedInheritorName = ResolveInheritorName(inheritorName);
-        
+
+        if (itemServices == null || weaponService == null)
+        {
+            return grenade;
+        }
+
+        var name = ResolveInheritorName(
+            grenade.InheritorName
+        );
+
         switch (action)
         {
             case GiveAction.Drop:
-                weaponService.DropWeaponByDesignerName(resolvedInheritorName);
+                weaponService.DropWeaponByDesignerName(name);
                 break;
-            
+
             case GiveAction.Remove:
-                weaponService.RemoveWeaponByDesignerName(resolvedInheritorName);
+                weaponService.RemoveWeaponByDesignerName(name);
                 break;
         }
-        
-        var originalGrenade = CreateOriginalGrenade(itemServices, weaponService, resolvedInheritorName);
-        
-        if (originalGrenade == null) return null;
 
-        grenade.AttachedGrenade = originalGrenade;
+        var weaponsBefore = weaponService.MyWeaponsAsIds();
+
+        itemServices.GiveItem(name);
+
+        core.Scheduler.NextWorldUpdate(() =>
+        {
+            if (!player.IsValid)
+            {
+                return;
+            }
+
+            var currentWeaponService = player.PlayerPawn?.WeaponServices;
+
+            if (currentWeaponService == null)
+            {
+                return;
+            }
+
+            var originalGrenade = currentWeaponService.MyValidWeapons
+                    .FirstOrDefault(weapon => weapon.DesignerName == name && !weaponsBefore.Contains((int)weapon.Index))
+                    ?.As<CBaseCSGrenade>();
+
+            if (originalGrenade == null)
+            {
+                return;
+            }
+
+            grenade.AttachedGrenade = originalGrenade;
+
+            eventPublisher.OnGrenadeGiven(player, grenade);
+
+            eventPublisher.OnItemGiven(player, grenade);
+        });
 
         return grenade;
     }
@@ -151,22 +202,35 @@ internal sealed class ItemGiver(
         return $"{prefix}{inheritorName}";
     }
 
-    private CCSWeaponBase? CreateOriginalWeapon(CPlayer_ItemServices itemServices, CPlayer_WeaponServices weaponService, string name)
+    private CCSWeaponBase? CreateOriginalWeapon(
+        CPlayer_ItemServices itemServices,
+        CPlayer_WeaponServices weaponService,
+        string name
+    )
     {
+        var weaponsBefore = weaponService.MyValidWeapons
+            .Select(weapon => (int)weapon.Index)
+            .ToHashSet();
+
         if (name.Contains(WeaponName.M4A1S))
         {
-            return itemServices.GiveItem<CWeaponM4A1Silencer>();
+            itemServices.GiveItem<CWeaponM4A1Silencer>();
+        }
+        else if (name.Contains(WeaponName.UspS))
+        {
+            itemServices.GiveItem<CWeaponUSPSilencer>();
+        }
+        else
+        {
+            itemServices.GiveItem(name);
         }
 
-        if (name.Contains(WeaponName.UspS))
-        {
-            return itemServices.GiveItem<CWeaponUSPSilencer>();
-        }
-        
-        itemServices.GiveItem(name);
-        
         return weaponService.MyValidWeapons
-            .FirstOrDefault(w => w.DesignerName.Contains(name))
+            .FirstOrDefault(
+                weapon =>
+                    !weaponsBefore.Contains((int)weapon.Index) &&
+                    weapon.DesignerName.Contains(name)
+            )
             ?.As<CCSWeaponBase>();
     }
 

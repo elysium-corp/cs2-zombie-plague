@@ -127,6 +127,7 @@ internal sealed class EquipmentMenu(
         if (!equipmentService.CanUseItem(player, item.InternalName))
         {
             player.SendChat("Не возможно купить для текущей роли!");
+            return;
         }
         
         if (economyApi.TrySpendMoney(player, item.Price.Item))

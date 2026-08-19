@@ -23,7 +23,7 @@ internal sealed class EquipmentService(
     IItemRegistry itemRegistry,
     IEventPublisher eventPublisher, 
     IEventSubscriber eventSubscriber,
-    IZombiePlagueApi zombiePlagueApi
+    Func<IZombiePlagueApi> zombiePlagueApi
 ) : IEquipmentService, IDisposable
 {
     private readonly List<ItemBase> _items = [];
@@ -34,7 +34,7 @@ internal sealed class EquipmentService(
         core.Event.OnEntityCreated += OnEntityCreated;
         core.Event.OnEntityDeleted += OnEntityDeleted;
 
-        core.GameHooks.Weapons.CanUse.Pre -= OnWeaponCanUsePre;
+        core.GameHooks.Weapons.CanUse.Pre += OnWeaponCanUsePre;
         core.GameHooks.Weapons.CanUse.Post += OnWeaponCanUsePost;
         core.GameHooks.Weapons.Drop.Post += OnWeaponDropPost;
 
@@ -46,7 +46,7 @@ internal sealed class EquipmentService(
         core.Event.OnEntityCreated -= OnEntityCreated;
         core.Event.OnEntityDeleted -= OnEntityDeleted;
 
-        core.GameHooks.Weapons.CanUse.Pre += OnWeaponCanUsePre;
+        core.GameHooks.Weapons.CanUse.Pre -= OnWeaponCanUsePre;
         core.GameHooks.Weapons.CanUse.Post -= OnWeaponCanUsePost;
         core.GameHooks.Weapons.Drop.Post -= OnWeaponDropPost;
 
@@ -135,7 +135,7 @@ internal sealed class EquipmentService(
             return null;
         }
 
-        var weapon = itemGiver.GiveWeapon(player, internalName);
+        var weapon = itemGiver.GiveWeapon(player, internalName, action);
 
         if (weapon is null)
         {
@@ -323,7 +323,7 @@ internal sealed class EquipmentService(
     
     private bool CanUseItemInternal(IPlayer player, ItemBase item)
     {
-        var playerFlag = zombiePlagueApi.IsInfected(player)
+        var playerFlag = zombiePlagueApi().IsInfected(player)
             ? AccessFlags.Zombie
             : AccessFlags.Human;
 
