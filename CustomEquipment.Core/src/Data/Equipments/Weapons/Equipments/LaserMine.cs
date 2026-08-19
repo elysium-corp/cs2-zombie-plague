@@ -16,6 +16,8 @@ namespace CustomEquipment.Data.Equipments.Weapons.Equipments;
 public sealed class LaserMine : EquipmentItemBase
 {
     public override string InheritorName => WeaponName.LaserMine;
+    
+    public override AccessFlags AccessFlags => AccessFlags.Human;
 
     public override string DisplayName => "Laser Mine";
 

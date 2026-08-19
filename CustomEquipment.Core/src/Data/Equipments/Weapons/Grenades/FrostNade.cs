@@ -14,6 +14,8 @@ namespace CustomEquipment.Data.Equipments.Weapons.Grenades;
 internal sealed class FrostNade : GrenadeItemBase
 {
     public override string InheritorName => WeaponName.He;
+    
+    public override AccessFlags AccessFlags => AccessFlags.Human;
 
     public override string DisplayName => "Frost Nade";
     

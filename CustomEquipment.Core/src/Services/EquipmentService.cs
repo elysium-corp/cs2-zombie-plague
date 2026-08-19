@@ -4,17 +4,27 @@ using CustomEquipment.Api.Enums;
 using CustomEquipment.Api.Events;
 using CustomEquipment.Data.Equipments.Weapons;
 using CustomEquipment.Giver;
+using CustomEquipment.Registry;
 using CustomEquipment.Utils;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.GameHooks;
+using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
+using ZombiePlague.Api;
 using IEventSubscriber = CustomEquipment.Api.Events.IEventSubscriber;
 
 namespace CustomEquipment.Services;
 
-internal sealed class EquipmentService(ISwiftlyCore core, IItemGiver itemGiver, IEventPublisher eventPublisher, IEventSubscriber eventSubscriber) : IEquipmentService, IDisposable
+internal sealed class EquipmentService(
+    ISwiftlyCore core,
+    IItemGiver itemGiver,
+    IItemRegistry itemRegistry,
+    IEventPublisher eventPublisher,
+    IEventSubscriber eventSubscriber,
+    Func<IZombiePlagueApi> zombiePlagueApi
+) : IEquipmentService, IDisposable
 {
     private readonly List<ItemBase> _items = [];
     private readonly Dictionary<IPlayer, HashSet<WeaponItemBase>> _inventories = [];
@@ -24,6 +34,7 @@ internal sealed class EquipmentService(ISwiftlyCore core, IItemGiver itemGiver, 
         core.Event.OnEntityCreated += OnEntityCreated;
         core.Event.OnEntityDeleted += OnEntityDeleted;
 
+        core.GameHooks.Weapons.CanUse.Pre += OnWeaponCanUsePre;
         core.GameHooks.Weapons.CanUse.Post += OnWeaponCanUsePost;
         core.GameHooks.Weapons.Drop.Post += OnWeaponDropPost;
 
@@ -35,6 +46,7 @@ internal sealed class EquipmentService(ISwiftlyCore core, IItemGiver itemGiver, 
         core.Event.OnEntityCreated -= OnEntityCreated;
         core.Event.OnEntityDeleted -= OnEntityDeleted;
 
+        core.GameHooks.Weapons.CanUse.Pre -= OnWeaponCanUsePre;
         core.GameHooks.Weapons.CanUse.Post -= OnWeaponCanUsePost;
         core.GameHooks.Weapons.Drop.Post -= OnWeaponDropPost;
 
@@ -45,42 +57,84 @@ internal sealed class EquipmentService(ISwiftlyCore core, IItemGiver itemGiver, 
     {
         projectile.SetModel(grenade.Model);
     }
-
-    public IEnumerable<ItemBase> GetAllItems() => _items;
     
-    public IEnumerable<WeaponItemBase> GetAllWeapons() => _items.OfType<WeaponItemBase>();
-    
-    public IEnumerable<GrenadeItemBase> GetAllGrenades() => _items.OfType<GrenadeItemBase>();
-    
-    public TWeapon? GiveWeapon<TWeapon>(IPlayer player, GiveAction action = GiveAction.Drop) where TWeapon : WeaponItemBase
+    public bool CanUseItem(IPlayer player, ItemBase item)
     {
-        var weapon = itemGiver.GiveWeapon<TWeapon>(player, action);
+        ArgumentNullException.ThrowIfNull(player);
 
-        if (weapon is null)
+        if (!itemRegistry.TryGetDefinition(item.InternalName, out var definition))
         {
-            return null;
+            return false;
         }
 
-        return AddOrReplace(weapon);
-    }
-
-    public WeaponItemBase? GiveWeapon(IPlayer player, string internalName, GiveAction action = GiveAction.Drop)
-    {
-        var weapon = itemGiver.GiveWeapon(player, internalName, action);
-
-        if (weapon is null)
+        if (definition is not ItemBase)
         {
-            return null;
+            return false;
         }
 
-        return AddOrReplace(weapon);
+        return CanUseItemInternal(player, item);
     }
 
-    public GrenadeItemBase? GiveGrenade<TGrenade>(IPlayer player) where TGrenade : GrenadeItemBase
+    public bool CanUseItem(IPlayer player, string name)
     {
-        var grenade = itemGiver.GiveGrenade<TGrenade>(player);
+        ArgumentNullException.ThrowIfNull(player);
 
-        return grenade is null ? null : AddOrReplace(grenade);
+        if (!itemRegistry.TryGetDefinition(name, out var definition))
+        {
+            return false;
+        }
+
+        if (definition is not ItemBase item)
+        {
+            return false;
+        }
+
+        return CanUseItemInternal(player, item);
+    }
+    
+    private void OnItemGiven(IPlayer player, ItemBase item)
+    {
+        switch (item)
+        {
+            case WeaponItemBase weapon:
+                AddOrReplace(weapon);
+                eventPublisher.OnWeaponGiven(player, weapon);
+                break;
+
+            case GrenadeItemBase grenade:
+                AddOrReplace(grenade);
+                eventPublisher.OnGrenadeGiven(player, grenade);
+                break;
+
+            case EquipmentItemBase:
+                break;
+        }
+
+        eventPublisher.OnItemGiven(player, item);
+    }
+
+    public void GiveItem(IPlayer player, string internalName, GiveAction action = GiveAction.Drop)
+    {
+        ArgumentNullException.ThrowIfNull(player);
+
+        if (!CanUseItem(player, internalName))
+        {
+            return;
+        }
+
+        var createdItem = itemRegistry.Create(internalName);
+
+        if (createdItem is not ItemBase item)
+        {
+            throw new InvalidOperationException($"Item '{internalName}' is not an ItemBase!");
+        }
+
+        itemGiver.GiveItem(
+            player,
+            item,
+            action,
+            completedItem => OnItemGiven(player, completedItem)
+        );
     }
 
     public TItem? GetActiveItem<TItem>(IPlayer player) where TItem : ItemBase
@@ -104,26 +158,46 @@ internal sealed class EquipmentService(ISwiftlyCore core, IItemGiver itemGiver, 
     private void OnEntityCreated(IOnEntityCreatedEvent hook)
     {
         var entity = hook.Entity;
-        
+
         if (!entity.IsValid || entity is not CBaseCSGrenadeProjectile) return;
-        
+
         core.Scheduler.NextWorldUpdate(() =>
         {
             var projectile = entity.As<CBaseCSGrenadeProjectile>();
 
             var grenade = ResolveGrenadeByProjectile(projectile);
-            
+
             if (grenade == null) return;
-            
+
             eventPublisher.OnGrenadeThrown(grenade, projectile);
         });
     }
-    
+
     private void OnEntityDeleted(IOnEntityDeletedEvent hook)
     {
         var entity = hook.Entity;
 
         _items.RemoveAll(wp => wp.AttachedEntity.Index == entity.Index);
+    }
+
+    private void OnWeaponCanUsePre(ref CanUseWeaponPreContext context)
+    {
+        var weapon = context.Params.Weapon;
+
+        var customWeapon = GetWeaponByIndex(weapon.Index);
+
+        if (customWeapon is null)
+        {
+            return;
+        }
+
+        if (CanUseItem(context.Params.Player, customWeapon))
+        {
+            return;
+        }
+
+        context.SetReturn(false);
+        context.SetHookResult(HookResult.Stop);
     }
 
     private void OnWeaponCanUsePost(ref CanUseWeaponPostContext context)
@@ -190,7 +264,9 @@ internal sealed class EquipmentService(ISwiftlyCore core, IItemGiver itemGiver, 
 
     private GrenadeItemBase? GetGrenadeByIndex(uint index)
     {
-        return GetAllGrenades().ToList().Find(wp => wp.AttachedEntity.Index == index);
+        return _items
+            .OfType<GrenadeItemBase>()
+            .FirstOrDefault(grenade => grenade.AttachedEntity.Index == index);
     }
 
     private GrenadeItemBase? ResolveGrenadeByProjectile(CBaseCSGrenadeProjectile projectile)
@@ -198,11 +274,11 @@ internal sealed class EquipmentService(ISwiftlyCore core, IItemGiver itemGiver, 
         var thrower = projectile.Thrower.Value;
 
         if (thrower == null || !thrower.IsValid) return null;
-        
+
         if (projectile is CMolotovProjectile { IsIncGrenade: true })
         {
             var incenderiary = thrower.WeaponServices?.FindWeaponByName(WeaponName.Inc);
-            
+
             if (incenderiary == null) return null;
 
             return GetGrenadeByIndex(incenderiary.Index);
@@ -210,12 +286,12 @@ internal sealed class EquipmentService(ISwiftlyCore core, IItemGiver itemGiver, 
 
         var simpleProjectile = projectile.DesignerName.Replace("_projectile", "");
         var grenade = thrower.WeaponServices?.FindWeaponByName(simpleProjectile);
-        
+
         if (grenade == null) return null;
-        
+
         return GetGrenadeByIndex(grenade.Index);
     }
-    
+
     private TItem AddOrReplace<TItem>(TItem item) where TItem : ItemBase
     {
         var index = _items.FindIndex(current => current.AttachedEntity.Index == item.AttachedEntity.Index);
@@ -230,5 +306,14 @@ internal sealed class EquipmentService(ISwiftlyCore core, IItemGiver itemGiver, 
         }
 
         return item;
+    }
+
+    private bool CanUseItemInternal(IPlayer player, ItemBase item)
+    {
+        var playerFlag = zombiePlagueApi().IsInfected(player)
+            ? AccessFlags.Zombie
+            : AccessFlags.Human;
+
+        return (item.AccessFlags & playerFlag) != 0;
     }
 }

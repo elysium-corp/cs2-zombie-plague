@@ -93,10 +93,13 @@ internal sealed class EquipmentMenu(
         {
             var price = item.Price.Item;
             
+            var canUse = equipmentService.CanUseItem(player, item.InternalName);
+            var hasMoney = economyApi.HasEnoughMoney(player, price);
+            
             var option = new ButtonMenuOption
             {
                 Text = BuildTextItem(item),
-                Enabled = economyApi.HasEnoughMoney(player, price)
+                Enabled = canUse && hasMoney
             };
 
             option.Click += (_, args) =>
@@ -121,14 +124,21 @@ internal sealed class EquipmentMenu(
 
     private void BuyItem(IPlayer player, IShopItem item)
     {
-        if (economyApi.TrySpendMoney(player, item.Price.Item))
+        if (!equipmentService.CanUseItem(player, item.InternalName))
         {
-            equipmentService.GiveWeapon(player, item.InternalName);
+            player.SendChat("Не возможно купить для текущей роли!");
+
+            return;
         }
-        else
+
+        if (!economyApi.TrySpendMoney(player, item.Price.Item))
         {
             player.SendChat("Недостаточно денег!");
+
+            return;
         }
+
+        equipmentService.GiveItem(player, item.InternalName);
     }
     
     private static Category WeaponTypeToCategory(WeaponType weaponType, int index)

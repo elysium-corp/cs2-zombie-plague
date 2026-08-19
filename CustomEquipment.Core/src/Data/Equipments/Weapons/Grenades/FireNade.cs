@@ -18,6 +18,8 @@ internal sealed class FireNade : GrenadeItemBase
     private readonly BurnSettings _settings = new(8.0f, 1.0f, 5.0f);
     
     public override string InheritorName => WeaponName.Inc;
+    
+    public override AccessFlags AccessFlags => AccessFlags.Human;
 
     public override string DisplayName => "Fire Nade";
     

@@ -2,5 +2,5 @@
 
 internal static class KnifeDefaults
 {
-    public const string DefaultKnifeId = "knife_ancient";
+    public const string DefaultKnifeId = "knife_axe";
 }
