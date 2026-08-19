@@ -13,7 +13,7 @@ using ZombiePlague.Core.Data.Service.Contracts;
 namespace ZombiePlague.Core.Api;
 
 internal sealed class ZombiePlagueApi(
-    ZombiePlagueEvents events,
+    IZombiePlagueEvents events,
     IPlayerManager playerManager,
     IKnockbackService knockbackService,
     IPlayerRepository playerRepository

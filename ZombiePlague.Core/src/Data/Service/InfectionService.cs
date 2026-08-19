@@ -1,7 +1,11 @@
 ﻿using SwiftlyS2.Shared;
+using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.GameHooks;
 using SwiftlyS2.Shared.Misc;
-using ZombiePlague.Core.Data.Managers;
+using SwiftlyS2.Shared.Players;
+using SwiftlyS2.Shared.SchemaDefinitions;
+using ZombiePlague.Api.Events;
+using ZombiePlague.Api.Events.Contexts.Player;
 using ZombiePlague.Core.Data.Managers.Contracts;
 using ZombiePlague.Core.Data.Service.Contracts;
 
@@ -11,7 +15,8 @@ internal interface IInfectionService : IService;
 
 internal sealed class InfectionService(
     ISwiftlyCore core,
-    IPlayerManager playerManager
+    IPlayerManager playerManager,
+    IZombiePlagueEvents events
 ) : IInfectionService
 {
     public void Register()
@@ -19,6 +24,8 @@ internal sealed class InfectionService(
         core.GameHooks.Items.CanAcquire.Pre += OnCanAcquire;
         core.GameHooks.Weapons.CanUse.Pre += OnCanUse;
         core.GameHooks.Weapons.Drop.Pre += OnDrop;
+        
+        events.Post.PlayerInfectEvent += OnPlayerInfected;
     }
 
     public void Unregister()
@@ -26,8 +33,10 @@ internal sealed class InfectionService(
         core.GameHooks.Items.CanAcquire.Pre -= OnCanAcquire;
         core.GameHooks.Weapons.CanUse.Pre -= OnCanUse;
         core.GameHooks.Weapons.Drop.Pre -= OnDrop;
+        
+        events.Post.PlayerInfectEvent -= OnPlayerInfected;
     }
-
+    
     private void OnCanAcquire(ref CanAcquireItemPreContext context)
     {
         var player = context.Params.Player;
@@ -76,10 +85,54 @@ internal sealed class InfectionService(
         context.SetHookResult(HookResult.Stop);
     }
 
+    private void OnPlayerInfected(ref PlayerInfectPostContext context)
+    {
+        var player = context.Player;
+        
+        core.Scheduler.NextWorldUpdate(() =>
+        {
+            RemoveGloves(player);
+        });
+    }
+
     private static bool IsAllowedForZombie(string? weaponName)
     {
         return weaponName?.Contains("knife", StringComparison.OrdinalIgnoreCase) == true ||
                weaponName?.Contains("smoke", StringComparison.OrdinalIgnoreCase) == true ||
                weaponName?.Contains("hegrenade", StringComparison.OrdinalIgnoreCase) == true;
+    }
+    
+    private static void RemoveGloves(IPlayer player)
+    {
+        if (!player.IsValid || !player.IsAlive) return;
+
+        var pawn = player.PlayerPawn;
+
+        if (pawn is null || !pawn.IsValid)
+        {
+            return;
+        }
+
+        var gloves = pawn.EconGloves;
+
+        gloves.AttributeList.Attributes.RemoveAll();
+        gloves.NetworkedDynamicAttributes.Attributes.RemoveAll();
+
+        gloves.ItemDefinitionIndex = 0;
+        gloves.ItemID = 0;
+        gloves.ItemIDHigh = 0;
+        gloves.ItemIDLow = 0;
+        gloves.AccountID = 0;
+        gloves.InventoryPosition = 0;
+        gloves.Initialized = false;
+
+        gloves.ItemDefinitionIndexUpdated();
+        gloves.ItemIDHighUpdated();
+        gloves.ItemIDLowUpdated();
+        gloves.AccountIDUpdated();
+        gloves.InventoryPositionUpdated();
+        gloves.InitializedUpdated();
+
+        _ = pawn.AcceptInputAsync("SetBodygroup", value: "first_or_third_person,0");
     }
 }
