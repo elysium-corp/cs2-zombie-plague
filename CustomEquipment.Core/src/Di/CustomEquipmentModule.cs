@@ -16,6 +16,7 @@ using CustomEquipment.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Economy.Api;
 using SwiftlyS2.Shared;
+using ZombiePlague.Api;
 
 namespace CustomEquipment.Di;
 
@@ -28,6 +29,7 @@ internal sealed class CustomEquipmentModule(ISwiftlyCore core) : BaseModule(core
         service.AddSwiftly(core); 
         
         service.AddSharedInterface<IEconomyApi>();
+        service.AddSharedInterface<IZombiePlagueApi>();
 
         AddSingleton<IEquipmentFetcher>(service, OnWeaponRegistratorFactory);
         AddSingleton<IEquipmentService, EquipmentService>(service);

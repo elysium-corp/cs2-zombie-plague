@@ -15,6 +15,7 @@ using SwiftlyS2.Core.Menus.OptionsBase;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Commands;
 using SwiftlyS2.Shared.Players;
+using ZombiePlague.Api;
 using ZombiePlague.Api.Menus;
 
 namespace CustomEquipment;
@@ -40,6 +41,7 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
     protected override void OnUseSharedInterfaces(IInterfaceManager interfaceManager)
     {
         BindSharedInterface<IEconomyApi>(interfaceManager, IEconomyApi.SharedApiKey);
+        BindSharedInterface<IZombiePlagueApi>(interfaceManager, IZombiePlagueApi.SharedApiKey);
     }
     
     protected override void OnConfigureSharedInterfaces(IInterfaceManager interfaceManager)
@@ -169,15 +171,11 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
 
         var equipmentService = _equipmentService.Value;
 
-        equipmentService.GiveWeapon<Omega>(player);
-        equipmentService.GiveWeapon<Elite>(player);
-        equipmentService.GiveWeapon<ReactorLeak>(player);
-        equipmentService.GiveWeapon<Frostbyte>(player);
-        equipmentService.GiveWeapon<Blackline>(player);
-        equipmentService.GiveWeapon<X3>(player);
-        equipmentService.GiveGrenade<BarrierNade>(player);
-        equipmentService.GiveGrenade<JumpNade>(player);
-        equipmentService.GiveGrenade<ShakeNade>(player);
-        equipmentService.GiveGrenade<FireNade>(player);
+        var items = _itemRegistry.Value.GetDefinitions();
+
+        foreach (var item in items)
+        {
+            equipmentService.GiveWeapon(player, item.InternalName);
+        }
     }
 }

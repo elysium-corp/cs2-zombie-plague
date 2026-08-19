@@ -13,6 +13,10 @@ internal interface IEquipmentService
     IEnumerable<WeaponItemBase> GetAllWeapons();
 
     IEnumerable<GrenadeItemBase> GetAllGrenades();
+    
+    bool CanUseItem(IPlayer player, ItemBase item);
+
+    bool CanUseItem(IPlayer player, string name);
 
     TWeapon? GiveWeapon<TWeapon>(IPlayer player, GiveAction action = GiveAction.Drop) where TWeapon : WeaponItemBase;
 

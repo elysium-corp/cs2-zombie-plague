@@ -11,6 +11,8 @@ internal sealed class Reaver : WeaponItemBase, IShopItem
 {
     public override string InheritorName => WeaponName.Deagle;
 
+    public override AccessFlags AccessFlags => AccessFlags.Human;
+    
     public override string DisplayName => "Deagle Reaver";
 
     public override string InternalName => "custom_equipment:reaver";

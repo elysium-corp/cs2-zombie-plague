@@ -13,6 +13,8 @@ namespace CustomEquipment.Data.Equipments.Weapons.Grenades;
 public class BarrierNade : GrenadeItemBase
 {
     public override string InheritorName => WeaponName.Smoke;
+    
+    public override AccessFlags AccessFlags => AccessFlags.Human;
 
     public override string DisplayName => "Barrier Nade";
     

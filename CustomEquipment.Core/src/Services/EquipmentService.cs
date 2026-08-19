@@ -4,17 +4,27 @@ using CustomEquipment.Api.Enums;
 using CustomEquipment.Api.Events;
 using CustomEquipment.Data.Equipments.Weapons;
 using CustomEquipment.Giver;
+using CustomEquipment.Registry;
 using CustomEquipment.Utils;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.GameHooks;
+using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
+using ZombiePlague.Api;
 using IEventSubscriber = CustomEquipment.Api.Events.IEventSubscriber;
 
 namespace CustomEquipment.Services;
 
-internal sealed class EquipmentService(ISwiftlyCore core, IItemGiver itemGiver, IEventPublisher eventPublisher, IEventSubscriber eventSubscriber) : IEquipmentService, IDisposable
+internal sealed class EquipmentService(
+    ISwiftlyCore core, 
+    IItemGiver itemGiver,
+    IItemRegistry itemRegistry,
+    IEventPublisher eventPublisher, 
+    IEventSubscriber eventSubscriber,
+    IZombiePlagueApi zombiePlagueApi
+) : IEquipmentService, IDisposable
 {
     private readonly List<ItemBase> _items = [];
     private readonly Dictionary<IPlayer, HashSet<WeaponItemBase>> _inventories = [];
@@ -24,6 +34,7 @@ internal sealed class EquipmentService(ISwiftlyCore core, IItemGiver itemGiver, 
         core.Event.OnEntityCreated += OnEntityCreated;
         core.Event.OnEntityDeleted += OnEntityDeleted;
 
+        core.GameHooks.Weapons.CanUse.Pre -= OnWeaponCanUsePre;
         core.GameHooks.Weapons.CanUse.Post += OnWeaponCanUsePost;
         core.GameHooks.Weapons.Drop.Post += OnWeaponDropPost;
 
@@ -35,6 +46,7 @@ internal sealed class EquipmentService(ISwiftlyCore core, IItemGiver itemGiver, 
         core.Event.OnEntityCreated -= OnEntityCreated;
         core.Event.OnEntityDeleted -= OnEntityDeleted;
 
+        core.GameHooks.Weapons.CanUse.Pre += OnWeaponCanUsePre;
         core.GameHooks.Weapons.CanUse.Post -= OnWeaponCanUsePost;
         core.GameHooks.Weapons.Drop.Post -= OnWeaponDropPost;
 
@@ -52,9 +64,61 @@ internal sealed class EquipmentService(ISwiftlyCore core, IItemGiver itemGiver, 
     
     public IEnumerable<GrenadeItemBase> GetAllGrenades() => _items.OfType<GrenadeItemBase>();
     
+    public bool CanUseItem(IPlayer player, ItemBase item)
+    {
+        ArgumentNullException.ThrowIfNull(player);
+
+        if (!itemRegistry.TryGetDefinition(item.InternalName, out var definition))
+        {
+            return false;
+        }
+
+        if (definition is not ItemBase)
+        {
+            return false;
+        }
+
+        return CanUseItemInternal(player, item);
+    }
+    
+    public bool CanUseItem(IPlayer player, string name)
+    {
+        ArgumentNullException.ThrowIfNull(player);
+
+        if (!itemRegistry.TryGetDefinition(name, out var definition))
+        {
+            return false;
+        }
+
+        if (definition is not ItemBase item)
+        {
+            return false;
+        }
+
+        return CanUseItemInternal(player, item);
+    }
+    
     public TWeapon? GiveWeapon<TWeapon>(IPlayer player, GiveAction action = GiveAction.Drop) where TWeapon : WeaponItemBase
     {
-        var weapon = itemGiver.GiveWeapon<TWeapon>(player, action);
+        var definition = itemRegistry
+            .GetDefinitions()
+            .OfType<TWeapon>()
+            .FirstOrDefault();
+
+        if (definition is null)
+        {
+            return null;
+        }
+
+        if (!CanUseItem(player, definition))
+        {
+            return null;
+        }
+
+        var weapon = itemGiver.GiveWeapon<TWeapon>(
+            player,
+            action
+        );
 
         if (weapon is null)
         {
@@ -66,7 +130,12 @@ internal sealed class EquipmentService(ISwiftlyCore core, IItemGiver itemGiver, 
 
     public WeaponItemBase? GiveWeapon(IPlayer player, string internalName, GiveAction action = GiveAction.Drop)
     {
-        var weapon = itemGiver.GiveWeapon(player, internalName, action);
+        if (!CanUseItem(player, internalName))
+        {
+            return null;
+        }
+
+        var weapon = itemGiver.GiveWeapon(player, internalName);
 
         if (weapon is null)
         {
@@ -126,6 +195,26 @@ internal sealed class EquipmentService(ISwiftlyCore core, IItemGiver itemGiver, 
         _items.RemoveAll(wp => wp.AttachedEntity.Index == entity.Index);
     }
 
+    private void OnWeaponCanUsePre(ref CanUseWeaponPreContext context)
+    {
+        var weapon = context.Params.Weapon;
+
+        var customWeapon = GetWeaponByIndex(weapon.Index);
+
+        if (customWeapon is null)
+        {
+            return;
+        }
+
+        if (CanUseItem(context.Params.Player, customWeapon))
+        {
+            return;
+        }
+
+        context.SetReturn(false);
+        context.SetHookResult(HookResult.Stop);
+    }
+    
     private void OnWeaponCanUsePost(ref CanUseWeaponPostContext context)
     {
         if (!context.Return)
@@ -230,5 +319,14 @@ internal sealed class EquipmentService(ISwiftlyCore core, IItemGiver itemGiver, 
         }
 
         return item;
+    }
+    
+    private bool CanUseItemInternal(IPlayer player, ItemBase item)
+    {
+        var playerFlag = zombiePlagueApi.IsInfected(player)
+            ? AccessFlags.Zombie
+            : AccessFlags.Human;
+
+        return (item.AccessFlags & playerFlag) != 0;
     }
 }

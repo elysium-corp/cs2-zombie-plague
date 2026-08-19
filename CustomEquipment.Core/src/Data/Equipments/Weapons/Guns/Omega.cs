@@ -10,6 +10,8 @@ internal sealed class Omega : WeaponItemBase, IShopItem
 {
     public override string InheritorName => WeaponName.Xm1014;
     
+    public override AccessFlags AccessFlags => AccessFlags.Human;
+    
     public override string DisplayName => "Omega Shotgun";
     
     public override string InternalName => "custom_equipment:omega";

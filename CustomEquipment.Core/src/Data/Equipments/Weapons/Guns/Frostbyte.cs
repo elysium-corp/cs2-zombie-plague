@@ -10,6 +10,8 @@ internal sealed class Frostbyte : WeaponItemBase, IShopItem
 {
     public override string InheritorName => WeaponName.Mp7;
 
+    public override AccessFlags AccessFlags => AccessFlags.Human;
+    
     public override string DisplayName => "MP7 Frostbyte";
     
     public override string InternalName => "custom_equipment:frostbyte";

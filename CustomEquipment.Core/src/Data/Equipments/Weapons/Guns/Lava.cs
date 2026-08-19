@@ -10,6 +10,8 @@ internal sealed class Lava : WeaponItemBase, IShopItem
 {
     public override string InheritorName => WeaponName.Ak47;
 
+    public override AccessFlags AccessFlags => AccessFlags.Human;
+    
     public override string DisplayName => "AK47 Lava";
 
     public override string InternalName => "custom_equipment:lava";

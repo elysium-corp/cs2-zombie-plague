@@ -11,6 +11,8 @@ namespace CustomEquipment.Data.Equipments.Weapons.Grenades;
 public sealed class JumpNade : GrenadeItemBase
 {
     public override string InheritorName => WeaponName.He;
+    
+    public override AccessFlags AccessFlags => AccessFlags.Zombie;
 
     public override string DisplayName => "Jump Nade";
 

@@ -14,6 +14,8 @@ namespace CustomEquipment.Data.Equipments.Weapons.Grenades;
 public class ShakeNade : GrenadeItemBase
 {
     public override string InheritorName => WeaponName.Smoke;
+    
+    public override AccessFlags AccessFlags => AccessFlags.Zombie;
 
     public override string DisplayName => "Shake Nade";
     

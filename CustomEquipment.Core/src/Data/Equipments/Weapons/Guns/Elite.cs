@@ -11,6 +11,8 @@ internal sealed class Elite : WeaponItemBase, IShopItem
 {
     public override string InheritorName => WeaponName.Ssg08;
 
+    public override AccessFlags AccessFlags => AccessFlags.Human;
+    
     public override string DisplayName => "SSG Elite";
 
     public override string InternalName => "custom_equipment:elite";
