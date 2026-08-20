@@ -21,7 +21,8 @@ internal sealed class AdminMenu(
     ISwiftlyCore core,
     IMenuExtensionDispatcher extensionDispatcher,
     IPrivilegeService privilegeService,
-    KickMenu kickMenu
+    KickMenu kickMenu,
+    BanMenu banMenu
 ) : DynamicOptionsMenu(core, extensionDispatcher)
 {
     public override string Id => AdminMenuIds.Main;
@@ -57,6 +58,11 @@ internal sealed class AdminMenu(
         {
             options.Add(BuildKickOption(), 1);
         }
+        
+        if (privilegeService.HasPermission(player.SteamID, AdminPermissions.Ban))
+        {
+            options.Add(BuildBanOption(), 2);
+        }
     }
     
     private ButtonMenuOption BuildKickOption()
@@ -66,6 +72,20 @@ internal sealed class AdminMenu(
         option.Click += (_, args) =>
         {
             Core.Scheduler.NextTickAsync(() => kickMenu.Open(args.Player));
+
+            return ValueTask.CompletedTask;
+        };
+
+        return option;
+    }
+    
+    private ButtonMenuOption BuildBanOption()
+    {
+        var option = new ButtonMenuOption("Забанить");
+
+        option.Click += (_, args) =>
+        {
+            Core.Scheduler.NextTickAsync(() => banMenu.Open(args.Player));
 
             return ValueTask.CompletedTask;
         };

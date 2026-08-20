@@ -45,6 +45,7 @@ internal sealed class AdminModule(ISwiftlyCore core) : BaseModule(core)
         AddSingleton<IMenuExtensionDispatcher>(service, provider => provider.GetRequiredService<MenuExtensionDispatcherProxy>());
         
         AddSingleton<KickMenu>(service);
+        AddSingleton<BanMenu>(service);
         AddSingleton<AdminMenu>(service);
     }
 

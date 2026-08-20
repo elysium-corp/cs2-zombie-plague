@@ -27,7 +27,7 @@ internal sealed class KickMenu(ISwiftlyCore core, IPrivilegeService privilegeSer
 
         var players = Core.PlayerManager
             .GetAllValidPlayers()
-            .Where(target => !player.IsFakeClient || target.PlayerID != player.PlayerID)
+            .Where(target => !target.IsFakeClient && target.PlayerID != player.PlayerID)
             .OrderBy(target => target.Controller.PlayerName, StringComparer.OrdinalIgnoreCase);
 
         foreach (var target in players)
