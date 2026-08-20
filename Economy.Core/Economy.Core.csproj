@@ -26,7 +26,7 @@
         <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.0"  PrivateAssets="all"/>
         <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.0"  PrivateAssets="all"/>
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.3" />
-        <PackageReference Include="SwiftlyS2.CS2" Version="1.4.4" PrivateAssets="all">
+        <PackageReference Include="SwiftlyS2.CS2" Version="1.4.5-beta.16" PrivateAssets="all">
 
             <ExcludeAssets Condition="'$(Configuration)' != 'Migrations'">
                 runtime

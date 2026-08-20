@@ -42,7 +42,7 @@
             <ExcludeAssets Condition="'$(Configuration)' != 'Migrations'">runtime</ExcludeAssets>
         </PackageReference>
 
-        <PackageReference Include="SwiftlyS2.CS2" Version="1.4.4" PrivateAssets="all">
+        <PackageReference Include="SwiftlyS2.CS2" Version="1.4.5-beta.16" PrivateAssets="all">
             <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <ExcludeAssets Condition="'$(Configuration)' != 'Migrations'">runtime</ExcludeAssets>
         </PackageReference>

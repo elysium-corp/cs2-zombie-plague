@@ -9,7 +9,7 @@
     <ItemGroup>
       <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />
       <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0" />
-      <PackageReference Include="SwiftlyS2.CS2" Version="1.4.4" />
+      <PackageReference Include="SwiftlyS2.CS2" Version="1.4.5-beta.16" />
     </ItemGroup>
 
 </Project>
