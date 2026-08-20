@@ -19,9 +19,7 @@ public sealed class AdminDbContext(DbContextOptions<AdminDbContext> options) : D
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-
-        modelBuilder.HasDefaultSchema(SchemaName);
-
+        
         modelBuilder.HasDefaultSchema(SchemaName);
 
         ConfigureBans(modelBuilder);

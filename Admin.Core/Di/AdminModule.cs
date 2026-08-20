@@ -29,6 +29,10 @@ internal sealed class AdminModule(ISwiftlyCore core) : BaseModule(core)
     
     private void BuildSingletons(ServiceCollection service)
     {
+        // Бан
+        AddSingleton<IBanService, BanService>(service);
+        
+        // Привилегии
         AddSingleton<IPrivilegeRegistry, PrivilegeRegistry>(service);
         AddSingleton<IPlayerPrivilegeStore, PlayerPrivilegeStore>(service);
         AddSingleton<IPrivilegeService, PrivilegeService>(service);
