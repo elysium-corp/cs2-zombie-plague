@@ -35,4 +35,14 @@ public static class AdminPermissions
     /// Разрешает убивать игроков.
     /// </summary>
     public const string Kill = "admin.kill";
+    
+    /// <summary>
+    /// Разрешает возрождать игроков.
+    /// </summary>
+    public const string Respawn = "admin.respawn";
+    
+    /// <summary>
+    /// Разрешает управлять текущим раундом.
+    /// </summary>
+    public const string Round = "admin.round";
 }

@@ -23,7 +23,9 @@ internal sealed class AdminMenu(
     IPrivilegeService privilegeService,
     KickMenu kickMenu,
     BanMenu banMenu,
-    KillMenu killMenu
+    KillMenu killMenu,
+    RespawnMenu respawnMenu,
+    RoundMenu roundMenu
 ) : DynamicOptionsMenu(core, extensionDispatcher)
 {
     public override string Id => AdminMenuIds.Main;
@@ -69,6 +71,16 @@ internal sealed class AdminMenu(
         {
             options.Add(BuildKillOption(), 3);
         }
+        
+        if (privilegeService.HasPermission(player.SteamID, AdminPermissions.Respawn))
+        {
+            options.Add(BuildRespawnOption(), 4);
+        }
+        
+        if (privilegeService.HasPermission(player.SteamID, AdminPermissions.Round))
+        {
+            options.Add(BuildRoundOption(), 5);
+        }
     }
     
     private ButtonMenuOption BuildKickOption()
@@ -106,6 +118,34 @@ internal sealed class AdminMenu(
         option.Click += (_, args) =>
         {
             Core.Scheduler.NextTickAsync(() => killMenu.Open(args.Player));
+
+            return ValueTask.CompletedTask;
+        };
+
+        return option;
+    }
+    
+    private ButtonMenuOption BuildRespawnOption()
+    {
+        var option = new ButtonMenuOption("Возродить");
+
+        option.Click += (_, args) =>
+        {
+            Core.Scheduler.NextTickAsync(() => respawnMenu.Open(args.Player));
+
+            return ValueTask.CompletedTask;
+        };
+
+        return option;
+    }
+    
+    private ButtonMenuOption BuildRoundOption()
+    {
+        var option = new ButtonMenuOption("Управление раундом");
+
+        option.Click += (_, args) =>
+        {
+            Core.Scheduler.NextTickAsync(() => roundMenu.Open(args.Player));
 
             return ValueTask.CompletedTask;
         };
