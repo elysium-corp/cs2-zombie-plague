@@ -1,4 +1,5 @@
 ﻿using Admin.Api.Data;
+using Admin.Core.Data;
 
 namespace Admin.Core.Registry;
 

@@ -32,6 +32,16 @@ public sealed class AdminDbContext(DbContextOptions<AdminDbContext> options) : D
     private static void ConfigurePermissions(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<PermissionEntity>()
+            .ToTable(
+                "permissions",
+                SchemaName,
+                table => table.HasCheckConstraint(
+                    "ck_permissions_key_lowercase",
+                    "\"key\" = lower(\"key\")"
+                )
+            );
+
+        modelBuilder.Entity<PermissionEntity>()
             .Property(x => x.CreatedAtUtc)
             .HasDefaultValueSql(PostgreSqlCurrentTimestamp);
 
@@ -42,6 +52,24 @@ public sealed class AdminDbContext(DbContextOptions<AdminDbContext> options) : D
 
     private static void ConfigurePrivileges(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<PrivilegeEntity>()
+            .ToTable(
+                "privileges",
+                SchemaName,
+                table =>
+                {
+                    table.HasCheckConstraint(
+                        "ck_privileges_group_lowercase",
+                        "\"group_name\" = lower(\"group_name\")"
+                    );
+
+                    table.HasCheckConstraint(
+                        "ck_privileges_code_lowercase",
+                        "\"code\" = lower(\"code\")"
+                    );
+                }
+            );
+
         modelBuilder.Entity<PrivilegeEntity>()
             .Property(x => x.CreatedAtUtc)
             .HasDefaultValueSql(PostgreSqlCurrentTimestamp);

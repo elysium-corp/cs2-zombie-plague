@@ -60,7 +60,10 @@ namespace Admin.Core.Database.Migrations
                     b.HasIndex(new[] { "Key" }, "ux_permissions_key")
                         .IsUnique();
 
-                    b.ToTable("permissions", "admin");
+                    b.ToTable("permissions", "admin", t =>
+                        {
+                            t.HasCheckConstraint("ck_permissions_key_lowercase", "\"key\" = lower(\"key\")");
+                        });
                 });
 
             modelBuilder.Entity("Admin.Core.Database.Entities.PlayerPrivilegeEntity", b =>
@@ -154,7 +157,12 @@ namespace Admin.Core.Database.Migrations
                     b.HasIndex(new[] { "Group", "Code" }, "ux_privileges_group_code")
                         .IsUnique();
 
-                    b.ToTable("privileges", "admin");
+                    b.ToTable("privileges", "admin", t =>
+                        {
+                            t.HasCheckConstraint("ck_privileges_code_lowercase", "\"code\" = lower(\"code\")");
+
+                            t.HasCheckConstraint("ck_privileges_group_lowercase", "\"group_name\" = lower(\"group_name\")");
+                        });
                 });
 
             modelBuilder.Entity("Admin.Core.Database.Entities.PrivilegePermissionEntity", b =>

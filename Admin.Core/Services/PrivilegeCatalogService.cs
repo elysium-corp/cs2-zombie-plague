@@ -1,4 +1,5 @@
 ﻿using Admin.Api.Data;
+using Admin.Core.Data;
 using Admin.Core.Registry;
 
 namespace Admin.Core.Services;

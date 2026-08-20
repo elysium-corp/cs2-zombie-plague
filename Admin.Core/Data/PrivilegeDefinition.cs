@@ -1,10 +1,10 @@
-﻿namespace Admin.Api.Data;
+﻿namespace Admin.Core.Data;
 
 /// <summary>
 /// Описывает данные, необходимые для регистрации новой привилегии.
 /// </summary>
 /// <param name="Id">
-/// Идентификатор привилегии внутри группы, например <c>owner</c> или <c>moderator</c>.
+/// Идентификатор привилегии внутри группы, например <c>owner</c> или <c>staff</c>.
 /// </param>
 /// <param name="Group">
 /// Логическая группа привилегии, например <c>admin</c> или <c>vip</c>.
