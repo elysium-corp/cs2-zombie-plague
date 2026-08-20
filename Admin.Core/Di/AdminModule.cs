@@ -38,9 +38,11 @@ internal sealed class AdminModule(ISwiftlyCore core) : BaseModule(core)
         AddSingleton<IPrivilegePersistenceService, PrivilegePersistenceService>(service);
         AddSingleton<IPrivilegeCatalogService, PrivilegeCatalogService>(service);
         
-        // Админ меню
+        // Меню
         AddSingleton<MenuExtensionDispatcherProxy>(service);
         AddSingleton<IMenuExtensionDispatcher>(service, provider => provider.GetRequiredService<MenuExtensionDispatcherProxy>());
+        
+        AddSingleton<KickMenu>(service);
         AddSingleton<AdminMenu>(service);
     }
 

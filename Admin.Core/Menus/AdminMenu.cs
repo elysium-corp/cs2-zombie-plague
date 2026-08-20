@@ -4,6 +4,7 @@ using Admin.Core.Services;
 using Menu.Api.Data;
 using Menu.Api.Data.Contracts;
 using Menu.Api.Extensions;
+using SwiftlyS2.Core.Menus.OptionsBase;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Menus;
 using SwiftlyS2.Shared.Players;
@@ -19,7 +20,8 @@ namespace Admin.Core.Menus;
 internal sealed class AdminMenu(
     ISwiftlyCore core,
     IMenuExtensionDispatcher extensionDispatcher,
-    IPrivilegeService privilegeService
+    IPrivilegeService privilegeService,
+    KickMenu kickMenu
 ) : DynamicOptionsMenu(core, extensionDispatcher)
 {
     public override string Id => AdminMenuIds.Main;
@@ -51,9 +53,23 @@ internal sealed class AdminMenu(
 
     protected override void BuildOptions(IPlayer player, MenuOptionsCollection options)
     {
-        // Базовых пунктов пока нет.
-        //
-        // Пункты добавляются другими модулями через
-        // IMenuExtensionRegistry.Subscribe(AdminMenuIds.Main, ...).
+        if (privilegeService.HasPermission(player.SteamID, AdminPermissions.Kick))
+        {
+            options.Add(BuildKickOption(), 1);
+        }
+    }
+    
+    private ButtonMenuOption BuildKickOption()
+    {
+        var option = new ButtonMenuOption("Кикнуть");
+
+        option.Click += (_, args) =>
+        {
+            Core.Scheduler.NextTickAsync(() => kickMenu.Open(args.Player));
+
+            return ValueTask.CompletedTask;
+        };
+
+        return option;
     }
 }
