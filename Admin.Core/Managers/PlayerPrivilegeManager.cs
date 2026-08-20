@@ -66,11 +66,23 @@ internal sealed class PlayerPrivilegeManager(
 
     private async Task LoadAsync(ulong steamId, long sessionId)
     {
-        var privileges = await databaseOperations
-            .RunAsync(steamId, () => persistenceService.LoadAsync(steamId))
-            .ConfigureAwait(false);
+        try
+        {
+            var privileges = await databaseOperations
+                .RunAsync(steamId, () => persistenceService.LoadAsync(steamId))
+                .ConfigureAwait(false);
 
-        ApplyLoaded(steamId, sessionId, privileges);
+            ApplyLoaded(steamId, sessionId, privileges);
+        }
+        catch
+        {
+            if (IsCurrentSession(steamId, sessionId))
+            {
+                playerPrivilegeStore.Remove(steamId);
+            }
+
+            throw;
+        }
     }
     
     public Task<bool> ReloadAsync(ulong steamId)
@@ -88,26 +100,38 @@ internal sealed class PlayerPrivilegeManager(
     
     private async Task<bool> ReloadInternalAsync(ulong steamId, long sessionId)
     {
-        var privileges = await databaseOperations
-            .RunAsync(
-                steamId,
-                () => persistenceService.LoadAsync(steamId)
-            )
-            .ConfigureAwait(false);
-
-        if (!_sessions.TryGetValue(steamId, out var currentSessionId) || currentSessionId != sessionId)
+        try
         {
-            return false;
+            var privileges = await databaseOperations
+                .RunAsync(
+                    steamId,
+                    () => persistenceService.LoadAsync(steamId)
+                )
+                .ConfigureAwait(false);
+
+            if (!IsCurrentSession(steamId, sessionId))
+            {
+                return false;
+            }
+
+            playerPrivilegeStore.Set(steamId, privileges);
+
+            return true;
         }
+        catch
+        {
+            if (IsCurrentSession(steamId, sessionId))
+            {
+                playerPrivilegeStore.Remove(steamId);
+            }
 
-        playerPrivilegeStore.Set(steamId, privileges);
-
-        return true;
+            throw;
+        }
     }
 
     private void ApplyLoaded(ulong steamId, long sessionId, IReadOnlyCollection<PlayerPrivilege> privileges)
     {
-        if (!_sessions.TryGetValue(steamId, out var currentSessionId) || currentSessionId != sessionId)
+        if (!IsCurrentSession(steamId, sessionId))
         {
             return;
         }
@@ -118,5 +142,11 @@ internal sealed class PlayerPrivilegeManager(
     private static bool CanInitialize(IPlayer player)
     {
         return player is { IsValid: true, IsAuthorized: true, IsFakeClient: false } && player.SteamID != 0;
+    }
+    
+    private bool IsCurrentSession(ulong steamId, long sessionId)
+    {
+        return _sessions.TryGetValue(steamId, out var currentSessionId) &&
+               currentSessionId == sessionId;
     }
 }
