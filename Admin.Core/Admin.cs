@@ -50,8 +50,8 @@ internal sealed partial class Admin(ISwiftlyCore core) : Plugin<AdminModule>(cor
         Core.GameEvent.Unhook(_guidOnPlayerConnectFullPost);
         Core.GameEvent.Unhook(_guidOnPlayerDisconnectPre);
 
-        _playerPrivilegeManager.Value.StopAndWait();
         _playerPrivilegeRefreshService.Value.StopAndWait();
+        _playerPrivilegeManager.Value.StopAndWait();
     }
     
     protected override void OnConfigureSharedInterfaces(IInterfaceManager interfaceManager)
