@@ -3,10 +3,12 @@ using Admin.Core.Api;
 using Admin.Core.Database;
 using Admin.Core.Di;
 using Admin.Core.Managers;
+using Admin.Core.Menus;
 using Admin.Core.Registry;
 using Admin.Core.Services;
 using Common.Database.Migrator;
 using Common.Di;
+using Menu.Api;
 using Microsoft.Extensions.Logging;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
@@ -33,6 +35,9 @@ internal sealed partial class Admin(ISwiftlyCore core) : Plugin<AdminModule>(cor
     private readonly Lazy<IPlayerPrivilegeRefreshService> _playerPrivilegeRefreshService = GetRequiredServiceLazy<IPlayerPrivilegeRefreshService>();
     private readonly Lazy<IPrivilegeCatalogService> _privilegeCatalogService = GetRequiredServiceLazy<IPrivilegeCatalogService>();
     
+    private readonly Lazy<AdminMenu> _adminMenu = GetRequiredServiceLazy<AdminMenu>();
+    private readonly Lazy<MenuExtensionDispatcherProxy> _menuApiBridge = GetRequiredServiceLazy<MenuExtensionDispatcherProxy>();
+    
     protected override void OnStart()
     {
         if (!TryMigrateDatabase())
@@ -47,17 +52,28 @@ internal sealed partial class Admin(ISwiftlyCore core) : Plugin<AdminModule>(cor
     {
         _guidOnPlayerConnectFullPost = Core.GameEvent.HookPost<EventPlayerConnectFull>(OnPlayerConnectFull);
         _guidOnPlayerDisconnectPre = Core.GameEvent.HookPre<EventPlayerDisconnect>(OnPlayerDisconnect);
-        
+
+        _adminMenu.Value.RegisterCommands();
+
         _playerPrivilegeRefreshService.Value.Start();
     }
     
     protected override void OnUnload()
     {
+        _adminMenu.Value.UnregisterCommands();
+
         Core.GameEvent.Unhook(_guidOnPlayerConnectFullPost);
         Core.GameEvent.Unhook(_guidOnPlayerDisconnectPre);
 
         _playerPrivilegeRefreshService.Value.StopAndWait();
         _playerPrivilegeManager.Value.StopAndWait();
+    }
+    
+    protected override void OnSharedInterfacesInjected(IInterfaceManager interfaceManager)
+    {
+        var menuApi = interfaceManager.GetSharedInterface<IMenuApi>(IMenuApi.SharedApiKey);
+
+        _menuApiBridge.Value.Initialize(menuApi);
     }
     
     protected override void OnConfigureSharedInterfaces(IInterfaceManager interfaceManager)

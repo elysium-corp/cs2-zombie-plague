@@ -1,11 +1,13 @@
 ﻿using Admin.Core.Database;
 using Admin.Core.Managers;
+using Admin.Core.Menus;
 using Admin.Core.Registry;
 using Admin.Core.Services;
 using Admin.Core.Store;
 using Common.Database;
 using Common.Database.Utils;
 using Common.Di;
+using Menu.Api.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using SwiftlyS2.Shared;
 
@@ -35,6 +37,11 @@ internal sealed class AdminModule(ISwiftlyCore core) : BaseModule(core)
         AddSingleton<IPlayerPrivilegeRefreshService, PlayerPrivilegeRefreshService>(service);
         AddSingleton<IPrivilegePersistenceService, PrivilegePersistenceService>(service);
         AddSingleton<IPrivilegeCatalogService, PrivilegeCatalogService>(service);
+        
+        // Админ меню
+        AddSingleton<MenuExtensionDispatcherProxy>(service);
+        AddSingleton<IMenuExtensionDispatcher>(service, provider => provider.GetRequiredService<MenuExtensionDispatcherProxy>());
+        AddSingleton<AdminMenu>(service);
     }
 
     private void AddDatabase(ServiceCollection service)

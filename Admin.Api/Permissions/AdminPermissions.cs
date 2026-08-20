@@ -25,4 +25,9 @@ public static class AdminPermissions
     /// Разрешает блокировать игроков.
     /// </summary>
     public const string Ban = "admin.ban";
+    
+    /// <summary>
+    /// Разрешает открывать административное меню.
+    /// </summary>
+    public const string Menu = "admin.menu";
 }

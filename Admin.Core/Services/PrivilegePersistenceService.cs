@@ -1,5 +1,4 @@
-﻿using Admin.Api.Data;
-using Admin.Core.Data;
+﻿using Admin.Core.Data;
 using Admin.Core.Database;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,7 +6,8 @@ namespace Admin.Core.Services;
 
 internal sealed class PrivilegePersistenceService(IDbContextFactory<AdminDbContext> dbContextFactory) : IPrivilegePersistenceService
 {
-    public async Task<IReadOnlyCollection<PrivilegeDefinition>> LoadAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyCollection<PrivilegeDefinition>> LoadAsync(
+        CancellationToken cancellationToken = default)
     {
         await using var context = await dbContextFactory
             .CreateDbContextAsync(cancellationToken)
@@ -15,19 +15,43 @@ internal sealed class PrivilegePersistenceService(IDbContextFactory<AdminDbConte
 
         var privileges = await context.Privileges
             .AsNoTracking()
-            .Include(x => x.PrivilegePermissions)
-            .ThenInclude(x => x.Permission)
+            .Select(x => new
+            {
+                x.Group,
+                x.Code,
+
+                Permissions = x.PrivilegePermissions
+                    .Select(link => link.Permission.Key)
+                    .ToArray()
+            })
+            .ToArrayAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        var allPermissions = await context.Permissions
+            .AsNoTracking()
+            .Select(x => x.Key)
             .ToArrayAsync(cancellationToken)
             .ConfigureAwait(false);
 
         return privileges
-            .Select(x => new PrivilegeDefinition(
-                Id: x.Code,
-                Group: x.Group,
-                Permissions: x.PrivilegePermissions
-                    .Select(link => link.Permission.Key)
-                    .ToHashSet(StringComparer.OrdinalIgnoreCase)
-            ))
+            .Select(x =>
+            {
+                var key = $"{x.Group}.{x.Code}";
+
+                var permissions = string.Equals(
+                    key,
+                    AdminPrivilegeKeys.Owner,
+                    StringComparison.OrdinalIgnoreCase
+                )
+                    ? allPermissions
+                    : x.Permissions;
+
+                return new PrivilegeDefinition(
+                    Id: x.Code,
+                    Group: x.Group,
+                    Permissions: permissions.ToHashSet(StringComparer.OrdinalIgnoreCase)
+                );
+            })
             .ToArray();
     }
 }
