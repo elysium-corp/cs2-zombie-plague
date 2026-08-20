@@ -22,7 +22,8 @@ internal sealed class AdminMenu(
     IMenuExtensionDispatcher extensionDispatcher,
     IPrivilegeService privilegeService,
     KickMenu kickMenu,
-    BanMenu banMenu
+    BanMenu banMenu,
+    KillMenu killMenu
 ) : DynamicOptionsMenu(core, extensionDispatcher)
 {
     public override string Id => AdminMenuIds.Main;
@@ -63,6 +64,11 @@ internal sealed class AdminMenu(
         {
             options.Add(BuildBanOption(), 2);
         }
+        
+        if (privilegeService.HasPermission(player.SteamID, AdminPermissions.Kill))
+        {
+            options.Add(BuildKillOption(), 3);
+        }
     }
     
     private ButtonMenuOption BuildKickOption()
@@ -86,6 +92,20 @@ internal sealed class AdminMenu(
         option.Click += (_, args) =>
         {
             Core.Scheduler.NextTickAsync(() => banMenu.Open(args.Player));
+
+            return ValueTask.CompletedTask;
+        };
+
+        return option;
+    }
+    
+    private ButtonMenuOption BuildKillOption()
+    {
+        var option = new ButtonMenuOption("Убить");
+
+        option.Click += (_, args) =>
+        {
+            Core.Scheduler.NextTickAsync(() => killMenu.Open(args.Player));
 
             return ValueTask.CompletedTask;
         };

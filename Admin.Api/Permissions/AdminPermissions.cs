@@ -30,4 +30,9 @@ public static class AdminPermissions
     /// Разрешает открывать административное меню.
     /// </summary>
     public const string Menu = "admin.menu";
+    
+    /// <summary>
+    /// Разрешает убивать игроков.
+    /// </summary>
+    public const string Kill = "admin.kill";
 }

@@ -46,6 +46,7 @@ internal sealed class AdminModule(ISwiftlyCore core) : BaseModule(core)
         
         AddSingleton<KickMenu>(service);
         AddSingleton<BanMenu>(service);
+        AddSingleton<KillMenu>(service);
         AddSingleton<AdminMenu>(service);
     }
 
