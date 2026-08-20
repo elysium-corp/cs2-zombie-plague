@@ -6,33 +6,42 @@ namespace Admin.Core.Registry;
 
 internal sealed class PrivilegeRegistry : IPrivilegeRegistry
 {
-    private readonly Dictionary<string, Privilege> _privileges = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly FrozenDictionary<string, Privilege> Empty = new Dictionary<string, Privilege>()
+            .ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
-    public IPrivilege Register(PrivilegeDefinition definition)
+    private volatile FrozenDictionary<string, Privilege> _privileges = Empty;
+
+    public void ReplaceAll(IEnumerable<PrivilegeDefinition> definitions)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(definition.Id);
-        ArgumentException.ThrowIfNullOrWhiteSpace(definition.Group);
+        ArgumentNullException.ThrowIfNull(definitions);
 
-        var privilege = new Privilege
-        {
-            Id = definition.Id,
-            Group = definition.Group,
-            Permissions = definition.Permissions.ToFrozenSet(StringComparer.OrdinalIgnoreCase)
-        };
+        var privileges = new Dictionary<string, Privilege>(
+            StringComparer.OrdinalIgnoreCase
+        );
 
-        if (_privileges.TryGetValue(privilege.Key, out var existing))
+        foreach (var definition in definitions)
         {
-            if (existing.Permissions.SetEquals(privilege.Permissions))
+            ArgumentException.ThrowIfNullOrWhiteSpace(definition.Id);
+            ArgumentException.ThrowIfNullOrWhiteSpace(definition.Group);
+
+            var privilege = new Privilege
             {
-                return existing;
-            }
+                Id = definition.Id,
+                Group = definition.Group,
+                Permissions = definition.Permissions.ToFrozenSet(
+                    StringComparer.OrdinalIgnoreCase
+                )
+            };
 
-            throw new InvalidOperationException($"Privilege '{privilege.Key}' is already registered!");
+            if (!privileges.TryAdd(privilege.Key, privilege))
+            {
+                throw new InvalidOperationException($"Privilege '{privilege.Key}' is duplicated!");
+            }
         }
 
-        _privileges.Add(privilege.Key, privilege);
-
-        return privilege;
+        _privileges = privileges.ToFrozenDictionary(
+            StringComparer.OrdinalIgnoreCase
+        );
     }
 
     public IPrivilege? Find(string key)

@@ -8,6 +8,7 @@ namespace Admin.Core.Services;
 /// из persistent-хранилища.
 /// </summary>
 internal sealed class PlayerPrivilegeRefreshService(
+    IPrivilegeCatalogService privilegeCatalogService,
     IPlayerPrivilegeManager playerPrivilegeManager,
     ILogger<PlayerPrivilegeRefreshService> logger) : IPlayerPrivilegeRefreshService
 {
@@ -71,6 +72,10 @@ internal sealed class PlayerPrivilegeRefreshService(
     {
         try
         {
+            await privilegeCatalogService
+                .ReloadAsync()
+                .ConfigureAwait(false);
+
             await playerPrivilegeManager
                 .ReloadAllAsync()
                 .ConfigureAwait(false);
@@ -79,7 +84,7 @@ internal sealed class PlayerPrivilegeRefreshService(
         {
             logger.LogError(
                 exception,
-                "Failed to refresh player privileges!"
+                "Failed to refresh admin privileges!"
             );
         }
     }

@@ -12,11 +12,6 @@ internal sealed class AdminApi(
     IPrivilegeService privilegeService,
     IPlayerPrivilegeManager playerPrivilegeManager) : IAdminApi
 {
-    public IPrivilege RegisterPrivilege(PrivilegeDefinition definition)
-    {
-        return privilegeRegistry.Register(definition);
-    }
-
     public IPrivilege? FindPrivilege(string key)
     {
         return privilegeRegistry.Find(key);

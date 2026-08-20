@@ -13,20 +13,12 @@ namespace Admin.Core.Registry;
 internal interface IPrivilegeRegistry
 {
     /// <summary>
-    /// Регистрирует определение привилегии.
+    /// Полностью заменяет текущий runtime-набор определений привилегий.
     /// </summary>
-    /// <param name="definition">Описание привилегии.</param>
-    /// <returns>
-    /// Новый зарегистрированный объект либо уже существующий объект,
-    /// если повторная регистрация полностью совпадает по набору разрешений.
-    /// </returns>
-    /// <exception cref="ArgumentException">
-    /// Идентификатор или группа пусты.
-    /// </exception>
-    /// <exception cref="InvalidOperationException">
-    /// Такой ключ уже зарегистрирован с другим набором разрешений.
-    /// </exception>
-    IPrivilege Register(PrivilegeDefinition definition);
+    /// <param name="definitions">
+    /// Актуальные определения привилегий из persistent-хранилища.
+    /// </param>
+    void ReplaceAll(IEnumerable<PrivilegeDefinition> definitions);
 
     /// <summary>
     /// Ищет зарегистрированную привилегию по ключу без учёта регистра.

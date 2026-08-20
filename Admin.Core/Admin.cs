@@ -31,10 +31,16 @@ internal sealed partial class Admin(ISwiftlyCore core) : Plugin<AdminModule>(cor
     private readonly Lazy<DatabaseMigrator<AdminDbContext>> _databaseMigrator = GetRequiredServiceLazy<DatabaseMigrator<AdminDbContext>>();
     private readonly Lazy<IPlayerPrivilegeManager> _playerPrivilegeManager = GetRequiredServiceLazy<IPlayerPrivilegeManager>();
     private readonly Lazy<IPlayerPrivilegeRefreshService> _playerPrivilegeRefreshService = GetRequiredServiceLazy<IPlayerPrivilegeRefreshService>();
+    private readonly Lazy<IPrivilegeCatalogService> _privilegeCatalogService = GetRequiredServiceLazy<IPrivilegeCatalogService>();
     
     protected override void OnStart()
     {
-        TryMigrateDatabase();
+        if (!TryMigrateDatabase())
+        {
+            return;
+        }
+
+        TryLoadPrivilegeCatalog();
     }
     
     protected override void OnReady()
@@ -93,15 +99,40 @@ internal sealed partial class Admin(ISwiftlyCore core) : Plugin<AdminModule>(cor
         return HookResult.Continue;
     }
     
-    private void TryMigrateDatabase()
+    private bool TryMigrateDatabase()
     {
         try
         {
             _databaseMigrator.Value.Migrate();
+
+            return true;
         }
         catch (Exception exception)
         {
-            Core.Logger.LogError(exception, "Admin database migration failed. Database privileges will be unavailable!");
+            Core.Logger.LogError(
+                exception,
+                "Admin database migration failed. Database privileges will be unavailable!"
+            );
+
+            return false;
+        }
+    }
+    
+    private void TryLoadPrivilegeCatalog()
+    {
+        try
+        {
+            _privilegeCatalogService.Value
+                .ReloadAsync()
+                .GetAwaiter()
+                .GetResult();
+        }
+        catch (Exception exception)
+        {
+            Core.Logger.LogError(
+                exception,
+                "Failed to load admin privilege catalog!"
+            );
         }
     }
 }
