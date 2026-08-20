@@ -30,6 +30,7 @@ internal sealed partial class Admin(ISwiftlyCore core) : Plugin<AdminModule>(cor
     private readonly Lazy<IPrivilegeService> _privilegeService = GetRequiredServiceLazy<IPrivilegeService>();
     private readonly Lazy<DatabaseMigrator<AdminDbContext>> _databaseMigrator = GetRequiredServiceLazy<DatabaseMigrator<AdminDbContext>>();
     private readonly Lazy<IPlayerPrivilegeManager> _playerPrivilegeManager = GetRequiredServiceLazy<IPlayerPrivilegeManager>();
+    private readonly Lazy<IPlayerPrivilegeRefreshService> _playerPrivilegeRefreshService = GetRequiredServiceLazy<IPlayerPrivilegeRefreshService>();
     
     protected override void OnStart()
     {
@@ -40,6 +41,8 @@ internal sealed partial class Admin(ISwiftlyCore core) : Plugin<AdminModule>(cor
     {
         _guidOnPlayerConnectFullPost = Core.GameEvent.HookPost<EventPlayerConnectFull>(OnPlayerConnectFull);
         _guidOnPlayerDisconnectPre = Core.GameEvent.HookPre<EventPlayerDisconnect>(OnPlayerDisconnect);
+        
+        _playerPrivilegeRefreshService.Value.Start();
     }
     
     protected override void OnUnload()
@@ -48,6 +51,7 @@ internal sealed partial class Admin(ISwiftlyCore core) : Plugin<AdminModule>(cor
         Core.GameEvent.Unhook(_guidOnPlayerDisconnectPre);
 
         _playerPrivilegeManager.Value.StopAndWait();
+        _playerPrivilegeRefreshService.Value.StopAndWait();
     }
     
     protected override void OnConfigureSharedInterfaces(IInterfaceManager interfaceManager)

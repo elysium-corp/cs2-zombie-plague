@@ -14,7 +14,7 @@
 ///
 /// Привилегия <c>admin.owner</c>, в свою очередь, может содержать несколько таких разрешений.
 /// </remarks>
-public class AdminPermissions
+public static class AdminPermissions
 {
     /// <summary>
     /// Разрешает исключать игроков с сервера.
