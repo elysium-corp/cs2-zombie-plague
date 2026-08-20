@@ -41,7 +41,7 @@ internal sealed class BanMenu(
 
         var players = Core.PlayerManager
             .GetAllValidPlayers()
-            .Where(target => !target.IsFakeClient && target.IsAuthorized && target.SteamID != 0 && target.PlayerID != player.PlayerID)
+            .Where(target => target.IsAuthorized && target.SteamID != 0 && target.PlayerID != player.PlayerID)
             .OrderBy(target => target.Controller.PlayerName, StringComparer.OrdinalIgnoreCase);
 
         foreach (var target in players)
