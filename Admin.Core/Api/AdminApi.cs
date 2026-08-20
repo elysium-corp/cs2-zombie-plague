@@ -1,6 +1,5 @@
 ﻿using Admin.Api;
 using Admin.Api.Data;
-using Admin.Core.Managers;
 using Admin.Core.Registry;
 using Admin.Core.Services;
 using SwiftlyS2.Shared.Players;
@@ -9,8 +8,7 @@ namespace Admin.Core.Api;
 
 internal sealed class AdminApi(
     IPrivilegeRegistry privilegeRegistry,
-    IPrivilegeService privilegeService,
-    IPlayerPrivilegeManager playerPrivilegeManager) : IAdminApi
+    IPrivilegeService privilegeService) : IAdminApi
 {
     public IPrivilege? FindPrivilege(string key)
     {
@@ -35,42 +33,5 @@ internal sealed class AdminApi(
     public bool HasPermission(IPlayer player, string permission)
     {
         return privilegeService.HasPermission(player.SteamID, permission);
-    }
-    
-    public Task<bool> GrantPrivilegeAsync(
-        ulong steamId,
-        string privilegeKey,
-        DateTime? expiresAtUtc = null)
-    {
-        return playerPrivilegeManager.GrantAsync(steamId, privilegeKey, expiresAtUtc);
-    }
-
-    public Task<bool> RevokePrivilegeAsync(ulong steamId, string privilegeKey)
-    {
-        return playerPrivilegeManager.RevokeAsync(steamId, privilegeKey);
-    }
-    
-    public async Task<PlayerPrivilegeInfo?> FindPlayerPrivilegeAsync(ulong steamId, string privilegeKey)
-    {
-        var playerPrivilege = await playerPrivilegeManager
-            .FindAsync(steamId, privilegeKey)
-            .ConfigureAwait(false);
-
-        if (playerPrivilege == null)
-        {
-            return null;
-        }
-
-        return new PlayerPrivilegeInfo(
-            playerPrivilege.Key,
-            playerPrivilege.ExpiresAtUtc,
-            playerPrivilege.CreatedAtUtc,
-            playerPrivilege.UpdatedAtUtc
-        );
-    }
-
-    public Task<bool> ExtendPrivilegeAsync(ulong steamId, string privilegeKey, TimeSpan duration)
-    {
-        return playerPrivilegeManager.ExtendAsync(steamId, privilegeKey, duration);
     }
 }

@@ -64,8 +64,7 @@ internal sealed partial class Admin(ISwiftlyCore core) : Plugin<AdminModule>(cor
     {
         var api = new AdminApi(
             _privilegeRegistry.Value,
-            _privilegeService.Value,
-            _playerPrivilegeManager.Value
+            _privilegeService.Value
         );
 
         interfaceManager.AddSharedInterface<IAdminApi, AdminApi>(IAdminApi.SharedApiKey, api);
