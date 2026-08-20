@@ -7,12 +7,11 @@ public sealed class AdminDbContext(DbContextOptions<AdminDbContext> options) : D
 {
     public const string SchemaName = "admin";
 
+    internal DbSet<BanEntity> Bans => Set<BanEntity>();
+
     internal DbSet<PermissionEntity> Permissions => Set<PermissionEntity>();
-
     internal DbSet<PrivilegeEntity> Privileges => Set<PrivilegeEntity>();
-
     internal DbSet<PrivilegePermissionEntity> PrivilegePermissions => Set<PrivilegePermissionEntity>();
-
     internal DbSet<PlayerPrivilegeEntity> PlayerPrivileges => Set<PlayerPrivilegeEntity>();
 
     private const string PostgreSqlCurrentTimestamp = "CURRENT_TIMESTAMP";
@@ -23,10 +22,24 @@ public sealed class AdminDbContext(DbContextOptions<AdminDbContext> options) : D
 
         modelBuilder.HasDefaultSchema(SchemaName);
 
+        modelBuilder.HasDefaultSchema(SchemaName);
+
+        ConfigureBans(modelBuilder);
         ConfigurePermissions(modelBuilder);
         ConfigurePrivileges(modelBuilder);
         ConfigurePrivilegePermissions(modelBuilder);
         ConfigurePlayerPrivileges(modelBuilder);
+    }
+    
+    private static void ConfigureBans(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<BanEntity>()
+            .Property(x => x.CreatedAtUtc)
+            .HasDefaultValueSql(PostgreSqlCurrentTimestamp);
+
+        modelBuilder.Entity<BanEntity>()
+            .Property(x => x.UpdatedAtUtc)
+            .HasDefaultValueSql(PostgreSqlCurrentTimestamp);
     }
 
     private static void ConfigurePermissions(ModelBuilder modelBuilder)
