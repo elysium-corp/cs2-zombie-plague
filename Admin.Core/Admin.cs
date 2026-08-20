@@ -11,6 +11,7 @@ using Common.Di;
 using Menu.Api;
 using Microsoft.Extensions.Logging;
 using SwiftlyS2.Shared;
+using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Misc;
 
@@ -35,6 +36,8 @@ internal sealed partial class Admin(ISwiftlyCore core) : Plugin<AdminModule>(cor
     private readonly Lazy<IPlayerPrivilegeRefreshService> _playerPrivilegeRefreshService = GetRequiredServiceLazy<IPlayerPrivilegeRefreshService>();
     private readonly Lazy<IPrivilegeCatalogService> _privilegeCatalogService = GetRequiredServiceLazy<IPrivilegeCatalogService>();
     
+    private readonly Lazy<IBanEnforcementService> _banEnforcementService = GetRequiredServiceLazy<IBanEnforcementService>();
+    
     private readonly Lazy<AdminMenu> _adminMenu = GetRequiredServiceLazy<AdminMenu>();
     private readonly Lazy<MenuExtensionDispatcherProxy> _menuApiBridge = GetRequiredServiceLazy<MenuExtensionDispatcherProxy>();
     
@@ -50,16 +53,19 @@ internal sealed partial class Admin(ISwiftlyCore core) : Plugin<AdminModule>(cor
     
     protected override void OnReady()
     {
+        Core.Event.OnClientSteamAuthorize += OnClientSteamAuthorize;
+
         _guidOnPlayerConnectFullPost = Core.GameEvent.HookPost<EventPlayerConnectFull>(OnPlayerConnectFull);
         _guidOnPlayerDisconnectPre = Core.GameEvent.HookPre<EventPlayerDisconnect>(OnPlayerDisconnect);
 
         _adminMenu.Value.RegisterCommands();
-
         _playerPrivilegeRefreshService.Value.Start();
     }
     
     protected override void OnUnload()
     {
+        Core.Event.OnClientSteamAuthorize -= OnClientSteamAuthorize;
+
         _adminMenu.Value.UnregisterCommands();
 
         Core.GameEvent.Unhook(_guidOnPlayerConnectFullPost);
@@ -84,6 +90,18 @@ internal sealed partial class Admin(ISwiftlyCore core) : Plugin<AdminModule>(cor
         );
 
         interfaceManager.AddSharedInterface<IAdminApi, AdminApi>(IAdminApi.SharedApiKey, api);
+    }
+    
+    private void OnClientSteamAuthorize(IOnClientSteamAuthorizeEvent @event)
+    {
+        var player = Core.PlayerManager.GetPlayer(@event.PlayerId);
+
+        if (player is null)
+        {
+            return;
+        }
+
+        _banEnforcementService.Value.Check(player);
     }
     
     private HookResult OnPlayerConnectFull(EventPlayerConnectFull @event)

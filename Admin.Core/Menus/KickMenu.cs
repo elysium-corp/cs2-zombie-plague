@@ -27,7 +27,7 @@ internal sealed class KickMenu(ISwiftlyCore core, IPrivilegeService privilegeSer
 
         var players = Core.PlayerManager
             .GetAllValidPlayers()
-            .Where(target => target.PlayerID != player.PlayerID)
+            .Where(target => !player.IsFakeClient || target.PlayerID != player.PlayerID)
             .OrderBy(target => target.Controller.PlayerName, StringComparer.OrdinalIgnoreCase);
 
         foreach (var target in players)
@@ -62,7 +62,7 @@ internal sealed class KickMenu(ISwiftlyCore core, IPrivilegeService privilegeSer
             return ValueTask.CompletedTask;
         }
 
-        if (!target.IsValid || target.PlayerID == player.PlayerID)
+        if (!target.IsValid || !player.IsFakeClient || target.PlayerID == player.PlayerID)
         {
             return ValueTask.CompletedTask;
         }
