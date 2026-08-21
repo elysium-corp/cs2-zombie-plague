@@ -379,9 +379,20 @@ internal sealed class RoundManager(
             return;
         }
 
+        var playerId = player.PlayerID;
+        var sessionId = player.SessionId;
+
         core.Scheduler.DelayBySeconds(coreConfig.Value.ZombieSpawnDelay, () =>
         {
-            TryRespawnPlayer(player);
+            var currentPlayer = core.PlayerManager.GetPlayer(playerId);
+
+            if (currentPlayer is not { IsValid: true } ||
+                currentPlayer.SessionId != sessionId)
+            {
+                return;
+            }
+
+            TryRespawnPlayer(currentPlayer);
         });
     }
 

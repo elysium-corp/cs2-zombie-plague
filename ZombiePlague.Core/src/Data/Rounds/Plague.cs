@@ -126,22 +126,6 @@ internal sealed class Plague(
         return HookResult.Continue;
     }
     
-    public override bool TryRespawnPlayer(IPlayer player)
-    {
-        if (!player.IsValid || player.IsAlive)
-        {
-            return false;
-        }
-
-        if (!PlayerManager.IsZombie(player) &&
-            !PlayerManager.TryInfect(player))
-        {
-            return false;
-        }
-
-        return PlayerManager.TryRespawn(player);
-    }
-    
     private void ScheduleZombieRespawn(IPlayer player)
     {
         if (!config.ZombieRevived || !player.IsValid || player.IsAlive || !PlayerManager.IsZombie(player)) return;

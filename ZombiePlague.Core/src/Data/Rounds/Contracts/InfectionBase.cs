@@ -50,14 +50,44 @@ internal abstract class InfectionBase(
             return HookResult.Continue;
         }
 
-        if (!PlayerManager.IsZombie(player) && !PlayerManager.TryInfect(player))
+        Core.Scheduler.NextWorldUpdate(() => SpawnAsZombie(player));
+
+        return HookResult.Continue;
+    }
+    
+    protected override HookResult OnPlayerTeam(EventPlayerTeam @event)
+    {
+        if (@event.Disconnect || @event.OldTeam != (byte)Team.Spectator || @event.Team != (byte)Team.T)
         {
             return HookResult.Continue;
         }
 
-        Core.Scheduler.NextWorldUpdate(() => RespawnConnectedZombie(player));
+        var player = @event.UserIdPlayer;
+
+        if (player is not { IsValid: true })
+        {
+            return HookResult.Continue;
+        }
+
+        Core.Scheduler.NextWorldUpdate(() => SpawnAsZombie(player));
 
         return HookResult.Continue;
+    }
+    
+    public override bool TryRespawnPlayer(IPlayer player)
+    {
+        if (!player.IsValid || player.IsAlive)
+        {
+            return false;
+        }
+
+        if (!PlayerManager.IsZombie(player) &&
+            !PlayerManager.TryInfect(player))
+        {
+            return false;
+        }
+
+        return PlayerManager.TryRespawn(player);
     }
 
     private void RespawnConnectedZombie(IPlayer player)
@@ -79,5 +109,23 @@ internal abstract class InfectionBase(
             .Count(player => player.IsAlive);
 
         return aliveHumanCount > 1;
+    }
+    
+    private void SpawnAsZombie(IPlayer player)
+    {
+        if (!player.IsValid)
+        {
+            return;
+        }
+
+        if (!PlayerManager.IsZombie(player) && !PlayerManager.TryInfect(player))
+        {
+            return;
+        }
+
+        if (!player.IsAlive)
+        {
+            PlayerManager.TryRespawn(player);
+        }
     }
 }
