@@ -1,12 +1,19 @@
-﻿using Admin.Api.Menus;
+﻿using Admin.Api;
+using Admin.Api.Menus;
 using Menu.Api;
 using Menu.Api.Extensions;
 using SwiftlyS2.Core.Menus.OptionsBase;
 using SwiftlyS2.Shared;
+using SwiftlyS2.Shared.Players;
+using ZombiePlague.Api.Permissions;
 
 namespace ZombiePlague.Core.Menus.Admin;
 
-internal sealed class AdminMenuExtension(ISwiftlyCore core, AdminMenu adminMenu)
+internal sealed class AdminMenuExtension(
+    ISwiftlyCore core,
+    IAdminApi adminApi,
+    AdminMenu adminMenu
+)
 {
     private IDisposable? _subscription;
 
@@ -28,7 +35,12 @@ internal sealed class AdminMenuExtension(ISwiftlyCore core, AdminMenu adminMenu)
 
     private void ExtendAdminMenu(MenuExtensionContext context)
     {
-        var option = new ButtonMenuOption("[Zombie Mode] Админка");
+        if (!HasAnyPermission(context.Player))
+        {
+            return;
+        }
+
+        var option = new ButtonMenuOption("[Zombie Mode] Админ меню");
 
         option.Click += (_, args) =>
         {
@@ -43,5 +55,11 @@ internal sealed class AdminMenuExtension(ISwiftlyCore core, AdminMenu adminMenu)
             option,
             priority: 100
         );
+    }
+    
+    private bool HasAnyPermission(IPlayer player)
+    {
+        return adminApi.HasPermission(player, ZombiePlagueAdminPermissions.Infect) ||
+               adminApi.HasPermission(player, ZombiePlagueAdminPermissions.Disinfect);
     }
 }

@@ -72,7 +72,6 @@
 
     <ItemGroup>
         <Folder Include="resources\exports\" />
-        <Folder Include="src\Admin\" />
         <Folder Include="src\Data\Rounds\Exceptions\" />
     </ItemGroup>
 

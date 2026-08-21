@@ -1,15 +1,18 @@
-﻿using Menu.Api.Data;
+﻿using Admin.Api;
+using Menu.Api.Data;
 using Menu.Api.Data.Contracts;
 using SwiftlyS2.Core.Menus.OptionsBase;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Menus;
 using SwiftlyS2.Shared.Players;
+using ZombiePlague.Api.Permissions;
 using ZombiePlague.Core.Data.Managers.Contracts;
 
 namespace ZombiePlague.Core.Menus.Admin;
 
 internal sealed class InfectMenu(
     ISwiftlyCore core,
+    IAdminApi adminApi,
     IPlayerManager playerManager
 ) : MenuBase(core)
 {
@@ -43,6 +46,11 @@ internal sealed class InfectMenu(
 
         return builder.Build();
     }
+    
+    protected override bool CanOpenCore(IPlayer player)
+    {
+        return adminApi.HasPermission(player, ZombiePlagueAdminPermissions.Infect);
+    }
 
     protected override IMenuBuilderAPI ConfigureDesign(IPlayer player, IMenuDesignAPI design)
     {
@@ -58,9 +66,9 @@ internal sealed class InfectMenu(
 
         option.Click += (_, args) =>
         {
-            Core.Scheduler.NextTick(
-                () => InfectPlayer(target)
-            );
+            var administrator = args.Player;
+
+            Core.Scheduler.NextTick(() => InfectPlayer(administrator, target));
 
             return ValueTask.CompletedTask;
         };
@@ -68,8 +76,13 @@ internal sealed class InfectMenu(
         return option;
     }
 
-    private void InfectPlayer(InfectTarget target)
+    private void InfectPlayer(IPlayer administrator, InfectTarget target)
     {
+        if (!administrator.IsValid || !adminApi.HasPermission(administrator, ZombiePlagueAdminPermissions.Infect))
+        {
+            return;
+        }
+
         var player = Core.PlayerManager.GetPlayer(target.PlayerId);
 
         if (player is null ||
