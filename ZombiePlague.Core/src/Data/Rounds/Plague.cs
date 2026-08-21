@@ -117,19 +117,6 @@ internal sealed class Plague(
         return HookResult.Continue;
     }
 
-    protected override HookResult OnPlayerConnectedFull(EventPlayerConnectFull @event)
-    {
-        var player = @event.UserIdPlayer;
-
-        if (player is not { IsValid: true }) return HookResult.Continue;
-
-        PlayerManager.TryInfect(player);
-
-        ScheduleZombieRespawn(player);
-        
-        return HookResult.Continue; 
-    }
-
     protected override HookResult OnPlayerDisconnect(EventPlayerDisconnect @event)
     {
         var playerId = @event.PlayerID;
@@ -137,6 +124,22 @@ internal sealed class Plague(
         CancelRespawnTimer(playerId);
 
         return HookResult.Continue;
+    }
+    
+    public override bool TryRespawnPlayer(IPlayer player)
+    {
+        if (!player.IsValid || player.IsAlive)
+        {
+            return false;
+        }
+
+        if (!PlayerManager.IsZombie(player) &&
+            !PlayerManager.TryInfect(player))
+        {
+            return false;
+        }
+
+        return PlayerManager.TryRespawn(player);
     }
     
     private void ScheduleZombieRespawn(IPlayer player)

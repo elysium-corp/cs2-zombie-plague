@@ -2,6 +2,7 @@ using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Misc;
+using SwiftlyS2.Shared.Players;
 using ZombiePlague.Core.Data.Coordinators;
 using ZombiePlague.Core.Data.Coordinators.Contracts;
 using ZombiePlague.Core.Data.Managers.Contracts;
@@ -103,16 +104,40 @@ internal sealed class PlayerService(
             return HookResult.Continue;
         }
 
-        // Позволяем другим обработчикам смерти завершить работу до снятия роли.
+        var diedDuringPreparation = roundManager.IsPreparing;
+
+        // Позволяем обработчику текущего раунда сначала обработать смерть.
         core.Scheduler.NextWorldUpdate(() =>
         {
-            if (player.IsValid)
+            if (!player.IsValid)
             {
-                playerManager.TryDeactivateRole(player);
+                return;
             }
+
+            if (diedDuringPreparation)
+            {
+                RespawnPreparationPlayer(player);
+
+                return;
+            }
+
+            playerManager.TryDeactivateRole(player);
         });
 
         return HookResult.Continue;
+    }
+
+    private void RespawnPreparationPlayer(IPlayer player)
+    {
+        if (!playerManager.TrySetHuman(player))
+        {
+            return;
+        }
+
+        if (!player.IsAlive)
+        {
+            playerManager.TryRespawn(player);
+        }
     }
 
     private HookResult OnPlayerDisconnect(EventPlayerDisconnect @event)

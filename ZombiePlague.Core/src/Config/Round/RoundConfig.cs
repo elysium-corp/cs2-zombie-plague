@@ -34,9 +34,9 @@ public sealed class InfectionConfig : IRoundConfig
     public int Weight { get; set; } = 20;
 
     /// <summary>
-    /// Разрешено ли возрождение зомби в течение раунда.
-    /// Если <c>true</c>, умершие/подключившиеся игроки возрождаются зомби
-    /// (через <see cref="ZombieSpawnTime"/>).
+    /// Разрешено ли возрождение умерших зомби в течение раунда.
+    /// Подключившиеся во время раунда игроки возрождаются зомби
+    /// независимо от этого параметра.
     /// </summary>
     public bool ZombieRevived { get; set; } = true;
 

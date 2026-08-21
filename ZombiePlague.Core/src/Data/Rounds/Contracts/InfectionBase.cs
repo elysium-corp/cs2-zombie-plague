@@ -1,5 +1,7 @@
 ﻿using SwiftlyS2.Shared;
+using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.GameHooks;
+using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Players;
 using ZombiePlague.Core.Data.Managers.Contracts;
 using ZombiePlague.Core.Utils.Extensions;
@@ -37,6 +39,35 @@ internal abstract class InfectionBase(
         }
 
         PlayerManager.TryInfect(victim, attacker);
+    }
+    
+    protected override HookResult OnPlayerConnectedFull(EventPlayerConnectFull @event)
+    {
+        var player = @event.UserIdPlayer;
+
+        if (player is not { IsValid: true })
+        {
+            return HookResult.Continue;
+        }
+
+        if (!PlayerManager.IsZombie(player) && !PlayerManager.TryInfect(player))
+        {
+            return HookResult.Continue;
+        }
+
+        Core.Scheduler.NextWorldUpdate(() => RespawnConnectedZombie(player));
+
+        return HookResult.Continue;
+    }
+
+    private void RespawnConnectedZombie(IPlayer player)
+    {
+        if (!player.IsValid || player.IsAlive || !PlayerManager.IsZombie(player))
+        {
+            return;
+        }
+
+        PlayerManager.TryRespawn(player);
     }
 
     private bool CanInfect(IPlayer attacker, IPlayer victim)

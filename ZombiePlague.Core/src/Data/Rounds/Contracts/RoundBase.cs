@@ -75,6 +75,11 @@ internal abstract class RoundBase(ISwiftlyCore core, IPlayerManager playerManage
             _ => null
         };
     }
+    
+    public virtual bool TryRespawnPlayer(IPlayer player)
+    {
+        return false;
+    }
 
     private void TryRequestRoundEnd()
     {
