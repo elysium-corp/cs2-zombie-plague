@@ -4,6 +4,7 @@ using Menu.Api;
 using Microsoft.Extensions.Logging;
 using SwiftlyS2.Shared;
 using ZombiePlague.Api;
+using ZombiePlague.Core.Admin;
 using ZombiePlague.Core.Api;
 using ZombiePlague.Core.Data.Coordinators.Contracts;
 using ZombiePlague.Core.Data.Plugins.ResourceLoader;
@@ -29,6 +30,8 @@ public sealed partial class ZombiePlague(ISwiftlyCore core) : Plugin<ZombiePlagu
     private readonly Lazy<MenuExtensionDispatcherProxy> _menuApiBridge = GetRequiredServiceLazy<MenuExtensionDispatcherProxy>();
     private readonly Lazy<DatabaseMigrator<ZombiePlagueDbContext>> _databaseMigrator = GetRequiredServiceLazy<DatabaseMigrator<ZombiePlagueDbContext>>();
     
+    private readonly Lazy<ZombiePlagueAdminExtension> _adminExtension = GetRequiredServiceLazy<ZombiePlagueAdminExtension>();
+    
     protected override void OnConfigureSharedInterfaces(IInterfaceManager interfaceManager)
     {
         interfaceManager.AddSharedInterface<IZombiePlagueApi, ZombiePlagueApi>(
@@ -42,6 +45,7 @@ public sealed partial class ZombiePlague(ISwiftlyCore core) : Plugin<ZombiePlagu
         var menuApi = interfaceManager.GetSharedInterface<IMenuApi>(IMenuApi.SharedApiKey);
 
         _menuApiBridge.Value.Initialize(menuApi);
+        _adminExtension.Value.Initialize(menuApi);
     }
 
     protected override void OnStart()
@@ -54,6 +58,8 @@ public sealed partial class ZombiePlague(ISwiftlyCore core) : Plugin<ZombiePlagu
 
     protected override void OnUnload()
     {
+        _adminExtension.Value.Uninitialize();
+
         _coordinator.Value.Stop();
         _resourceLoader.Value.Uninitialize();
     }
