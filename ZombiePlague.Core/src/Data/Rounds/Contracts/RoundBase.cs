@@ -107,6 +107,8 @@ internal abstract class RoundBase(ISwiftlyCore core, IPlayerManager playerManage
 
         _isRoundEnded = true;
 
+        AddTeamScore(winner.Value);
+
         Core.Game.TerminateRound(reason, 5.0f);
     }
 
@@ -194,5 +196,22 @@ internal abstract class RoundBase(ISwiftlyCore core, IPlayerManager playerManage
 
     protected virtual void OnTakeDamage(ref TakeDamageEntityPreContext context)
     {
+    }
+    
+    private void AddTeamScore(Team winner)
+    {
+        switch (winner)
+        {
+            case Team.T:
+                Core.Game.AddTerroristScore(1);
+                break;
+
+            case Team.CT:
+                Core.Game.AddCTScore(1);
+                break;
+
+            default:
+                throw new InvalidOperationException($"Unsupported winning team: {winner}!");
+        }
     }
 }

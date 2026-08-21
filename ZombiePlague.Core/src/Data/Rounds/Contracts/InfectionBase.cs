@@ -90,16 +90,6 @@ internal abstract class InfectionBase(
         return PlayerManager.TryRespawn(player);
     }
 
-    private void RespawnConnectedZombie(IPlayer player)
-    {
-        if (!player.IsValid || player.IsAlive || !PlayerManager.IsZombie(player))
-        {
-            return;
-        }
-
-        PlayerManager.TryRespawn(player);
-    }
-
     private bool CanInfect(IPlayer attacker, IPlayer victim)
     {
         if (!PlayerManager.IsZombie(attacker) || !PlayerManager.IsHuman(victim)) return false;
