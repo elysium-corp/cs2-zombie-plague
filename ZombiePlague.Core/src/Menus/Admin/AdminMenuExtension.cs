@@ -60,6 +60,7 @@ internal sealed class AdminMenuExtension(
     private bool HasAnyPermission(IPlayer player)
     {
         return adminApi.HasPermission(player, ZombiePlagueAdminPermissions.Infect) ||
-               adminApi.HasPermission(player, ZombiePlagueAdminPermissions.Disinfect);
+               adminApi.HasPermission(player, ZombiePlagueAdminPermissions.Disinfect) ||
+               adminApi.HasPermission(player, ZombiePlagueAdminPermissions.Round);
     }
 }

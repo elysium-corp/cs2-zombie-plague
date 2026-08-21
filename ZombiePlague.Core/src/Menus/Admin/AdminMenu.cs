@@ -6,6 +6,7 @@ using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Menus;
 using SwiftlyS2.Shared.Players;
 using ZombiePlague.Api.Permissions;
+using ZombiePlague.Core.Menus.Admin.Round;
 
 namespace ZombiePlague.Core.Menus.Admin;
 
@@ -13,7 +14,8 @@ internal sealed class AdminMenu(
     ISwiftlyCore core,
     IAdminApi adminApi,
     InfectMenu infectMenu,
-    DisinfectMenu disinfectMenu
+    DisinfectMenu disinfectMenu,
+    RoundMenu roundMenu
 ) : MenuBase(core)
 {
     public override string Id => "zombie_plague.admin";
@@ -36,6 +38,11 @@ internal sealed class AdminMenu(
             builder.AddOption(
                 BuildDisinfectOption()
             );
+        }
+        
+        if (adminApi.HasPermission(player, ZombiePlagueAdminPermissions.Round))
+        {
+            builder.AddOption(BuildRoundOption());
         }
 
         return builder.Build();
@@ -86,9 +93,24 @@ internal sealed class AdminMenu(
         return option;
     }
     
+    private ButtonMenuOption BuildRoundOption()
+    {
+        var option = new ButtonMenuOption("Управление раундами");
+
+        option.Click += (_, args) =>
+        {
+            Core.Scheduler.NextTick(() => roundMenu.Open(args.Player));
+
+            return ValueTask.CompletedTask;
+        };
+
+        return option;
+    }
+    
     private bool HasAnyPermission(IPlayer player)
     {
         return adminApi.HasPermission(player, ZombiePlagueAdminPermissions.Infect) ||
-               adminApi.HasPermission(player, ZombiePlagueAdminPermissions.Disinfect);
+               adminApi.HasPermission(player, ZombiePlagueAdminPermissions.Disinfect) ||
+               adminApi.HasPermission(player, ZombiePlagueAdminPermissions.Round);
     }
 }

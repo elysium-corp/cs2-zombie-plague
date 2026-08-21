@@ -18,4 +18,9 @@ public static class ZombiePlagueAdminPermissions
     /// Разрешает администратору принудительно вылечить игрока.
     /// </summary>
     public const string Disinfect = "zombie_plague.admin.disinfect";
+    
+    /// <summary>
+    /// Разрешает администратору управлять специальными раундами Zombie Plague.
+    /// </summary>
+    public const string Round = "zombie_plague.admin.round";
 }

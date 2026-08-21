@@ -37,6 +37,7 @@ using ZombiePlague.Core.Database;
 using ZombiePlague.Core.Database.Entities;
 using ZombiePlague.Core.Menus;
 using ZombiePlague.Core.Menus.Admin;
+using ZombiePlague.Core.Menus.Admin.Round;
 using ZombiePlague.Core.Store.Data;
 using ZombiePlague.Core.Store.Repository;
 
@@ -141,6 +142,10 @@ public sealed class ZombiePlagueModule(ISwiftlyCore core) : BaseModule(core)
         
         AddSingleton<InfectMenu>(service);
         AddSingleton<DisinfectMenu>(service);
+
+        AddSingleton<RoundSelectionMenu>(service);
+        AddSingleton<RoundMenu>(service);
+
         AddSingleton<AdminMenu>(service);
         AddSingleton<AdminMenuExtension>(service);
 
