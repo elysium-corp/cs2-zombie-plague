@@ -52,6 +52,56 @@ public sealed class DatabaseTaskTracker(ILogger<DatabaseTaskTracker> logger)
             );
         }
     }
+    
+    public Task<TResult> RunAsync<TResult>(Func<Task<TResult>> operation, string? operationName = null)
+    {
+        ArgumentNullException.ThrowIfNull(operation);
+
+        lock (_lock)
+        {
+            if (_stopping)
+            {
+                logger.LogWarning(
+                    "Database operation '{OperationName}' was ignored because the tracker is stopping!",
+                    operationName
+                );
+
+                return Task.FromException<TResult>(
+                    new InvalidOperationException("Database task tracker is stopping!")
+                );
+            }
+
+            Task<TResult> operationTask;
+
+            try
+            {
+                operationTask = operation();
+            }
+            catch (Exception exception)
+            {
+                logger.LogError(
+                    exception,
+                    "Failed to start database operation '{OperationName}'!",
+                    operationName
+                );
+
+                return Task.FromException<TResult>(exception);
+            }
+
+            var observedTask = ObserveAsync(operationTask, operationName);
+
+            _tasks.Add(observedTask);
+
+            _ = observedTask.ContinueWith(
+                Remove,
+                CancellationToken.None,
+                TaskContinuationOptions.ExecuteSynchronously,
+                TaskScheduler.Default
+            );
+
+            return operationTask;
+        }
+    }
 
     public void StopAndWait()
     {

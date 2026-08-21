@@ -1,3 +1,4 @@
+using Admin.Api;
 using Common.Database.Migrator;
 using Common.Di;
 using Menu.Api;
@@ -5,19 +6,13 @@ using Microsoft.Extensions.Logging;
 using SwiftlyS2.Shared;
 using ZombiePlague.Api;
 using ZombiePlague.Core.Api;
-using ZombiePlague.Core.Data;
-using ZombiePlague.Core.Data.Coordinators;
 using ZombiePlague.Core.Data.Coordinators.Contracts;
-using ZombiePlague.Core.Data.Managers.Contracts;
-using ZombiePlague.Core.Data.Plugins.AdminMenu;
 using ZombiePlague.Core.Data.Plugins.ResourceLoader;
-using ZombiePlague.Core.Data.Rounds.Contracts;
-using ZombiePlague.Core.Data.Rounds.Registrator;
-using ZombiePlague.Core.Data.Service.Contracts;
 using ZombiePlague.Core.Database;
 using ZombiePlague.Core.Di;
 using ZombiePlague.Core.Generated;
 using ZombiePlague.Core.Menus;
+using ZombiePlague.Core.Menus.Admin;
 
 namespace ZombiePlague.Core;
 
@@ -34,7 +29,10 @@ public sealed partial class ZombiePlague(ISwiftlyCore core) : Plugin<ZombiePlagu
     private readonly Lazy<IZombiePlagueCoordinator> _coordinator = GetRequiredServiceLazy<IZombiePlagueCoordinator>();
     private readonly Lazy<ZombiePlagueApi> _api = GetRequiredServiceLazy<ZombiePlagueApi>();
     private readonly Lazy<MenuExtensionDispatcherProxy> _menuApiBridge = GetRequiredServiceLazy<MenuExtensionDispatcherProxy>();
+    private readonly Lazy<AdminApiProxy> _adminApiBridge = GetRequiredServiceLazy<AdminApiProxy>();
     private readonly Lazy<DatabaseMigrator<ZombiePlagueDbContext>> _databaseMigrator = GetRequiredServiceLazy<DatabaseMigrator<ZombiePlagueDbContext>>();
+    
+    private readonly Lazy<AdminMenuExtension> _adminExtension = GetRequiredServiceLazy<AdminMenuExtension>();
     
     protected override void OnConfigureSharedInterfaces(IInterfaceManager interfaceManager)
     {
@@ -48,7 +46,12 @@ public sealed partial class ZombiePlague(ISwiftlyCore core) : Plugin<ZombiePlagu
     {
         var menuApi = interfaceManager.GetSharedInterface<IMenuApi>(IMenuApi.SharedApiKey);
 
+        var adminApi = interfaceManager.GetSharedInterface<IAdminApi>(IAdminApi.SharedApiKey);
+
         _menuApiBridge.Value.Initialize(menuApi);
+        _adminApiBridge.Value.Initialize(adminApi);
+
+        _adminExtension.Value.Initialize(menuApi);
     }
 
     protected override void OnStart()
@@ -57,18 +60,13 @@ public sealed partial class ZombiePlague(ISwiftlyCore core) : Plugin<ZombiePlagu
         
         _resourceLoader.Value.Initialize();
         _coordinator.Value.Start();
-
-        var playerManager = DependencyResolver.GetRequiredService<IPlayerManager>();
-        var roundManager = DependencyResolver.GetRequiredService<IRoundManager>();
-        var roundFactory = DependencyResolver.GetRequiredService<IRoundFactory>();
-        var roundRegistry = DependencyResolver.GetRequiredService<IRoundRegistrator>();
-        var adminMenu = new AdminMenu(core, playerManager, roundManager, roundRegistry, roundFactory);
-
-        adminMenu.Load();
     }
 
     protected override void OnUnload()
     {
+        _adminExtension.Value.Uninitialize();
+        _adminApiBridge.Value.Uninitialize();
+
         _coordinator.Value.Stop();
         _resourceLoader.Value.Uninitialize();
     }

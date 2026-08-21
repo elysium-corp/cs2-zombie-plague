@@ -4,7 +4,9 @@ using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.GameHooks;
 using SwiftlyS2.Shared.Misc;
+using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.ProtobufDefinitions;
+using SwiftlyS2.Shared.SchemaDefinitions;
 using ZombiePlague.Api.Data.Rounds;
 using ZombiePlague.Api.Events.Contexts.Round;
 using ZombiePlague.Core.Config.Core;
@@ -152,6 +154,13 @@ internal sealed class RoundManager(
 
     public HookResult OnPlayerDeath(EventPlayerDeath @event)
     {
+        if (IsPreparing)
+        {
+            ScheduleRespawn(@event.UserIdPlayer);
+
+            return HookResult.Continue;
+        }
+
         return CurrentRound?.HandlePlayerDeath(@event) ?? HookResult.Continue;
     }
 
@@ -167,6 +176,16 @@ internal sealed class RoundManager(
 
     public void OnTakeDamage(ref TakeDamageEntityPreContext context)
     {
+        var victim = context.Params.Entity.Address.FindPlayerByPawnAddress();
+
+        if (victim is { IsValid: true } && playerManager.IsZombie(victim) && (context.Params.Info.DamageType & DamageTypes_t.DMG_FALL) != 0)
+        {
+            context.Params.Info.Damage = 0;
+            context.SetHookResult(HookResult.CancelOriginal);
+
+            return;
+        }
+
         CurrentRound?.HandleTakeDamage(ref context);
     }
 
@@ -331,6 +350,50 @@ internal sealed class RoundManager(
         startedRound = null;
 
         return false;
+    }
+    
+    public bool TryRespawnPlayer(IPlayer player)
+    {
+        if (!player.IsValid || player.IsAlive)
+        {
+            return false;
+        }
+
+        if (IsPreparing)
+        {
+            if (!playerManager.TrySetHuman(player))
+            {
+                return false;
+            }
+
+            return playerManager.TryRespawn(player);
+        }
+
+        return CurrentRound?.TryRespawnPlayer(player) ?? false;
+    }
+    
+    private void ScheduleRespawn(IPlayer? player)
+    {
+        if (player is not { IsValid: true })
+        {
+            return;
+        }
+
+        var playerId = player.PlayerID;
+        var sessionId = player.SessionId;
+
+        core.Scheduler.DelayBySeconds(coreConfig.Value.ZombieSpawnDelay, () =>
+        {
+            var currentPlayer = core.PlayerManager.GetPlayer(playerId);
+
+            if (currentPlayer is not { IsValid: true } ||
+                currentPlayer.SessionId != sessionId)
+            {
+                return;
+            }
+
+            TryRespawnPlayer(currentPlayer);
+        });
     }
 
     private bool TryStartRoundInternal(RoundBase round)

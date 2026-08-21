@@ -6,11 +6,13 @@ namespace Common.Di;
 
 public abstract class BaseModule(ISwiftlyCore core) : IModule
 {
+    protected readonly ISwiftlyCore Core = core;
+    
     public abstract (ServiceProvider, ServiceCollection) GetProvider();
     
     protected IServiceCollection AddConfig<TConfig>(ServiceCollection service, string name, string section, bool optional = false, bool reloadOnChange = true) where TConfig : class, new()
     {
-        core.Configuration
+        Core.Configuration
             .InitializeJsonWithModel<TConfig>(name, section)
             .Configure(builder => { builder.AddJsonFile(name, optional: optional, reloadOnChange: reloadOnChange); });
         

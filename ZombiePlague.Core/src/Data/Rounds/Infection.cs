@@ -1,5 +1,4 @@
-﻿using Common.Hooks.Abstractions;
-using SwiftlyS2.Shared;
+﻿using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Players;
@@ -82,19 +81,6 @@ internal sealed class Infection(
         }
 
         return HookResult.Continue;
-    }
-
-    protected override HookResult OnPlayerConnectedFull(EventPlayerConnectFull @event)
-    {
-        var player = @event.UserIdPlayer;
-
-        if (player is not { IsValid: true }) return HookResult.Continue;
-
-        PlayerManager.TryInfect(player);
-
-        ScheduleZombieRespawn(player);
-        
-        return HookResult.Continue; 
     }
 
     protected override HookResult OnPlayerDisconnect(EventPlayerDisconnect @event)

@@ -1,3 +1,4 @@
+using Admin.Api;
 using Common.Database;
 using Common.Database.Storages;
 using Common.Database.Utils;
@@ -35,6 +36,8 @@ using ZombiePlague.Core.Data.Service.Contracts;
 using ZombiePlague.Core.Database;
 using ZombiePlague.Core.Database.Entities;
 using ZombiePlague.Core.Menus;
+using ZombiePlague.Core.Menus.Admin;
+using ZombiePlague.Core.Menus.Admin.Round;
 using ZombiePlague.Core.Store.Data;
 using ZombiePlague.Core.Store.Repository;
 
@@ -129,12 +132,22 @@ public sealed class ZombiePlagueModule(ISwiftlyCore core) : BaseModule(core)
         AddSingleton<IZombiePlagueCoordinator, ZombiePlagueCoordinator>(service);
 
         AddSingleton<MenuExtensionDispatcherProxy>(service);
-        AddSingleton<IMenuExtensionDispatcher>(
-            service,
-            provider => provider.GetRequiredService<MenuExtensionDispatcherProxy>()
-        );
+        AddSingleton<IMenuExtensionDispatcher>(service, provider => provider.GetRequiredService<MenuExtensionDispatcherProxy>());
+        
+        AddSingleton<AdminApiProxy>(service);
+        AddSingleton<IAdminApi>(service, provider => provider.GetRequiredService<AdminApiProxy>());
+        
         AddSingleton<MainMenu>(service);
         AddSingleton<ZClassMenu>(service);
+        
+        AddSingleton<InfectMenu>(service);
+        AddSingleton<DisinfectMenu>(service);
+
+        AddSingleton<RoundSelectionMenu>(service);
+        AddSingleton<RoundMenu>(service);
+
+        AddSingleton<AdminMenu>(service);
+        AddSingleton<AdminMenuExtension>(service);
 
         AddSingleton<ZombiePlagueApi>(service);
     }

@@ -117,19 +117,6 @@ internal sealed class Plague(
         return HookResult.Continue;
     }
 
-    protected override HookResult OnPlayerConnectedFull(EventPlayerConnectFull @event)
-    {
-        var player = @event.UserIdPlayer;
-
-        if (player is not { IsValid: true }) return HookResult.Continue;
-
-        PlayerManager.TryInfect(player);
-
-        ScheduleZombieRespawn(player);
-        
-        return HookResult.Continue; 
-    }
-
     protected override HookResult OnPlayerDisconnect(EventPlayerDisconnect @event)
     {
         var playerId = @event.PlayerID;

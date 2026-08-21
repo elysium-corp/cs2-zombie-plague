@@ -1,6 +1,7 @@
 ﻿using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.GameHooks;
 using SwiftlyS2.Shared.Misc;
+using SwiftlyS2.Shared.Players;
 using ZombiePlague.Core.Data.Rounds;
 using ZombiePlague.Core.Data.Rounds.Contracts;
 
@@ -23,6 +24,8 @@ internal interface IRoundManager
     RoundStartResult TryStartRound(RoundBase round);
     
     RoundStartResult TryStartRandomRound();
+    
+    bool TryRespawnPlayer(IPlayer player);
     
     void SelectNextRound(RoundBase round);
     

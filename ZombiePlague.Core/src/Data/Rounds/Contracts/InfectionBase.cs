@@ -1,5 +1,7 @@
 ﻿using SwiftlyS2.Shared;
+using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.GameHooks;
+using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Players;
 using ZombiePlague.Core.Data.Managers.Contracts;
 using ZombiePlague.Core.Utils.Extensions;
@@ -38,6 +40,55 @@ internal abstract class InfectionBase(
 
         PlayerManager.TryInfect(victim, attacker);
     }
+    
+    protected override HookResult OnPlayerConnectedFull(EventPlayerConnectFull @event)
+    {
+        var player = @event.UserIdPlayer;
+
+        if (player is not { IsValid: true })
+        {
+            return HookResult.Continue;
+        }
+
+        Core.Scheduler.NextWorldUpdate(() => SpawnAsZombie(player));
+
+        return HookResult.Continue;
+    }
+    
+    protected override HookResult OnPlayerTeam(EventPlayerTeam @event)
+    {
+        if (@event.Disconnect || @event.OldTeam != (byte)Team.Spectator || @event.Team != (byte)Team.T)
+        {
+            return HookResult.Continue;
+        }
+
+        var player = @event.UserIdPlayer;
+
+        if (player is not { IsValid: true })
+        {
+            return HookResult.Continue;
+        }
+
+        Core.Scheduler.NextWorldUpdate(() => SpawnAsZombie(player));
+
+        return HookResult.Continue;
+    }
+    
+    public override bool TryRespawnPlayer(IPlayer player)
+    {
+        if (!player.IsValid || player.IsAlive)
+        {
+            return false;
+        }
+
+        if (!PlayerManager.IsZombie(player) &&
+            !PlayerManager.TryInfect(player))
+        {
+            return false;
+        }
+
+        return PlayerManager.TryRespawn(player);
+    }
 
     private bool CanInfect(IPlayer attacker, IPlayer victim)
     {
@@ -48,5 +99,23 @@ internal abstract class InfectionBase(
             .Count(player => player.IsAlive);
 
         return aliveHumanCount > 1;
+    }
+    
+    private void SpawnAsZombie(IPlayer player)
+    {
+        if (!player.IsValid)
+        {
+            return;
+        }
+
+        if (!PlayerManager.IsZombie(player) && !PlayerManager.TryInfect(player))
+        {
+            return;
+        }
+
+        if (!player.IsAlive)
+        {
+            PlayerManager.TryRespawn(player);
+        }
     }
 }

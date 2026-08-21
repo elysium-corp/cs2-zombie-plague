@@ -26,15 +26,6 @@ internal sealed class AdminMenu(
     private const string DangerColor = "#FCA5A5";
     private const string TextColor = "#E2E8F0";
 
-    public void Load()
-    {
-        core.Command.RegisterCommand(
-            commandName: "admin",
-            handler: OpenMainMenu,
-            registerRaw: true
-        );
-    }
-
     private void OpenMainMenu(ICommandContext context)
     {
         var player = context.Sender;
