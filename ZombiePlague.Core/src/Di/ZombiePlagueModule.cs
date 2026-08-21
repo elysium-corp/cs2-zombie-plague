@@ -9,7 +9,6 @@ using Microsoft.Extensions.DependencyInjection;
 using SwiftlyS2.Shared;
 using ZombiePlague.Api.Data.Store;
 using ZombiePlague.Api.Events;
-using ZombiePlague.Core.Admin;
 using ZombiePlague.Core.Api;
 using ZombiePlague.Core.Api.Events;
 using ZombiePlague.Core.Config.Ability;
@@ -36,6 +35,7 @@ using ZombiePlague.Core.Data.Service.Contracts;
 using ZombiePlague.Core.Database;
 using ZombiePlague.Core.Database.Entities;
 using ZombiePlague.Core.Menus;
+using ZombiePlague.Core.Menus.Admin;
 using ZombiePlague.Core.Store.Data;
 using ZombiePlague.Core.Store.Repository;
 
@@ -137,8 +137,9 @@ public sealed class ZombiePlagueModule(ISwiftlyCore core) : BaseModule(core)
         AddSingleton<MainMenu>(service);
         AddSingleton<ZClassMenu>(service);
         
-        AddSingleton<ZombiePlagueAdminMenu>(service);
-        AddSingleton<ZombiePlagueAdminExtension>(service);
+        AddSingleton<InfectMenu>(service);
+        AddSingleton<AdminMenu>(service);
+        AddSingleton<AdminMenuExtension>(service);
 
         AddSingleton<ZombiePlagueApi>(service);
     }

@@ -4,9 +4,9 @@ using Menu.Api.Extensions;
 using SwiftlyS2.Core.Menus.OptionsBase;
 using SwiftlyS2.Shared;
 
-namespace ZombiePlague.Core.Admin;
+namespace ZombiePlague.Core.Menus.Admin;
 
-internal sealed class ZombiePlagueAdminExtension(ISwiftlyCore core, ZombiePlagueAdminMenu adminMenu)
+internal sealed class AdminMenuExtension(ISwiftlyCore core, AdminMenu adminMenu)
 {
     private IDisposable? _subscription;
 

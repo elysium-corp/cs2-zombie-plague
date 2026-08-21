@@ -4,7 +4,6 @@ using Menu.Api;
 using Microsoft.Extensions.Logging;
 using SwiftlyS2.Shared;
 using ZombiePlague.Api;
-using ZombiePlague.Core.Admin;
 using ZombiePlague.Core.Api;
 using ZombiePlague.Core.Data.Coordinators.Contracts;
 using ZombiePlague.Core.Data.Plugins.ResourceLoader;
@@ -12,6 +11,7 @@ using ZombiePlague.Core.Database;
 using ZombiePlague.Core.Di;
 using ZombiePlague.Core.Generated;
 using ZombiePlague.Core.Menus;
+using ZombiePlague.Core.Menus.Admin;
 
 namespace ZombiePlague.Core;
 
@@ -30,7 +30,7 @@ public sealed partial class ZombiePlague(ISwiftlyCore core) : Plugin<ZombiePlagu
     private readonly Lazy<MenuExtensionDispatcherProxy> _menuApiBridge = GetRequiredServiceLazy<MenuExtensionDispatcherProxy>();
     private readonly Lazy<DatabaseMigrator<ZombiePlagueDbContext>> _databaseMigrator = GetRequiredServiceLazy<DatabaseMigrator<ZombiePlagueDbContext>>();
     
-    private readonly Lazy<ZombiePlagueAdminExtension> _adminExtension = GetRequiredServiceLazy<ZombiePlagueAdminExtension>();
+    private readonly Lazy<AdminMenuExtension> _adminExtension = GetRequiredServiceLazy<AdminMenuExtension>();
     
     protected override void OnConfigureSharedInterfaces(IInterfaceManager interfaceManager)
     {

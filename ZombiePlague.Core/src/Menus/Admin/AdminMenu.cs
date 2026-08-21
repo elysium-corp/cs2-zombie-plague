@@ -5,9 +5,11 @@ using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Menus;
 using SwiftlyS2.Shared.Players;
 
-namespace ZombiePlague.Core.Admin;
+namespace ZombiePlague.Core.Menus.Admin;
 
-internal sealed class ZombiePlagueAdminMenu(ISwiftlyCore core) : MenuBase(core)
+internal sealed class AdminMenu(
+    ISwiftlyCore core, 
+    InfectMenu infectMenu) : MenuBase(core)
 {
     public override string Id => "zombie_plague.admin";
 
@@ -15,13 +17,21 @@ internal sealed class ZombiePlagueAdminMenu(ISwiftlyCore core) : MenuBase(core)
 
     protected override IMenuAPI Build(IPlayer player)
     {
-        return CreateBuilder(player)
-            .AddOption(
-                new TextMenuOption
-                {
-                    Text = "Раздел подключён"
-                }
-            )
+        var builder = CreateBuilder(player);
+
+        var infectOption = new ButtonMenuOption("Сделать зомби");
+
+        infectOption.Click += (_, args) =>
+        {
+            Core.Scheduler.NextTick(
+                () => infectMenu.Open(args.Player)
+            );
+
+            return ValueTask.CompletedTask;
+        };
+
+        return builder
+            .AddOption(infectOption)
             .Build();
     }
 
