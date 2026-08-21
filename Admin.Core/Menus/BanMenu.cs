@@ -169,11 +169,12 @@ internal sealed class BanMenu(
         {
             var option = new ButtonMenuOption(reason);
 
-            option.Click += (_, args) =>
+            option.Click += async (_, args) =>
             {
-                ApplyBan(args.Player, target, duration, reason);
-
-                return ValueTask.CompletedTask;
+                await Core.Scheduler.NextTickAsync(() =>
+                {
+                    ApplyBan(args.Player, target, duration, reason);
+                });
             };
 
             builder.AddOption(option);

@@ -47,14 +47,6 @@ internal sealed class RoundMenu(ISwiftlyCore core, IPrivilegeService privilegeSe
             Enabled = IsWarmupActive()
         };
 
-        option.Validating += (_, args) =>
-        {
-            if (!CanManageRound(args.Player) || !IsWarmupActive())
-            {
-                args.Cancel = true;
-            }
-        };
-
         option.Click += async (_, args) =>
         {
             await Core.Scheduler.NextTickAsync(() => { EndWarmup(args.Player); });

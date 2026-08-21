@@ -5,15 +5,8 @@ using Microsoft.Extensions.Logging;
 using SwiftlyS2.Shared;
 using ZombiePlague.Api;
 using ZombiePlague.Core.Api;
-using ZombiePlague.Core.Data;
-using ZombiePlague.Core.Data.Coordinators;
 using ZombiePlague.Core.Data.Coordinators.Contracts;
-using ZombiePlague.Core.Data.Managers.Contracts;
-using ZombiePlague.Core.Data.Plugins.AdminMenu;
 using ZombiePlague.Core.Data.Plugins.ResourceLoader;
-using ZombiePlague.Core.Data.Rounds.Contracts;
-using ZombiePlague.Core.Data.Rounds.Registrator;
-using ZombiePlague.Core.Data.Service.Contracts;
 using ZombiePlague.Core.Database;
 using ZombiePlague.Core.Di;
 using ZombiePlague.Core.Generated;
@@ -57,14 +50,6 @@ public sealed partial class ZombiePlague(ISwiftlyCore core) : Plugin<ZombiePlagu
         
         _resourceLoader.Value.Initialize();
         _coordinator.Value.Start();
-
-        var playerManager = DependencyResolver.GetRequiredService<IPlayerManager>();
-        var roundManager = DependencyResolver.GetRequiredService<IRoundManager>();
-        var roundFactory = DependencyResolver.GetRequiredService<IRoundFactory>();
-        var roundRegistry = DependencyResolver.GetRequiredService<IRoundRegistrator>();
-        var adminMenu = new AdminMenu(core, playerManager, roundManager, roundRegistry, roundFactory);
-
-        adminMenu.Load();
     }
 
     protected override void OnUnload()
