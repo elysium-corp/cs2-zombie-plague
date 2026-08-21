@@ -6,6 +6,7 @@ using SwiftlyS2.Core.Menus.OptionsBase;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Menus;
 using SwiftlyS2.Shared.Players;
+using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace Admin.Core.Menus;
 
@@ -26,7 +27,6 @@ internal sealed class KillMenu(ISwiftlyCore core, IPrivilegeService privilegeSer
 
         var players = Core.PlayerManager
             .GetAllValidPlayers()
-            .Where(target => target.PlayerID != player.PlayerID)
             .OrderBy(target => target.Controller.PlayerName, StringComparer.OrdinalIgnoreCase);
 
         foreach (var target in players)
@@ -55,11 +55,9 @@ internal sealed class KillMenu(ISwiftlyCore core, IPrivilegeService privilegeSer
     {
         var option = new ButtonMenuOption(target.Name);
 
-        option.Click += (_, args) =>
+        option.Click += async (_, args) =>
         {
-            KillPlayer(args.Player, target);
-
-            return ValueTask.CompletedTask;
+            await Core.Scheduler.NextTickAsync(() => { KillPlayer(args.Player, target); });
         };
 
         return option;
@@ -77,8 +75,7 @@ internal sealed class KillMenu(ISwiftlyCore core, IPrivilegeService privilegeSer
         if (player is null ||
             !player.IsValid ||
             !player.IsAlive ||
-            player.SessionId != target.SessionId ||
-            player.PlayerID == administrator.PlayerID)
+            player.SessionId != target.SessionId)
         {
             return;
         }

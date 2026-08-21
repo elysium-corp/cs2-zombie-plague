@@ -55,11 +55,9 @@ internal sealed class RoundMenu(ISwiftlyCore core, IPrivilegeService privilegeSe
             }
         };
 
-        option.Click += (_, args) =>
+        option.Click += async (_, args) =>
         {
-            EndWarmup(args.Player);
-
-            return ValueTask.CompletedTask;
+            await Core.Scheduler.NextTickAsync(() => { EndWarmup(args.Player); });
         };
 
         return option;
@@ -69,11 +67,9 @@ internal sealed class RoundMenu(ISwiftlyCore core, IPrivilegeService privilegeSe
     {
         var option = new ButtonMenuOption("Завершить раунд");
 
-        option.Click += (_, args) =>
+        option.Click += async (_, args) =>
         {
-            EndRound(args.Player);
-
-            return ValueTask.CompletedTask;
+            await Core.Scheduler.NextTickAsync(() => { EndRound(args.Player); });
         };
 
         return option;

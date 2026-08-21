@@ -55,11 +55,9 @@ internal sealed class RespawnMenu(ISwiftlyCore core, IPrivilegeService privilege
     {
         var option = new ButtonMenuOption(target.Name);
 
-        option.Click += (_, args) =>
+        option.Click += async (_, args) =>
         {
-            RespawnPlayer(args.Player, target);
-
-            return ValueTask.CompletedTask;
+            await Core.Scheduler.NextTickAsync(() => { RespawnPlayer(args.Player, target); });
         };
 
         return option;

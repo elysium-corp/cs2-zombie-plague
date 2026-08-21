@@ -62,7 +62,7 @@ internal sealed class KickMenu(ISwiftlyCore core, IPrivilegeService privilegeSer
             return ValueTask.CompletedTask;
         }
 
-        if (!target.IsValid || player.IsFakeClient || target.PlayerID == player.PlayerID)
+        if (!target.IsValid || target.IsFakeClient || target.PlayerID == player.PlayerID)
         {
             return ValueTask.CompletedTask;
         }
