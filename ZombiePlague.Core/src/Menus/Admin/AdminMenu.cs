@@ -12,7 +12,8 @@ namespace ZombiePlague.Core.Menus.Admin;
 internal sealed class AdminMenu(
     ISwiftlyCore core,
     IAdminApi adminApi,
-    InfectMenu infectMenu
+    InfectMenu infectMenu,
+    DisinfectMenu disinfectMenu
 ) : MenuBase(core)
 {
     public override string Id => "zombie_plague.admin";
@@ -30,7 +31,19 @@ internal sealed class AdminMenu(
             );
         }
 
+        if (adminApi.HasPermission(player, ZombiePlagueAdminPermissions.Disinfect))
+        {
+            builder.AddOption(
+                BuildDisinfectOption()
+            );
+        }
+
         return builder.Build();
+    }
+    
+    protected override bool CanOpenCore(IPlayer player)
+    {
+        return HasAnyPermission(player);
     }
 
     protected override IMenuBuilderAPI ConfigureDesign(IPlayer player, IMenuDesignAPI design)
@@ -55,5 +68,27 @@ internal sealed class AdminMenu(
         };
 
         return option;
+    }
+    
+    private ButtonMenuOption BuildDisinfectOption()
+    {
+        var option = new ButtonMenuOption("Вылечить игрока");
+
+        option.Click += (_, args) =>
+        {
+            Core.Scheduler.NextTick(
+                () => disinfectMenu.Open(args.Player)
+            );
+
+            return ValueTask.CompletedTask;
+        };
+
+        return option;
+    }
+    
+    private bool HasAnyPermission(IPlayer player)
+    {
+        return adminApi.HasPermission(player, ZombiePlagueAdminPermissions.Infect) ||
+               adminApi.HasPermission(player, ZombiePlagueAdminPermissions.Disinfect);
     }
 }

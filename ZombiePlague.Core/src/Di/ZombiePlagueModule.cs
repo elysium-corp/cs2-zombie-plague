@@ -140,6 +140,7 @@ public sealed class ZombiePlagueModule(ISwiftlyCore core) : BaseModule(core)
         AddSingleton<ZClassMenu>(service);
         
         AddSingleton<InfectMenu>(service);
+        AddSingleton<DisinfectMenu>(service);
         AddSingleton<AdminMenu>(service);
         AddSingleton<AdminMenuExtension>(service);
 
