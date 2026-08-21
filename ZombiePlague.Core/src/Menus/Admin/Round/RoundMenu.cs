@@ -107,7 +107,7 @@ internal sealed class RoundMenu(
 
         option.Click += async (_, args) =>
         {
-            await Core.Scheduler.NextTickAsync(() => { roundSelectionMenu.Open(args.Player); });
+            await Core.Scheduler.NextTickAsync(() => roundSelectionMenu.Open(args.Player));
         };
 
         return option;

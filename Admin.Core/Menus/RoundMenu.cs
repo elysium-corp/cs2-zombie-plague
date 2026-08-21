@@ -29,6 +29,7 @@ internal sealed class RoundMenu(ISwiftlyCore core, IPrivilegeService privilegeSe
         return CreateBuilder(player)
             .AddOption(BuildEndWarmupOption())
             .AddOption(BuildEndRoundOption())
+            .AddOption(BuildRestartGameOption())
             .Build();
     }
 
@@ -49,7 +50,7 @@ internal sealed class RoundMenu(ISwiftlyCore core, IPrivilegeService privilegeSe
 
         option.Click += async (_, args) =>
         {
-            await Core.Scheduler.NextTickAsync(() => { EndWarmup(args.Player); });
+            await Core.Scheduler.NextTickAsync(() => EndWarmup(args.Player));
         };
 
         return option;
@@ -61,7 +62,19 @@ internal sealed class RoundMenu(ISwiftlyCore core, IPrivilegeService privilegeSe
 
         option.Click += async (_, args) =>
         {
-            await Core.Scheduler.NextTickAsync(() => { EndRound(args.Player); });
+            await Core.Scheduler.NextTickAsync(() => EndRound(args.Player));
+        };
+
+        return option;
+    }
+    
+    private ButtonMenuOption BuildRestartGameOption()
+    {
+        var option = new ButtonMenuOption("Перезапустить игру");
+
+        option.Click += async (_, args) =>
+        {
+            await Core.Scheduler.NextTickAsync(() => RestartGame(args.Player));
         };
 
         return option;
@@ -95,6 +108,16 @@ internal sealed class RoundMenu(ISwiftlyCore core, IPrivilegeService privilegeSe
             RoundEndReason.RoundDraw,
             delay: 0f
         );
+    }
+    
+    private void RestartGame(IPlayer administrator)
+    {
+        if (!CanManageRound(administrator))
+        {
+            return;
+        }
+
+        Core.Engine.ExecuteCommand("mp_restartgame 1");
     }
 
     private bool IsWarmupActive()
