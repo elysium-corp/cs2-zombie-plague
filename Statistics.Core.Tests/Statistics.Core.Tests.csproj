@@ -19,7 +19,9 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Statistics.Core\Statistics.Core.csproj" />
+        <ProjectReference Include="..\Statistics.Core\Statistics.Core.csproj">
+            <Private>true</Private>
+        </ProjectReference>
     </ItemGroup>
 
 </Project>
