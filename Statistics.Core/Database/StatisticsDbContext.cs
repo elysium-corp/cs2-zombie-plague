@@ -44,25 +44,23 @@ public sealed class StatisticsDbContext(DbContextOptions<StatisticsDbContext> op
             .HasForeignKey<PlayerStatisticsEntity>(x => x.SteamId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        statistics.Property(x => x.SessionsCount).HasDefaultValue(0L);
+        statistics.ToTable(
+            "player_statistics",
+            SchemaName,
+            table => table.HasCheckConstraint(
+                "CK_player_statistics_points_non_negative",
+                "points >= 0"
+            )
+        );
+
+        statistics.Property(x => x.Points).HasDefaultValue(0L);
         statistics.Property(x => x.PlayTimeSeconds).HasDefaultValue(0L);
-        statistics.Property(x => x.RoundsPlayed).HasDefaultValue(0L);
-        statistics.Property(x => x.RoundsAsHuman).HasDefaultValue(0L);
-        statistics.Property(x => x.RoundsAsZombie).HasDefaultValue(0L);
         statistics.Property(x => x.ZombiesKilled).HasDefaultValue(0L);
-        statistics.Property(x => x.HeadshotZombieKills).HasDefaultValue(0L);
         statistics.Property(x => x.InfectionsMade).HasDefaultValue(0L);
         statistics.Property(x => x.TimesInfected).HasDefaultValue(0L);
-        statistics.Property(x => x.DeathsAsHuman).HasDefaultValue(0L);
-        statistics.Property(x => x.DeathsAsZombie).HasDefaultValue(0L);
-        statistics.Property(x => x.DamageToZombies).HasDefaultValue(0L);
-        statistics.Property(x => x.DamageToHumans).HasDefaultValue(0L);
-        statistics.Property(x => x.SurvivedRounds).HasDefaultValue(0L);
+        statistics.Property(x => x.Deaths).HasDefaultValue(0L);
         statistics.Property(x => x.HumanWins).HasDefaultValue(0L);
         statistics.Property(x => x.ZombieWins).HasDefaultValue(0L);
-        statistics.Property(x => x.FirstZombieRounds).HasDefaultValue(0L);
-        statistics.Property(x => x.LastHumanRounds).HasDefaultValue(0L);
-        statistics.Property(x => x.LastHumanSurvivals).HasDefaultValue(0L);
         statistics.Property(x => x.BestKillStreak).HasDefaultValue(0L);
         statistics.Property(x => x.BestInfectionStreak).HasDefaultValue(0L);
 
@@ -71,4 +69,3 @@ public sealed class StatisticsDbContext(DbContextOptions<StatisticsDbContext> op
             .HasDefaultValueSql(PostgreSqlCurrentTimestamp);
     }
 }
-

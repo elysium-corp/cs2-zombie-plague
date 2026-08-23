@@ -17,37 +17,17 @@ internal sealed class PlayerStatisticsService(
     SteamIdOperationQueue databaseOperations
 )
 {
-    private const int AutosaveIntervalSeconds = 60;
-
     private const int PlayerNameMaxLength = 128;
-
-    private CancellationTokenSource? _autosaveTimer;
-
-    private int _isAutosaveRunning;
-
-    public void Start()
-    {
-        if (_autosaveTimer is not null)
-        {
-            return;
-        }
-
-        _autosaveTimer = core.Scheduler.DelayAndRepeatBySeconds(
-            delaySeconds: AutosaveIntervalSeconds,
-            periodSeconds: AutosaveIntervalSeconds,
-            task: QueueAutosave
-        );
-    }
 
     public void InitializeExistingPlayers()
     {
         foreach (var player in core.PlayerManager.GetAllValidPlayers())
         {
-            Initialize(player, countSession: false);
+            Initialize(player);
         }
     }
 
-    public void Initialize(IPlayer player, bool countSession = true)
+    public void Initialize(IPlayer player)
     {
         if (!CanTrack(player))
         {
@@ -71,7 +51,7 @@ internal sealed class PlayerStatisticsService(
         var timestamp = Stopwatch.GetTimestamp();
         var playerName = NormalizePlayerName(player.Name);
 
-        session.Update(data => data.Connect(playerName, now, timestamp, countSession));
+        session.Update(data => data.Connect(playerName, now, timestamp));
     }
 
     public void Disconnect(IPlayer player, bool keepSession)
@@ -100,30 +80,28 @@ internal sealed class PlayerStatisticsService(
         SaveAndRemove(steamId);
     }
 
-    public void RecordDamageToZombies(ulong steamId, int damage)
+    public void RecordZombieKill(ulong steamId, long currentStreak)
     {
-        Update(steamId, data => data.RecordDamageToZombies(damage));
+        Update(steamId, data => data.RecordZombieKill(currentStreak));
     }
 
-    public void RecordDamageToHumans(ulong steamId, int damage)
+    public void RecordInfection(
+        ulong infectorSteamId,
+        ulong infectedSteamId,
+        long currentInfectionStreak
+    )
     {
-        Update(steamId, data => data.RecordDamageToHumans(damage));
-    }
+        Update(
+            infectorSteamId,
+            data => data.RecordInfectionMade(currentInfectionStreak)
+        );
 
-    public void RecordZombieKill(ulong steamId, bool isHeadshot)
-    {
-        Update(steamId, data => data.RecordZombieKill(isHeadshot));
-    }
-
-    public void RecordInfection(ulong infectorSteamId, ulong infectedSteamId)
-    {
-        Update(infectorSteamId, static data => data.RecordInfectionMade());
         Update(infectedSteamId, static data => data.RecordTimesInfected());
     }
 
-    public void RecordDeath(ulong steamId, PlayerRole role)
+    public void RecordDeath(ulong steamId)
     {
-        Update(steamId, data => data.RecordDeath(role));
+        Update(steamId, static data => data.RecordDeath());
     }
 
     public void RecordRound(ulong steamId, RoundStatisticsResult result)
@@ -131,37 +109,33 @@ internal sealed class PlayerStatisticsService(
         Update(steamId, data => data.RecordRound(result));
     }
 
-    public void ResetStreaks(ulong steamId)
-    {
-        Update(steamId, static data => data.ResetStreaks());
-    }
-
-    public void ResetAllStreaks()
-    {
-        foreach (var (_, session) in sessions.GetAll())
-        {
-            session.Update(static data => data.ResetStreaks());
-        }
-    }
-
-    public void RemoveDisconnectedSessions()
+    public void SaveRound()
     {
         foreach (var (steamId, session) in sessions.GetAll())
         {
             if (session.Read(static data => data.IsConnected))
             {
-                continue;
+                QueueSave(steamId, session);
             }
+            else
+            {
+                SaveAndRemove(steamId);
+            }
+        }
+    }
 
-            SaveAndRemove(steamId);
+    public void CheckpointAndSaveAll()
+    {
+        CheckpointConnectedSessions();
+
+        foreach (var (steamId, session) in sessions.GetAll())
+        {
+            QueueSave(steamId, session);
         }
     }
 
     public void StopAndWait()
     {
-        _autosaveTimer?.Cancel();
-        _autosaveTimer = null;
-
         CheckpointConnectedSessions();
 
         foreach (var (steamId, _) in sessions.GetAll())
@@ -170,36 +144,6 @@ internal sealed class PlayerStatisticsService(
         }
 
         databaseTasks.StopAndWait();
-    }
-
-    private void QueueAutosave()
-    {
-        if (Interlocked.Exchange(ref _isAutosaveRunning, 1) != 0)
-        {
-            return;
-        }
-
-        CheckpointConnectedSessions();
-
-        var activeSessions = sessions.GetAll();
-
-        databaseTasks.Run(
-            async () =>
-            {
-                try
-                {
-                    await Task.WhenAll(
-                            activeSessions.Select(x => SaveAsync(x.Key, x.Value))
-                        )
-                        .ConfigureAwait(false);
-                }
-                finally
-                {
-                    Volatile.Write(ref _isAutosaveRunning, 0);
-                }
-            },
-            "Autosave player statistics"
-        );
     }
 
     private void CheckpointConnectedSessions()
@@ -214,7 +158,11 @@ internal sealed class PlayerStatisticsService(
                 continue;
             }
 
-            var player = core.PlayerManager.GetPlayerFromSteamId(steamId, allowUnauthorized: false);
+            var player = core.PlayerManager.GetPlayerFromSteamId(
+                steamId,
+                allowUnauthorized: false
+            );
+
             var playerName = CanTrack(player)
                 ? NormalizePlayerName(player.Name)
                 : session.Read(static data => data.LastKnownName);
@@ -233,7 +181,10 @@ internal sealed class PlayerStatisticsService(
         QueueSave(steamId, session);
     }
 
-    private void QueueSave(ulong steamId, PersistentSession<PlayerStatisticsState> session)
+    private void QueueSave(
+        ulong steamId,
+        PersistentSession<PlayerStatisticsState> session
+    )
     {
         databaseTasks.Run(
             () => SaveAsync(steamId, session),
@@ -272,7 +223,9 @@ internal sealed class PlayerStatisticsService(
                     await EnsureLoadedAsync(steamId, session, cancellationToken)
                         .ConfigureAwait(false);
 
-                    var snapshot = session.CreateSnapshot(static data => data.CreateSnapshot());
+                    var snapshot = session.CreateSnapshot(
+                        static data => data.CreateSnapshot()
+                    );
 
                     if (!snapshot.IsDirty)
                     {
@@ -322,9 +275,7 @@ internal sealed class PlayerStatisticsService(
 
     private void Update(ulong steamId, Action<PlayerStatisticsState> update)
     {
-        var session = sessions.Get(steamId);
-
-        session?.Update(update);
+        sessions.Get(steamId)?.Update(update);
     }
 
     private static bool CanTrack([NotNullWhen(true)] IPlayer? player)

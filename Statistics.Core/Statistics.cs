@@ -3,6 +3,7 @@ using Common.Di;
 using Microsoft.Extensions.Logging;
 using Statistics.Core.Database;
 using Statistics.Core.Di;
+using Statistics.Core.Points;
 using Statistics.Core.Services;
 using SwiftlyS2.Shared;
 using ZombiePlague.Api;
@@ -11,7 +12,7 @@ namespace Statistics.Core;
 
 [PluginMetadata(
     Id = "Statistics.Core",
-    Version = "0.1.0",
+    Version = "0.2.0",
     Name = "Statistics Core",
     Author = "illusion & fdrinv",
     Description = "Collects player statistics"
@@ -26,6 +27,9 @@ internal sealed partial class Statistics(ISwiftlyCore core) : Plugin<StatisticsM
 
     private readonly Lazy<StatisticsCollector> _statisticsCollector =
         GetRequiredServiceLazy<StatisticsCollector>();
+
+    private readonly Lazy<IRoundPointsFormulaProvider> _pointsFormulaProvider =
+        GetRequiredServiceLazy<IRoundPointsFormulaProvider>();
 
     protected override void OnStart()
     {
@@ -44,13 +48,14 @@ internal sealed partial class Statistics(ISwiftlyCore core) : Plugin<StatisticsM
     protected override void OnReady()
     {
         _playerStatisticsService.Value.InitializeExistingPlayers();
+        _pointsFormulaProvider.Value.Start();
         _statisticsCollector.Value.Start();
-        _playerStatisticsService.Value.Start();
     }
 
     protected override void OnUnload()
     {
         _statisticsCollector.Value.Stop();
+        _pointsFormulaProvider.Value.StopAndWait();
         _playerStatisticsService.Value.StopAndWait();
     }
 
@@ -69,4 +74,3 @@ internal sealed partial class Statistics(ISwiftlyCore core) : Plugin<StatisticsM
         }
     }
 }
-

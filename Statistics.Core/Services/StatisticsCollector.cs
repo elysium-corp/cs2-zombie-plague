@@ -1,8 +1,11 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Common.Hooks;
+using Microsoft.Extensions.Logging;
 using Statistics.Core.Data;
+using Statistics.Core.Points;
 using SwiftlyS2.Shared;
+using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Players;
@@ -14,7 +17,9 @@ namespace Statistics.Core.Services;
 
 internal sealed class StatisticsCollector(
     ISwiftlyCore core,
-    PlayerStatisticsService playerStatisticsService
+    PlayerStatisticsService playerStatisticsService,
+    IRoundPointsFormulaProvider pointsFormulaProvider,
+    PointsCalculator pointsCalculator
 )
 {
     private const int InfectionDeathWindowSeconds = 5;
@@ -25,11 +30,12 @@ internal sealed class StatisticsCollector(
 
     private IZombiePlagueApi? _zombiePlagueApi;
 
+    private PointsFormula? _roundFormula;
+
     private bool _isStarted;
 
     private bool _isRoundActive;
 
-    private Guid _playerHurtHook = Guid.Empty;
     private Guid _playerDeathHook = Guid.Empty;
     private Guid _playerConnectHook = Guid.Empty;
     private Guid _playerDisconnectHook = Guid.Empty;
@@ -59,7 +65,6 @@ internal sealed class StatisticsCollector(
 
         var zombiePlagueApi = GetZombiePlagueApi();
 
-        _playerHurtHook = core.GameEvent.HookPost<EventPlayerHurt>(OnPlayerHurt);
         _playerDeathHook = core.GameEvent.HookPre<EventPlayerDeath>(OnPlayerDeath);
         _playerConnectHook = core.GameEvent.HookPost<EventPlayerConnectFull>(OnPlayerConnect);
         _playerDisconnectHook = core.GameEvent.HookPre<EventPlayerDisconnect>(OnPlayerDisconnect);
@@ -71,6 +76,8 @@ internal sealed class StatisticsCollector(
         zombiePlagueApi.Events.Pre.PlayerInfect.Hook(OnPlayerInfecting, HookPriority.Low);
         zombiePlagueApi.Events.Post.PlayerInfectEvent += OnPlayerInfected;
         zombiePlagueApi.Events.Post.RoundStartEvent += OnRoundStarted;
+
+        core.Event.OnMapUnload += OnMapUnload;
 
         _isStarted = true;
     }
@@ -88,7 +95,8 @@ internal sealed class StatisticsCollector(
         zombiePlagueApi.Events.Post.PlayerInfectEvent -= OnPlayerInfected;
         zombiePlagueApi.Events.Post.RoundStartEvent -= OnRoundStarted;
 
-        core.GameEvent.Unhook(_playerHurtHook);
+        core.Event.OnMapUnload -= OnMapUnload;
+
         core.GameEvent.Unhook(_playerDeathHook);
         core.GameEvent.Unhook(_playerConnectHook);
         core.GameEvent.Unhook(_playerDisconnectHook);
@@ -99,51 +107,9 @@ internal sealed class StatisticsCollector(
 
         _roundParticipants.Clear();
         _infectionTransitions.Clear();
+        _roundFormula = null;
         _isRoundActive = false;
         _isStarted = false;
-    }
-
-    private HookResult OnPlayerHurt(EventPlayerHurt @event)
-    {
-        if (!_isRoundActive || @event.ActualDmgHealth <= 0)
-        {
-            return HookResult.Continue;
-        }
-
-        var attacker = @event.AttackerPlayer;
-        var victim = @event.UserIdPlayer;
-
-        if (!CanTrack(attacker) ||
-            !CanTrack(victim) ||
-            attacker.SteamID == victim.SteamID)
-        {
-            return HookResult.Continue;
-        }
-
-        var attackerRole = GetRole(attacker);
-        var victimRole = GetRole(victim);
-
-        SetRole(attacker, attackerRole, participated: true);
-        SetRole(victim, victimRole, participated: true);
-
-        switch (attackerRole, victimRole)
-        {
-            case (PlayerRole.Human, PlayerRole.Zombie):
-                playerStatisticsService.RecordDamageToZombies(
-                    attacker.SteamID,
-                    @event.ActualDmgHealth
-                );
-                break;
-
-            case (PlayerRole.Zombie, PlayerRole.Human):
-                playerStatisticsService.RecordDamageToHumans(
-                    attacker.SteamID,
-                    @event.ActualDmgHealth
-                );
-                break;
-        }
-
-        return HookResult.Continue;
     }
 
     private HookResult OnPlayerDeath(EventPlayerDeath @event)
@@ -166,28 +132,27 @@ internal sealed class StatisticsCollector(
         }
 
         var victimRole = GetTrackedRole(victim);
-
-        SetRole(victim, victimRole, participated: true);
-
+        var victimParticipant = SetRole(victim, victimRole);
         var attacker = @event.AttackerPlayer;
 
         if (CanTrack(attacker) && attacker.SteamID != victim.SteamID)
         {
             var attackerRole = GetRole(attacker);
-
-            SetRole(attacker, attackerRole, participated: true);
+            var attackerParticipant = SetRole(attacker, attackerRole);
 
             if (attackerRole == PlayerRole.Human && victimRole == PlayerRole.Zombie)
             {
-                playerStatisticsService.RecordZombieKill(attacker.SteamID, @event.Headshot);
+                var currentStreak = attackerParticipant.RecordZombieKill();
+
+                playerStatisticsService.RecordZombieKill(
+                    attacker.SteamID,
+                    currentStreak
+                );
             }
         }
 
-        playerStatisticsService.RecordDeath(victim.SteamID, victimRole);
-
-        DetectLastHuman(
-            victimRole == PlayerRole.Human ? victim.SteamID : null
-        );
+        victimParticipant.RecordDeath();
+        playerStatisticsService.RecordDeath(victim.SteamID);
 
         return HookResult.Continue;
     }
@@ -213,13 +178,8 @@ internal sealed class StatisticsCollector(
             return HookResult.Continue;
         }
 
-        var keepSession = _isRoundActive && _roundParticipants.ContainsKey(player.SteamID);
-
-        if (keepSession &&
-            _roundParticipants[player.SteamID].CurrentRole == PlayerRole.Human)
-        {
-            DetectLastHuman(player.SteamID);
-        }
+        var keepSession = _isRoundActive &&
+                          _roundParticipants.ContainsKey(player.SteamID);
 
         playerStatisticsService.Disconnect(player, keepSession);
 
@@ -251,57 +211,63 @@ internal sealed class StatisticsCollector(
         }
 
         var winner = (Team)@event.Winner;
+        var formula = _roundFormula ?? pointsFormulaProvider.CaptureFormula();
 
         foreach (var (steamId, participant) in _roundParticipants.ToArray())
         {
-            var player = core.PlayerManager.GetPlayerFromSteamId(steamId, allowUnauthorized: false);
+            var player = core.PlayerManager.GetPlayerFromSteamId(
+                steamId,
+                allowUnauthorized: false
+            );
+
             var isConnected = CanTrack(player);
             var isPlaying = isConnected && IsPlayingTeam(player!);
 
             if (isPlaying)
             {
-                SetRole(player!, GetRole(player!), participated: player!.IsAlive);
+                participant.SetRole(GetRole(player!));
             }
-
-            var survivedRound =
-                isConnected &&
-                player!.IsAlive &&
-                participant.CurrentRole == PlayerRole.Human;
 
             var humanWon =
                 isPlaying &&
+                player!.IsAlive &&
                 winner == Team.CT &&
-                participant.WasHuman &&
                 participant.CurrentRole == PlayerRole.Human;
 
             var zombieWon =
                 isPlaying &&
+                player!.IsAlive &&
                 winner == Team.T &&
-                participant.WasZombie &&
                 participant.CurrentRole == PlayerRole.Zombie;
 
-            var result = new RoundStatisticsResult(
-                WasHuman: participant.WasHuman,
-                WasZombie: participant.WasZombie,
-                WasFirstZombie: participant.WasFirstZombie,
-                WasLastHuman: participant.WasLastHuman,
-                SurvivedRound: survivedRound,
-                HumanWon: humanWon,
-                ZombieWon: zombieWon,
-                LastHumanSurvived: participant.WasLastHuman && survivedRound && humanWon
+            var pointsDelta = CalculatePoints(
+                steamId,
+                formula,
+                participant.CreatePointsContext(humanWon, zombieWon)
             );
 
-            playerStatisticsService.RecordRound(steamId, result);
+            playerStatisticsService.RecordRound(
+                steamId,
+                new RoundStatisticsResult(
+                    PointsDelta: pointsDelta,
+                    HumanWon: humanWon,
+                    ZombieWon: zombieWon
+                )
+            );
         }
 
         FinishRound();
+        pointsFormulaProvider.Refresh();
 
         return HookResult.Continue;
     }
 
     private HookResult OnGameRestart(EventCsPreRestart @event)
     {
+        _ = @event;
+
         AbortRound();
+        pointsFormulaProvider.Refresh();
 
         return HookResult.Continue;
     }
@@ -313,19 +279,10 @@ internal sealed class StatisticsCollector(
             return;
         }
 
-        var infector = context.Infector;
-
-        if (!CanTrack(infector) || infector.SteamID == context.Player.SteamID)
-        {
-            _infectionTransitions.Remove(context.Player.SteamID);
-
-            return;
-        }
-
         _infectionTransitions[context.Player.SteamID] =
             Stopwatch.GetTimestamp() + Stopwatch.Frequency * InfectionDeathWindowSeconds;
 
-        SetRole(context.Player, PlayerRole.Human, participated: true);
+        SetRole(context.Player, PlayerRole.Human);
     }
 
     private void OnPlayerInfected(ref PlayerInfectPostContext context)
@@ -336,19 +293,24 @@ internal sealed class StatisticsCollector(
         }
 
         var player = context.Player;
+        var infectedParticipant = SetRole(player, PlayerRole.Human);
         var infector = context.Infector;
 
         if (CanTrack(infector) && infector.SteamID != player.SteamID)
         {
-            SetRole(infector, PlayerRole.Zombie, participated: true);
-            SetRole(player, PlayerRole.Human, participated: true);
+            var infectorParticipant = SetRole(infector, PlayerRole.Zombie);
+            var currentInfectionStreak = infectorParticipant.RecordInfectionMade();
 
-            playerStatisticsService.RecordInfection(infector.SteamID, player.SteamID);
+            infectedParticipant.RecordTimesInfected();
+
+            playerStatisticsService.RecordInfection(
+                infector.SteamID,
+                player.SteamID,
+                currentInfectionStreak
+            );
         }
 
-        SetRole(player, PlayerRole.Zombie, participated: player.IsAlive);
-
-        DetectLastHuman();
+        SetRole(player, PlayerRole.Zombie);
     }
 
     private void OnRoundStarted(ref RoundStartPostContext context)
@@ -357,9 +319,8 @@ internal sealed class StatisticsCollector(
 
         _roundParticipants.Clear();
         _infectionTransitions.Clear();
+        _roundFormula = pointsFormulaProvider.CaptureFormula();
         _isRoundActive = true;
-
-        playerStatisticsService.ResetAllStreaks();
 
         foreach (var player in core.PlayerManager.GetAllValidPlayers())
         {
@@ -368,15 +329,16 @@ internal sealed class StatisticsCollector(
                 continue;
             }
 
-            SetRole(
-                player,
-                GetRole(player),
-                participated: true,
-                isInitialRole: true
-            );
+            SetRole(player, GetRole(player));
         }
+    }
 
-        DetectLastHuman();
+    private void OnMapUnload(IOnMapUnloadEvent @event)
+    {
+        _ = @event;
+
+        AbortRound();
+        playerStatisticsService.CheckpointAndSaveAll();
     }
 
     private void TrackChangedRole(IPlayer? player)
@@ -386,21 +348,10 @@ internal sealed class StatisticsCollector(
             return;
         }
 
-        var role = GetRole(player);
-
-        if (role == PlayerRole.Zombie || _roundParticipants.ContainsKey(player.SteamID))
-        {
-            SetRole(player, role, participated: true);
-            DetectLastHuman();
-        }
+        SetRole(player, GetRole(player));
     }
 
-    private void SetRole(
-        IPlayer player,
-        PlayerRole role,
-        bool participated,
-        bool isInitialRole = false
-    )
+    private RoundParticipantState SetRole(IPlayer player, PlayerRole role)
     {
         if (!_roundParticipants.TryGetValue(player.SteamID, out var participant))
         {
@@ -408,60 +359,31 @@ internal sealed class StatisticsCollector(
             _roundParticipants[player.SteamID] = participant;
         }
 
-        if (participant.CurrentRole is not PlayerRole.None &&
-            participant.CurrentRole != role)
-        {
-            playerStatisticsService.ResetStreaks(player.SteamID);
-        }
+        participant.SetRole(role);
 
-        participant.CurrentRole = role;
-
-        if (!participated)
-        {
-            return;
-        }
-
-        switch (role)
-        {
-            case PlayerRole.Human:
-                participant.WasHuman = true;
-                break;
-
-            case PlayerRole.Zombie:
-                participant.WasZombie = true;
-                participant.WasFirstZombie |= isInitialRole;
-                break;
-        }
+        return participant;
     }
 
-    private void DetectLastHuman(ulong? excludedSteamId = null)
+    private long CalculatePoints(
+        ulong steamId,
+        PointsFormula formula,
+        RoundPointsContext context
+    )
     {
-        if (!_isRoundActive)
+        try
         {
-            return;
+            return pointsCalculator.CalculateDelta(formula, context);
         }
-
-        var aliveHumans = core.PlayerManager
-            .GetAllValidPlayers()
-            .Where(player =>
-                CanTrack(player) &&
-                IsActivePlayer(player) &&
-                player.SteamID != excludedSteamId &&
-                GetRole(player) == PlayerRole.Human
-            )
-            .Take(2)
-            .ToArray();
-
-        if (aliveHumans.Length != 1)
+        catch (PointsFormulaException exception)
         {
-            return;
+            core.Logger.LogError(
+                exception,
+                "Failed to calculate round points for player {SteamId}. No points will be awarded for this round.",
+                steamId
+            );
+
+            return 0;
         }
-
-        var lastHuman = aliveHumans[0];
-
-        SetRole(lastHuman, PlayerRole.Human, participated: true);
-
-        _roundParticipants[lastHuman.SteamID].WasLastHuman = true;
     }
 
     private bool ShouldSuppressInfectionDeath(
@@ -502,20 +424,18 @@ internal sealed class StatisticsCollector(
     {
         _roundParticipants.Clear();
         _infectionTransitions.Clear();
+        _roundFormula = null;
         _isRoundActive = false;
 
-        playerStatisticsService.ResetAllStreaks();
-        playerStatisticsService.RemoveDisconnectedSessions();
+        playerStatisticsService.SaveRound();
     }
 
     private void AbortRound()
     {
-        if (!_isRoundActive)
+        if (_isRoundActive)
         {
-            return;
+            FinishRound();
         }
-
-        FinishRound();
     }
 
     private IZombiePlagueApi GetZombiePlagueApi()

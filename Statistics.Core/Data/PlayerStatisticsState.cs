@@ -8,8 +8,6 @@ internal sealed class PlayerStatisticsState
 
     private long _sessionCheckpointTimestamp;
 
-    private bool _isCurrentConnectionCounted;
-
     public string LastKnownName { get; private set; } = string.Empty;
 
     public DateTime FirstSeenAtUtc { get; private set; }
@@ -18,74 +16,32 @@ internal sealed class PlayerStatisticsState
 
     public bool IsConnected { get; private set; }
 
-    public long SessionsCount { get; private set; }
+    public long Points { get; private set; }
 
     public long PlayTimeSeconds { get; private set; }
 
-    public long RoundsPlayed { get; private set; }
-
-    public long RoundsAsHuman { get; private set; }
-
-    public long RoundsAsZombie { get; private set; }
-
     public long ZombiesKilled { get; private set; }
-
-    public long HeadshotZombieKills { get; private set; }
 
     public long InfectionsMade { get; private set; }
 
     public long TimesInfected { get; private set; }
 
-    public long DeathsAsHuman { get; private set; }
-
-    public long DeathsAsZombie { get; private set; }
-
-    public long DamageToZombies { get; private set; }
-
-    public long DamageToHumans { get; private set; }
-
-    public long SurvivedRounds { get; private set; }
+    public long Deaths { get; private set; }
 
     public long HumanWins { get; private set; }
 
     public long ZombieWins { get; private set; }
 
-    public long FirstZombieRounds { get; private set; }
-
-    public long LastHumanRounds { get; private set; }
-
-    public long LastHumanSurvivals { get; private set; }
-
     public long BestKillStreak { get; private set; }
 
     public long BestInfectionStreak { get; private set; }
 
-    public long CurrentKillStreak { get; private set; }
-
-    public long CurrentInfectionStreak { get; private set; }
-
-    public void Connect(
-        string playerName,
-        DateTime nowUtc,
-        long timestamp,
-        bool countSession
-    )
+    public void Connect(string playerName, DateTime nowUtc, long timestamp)
     {
         if (!IsConnected)
         {
             IsConnected = true;
-            _isCurrentConnectionCounted = countSession;
             _sessionCheckpointTimestamp = timestamp;
-
-            if (countSession)
-            {
-                SessionsCount++;
-            }
-        }
-        else if (countSession && !_isCurrentConnectionCounted)
-        {
-            _isCurrentConnectionCounted = true;
-            SessionsCount++;
         }
 
         LastKnownName = playerName;
@@ -102,20 +58,16 @@ internal sealed class PlayerStatisticsState
         LastKnownName = playerName;
         LastSeenAtUtc = nowUtc;
 
-        if (!IsConnected)
+        if (IsConnected)
         {
-            return;
+            AddElapsedPlayTime(timestamp);
         }
-
-        AddElapsedPlayTime(timestamp);
     }
 
     public void Disconnect(string playerName, DateTime nowUtc, long timestamp)
     {
         Checkpoint(playerName, nowUtc, timestamp);
-
         IsConnected = false;
-        _isCurrentConnectionCounted = false;
     }
 
     public void Merge(PlayerStatisticsSnapshot loaded)
@@ -129,62 +81,33 @@ internal sealed class PlayerStatisticsState
 
         FirstSeenAtUtc = loaded.FirstSeenAtUtc;
 
-        SessionsCount += loaded.SessionsCount;
+        Points = AddPoints(loaded.Points, Points);
         PlayTimeSeconds += loaded.PlayTimeSeconds;
-        RoundsPlayed += loaded.RoundsPlayed;
-        RoundsAsHuman += loaded.RoundsAsHuman;
-        RoundsAsZombie += loaded.RoundsAsZombie;
         ZombiesKilled += loaded.ZombiesKilled;
-        HeadshotZombieKills += loaded.HeadshotZombieKills;
         InfectionsMade += loaded.InfectionsMade;
         TimesInfected += loaded.TimesInfected;
-        DeathsAsHuman += loaded.DeathsAsHuman;
-        DeathsAsZombie += loaded.DeathsAsZombie;
-        DamageToZombies += loaded.DamageToZombies;
-        DamageToHumans += loaded.DamageToHumans;
-        SurvivedRounds += loaded.SurvivedRounds;
+        Deaths += loaded.Deaths;
         HumanWins += loaded.HumanWins;
         ZombieWins += loaded.ZombieWins;
-        FirstZombieRounds += loaded.FirstZombieRounds;
-        LastHumanRounds += loaded.LastHumanRounds;
-        LastHumanSurvivals += loaded.LastHumanSurvivals;
 
         BestKillStreak = Math.Max(BestKillStreak, loaded.BestKillStreak);
         BestInfectionStreak = Math.Max(BestInfectionStreak, loaded.BestInfectionStreak);
     }
 
-    public void RecordDamageToZombies(int damage)
+    public void RecordZombieKill(long currentStreak)
     {
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(damage);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(currentStreak);
 
-        DamageToZombies += damage;
-    }
-
-    public void RecordDamageToHumans(int damage)
-    {
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(damage);
-
-        DamageToHumans += damage;
-    }
-
-    public void RecordZombieKill(bool isHeadshot)
-    {
         ZombiesKilled++;
-
-        if (isHeadshot)
-        {
-            HeadshotZombieKills++;
-        }
-
-        CurrentKillStreak++;
-        BestKillStreak = Math.Max(BestKillStreak, CurrentKillStreak);
+        BestKillStreak = Math.Max(BestKillStreak, currentStreak);
     }
 
-    public void RecordInfectionMade()
+    public void RecordInfectionMade(long currentStreak)
     {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(currentStreak);
+
         InfectionsMade++;
-        CurrentInfectionStreak++;
-        BestInfectionStreak = Math.Max(BestInfectionStreak, CurrentInfectionStreak);
+        BestInfectionStreak = Math.Max(BestInfectionStreak, currentStreak);
     }
 
     public void RecordTimesInfected()
@@ -192,50 +115,14 @@ internal sealed class PlayerStatisticsState
         TimesInfected++;
     }
 
-    public void RecordDeath(PlayerRole role)
+    public void RecordDeath()
     {
-        switch (role)
-        {
-            case PlayerRole.Human:
-                DeathsAsHuman++;
-                break;
-
-            case PlayerRole.Zombie:
-                DeathsAsZombie++;
-                break;
-        }
-
-        ResetStreaks();
+        Deaths++;
     }
 
     public void RecordRound(RoundStatisticsResult result)
     {
-        RoundsPlayed++;
-
-        if (result.WasHuman)
-        {
-            RoundsAsHuman++;
-        }
-
-        if (result.WasZombie)
-        {
-            RoundsAsZombie++;
-        }
-
-        if (result.WasFirstZombie)
-        {
-            FirstZombieRounds++;
-        }
-
-        if (result.WasLastHuman)
-        {
-            LastHumanRounds++;
-        }
-
-        if (result.SurvivedRound)
-        {
-            SurvivedRounds++;
-        }
+        Points = AddPoints(Points, result.PointsDelta);
 
         if (result.HumanWon)
         {
@@ -246,19 +133,6 @@ internal sealed class PlayerStatisticsState
         {
             ZombieWins++;
         }
-
-        if (result.LastHumanSurvived)
-        {
-            LastHumanSurvivals++;
-        }
-
-        ResetStreaks();
-    }
-
-    public void ResetStreaks()
-    {
-        CurrentKillStreak = 0;
-        CurrentInfectionStreak = 0;
     }
 
     public PlayerStatisticsSnapshot CreateSnapshot()
@@ -268,25 +142,14 @@ internal sealed class PlayerStatisticsState
             LastKnownName = LastKnownName,
             FirstSeenAtUtc = FirstSeenAtUtc,
             LastSeenAtUtc = LastSeenAtUtc,
-            SessionsCount = SessionsCount,
+            Points = Points,
             PlayTimeSeconds = PlayTimeSeconds,
-            RoundsPlayed = RoundsPlayed,
-            RoundsAsHuman = RoundsAsHuman,
-            RoundsAsZombie = RoundsAsZombie,
             ZombiesKilled = ZombiesKilled,
-            HeadshotZombieKills = HeadshotZombieKills,
             InfectionsMade = InfectionsMade,
             TimesInfected = TimesInfected,
-            DeathsAsHuman = DeathsAsHuman,
-            DeathsAsZombie = DeathsAsZombie,
-            DamageToZombies = DamageToZombies,
-            DamageToHumans = DamageToHumans,
-            SurvivedRounds = SurvivedRounds,
+            Deaths = Deaths,
             HumanWins = HumanWins,
             ZombieWins = ZombieWins,
-            FirstZombieRounds = FirstZombieRounds,
-            LastHumanRounds = LastHumanRounds,
-            LastHumanSurvivals = LastHumanSurvivals,
             BestKillStreak = BestKillStreak,
             BestInfectionStreak = BestInfectionStreak
         };
@@ -308,5 +171,18 @@ internal sealed class PlayerStatisticsState
         _playTimeRemainderTicks = elapsedTicks % TimeSpan.TicksPerSecond;
         _sessionCheckpointTimestamp = timestamp;
     }
-}
 
+    private static long AddPoints(long currentPoints, long delta)
+    {
+        var result = (decimal)currentPoints + delta;
+
+        if (result <= 0)
+        {
+            return 0;
+        }
+
+        return result >= long.MaxValue
+            ? long.MaxValue
+            : (long)result;
+    }
+}
