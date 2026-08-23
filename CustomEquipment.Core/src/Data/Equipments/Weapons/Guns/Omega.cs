@@ -24,28 +24,26 @@ internal sealed class Omega : WeaponItemBase, IShopItem
 
     public override string Model => "weapons/nozb1/valogun/araxys_bundle/araxys_sawedoff/araxys_sawedoff_ag2.vmdl";
     
-    public override WeaponParticle Particle => new()
-    {
-        Trace = "particles/kolka/shoteffects/tracer7.vpcf"
-    };
-    
     public override WeaponDamage WeaponDamage => new()
     {
         DamageMultiplier = new DamageMultiplier
         {
-            Head = 6.0f,
-            Chest = 1.45f,
+            Head = 1.65f,
+            Chest = 1.85f,
+            Stomach = 1.85f,
+            Arms = new DamageMultiplier.Arm(2.05f, 2.05f),
+            Legs = new DamageMultiplier.Leg(2.15f, 2.15f),
         },
-        NumBullets = 2,
-        Penetration = 5,
+        NumBullets = 1,
+        Penetration = 1,
         Range = 10_000f,
         RangeModifier = 1.0f
     };
     
     public override Ammunition Ammunition => new()
     {
-        Clip = 3,
-        ReserveAmmo = 8
+        Clip = 2,
+        ReserveAmmo = 6
     };
     
     public override WeaponTiming WeaponTiming => new()
@@ -55,8 +53,8 @@ internal sealed class Omega : WeaponItemBase, IShopItem
     
     public Price Price => new()
     {
-        Item = 1500,
-        Ammo = 100
+        Item = 14000,
+        Ammo = 700
     };
 
     public ItemRarity Rarity => ItemRarity.Uncommon;

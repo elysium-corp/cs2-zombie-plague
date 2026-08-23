@@ -1,4 +1,6 @@
-﻿using SwiftlyS2.Shared;
+﻿using Common.Effects;
+using Common.Effects.Effects;
+using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
@@ -172,10 +174,14 @@ internal sealed class TrapEntity(ISwiftlyCore core, TrapConfig config, IPlayer c
         var targetPawn = target.PlayerPawn;
 
         if (targetPawn == null || !targetPawn.IsValid) return;
-
+        
+        var effectService = EffectService.Provide(core);
+        
         targetPawn.MoveType = MoveType_t.MOVETYPE_NONE;
         targetPawn.ActualMoveType = MoveType_t.MOVETYPE_NONE;
         targetPawn.MoveTypeUpdated();
+        
+        effectService.ApplyEffect<Disorient>(caster, target);
 
         targetPawn.AbsVelocity = Vector.Zero;
 

@@ -24,26 +24,37 @@ internal sealed class ReactorLeak : WeaponItemBase, IShopItem
 
     public override string Model => "weapons/luci/car_ump45/car_ump45_ag2.vmdl";
     
-    public override WeaponParticle Particle => new()
+    public override WeaponDamage WeaponDamage => new()
     {
-        Trace = "particles/kolka/shoteffects/tracer8.vpcf"
+        DamageMultiplier = new DamageMultiplier
+        {
+            Head = 1.65f,
+            Chest = 2.50f,
+            Stomach = 2.50f,
+            Arms = new DamageMultiplier.Arm(2.45f, 2.45f),
+            Legs = new DamageMultiplier.Leg(2.55f, 2.55f),
+        },
+        NumBullets = 1,
+        Penetration = 1,
+        Range = 10_000f,
+        RangeModifier = 1.0f
     };
     
     public override Ammunition Ammunition => new()
     {
         Clip = 20,
-        ReserveAmmo = 60
+        ReserveAmmo = 5
     };
     
     public override WeaponTiming WeaponTiming => new()
     {
-        CycleTime = [0.15f, 1.0f],
+        CycleTime = [0.13f, 0.15f],
     };
     
     public Price Price => new()
     {
-        Item = 1500,
-        Ammo = 100
+        Item = 9500,
+        Ammo = 315
     };
 
     public ItemRarity Rarity => ItemRarity.Uncommon;

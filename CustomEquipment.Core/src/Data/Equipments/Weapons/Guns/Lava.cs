@@ -26,7 +26,23 @@ internal sealed class Lava : WeaponItemBase, IShopItem
     
     public override WeaponParticle Particle => new()
     {
-        Trace = "particles/kolka/shoteffects/tracer1.vpcf"
+        Trace = "particles/kolka/shoteffects/tracer7.vpcf"
+    };
+    
+    public override WeaponDamage WeaponDamage => new()
+    {
+        DamageMultiplier = new DamageMultiplier
+        {
+            Head = 2.45f,
+            Chest = 2.85f,
+            Stomach = 2.85f,
+            Arms = new DamageMultiplier.Arm(2.65f, 2.65f),
+            Legs = new DamageMultiplier.Leg(3.15f, 3.15f),
+        },
+        NumBullets = 1,
+        Penetration = 1,
+        Range = 10_000f,
+        RangeModifier = 1.0f
     };
 
     public override Ammunition Ammunition => new()
@@ -37,13 +53,13 @@ internal sealed class Lava : WeaponItemBase, IShopItem
     
     public override WeaponTiming WeaponTiming => new()
     {
-        CycleTime = [0.2f, 1.0f],
+        CycleTime = [0.12f, 0.13f],
     };
     
     public Price Price => new()
     {
-        Item = 1500,
-        Ammo = 100
+        Item = 19500,
+        Ammo = 650
     };
 
     public ItemRarity Rarity => ItemRarity.Uncommon;

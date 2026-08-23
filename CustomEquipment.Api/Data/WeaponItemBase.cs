@@ -59,7 +59,6 @@ public abstract class WeaponItemBase : ItemBase, IWeapon, IHasParticle
         vData.SetTiming(WeaponTiming?.CycleTime, WeaponTiming?.DeployDuration, weapon);
         vData.SetDamage(WeaponDamage?.NumBullets, WeaponDamage?.Penetration, WeaponDamage?.Range,
             WeaponDamage?.RangeModifier);
-        
         if (!string.IsNullOrEmpty(Model)) weapon.SetModel(Model);
 
         weapon.AttributeManager.Item.CustomName = DisplayName;

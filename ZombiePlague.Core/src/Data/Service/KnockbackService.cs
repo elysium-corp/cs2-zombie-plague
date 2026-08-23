@@ -25,8 +25,8 @@ internal sealed class KnockbackService(
     private static readonly IReadOnlyDictionary<string, KnockbackData> WeaponKnockback =
         new Dictionary<string, KnockbackData>
         {
-            { "weapon_glock", new KnockbackData(150.0f, 200.0f) },
-            { "weapon_usp_silencer", new KnockbackData(160.0f, 200.0f) },
+            { "weapon_glock", new KnockbackData(200.0f, 200.0f) },
+            { "weapon_usp_silencer", new KnockbackData(200.0f, 200.0f) },
             { "weapon_hkp2000", new KnockbackData(200.0f, 200.0f) },
             { "weapon_elite", new KnockbackData(225.0f, 200.0f) },
             { "weapon_p250", new KnockbackData(225.0f, 200.0f) },

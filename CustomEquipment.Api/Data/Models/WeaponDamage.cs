@@ -1,4 +1,4 @@
-﻿namespace CustomEquipment.Data.Equipments.Models;
+﻿namespace CustomEquipment.Api.Data.Models;
 
 public sealed class WeaponDamage
 {
@@ -42,15 +42,27 @@ public sealed class DamageMultiplier
 
     public sealed class Arm
     {
-        public float Left { get; init; } = 1.0f;
+        public Arm(float left = 1.0f, float right = 1.0f)
+        {
+            Left = left;
+            Right = right;
+        }
+        
+        public float Left { get; init; }
 
-        public float Right { get; init; } = 1.0f;
+        public float Right { get; init; }
     }
 
     public sealed class Leg
     {
-        public float Left { get; init; } = 1.0f;
+        public Leg(float left = 1.0f, float right = 1.0f)
+        {
+            Left = left;
+            Right = right;
+        }
+        
+        public float Left { get; init; }
 
-        public float Right { get; init; } = 1.0f;
+        public float Right { get; init; }
     }
 }

@@ -26,11 +26,11 @@ public class ZombieCleric : IZClassConfig
     public string Model { get; set; } = "characters/models/nozb1/zombie_stalker_player_model/zombie_stalker_player_model.vmdl";
     public string Description { get; set; } = "Лечит зомби";
     public int Health { get; set; } = 3_500;
-    public float Speed { get; set; } = 260f;
+    public float Speed { get; set; } = 280f;
     public float Knockback { get; set; } = 0.9f;
     public int Gravity { get; set; } = 600;
     public string InfectionSound { get; set; } = "ZombiePlagueAbility.Infection.infection1";
-    public List<string> HurtSounds { get; set; } = ["ZombiePlagueSounds.zombie_pain_1"];
+    public List<string> HurtSounds { get; set; } = ["ZombiePlagueSounds.zombie_pain_cleric_pain_01", "ZombiePlagueSounds.zombie_pain_cleric_pain_02"];
     public List<string> Abilities { get; set; } = ["heal", "leap"];
 }
 
@@ -41,12 +41,12 @@ public class ZombieHunter : IZClassConfig
     public string DisplayName { get; set; } = "Hunter";
     public string Model { get; set; } = "characters/models/kolka/2025/lurker/lurker.vmdl";
     public string Description { get; set; } = "Ставит ловушки";
-    public int Health { get; set; } = 3_500;
-    public float Speed { get; set; } = 260f;
+    public int Health { get; set; } = 3_700;
+    public float Speed { get; set; } = 280f;
     public float Knockback { get; set; } = 0.9f;
     public int Gravity { get; set; } = 600;
     public string InfectionSound { get; set; } = "ZombiePlagueAbility.Infection.infection2";
-    public List<string> HurtSounds { get; set; } = ["ZombiePlagueSounds.zombie_hurt_2"];
+    public List<string> HurtSounds { get; set; } = ["ZombiePlagueSounds.zombie_pain_hunter_01", "ZombiePlagueSounds.zombie_pain_hunter_02"];
     public List<string> Abilities { get; set; } = ["trap", "leap"];
 }
 
@@ -62,7 +62,7 @@ public class ZombieAssassin : IZClassConfig
     public float Knockback { get; set; } = 0.9f;
     public int Gravity { get; set; } = 600;
     public string InfectionSound { get; set; } = "ZombiePlagueAbility.Infection.infection3";
-    public List<string> HurtSounds { get; set; } = ["ZombiePlagueSounds.zombie_hurt_3"];
+    public List<string> HurtSounds { get; set; } = ["ZombiePlagueSounds.zombie_pain_assassin_01", "ZombiePlagueSounds.zombie_pain_assassin_02"];
     public List<string> Abilities { get; set; } = ["charge", "leap"];
 }
 
@@ -73,12 +73,12 @@ public class ZombieHeavy : IZClassConfig
     public string DisplayName { get; set; } = "Heavy";
     public string Model { get; set; } = "characters/models/nozb1/chris_walker_player_model/chris_walker_player_model.vmdl";
     public string Description { get; set; } = "Ослепляет";
-    public int Health { get; set; } = 4_500;
+    public int Health { get; set; } = 5_200;
     public float Speed { get; set; } = 250f;
     public float Knockback { get; set; } = 0.9f;
     public int Gravity { get; set; } = 700;
     public string InfectionSound { get; set; } = "ZombiePlagueAbility.Infection.infection1";
-    public List<string> HurtSounds { get; set; } = ["ZombiePlagueSounds.zombie_hurt_4"];
+    public List<string> HurtSounds { get; set; } = ["ZombiePlagueSounds.zombie_pain_heavy_01", "ZombiePlagueSounds.zombie_pain_heavy_02"];
     public List<string> Abilities { get; set; } = ["blind", "leap"];
 }
 
@@ -89,13 +89,13 @@ public class ZombieSmoker : IZClassConfig
     public string DisplayName { get; set; } = "Smoker";
     public string Model { get; set; } = "characters/models/nozb1/jason_player_model/jason_player_model.vmdl";
     public string Description { get; set; } = "Притягивает";
-    public int Health { get; set; } = 2_500;
-    public float Speed { get; set; } = 250f;
+    public int Health { get; set; } = 3_250;
+    public float Speed { get; set; } = 270f;
     public float Knockback { get; set; } = 0.9f;
     public int Gravity { get; set; } = 800;
     public string InfectionSound { get; set; } = "ZombiePlagueAbility.Infection.infection2";
-    public List<string> HurtSounds { get; set; } = ["ZombiePlagueSounds.zombie_hurt_5"];
-    public List<string> Abilities { get; set; } = ["catch"];
+    public List<string> HurtSounds { get; set; } = ["ZombiePlagueSounds.zombie_pain_smoker_01", "ZombiePlagueSounds.zombie_pain_smoker_02"];
+    public List<string> Abilities { get; set; } = ["catch", "leap"];
 }
 
 public class ZombieNemesis : IZClassConfig
@@ -106,10 +106,10 @@ public class ZombieNemesis : IZClassConfig
     public string Model { get; set; } = "characters/models/nozb1/nemesis_player_model/nemesis_player_model.vmdl";
     public string Description { get; set; } = "Убивает";
     public int Health { get; set; } = 5_000;
-    public float Speed { get; set; } = 280f;
+    public float Speed { get; set; } = 300f;
     public float Knockback { get; set; } = 1f;
     public int Gravity { get; set; } = 400;
     public string InfectionSound { get; set; } = "";
-    public List<string> HurtSounds { get; set; } = ["ZombiePlagueSounds.zombie_hurt_2"];
+    public List<string> HurtSounds { get; set; } = ["ZombiePlagueSounds.zombie_pain_nemesis_01", "ZombiePlagueSounds.zombie_pain_nemesis_02"];
     public List<string> Abilities { get; set; } = ["leap"];
 }
