@@ -28,18 +28,16 @@ internal sealed class Ajm : WeaponItemBase, IShopItem
     {
         DamageMultiplier = new DamageMultiplier
         {
-            Head = 6.0f,
-            Chest = 1.45f,
+            Head = 1.45f,
+            Chest = 1.85f,
+            Stomach = 1.75f,
+            Arms = new DamageMultiplier.Arm(1.55f, 1.55f),
+            Legs = new DamageMultiplier.Leg(1.65f, 1.65f),
         },
-        NumBullets = 2,
-        Penetration = 5,
+        NumBullets = 1,
+        Penetration = 1,
         Range = 10_000f,
         RangeModifier = 1.0f
-    };
-    
-    public override WeaponParticle Particle => new()
-    {
-        Trace = "particles/kolka/shoteffects/tracer11.vpcf"
     };
     
     public override Ammunition Ammunition => new()
@@ -50,13 +48,13 @@ internal sealed class Ajm : WeaponItemBase, IShopItem
 
     public override WeaponTiming WeaponTiming => new()
     {
-        CycleTime = [0.2f, 1.0f],
+        CycleTime = [0.07f, 0.08f],
     };
 
     public Price Price => new()
     {
-        Item = 1500,
-        Ammo = 100
+        Item = 7500,
+        Ammo = 375
     };
 
     public ItemRarity Rarity => ItemRarity.Uncommon;

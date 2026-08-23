@@ -35,7 +35,7 @@ public class ShakeNade : GrenadeItemBase
     {
         var core = DependencyResolver.GetRequiredService<ISwiftlyCore>();
         var effectService = EffectService.Provide(core);
-        var alivePlayers = core.PlayerManager.GetAlive();
+        var alivePlayers = core.PlayerManager.GetCTAlive();
 
         var players = Geometry.FindPlayersInSphere(alivePlayers, ShakeRadius, position);
         

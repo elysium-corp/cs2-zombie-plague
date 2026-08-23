@@ -24,23 +24,26 @@ internal sealed class Reaver : WeaponItemBase, IShopItem
     public override WeaponType WeaponType => WeaponType.Pistol;
 
     public override string Model => "weapons/luci/reaver_deagle/reaver_deagle.vmdl";
-
-    public override WeaponDamage WeaponDamage => new()
-    {
-        DamageMultiplier = new DamageMultiplier
-        {
-            Head = 15.0f,
-            Chest = 10.45f,
-        },
-        NumBullets = 1,
-        Penetration = 5,
-        Range = 10_000f,
-        RangeModifier = 1.0f
-    };
     
     public override WeaponParticle Particle => new()
     {
         Trace = "particles/kolka/shoteffects/tracer11.vpcf"
+    };
+    
+    public override WeaponDamage WeaponDamage => new()
+    {
+        DamageMultiplier = new DamageMultiplier
+        {
+            Head = 11.55f,
+            Chest = 8.45f,
+            Stomach = 8.45f,
+            Arms = new DamageMultiplier.Arm(9.45f, 9.45f),
+            Legs = new DamageMultiplier.Leg(10.45f, 10.45f),
+        },
+        NumBullets = 1,
+        Penetration = 1,
+        Range = 10_000f,
+        RangeModifier = 1.0f
     };
     
     public override Ammunition Ammunition => new()
@@ -51,13 +54,13 @@ internal sealed class Reaver : WeaponItemBase, IShopItem
 
     public override WeaponTiming WeaponTiming => new()
     {
-        CycleTime = [1.0f, 1.0f],
+        CycleTime = [1.5f, 1.6f],
     };
     
     public Price Price => new()
     {
-        Item = 1500,
-        Ammo = 100
+        Item = 9500,
+        Ammo = 450
     };
 
     public ItemRarity Rarity => ItemRarity.Uncommon;

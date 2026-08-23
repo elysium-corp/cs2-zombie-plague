@@ -25,7 +25,7 @@ internal sealed class Catch(ISwiftlyCore core, CatchConfig config) : BaseActiveA
     private MoveType_t? _targetActualMoveType;
 
     private const float BodyPositionZ = 48f;
-    private const float UpdateIntervalMs = 0.04f;
+    private const float UpdateIntervalSeconds = 0.1f;
     private const float MovementTolerance = 1f;
 
     public override void UnHook()
@@ -162,7 +162,7 @@ internal sealed class Catch(ISwiftlyCore core, CatchConfig config) : BaseActiveA
 
     private void CreateCatchingHandler()
     {
-        _catchToken = core.Scheduler.RepeatBySeconds(UpdateIntervalMs, CatchHandler);
+        _catchToken = core.Scheduler.RepeatBySeconds(UpdateIntervalSeconds, CatchHandler);
     }
 
     private void CatchHandler()
@@ -261,10 +261,7 @@ internal sealed class Catch(ISwiftlyCore core, CatchConfig config) : BaseActiveA
         var targetPawn = Target?.PlayerPawn;
         var targetPosition = targetPawn?.AbsOrigin;
 
-        if (casterPosition == null || targetPawn == null || !targetPawn.IsValid || targetPosition == null)
-        {
-            return false;
-        }
+        if (casterPosition == null || targetPawn == null || !targetPawn.IsValid || targetPosition == null) return false;
 
         var offset = casterPosition.Value - targetPosition.Value;
         var distanceSquared =

@@ -29,11 +29,14 @@ internal sealed class Elite : WeaponItemBase, IShopItem
     {
         DamageMultiplier = new DamageMultiplier
         {
-            Head = 6.0f,
-            Chest = 1.45f,
+            Head = 2.55f,
+            Chest = 3.55f,
+            Stomach = 3.55f,
+            Arms = new DamageMultiplier.Arm(2.25f, 2.25f),
+            Legs = new DamageMultiplier.Leg(2.45f, 2.45f),
         },
-        NumBullets = 2,
-        Penetration = 5,
+        NumBullets = 1,
+        Penetration = 1,
         Range = 10_000f,
         RangeModifier = 1.0f
     };
@@ -45,19 +48,19 @@ internal sealed class Elite : WeaponItemBase, IShopItem
     
     public override Ammunition Ammunition => new()
     {
-        Clip = 20,
+        Clip = 3,
         ReserveAmmo = 5
     };
 
     public override WeaponTiming WeaponTiming => new()
     {
-        CycleTime = [0.2f, 1.0f],
+        CycleTime = [1.455f, 1.455f],
     };
 
     public Price Price => new()
     {
-        Item = 1500,
-        Ammo = 100
+        Item = 15000,
+        Ammo = 750
     };
 
     public ItemRarity Rarity => ItemRarity.Uncommon;

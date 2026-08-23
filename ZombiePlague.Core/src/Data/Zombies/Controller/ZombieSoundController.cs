@@ -19,7 +19,7 @@ internal class ZombieSoundController : ISoundController
     private readonly Guid _onPlayerHurt;
     private readonly Guid _onPlayerDeath;
 
-    private const int HurtSoundChanceInPercent = 50; 
+    private const int HurtSoundChanceInPercent = 25; 
 
     public ZombieSoundController(ISwiftlyCore core, Zombie zombie)
     {

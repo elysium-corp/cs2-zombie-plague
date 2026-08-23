@@ -24,31 +24,32 @@ internal sealed class X3 : WeaponItemBase, IShopItem
 
     public override string Model => "weapons/luci/x3_m4a1/x3_m4a1_ag2.vmdl";
     
-    public override WeaponParticle Particle => new()
-    {
-        Trace = "particles/kolka/shoteffects/tracer10.vpcf"
-    };
-    
     public override WeaponDamage WeaponDamage => new()
     {
         DamageMultiplier = new DamageMultiplier
         {
-            Head = 3.0f,
-            Chest = 2.45f,
-            Stomach = 2.5f,
-        }
+            Head = 2.05f,
+            Chest = 2.85f,
+            Stomach = 2.6f,
+            Arms = new DamageMultiplier.Arm(2.45f, 2.45f),
+            Legs = new DamageMultiplier.Leg(2.85f, 2.85f),
+        },
+        NumBullets = 1,
+        Penetration = 1,
+        Range = 10_000f,
+        RangeModifier = 1.0f
     };
     
     public override Ammunition Ammunition => new()
     {
-        Clip = 150,
-        ReserveAmmo = 15
+        Clip = 25,
+        ReserveAmmo = 7
     };
     
     public Price Price => new()
     {
-        Item = 1500,
-        Ammo = 100
+        Item = 16500,
+        Ammo = 550
     };
 
     public ItemRarity Rarity => ItemRarity.Uncommon;

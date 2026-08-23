@@ -15,7 +15,7 @@ internal sealed class FireNade : GrenadeItemBase
 {
     private const float BurnRadius = 275.0f;
 
-    private readonly BurnSettings _settings = new(8.0f, 1.0f, 5.0f);
+    private readonly BurnSettings _settings = new(8.0f, 2.0f, 5.0f);
     
     public override string InheritorName => WeaponName.Inc;
     

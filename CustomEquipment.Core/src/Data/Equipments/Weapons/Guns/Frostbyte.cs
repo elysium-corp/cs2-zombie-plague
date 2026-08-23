@@ -23,36 +23,43 @@ internal sealed class Frostbyte : WeaponItemBase, IShopItem
     public override WeaponType WeaponType => WeaponType.SubmachineGun;
 
     public override string Model => "weapons/luci/eov_mp5/eov_mp5_ag2.vmdl";
-
+    
+    public override WeaponParticle Particle => new()
+    {
+        Trace = "particles/kolka/shoteffects/tracer1.vpcf"
+    };
+    
     public override WeaponDamage WeaponDamage => new()
     {
         DamageMultiplier = new DamageMultiplier
         {
-            Head = 1.8f,
-            Chest = 1.15f,
-        }
-    };
-    
-    public override WeaponParticle Particle => new()
-    {
-        Trace = "particles/kolka/shoteffects/tracer3.vpcf"
+            Head = 2.95f,
+            Chest = 3.10f,
+            Stomach = 3.10f,
+            Arms = new DamageMultiplier.Arm(3.45f, 3.45f),
+            Legs = new DamageMultiplier.Leg(3.85f, 3.85f),
+        },
+        NumBullets = 1,
+        Penetration = 1,
+        Range = 10_000f,
+        RangeModifier = 1.0f
     };
     
     public override Ammunition Ammunition => new()
     {
         Clip = 10,
-        ReserveAmmo = 60
+        ReserveAmmo = 5
     };
     
     public override WeaponTiming WeaponTiming => new()
     {
-        CycleTime = [0.2f, 1.0f],
+        CycleTime = [0.2f, 0.6f],
     };
     
     public Price Price => new()
     {
-        Item = 1500,
-        Ammo = 100
+        Item = 13500,
+        Ammo = 450
     };
 
     public ItemRarity Rarity => ItemRarity.Uncommon;
