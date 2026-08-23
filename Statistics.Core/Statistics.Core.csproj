@@ -36,5 +36,8 @@
         </ProjectReference>
     </ItemGroup>
 
-</Project>
+    <ItemGroup>
+        <InternalsVisibleTo Include="Statistics.Core.Tests" />
+    </ItemGroup>
 
+</Project>

@@ -98,25 +98,14 @@ internal sealed class PlayerStatisticsPersistenceService(
             LastKnownName = player.LastKnownName,
             FirstSeenAtUtc = player.FirstSeenAtUtc,
             LastSeenAtUtc = player.LastSeenAtUtc,
-            SessionsCount = statistics?.SessionsCount ?? 0,
+            Points = statistics?.Points ?? 0,
             PlayTimeSeconds = statistics?.PlayTimeSeconds ?? 0,
-            RoundsPlayed = statistics?.RoundsPlayed ?? 0,
-            RoundsAsHuman = statistics?.RoundsAsHuman ?? 0,
-            RoundsAsZombie = statistics?.RoundsAsZombie ?? 0,
             ZombiesKilled = statistics?.ZombiesKilled ?? 0,
-            HeadshotZombieKills = statistics?.HeadshotZombieKills ?? 0,
             InfectionsMade = statistics?.InfectionsMade ?? 0,
             TimesInfected = statistics?.TimesInfected ?? 0,
-            DeathsAsHuman = statistics?.DeathsAsHuman ?? 0,
-            DeathsAsZombie = statistics?.DeathsAsZombie ?? 0,
-            DamageToZombies = statistics?.DamageToZombies ?? 0,
-            DamageToHumans = statistics?.DamageToHumans ?? 0,
-            SurvivedRounds = statistics?.SurvivedRounds ?? 0,
+            Deaths = statistics?.Deaths ?? 0,
             HumanWins = statistics?.HumanWins ?? 0,
             ZombieWins = statistics?.ZombieWins ?? 0,
-            FirstZombieRounds = statistics?.FirstZombieRounds ?? 0,
-            LastHumanRounds = statistics?.LastHumanRounds ?? 0,
-            LastHumanSurvivals = statistics?.LastHumanSurvivals ?? 0,
             BestKillStreak = statistics?.BestKillStreak ?? 0,
             BestInfectionStreak = statistics?.BestInfectionStreak ?? 0
         };
@@ -128,28 +117,16 @@ internal sealed class PlayerStatisticsPersistenceService(
         DateTime updatedAtUtc
     )
     {
-        entity.SessionsCount = statistics.SessionsCount;
+        entity.Points = statistics.Points;
         entity.PlayTimeSeconds = statistics.PlayTimeSeconds;
-        entity.RoundsPlayed = statistics.RoundsPlayed;
-        entity.RoundsAsHuman = statistics.RoundsAsHuman;
-        entity.RoundsAsZombie = statistics.RoundsAsZombie;
         entity.ZombiesKilled = statistics.ZombiesKilled;
-        entity.HeadshotZombieKills = statistics.HeadshotZombieKills;
         entity.InfectionsMade = statistics.InfectionsMade;
         entity.TimesInfected = statistics.TimesInfected;
-        entity.DeathsAsHuman = statistics.DeathsAsHuman;
-        entity.DeathsAsZombie = statistics.DeathsAsZombie;
-        entity.DamageToZombies = statistics.DamageToZombies;
-        entity.DamageToHumans = statistics.DamageToHumans;
-        entity.SurvivedRounds = statistics.SurvivedRounds;
+        entity.Deaths = statistics.Deaths;
         entity.HumanWins = statistics.HumanWins;
         entity.ZombieWins = statistics.ZombieWins;
-        entity.FirstZombieRounds = statistics.FirstZombieRounds;
-        entity.LastHumanRounds = statistics.LastHumanRounds;
-        entity.LastHumanSurvivals = statistics.LastHumanSurvivals;
         entity.BestKillStreak = statistics.BestKillStreak;
         entity.BestInfectionStreak = statistics.BestInfectionStreak;
         entity.UpdatedAtUtc = updatedAtUtc;
     }
 }
-

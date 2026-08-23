@@ -3,8 +3,10 @@ using Common.Database.Storages;
 using Common.Database.Utils;
 using Common.Di;
 using Microsoft.Extensions.DependencyInjection;
+using Statistics.Core.Config;
 using Statistics.Core.Data;
 using Statistics.Core.Database;
+using Statistics.Core.Points;
 using Statistics.Core.Services;
 using SwiftlyS2.Shared;
 
@@ -16,6 +18,8 @@ internal sealed class StatisticsModule(ISwiftlyCore core) : BaseModule(core)
     {
         var service = new ServiceCollection();
 
+        BuildConfigs(service);
+
         service.AddSwiftly(Core);
 
         BuildSingletons(service);
@@ -24,10 +28,21 @@ internal sealed class StatisticsModule(ISwiftlyCore core) : BaseModule(core)
         return (service.BuildServiceProvider(), service);
     }
 
+    private void BuildConfigs(ServiceCollection service)
+    {
+        AddConfig<StatisticsConfig>(
+            service: service,
+            name: "statistics.json",
+            section: "StatisticsConfig"
+        );
+    }
+
     private void BuildSingletons(ServiceCollection service)
     {
         AddSingleton<PlayerSessionStore<PlayerStatisticsState>>(service);
         AddSingleton<IPlayerStatisticsPersistenceService, PlayerStatisticsPersistenceService>(service);
+        AddSingleton<IRoundPointsFormulaProvider, RoundPointsFormulaProvider>(service);
+        AddSingleton<PointsCalculator>(service);
         AddSingleton<PlayerStatisticsService>(service);
         AddSingleton<StatisticsCollector>(service);
     }
@@ -46,4 +61,3 @@ internal sealed class StatisticsModule(ISwiftlyCore core) : BaseModule(core)
         service.AddPostgreSqlDatabase<StatisticsDbContext>(Core, options);
     }
 }
-
