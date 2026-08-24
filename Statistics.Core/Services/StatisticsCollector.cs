@@ -85,7 +85,7 @@ internal sealed class StatisticsCollector(
         core.Event.OnMapLoad += OnMapLoad;
         core.Event.OnMapUnload += OnMapUnload;
 
-        _mapFormula = pointsFormulaProvider.CaptureFormula();
+        CaptureMapFormula("server startup");
         _isStarted = true;
     }
 
@@ -352,7 +352,7 @@ internal sealed class StatisticsCollector(
         AbortRound();
         _pendingPointsNotifications.Clear();
         pointsFormulaProvider.RefreshAndWait();
-        _mapFormula = pointsFormulaProvider.CaptureFormula();
+        CaptureMapFormula("map load");
     }
 
     private void OnMapUnload(IOnMapUnloadEvent @event)
@@ -393,6 +393,17 @@ internal sealed class StatisticsCollector(
 
             player.SendChat($"[green][Statistics] [{color}]{message}");
         }
+    }
+
+    private void CaptureMapFormula(string lifecycle)
+    {
+        _mapFormula = pointsFormulaProvider.CaptureFormula();
+
+        core.Logger.LogInformation(
+            "Statistics points formula selected for {Lifecycle}: {PointsFormula}",
+            lifecycle,
+            _mapFormula.Source
+        );
     }
 
     private void TrackChangedRole(IPlayer? player)
