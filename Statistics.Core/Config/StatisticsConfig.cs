@@ -15,5 +15,5 @@ internal sealed class PointsConfig
 
     public string WebServiceFormulaUrl { get; set; } = string.Empty;
 
-    public int WebServiceTimeoutSeconds { get; set; } = 3;
+    public int WebServiceTimeoutSeconds { get; set; } = 5;
 }

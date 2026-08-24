@@ -6,7 +6,7 @@ internal interface IRoundPointsFormulaProvider
 
     PointsFormula CaptureFormula();
 
-    void Refresh();
+    void RefreshAndWait();
 
     void StopAndWait();
 }

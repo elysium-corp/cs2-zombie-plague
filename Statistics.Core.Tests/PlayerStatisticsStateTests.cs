@@ -8,10 +8,12 @@ public sealed class PlayerStatisticsStateTests
     public void RoundDeltaCannotMakeTotalPointsNegative()
     {
         var state = new PlayerStatisticsState();
-        state.RecordRound(new RoundStatisticsResult(10, false, false));
+        var gained = state.RecordRound(new RoundStatisticsResult(10, false, false));
 
-        state.RecordRound(new RoundStatisticsResult(-15, false, false));
+        var lost = state.RecordRound(new RoundStatisticsResult(-15, false, false));
 
+        Assert.Equal(10, gained);
+        Assert.Equal(-10, lost);
         Assert.Equal(0, state.Points);
     }
 

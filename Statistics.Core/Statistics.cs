@@ -12,7 +12,7 @@ namespace Statistics.Core;
 
 [PluginMetadata(
     Id = "Statistics.Core",
-    Version = "0.2.0",
+    Version = "0.3.1",
     Name = "Statistics Core",
     Author = "illusion & fdrinv",
     Description = "Collects player statistics"

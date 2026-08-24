@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using Common.Hooks;
 using Microsoft.Extensions.Logging;
 using Statistics.Core.Data;
@@ -28,9 +29,13 @@ internal sealed class StatisticsCollector(
 
     private readonly Dictionary<ulong, long> _infectionTransitions = [];
 
+    private readonly Dictionary<ulong, long> _pendingPointsNotifications = [];
+
     private IZombiePlagueApi? _zombiePlagueApi;
 
     private PointsFormula? _roundFormula;
+
+    private PointsFormula? _mapFormula;
 
     private bool _isStarted;
 
@@ -77,8 +82,10 @@ internal sealed class StatisticsCollector(
         zombiePlagueApi.Events.Post.PlayerInfectEvent += OnPlayerInfected;
         zombiePlagueApi.Events.Post.RoundStartEvent += OnRoundStarted;
 
+        core.Event.OnMapLoad += OnMapLoad;
         core.Event.OnMapUnload += OnMapUnload;
 
+        CaptureMapFormula("server startup");
         _isStarted = true;
     }
 
@@ -95,6 +102,7 @@ internal sealed class StatisticsCollector(
         zombiePlagueApi.Events.Post.PlayerInfectEvent -= OnPlayerInfected;
         zombiePlagueApi.Events.Post.RoundStartEvent -= OnRoundStarted;
 
+        core.Event.OnMapLoad -= OnMapLoad;
         core.Event.OnMapUnload -= OnMapUnload;
 
         core.GameEvent.Unhook(_playerDeathHook);
@@ -107,7 +115,9 @@ internal sealed class StatisticsCollector(
 
         _roundParticipants.Clear();
         _infectionTransitions.Clear();
+        _pendingPointsNotifications.Clear();
         _roundFormula = null;
+        _mapFormula = null;
         _isRoundActive = false;
         _isStarted = false;
     }
@@ -211,7 +221,7 @@ internal sealed class StatisticsCollector(
         }
 
         var winner = (Team)@event.Winner;
-        var formula = _roundFormula ?? pointsFormulaProvider.CaptureFormula();
+        var formula = _roundFormula ?? _mapFormula ?? pointsFormulaProvider.CaptureFormula();
 
         foreach (var (steamId, participant) in _roundParticipants.ToArray())
         {
@@ -246,7 +256,7 @@ internal sealed class StatisticsCollector(
                 participant.CreatePointsContext(humanWon, zombieWon)
             );
 
-            playerStatisticsService.RecordRound(
+            var appliedPointsDelta = playerStatisticsService.RecordRound(
                 steamId,
                 new RoundStatisticsResult(
                     PointsDelta: pointsDelta,
@@ -254,10 +264,11 @@ internal sealed class StatisticsCollector(
                     ZombieWon: zombieWon
                 )
             );
+
+            _pendingPointsNotifications[steamId] = appliedPointsDelta;
         }
 
         FinishRound();
-        pointsFormulaProvider.Refresh();
 
         return HookResult.Continue;
     }
@@ -267,7 +278,6 @@ internal sealed class StatisticsCollector(
         _ = @event;
 
         AbortRound();
-        pointsFormulaProvider.Refresh();
 
         return HookResult.Continue;
     }
@@ -319,8 +329,10 @@ internal sealed class StatisticsCollector(
 
         _roundParticipants.Clear();
         _infectionTransitions.Clear();
-        _roundFormula = pointsFormulaProvider.CaptureFormula();
+        _roundFormula = _mapFormula ?? pointsFormulaProvider.CaptureFormula();
         _isRoundActive = true;
+
+        NotifyPendingPointsChanges();
 
         foreach (var player in core.PlayerManager.GetAllValidPlayers())
         {
@@ -333,12 +345,65 @@ internal sealed class StatisticsCollector(
         }
     }
 
+    private void OnMapLoad(IOnMapLoadEvent @event)
+    {
+        _ = @event;
+
+        AbortRound();
+        _pendingPointsNotifications.Clear();
+        pointsFormulaProvider.RefreshAndWait();
+        CaptureMapFormula("map load");
+    }
+
     private void OnMapUnload(IOnMapUnloadEvent @event)
     {
         _ = @event;
 
         AbortRound();
+        _pendingPointsNotifications.Clear();
+        _mapFormula = null;
         playerStatisticsService.CheckpointAndSaveAll();
+    }
+
+    private void NotifyPendingPointsChanges()
+    {
+        foreach (var player in core.PlayerManager.GetAllValidPlayers())
+        {
+            if (!CanTrack(player) ||
+                !_pendingPointsNotifications.Remove(player.SteamID, out var pointsDelta))
+            {
+                continue;
+            }
+
+            var localizer = core.Translation.GetPlayerLocalizer(player);
+            var translationKey = pointsDelta switch
+            {
+                > 0 => "Statistics.PointsGained",
+                < 0 => "Statistics.PointsLost",
+                _ => "Statistics.PointsUnchanged"
+            };
+            var points = Math.Abs(pointsDelta).ToString(CultureInfo.InvariantCulture);
+            var message = localizer[translationKey].Replace("{points}", points);
+            var color = pointsDelta switch
+            {
+                > 0 => "green",
+                < 0 => "red",
+                _ => "grey"
+            };
+
+            player.SendChat($"[green][Statistics] [{color}]{message}");
+        }
+    }
+
+    private void CaptureMapFormula(string lifecycle)
+    {
+        _mapFormula = pointsFormulaProvider.CaptureFormula();
+
+        core.Logger.LogInformation(
+            "Statistics points formula selected for {Lifecycle}: {PointsFormula}",
+            lifecycle,
+            _mapFormula.Source
+        );
     }
 
     private void TrackChangedRole(IPlayer? player)
