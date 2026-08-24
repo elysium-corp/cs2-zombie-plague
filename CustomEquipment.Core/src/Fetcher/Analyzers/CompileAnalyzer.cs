@@ -14,7 +14,13 @@ internal class CompileAnalyzer<TItem>(Assembly assembly) : IAnalyzer<TItem> wher
             .Where(type =>
                 type.IsClass &&
                 !type.IsAbstract &&
-                itemType.IsAssignableFrom(type)
+                itemType.IsAssignableFrom(type) &&
+                type.GetConstructor(
+                    BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
+                    binder: null,
+                    Type.EmptyTypes,
+                    modifiers: null
+                ) is not null
             )
             .Select(CreateItem)
             .ToHashSet();

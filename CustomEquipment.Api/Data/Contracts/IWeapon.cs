@@ -17,4 +17,6 @@ public interface IWeapon : IItem
     WeaponTiming? WeaponTiming { get; }
     
     Ammunition? Ammunition { get; }
+
+    IReadOnlyCollection<WeaponSound> Sounds => Array.Empty<WeaponSound>();
 }

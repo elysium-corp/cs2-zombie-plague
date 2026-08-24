@@ -155,6 +155,11 @@ internal sealed class EquipmentService(
         return _items.Find(wp => wp.AttachedEntity.Index == activeWeaponIndex) as TWeapon;
     }
 
+    public WeaponItemBase? GetWeaponByEntityIndex(uint entityIndex)
+    {
+        return GetWeaponByIndex(entityIndex);
+    }
+
     private void OnEntityCreated(IOnEntityCreatedEvent hook)
     {
         var entity = hook.Entity;

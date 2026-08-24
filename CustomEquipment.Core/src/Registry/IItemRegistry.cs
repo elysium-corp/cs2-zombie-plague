@@ -1,12 +1,15 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using CustomEquipment.Api.Data.Contracts;
 using CustomEquipment.Api.Registration;
+using CustomEquipment.Data.DatabaseWeapons;
 
 namespace CustomEquipment.Registry;
 
 internal interface IItemRegistry : IEquipmentRegistrar
 {
     void Initialize();
+
+    void ReplaceDatabaseWeapons(IReadOnlyCollection<DatabaseWeaponItem> weapons);
 
     IReadOnlyCollection<IItem> GetDefinitions();
 
