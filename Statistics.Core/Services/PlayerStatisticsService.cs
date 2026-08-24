@@ -104,9 +104,20 @@ internal sealed class PlayerStatisticsService(
         Update(steamId, static data => data.RecordDeath());
     }
 
-    public void RecordRound(ulong steamId, RoundStatisticsResult result)
+    public long RecordRound(ulong steamId, RoundStatisticsResult result)
     {
-        Update(steamId, data => data.RecordRound(result));
+        var session = sessions.Get(steamId);
+
+        if (session is null)
+        {
+            return 0;
+        }
+
+        var appliedPointsDelta = 0L;
+
+        session.Update(data => appliedPointsDelta = data.RecordRound(result));
+
+        return appliedPointsDelta;
     }
 
     public void SaveRound()

@@ -120,8 +120,10 @@ internal sealed class PlayerStatisticsState
         Deaths++;
     }
 
-    public void RecordRound(RoundStatisticsResult result)
+    public long RecordRound(RoundStatisticsResult result)
     {
+        var previousPoints = Points;
+
         Points = AddPoints(Points, result.PointsDelta);
 
         if (result.HumanWon)
@@ -133,6 +135,8 @@ internal sealed class PlayerStatisticsState
         {
             ZombieWins++;
         }
+
+        return Points - previousPoints;
     }
 
     public PlayerStatisticsSnapshot CreateSnapshot()

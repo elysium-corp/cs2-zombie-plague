@@ -48,7 +48,7 @@ internal sealed class RoundPointsFormulaProvider(
             _lifetime = new CancellationTokenSource();
         }
 
-        Refresh();
+        RefreshAndWait();
     }
 
     public PointsFormula CaptureFormula()
@@ -64,22 +64,37 @@ internal sealed class RoundPointsFormulaProvider(
         return GetConfigFormula();
     }
 
-    public void Refresh()
+    public void RefreshAndWait()
     {
-        CancellationToken cancellationToken;
+        Task refreshTask;
 
         lock (_lock)
         {
-            if (_lifetime is null || !_refreshTask.IsCompleted)
+            if (_lifetime is null)
             {
                 return;
             }
 
-            cancellationToken = _lifetime.Token;
-            _refreshTask = Task.Run(
-                () => RefreshAsync(cancellationToken),
-                CancellationToken.None
-            );
+            if (_refreshTask.IsCompleted)
+            {
+                var cancellationToken = _lifetime.Token;
+
+                _refreshTask = Task.Run(
+                    () => RefreshAsync(cancellationToken),
+                    CancellationToken.None
+                );
+            }
+
+            refreshTask = _refreshTask;
+        }
+
+        try
+        {
+            refreshTask.GetAwaiter().GetResult();
+        }
+        catch (OperationCanceledException)
+        {
+            // Expected when the plugin is unloading during a Web request.
         }
     }
 

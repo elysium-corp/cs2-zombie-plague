@@ -1,0 +1,5 @@
+{
+  "Statistics.PointsGained": "За прошлый раунд вы получили +{points} очков.",
+  "Statistics.PointsLost": "За прошлый раунд вы потеряли {points} очков.",
+  "Statistics.PointsUnchanged": "За прошлый раунд ваши очки не изменились."
+}

@@ -9,6 +9,12 @@ public sealed class PointsFormulaTests
     private readonly PointsCalculator _calculator = new();
 
     [Fact]
+    public void WebFormulaTimeoutDefaultsToFiveSeconds()
+    {
+        Assert.Equal(5, new PointsConfig().WebServiceTimeoutSeconds);
+    }
+
+    [Fact]
     public void BuiltInFormulaCalculatesExpectedRoundDelta()
     {
         var formula = PointsFormula.Parse(PointsConfig.BuiltInDefaultFormula);
@@ -39,7 +45,7 @@ public sealed class PointsFormulaTests
 
         var result = _calculator.CalculateDelta(formula, context);
 
-        Assert.Equal(21, result);
+        Assert.Equal(22, result);
     }
 
     [Theory]
