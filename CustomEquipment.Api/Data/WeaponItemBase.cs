@@ -29,6 +29,8 @@ public abstract class WeaponItemBase : ItemBase, IWeapon, IHasParticle
 
     public virtual Ammunition? Ammunition => null; 
 
+    public virtual IReadOnlyCollection<WeaponSound> Sounds => Array.Empty<WeaponSound>();
+
     [MemberNotNullWhen(true, nameof(Particle))]
     public bool HasTraceParticle()
     {

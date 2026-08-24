@@ -134,15 +134,22 @@ internal sealed class WeaponController(
         if (shopItem == null) return;
 
         var reserveAmmo = weapon?.AttachedWeapon.ReserveAmmo[0];
+        var maxReserveAmmo = weapon?.Ammunition?.ReserveAmmo;
+        var ammoPrice = shopItem.Price.Ammo;
 
-        if (reserveAmmo >= weapon?.Ammunition?.ReserveAmmo)
+        if (!ammoPrice.HasValue || !maxReserveAmmo.HasValue)
+        {
+            return;
+        }
+
+        if (reserveAmmo >= maxReserveAmmo.Value)
         {
             SoundExt.PlayLocalSound(player, CancelSound, 1f);
 
             return;
         }
 
-        if (economyApi.TrySpendMoney(player, shopItem.Price.Ammo!.Value))
+        if (economyApi.TrySpendMoney(player, ammoPrice.Value))
         {
             weapon?.AttachedWeapon.ReserveAmmo[0] += 1;
             weapon?.AttachedWeapon.ReserveAmmoUpdated();

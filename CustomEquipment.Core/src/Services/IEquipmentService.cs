@@ -13,4 +13,6 @@ internal interface IEquipmentService
     bool CanUseItem(IPlayer player, string internalName);
 
     TItem? GetActiveItem<TItem>(IPlayer player) where TItem : ItemBase;
+
+    WeaponItemBase? GetWeaponByEntityIndex(uint entityIndex);
 }

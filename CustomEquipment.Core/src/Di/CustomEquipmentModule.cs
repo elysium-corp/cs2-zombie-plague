@@ -7,6 +7,7 @@ using CustomEquipment.Api.Events;
 using CustomEquipment.Api.Registration;
 using CustomEquipment.Controllers;
 using CustomEquipment.Data.Catalog;
+using CustomEquipment.Database;
 using CustomEquipment.Fetcher;
 using CustomEquipment.Fetcher.Analyzers;
 using CustomEquipment.Giver;
@@ -14,6 +15,8 @@ using CustomEquipment.Menus;
 using CustomEquipment.Registry;
 using CustomEquipment.Services;
 using Microsoft.Extensions.DependencyInjection;
+using Common.Database;
+using Common.Database.Utils;
 using Economy.Api;
 using SwiftlyS2.Shared;
 using ZombiePlague.Api;
@@ -35,6 +38,7 @@ internal sealed class CustomEquipmentModule(ISwiftlyCore core) : BaseModule(core
         AddSingleton<IEquipmentService, EquipmentService>(service);
         AddSingleton<IParticleService, ParticleService>(service);
         AddSingleton<IWeaponController, WeaponController>(service);
+        AddSingleton<IWeaponSoundController, WeaponSoundController>(service);
         AddSingleton<IParticleController, ParticleController>(service);
         AddSingleton<IEquipmentShopCatalog, EquipmentShopCatalog>(service);
         AddSingleton<IItemGiver, ItemGiver>(service);
@@ -48,7 +52,24 @@ internal sealed class CustomEquipmentModule(ISwiftlyCore core) : BaseModule(core
         
         EventServiceRegistration(service);
 
+        AddDatabase(service);
+
         return (service.BuildServiceProvider(), service);
+    }
+
+    private void AddDatabase(ServiceCollection service)
+    {
+        var options = new DatabaseOptions
+        {
+            ConnectionName = "elysium_zp_server_1",
+            Schema = CustomEquipmentDbContext.SchemaName,
+            CommandTimeoutSeconds = 5,
+            RetryCount = 2,
+            MaxRetryDelay = TimeSpan.FromSeconds(3)
+        };
+
+        service.AddPostgreSqlDatabase<CustomEquipmentDbContext>(Core, options);
+        AddSingleton<IWeaponCatalogRepository, WeaponCatalogRepository>(service);
     }
 
     private void EventServiceRegistration(ServiceCollection service)
