@@ -39,6 +39,7 @@
 | Supply Box | сбрасываемые припасы, награды, ограничения по режимам и редактор точек |
 | Money System | награды за урон и заражение, собственные правила экономики |
 | Menu | расширяемое меню с API, событиями и приоритетами пунктов |
+| Metrics | неблокирующая отправка игровых событий в Flute CMS, batch, retry и persistent spool |
 | Notifications | урон, игровые сообщения, затемнение экрана и итоги раунда |
 | Utilities | сброс статистики игрока и общие математические/визуальные инструменты |
 
@@ -54,7 +55,7 @@
 
 ## Архитектура
 
-Решение состоит из **18 проектов** и разделено на четыре слоя:
+Решение состоит из **29 проектов** и разделено на четыре слоя:
 
 ```mermaid
 flowchart TB
@@ -105,6 +106,8 @@ flowchart TB
 | API | `SupplyBox.Api` | Контракт и события Supply Box |
 | Core | `Menu.Core` | Создание и отображение расширяемых меню |
 | API | `Menu.Api` | Контракты меню, publisher/subscriber и события |
+| Core | `Metrics.Core` | Очередь, доставка и сохранение аналитических событий для Flute CMS |
+| API | `Metrics.Api` | Неблокирующий контракт отправки игровых событий |
 | Core | `CustomEquipment.Core` | Пользовательское оружие, гранаты, эффекты и частицы |
 | Core | `CustomKnife.Core` | Система ножей и их игровых свойств |
 | Core | `DamageNotify.Core` | Уведомления об уроне |
@@ -120,7 +123,8 @@ flowchart TB
 
 | Потребитель | Прямые project-зависимости |
 |---|---|
-| `ZombiePlague.Core` | `ZombiePlague.Api`, `Menu.Api`, `SupplyBox.Core`, `Common.Effects` |
+| `ZombiePlague.Core` | `ZombiePlague.Api`, `Menu.Api`, `Metrics.Api`, `Common.Effects` |
+| `Metrics.Core` | `Metrics.Api`, `Common.Di` |
 | `MoneySystem.Core` | `MoneySystem.Api`, `ZombiePlague.Api`, `Common.Di` |
 | `SupplyBox.Core` | `SupplyBox.Api`, `ZombiePlague.Api`, `Common.Di` |
 | `Menu.Core` | `Menu.Api`, `Common.Di` |
@@ -221,6 +225,7 @@ dotnet build CS2ZombiePlague.sln -c Release
 ```bash
 dotnet publish ZombiePlague.Core/ZombiePlague.Core.csproj -c Release
 dotnet publish Menu.Core/Menu.Core.csproj -c Release
+dotnet publish Metrics.Core/Metrics.Core.csproj -c Release
 dotnet publish MoneySystem.Core/MoneySystem.Core.csproj -c Release
 ```
 

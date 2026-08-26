@@ -2,6 +2,7 @@ using Admin.Api;
 using Common.Database.Migrator;
 using Common.Di;
 using Menu.Api;
+using Metrics.Api;
 using Microsoft.Extensions.Logging;
 using SwiftlyS2.Shared;
 using ZombiePlague.Api;
@@ -13,6 +14,7 @@ using ZombiePlague.Core.Di;
 using ZombiePlague.Core.Generated;
 using ZombiePlague.Core.Menus;
 using ZombiePlague.Core.Menus.Admin;
+using ZombiePlague.Core.Metrics;
 
 namespace ZombiePlague.Core;
 
@@ -30,6 +32,7 @@ public sealed partial class ZombiePlague(ISwiftlyCore core) : Plugin<ZombiePlagu
     private readonly Lazy<ZombiePlagueApi> _api = GetRequiredServiceLazy<ZombiePlagueApi>();
     private readonly Lazy<MenuExtensionDispatcherProxy> _menuApiBridge = GetRequiredServiceLazy<MenuExtensionDispatcherProxy>();
     private readonly Lazy<AdminApiProxy> _adminApiBridge = GetRequiredServiceLazy<AdminApiProxy>();
+    private readonly Lazy<MetricsServiceProxy> _metricsApiBridge = GetRequiredServiceLazy<MetricsServiceProxy>();
     private readonly Lazy<DatabaseMigrator<ZombiePlagueDbContext>> _databaseMigrator = GetRequiredServiceLazy<DatabaseMigrator<ZombiePlagueDbContext>>();
     
     private readonly Lazy<AdminMenuExtension> _adminExtension = GetRequiredServiceLazy<AdminMenuExtension>();
@@ -51,6 +54,17 @@ public sealed partial class ZombiePlague(ISwiftlyCore core) : Plugin<ZombiePlagu
         _menuApiBridge.Value.Initialize(menuApi);
         _adminApiBridge.Value.Initialize(adminApi);
 
+        if (interfaceManager.TryGetSharedInterface<IMetricsService>(IMetricsService.SharedApiKey, out var metricsApi))
+        {
+            _metricsApiBridge.Value.Initialize(metricsApi);
+        }
+        else
+        {
+            Core.Logger.LogWarning(
+                "Metrics.Core is not loaded. ZombiePlague.Core will continue without analytics events."
+            );
+        }
+
         _adminExtension.Value.Initialize(menuApi);
     }
 
@@ -65,6 +79,7 @@ public sealed partial class ZombiePlague(ISwiftlyCore core) : Plugin<ZombiePlagu
     protected override void OnUnload()
     {
         _adminExtension.Value.Uninitialize();
+        _metricsApiBridge.Value.Uninitialize();
         _adminApiBridge.Value.Uninitialize();
 
         _coordinator.Value.Stop();

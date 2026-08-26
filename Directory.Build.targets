@@ -100,7 +100,7 @@
 
     <!--
         Для ZombiePlague.Core:
-        копируем все Common.* + только ZombiePlague.Api.
+        копируем все Common.* + ZombiePlague.Api + optional shared contracts.
 
         Для Configuration=Migrations этот target не запускается.
     -->
@@ -124,6 +124,9 @@
             <!-- Только ZombiePlague.Api -->
             <ZombieApiProjects Include="$(RepoRoot)**\ZombiePlague.Api.csproj" />
             <ZombieApiProjects Include="$(RepoRoot)**\ZombiePlagueApi.csproj" />
+
+            <!-- Необязательный контракт Metrics.Core: ZP должен загружаться и без плагина-поставщика -->
+            <OptionalSharedApiProjects Include="$(RepoRoot)**\Metrics.Api.csproj" />
         </ItemGroup>
 
         <MSBuild Projects="@(AllCommonProjects)"
@@ -140,6 +143,13 @@
             <Output TaskParameter="TargetOutputs" ItemName="ZombieApiAssemblies" />
         </MSBuild>
 
+        <MSBuild Projects="@(OptionalSharedApiProjects)"
+                 Targets="GetTargetPath"
+                 BuildInParallel="true"
+                 Properties="Configuration=$(Configuration);TargetFramework=$(TargetFramework)">
+            <Output TaskParameter="TargetOutputs" ItemName="OptionalSharedApiAssemblies" />
+        </MSBuild>
+
         <Copy SourceFiles="@(AllCommonAssemblies)"
               DestinationFolder="$(OutDir)resources\exports\"
               SkipUnchangedFiles="true"
@@ -149,6 +159,11 @@
               DestinationFolder="$(OutDir)resources\exports\"
               SkipUnchangedFiles="true"
               Condition="'@(ZombieApiAssemblies)' != ''" />
+
+        <Copy SourceFiles="@(OptionalSharedApiAssemblies)"
+              DestinationFolder="$(OutDir)resources\exports\"
+              SkipUnchangedFiles="true"
+              Condition="'@(OptionalSharedApiAssemblies)' != ''" />
     </Target>
 
     <!--
