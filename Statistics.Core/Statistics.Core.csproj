@@ -18,7 +18,7 @@
         </PackageReference>
 
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.3" />
-        <PackageReference Include="SwiftlyS2.CS2" Version="1.4.5" />
+        <PackageReference Include="SwiftlyS2.CS2" Version="1.4.6-beta.8" />
     </ItemGroup>
 
     <ItemGroup>

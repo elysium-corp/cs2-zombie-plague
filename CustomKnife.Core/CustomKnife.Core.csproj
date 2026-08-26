@@ -59,7 +59,7 @@
                           ExcludeAssets="runtime"
                           PrivateAssets="all" />
 
-        <PackageReference Include="SwiftlyS2.CS2" Version="1.4.5" ExcludeAssets="runtime" PrivateAssets="all">
+        <PackageReference Include="SwiftlyS2.CS2" Version="1.4.6-beta.8" ExcludeAssets="runtime" PrivateAssets="all">
             <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
 
@@ -78,7 +78,7 @@
 
         <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.0" PrivateAssets="all" />
 
-        <PackageReference Include="SwiftlyS2.CS2" Version="1.4.5" PrivateAssets="all">
+        <PackageReference Include="SwiftlyS2.CS2" Version="1.4.6-beta.8" PrivateAssets="all">
           <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
 

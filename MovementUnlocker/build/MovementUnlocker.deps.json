@@ -8,7 +8,7 @@
     ".NETCoreApp,Version=v10.0": {
       "MovementUnlocker/1.0.0": {
         "dependencies": {
-          "SwiftlyS2.CS2": "1.4.4"
+          "SwiftlyS2.CS2": "1.4.6-beta.8"
         },
         "runtime": {
           "MovementUnlocker.dll": {}
@@ -38,7 +38,7 @@
           }
         }
       },
-      "SwiftlyS2.CS2/1.4.4": {
+      "SwiftlyS2.CS2/1.4.6-beta.8": {
         "dependencies": {
           "System.Data.SQLite.Core": "1.0.119"
         }
@@ -63,12 +63,12 @@
       "path": "stub.system.data.sqlite.core.netstandard/1.0.119",
       "hashPath": "stub.system.data.sqlite.core.netstandard.1.0.119.nupkg.sha512"
     },
-    "SwiftlyS2.CS2/1.4.4": {
+    "SwiftlyS2.CS2/1.4.6-beta.8": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-BbMyV2AO1Tl2FNsN4pfnDDoyabS/p9jRtbyS0amo+HM1ryY7+MiUeTMn4ka4K6bJ6C2gDu1XHrUgpLMfskpCkw==",
-      "path": "swiftlys2.cs2/1.4.4",
-      "hashPath": "swiftlys2.cs2.1.4.4.nupkg.sha512"
+      "sha512": "sha512-vpesAesFpcqBR0VH4VmGJAwBO1XcvDp+PCdptTbv/5bhRr0i2C6iWfAt2FCoutb5CdMTnX2udU/erDQknWhh5g==",
+      "path": "swiftlys2.cs2/1.4.6-beta.8",
+      "hashPath": "swiftlys2.cs2.1.4.6-beta.8.nupkg.sha512"
     },
     "System.Data.SQLite.Core/1.0.119": {
       "type": "package",
