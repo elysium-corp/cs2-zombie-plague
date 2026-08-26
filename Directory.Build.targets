@@ -125,7 +125,7 @@
             <ZombieApiProjects Include="$(RepoRoot)**\ZombiePlague.Api.csproj" />
             <ZombieApiProjects Include="$(RepoRoot)**\ZombiePlagueApi.csproj" />
 
-            <!-- Optional Metrics.Core contract: ZP must still load without the provider plugin -->
+            <!-- Необязательный контракт Metrics.Core: ZP должен загружаться и без плагина-поставщика -->
             <OptionalSharedApiProjects Include="$(RepoRoot)**\Metrics.Api.csproj" />
         </ItemGroup>
 

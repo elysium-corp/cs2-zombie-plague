@@ -127,7 +127,7 @@ internal sealed class MetricsService : IMetricsService, IDisposable
         }
         catch (OperationCanceledException)
         {
-            // Expected while the plugin is unloading.
+            // Ожидаемая ситуация во время выгрузки плагина.
         }
         finally
         {

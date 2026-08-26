@@ -1,52 +1,58 @@
 # Metrics.Core
 
-`Metrics.Core` is a standalone SwiftlyS2 plugin that sends game events to the
-ElysiumMetrics ingestion API in Flute CMS. Game plugins depend only on
-`Metrics.Api.IMetricsService`; HTTP requests, batching, retry and persistent
-storage remain isolated in `Metrics.Core`.
+`Metrics.Core` — отдельный плагин SwiftlyS2, который отправляет игровые события
+в API приёма ElysiumMetrics во Flute CMS. Игровые плагины зависят только от
+`Metrics.Api.IMetricsService`; HTTP-запросы, пакетная отправка, повторные попытки
+и постоянное хранилище изолированы внутри `Metrics.Core`.
 
-## Runtime behavior
+## Поведение во время работы
 
-- `Track(...)` only serializes and writes to a bounded in-memory channel;
-- a single background worker sends batches to `/api/metrics/v1/events`;
-- timeouts, HTTP `408`, `425`, `429`, `5xx` and network errors use exponential retry;
-- authorization failures are persisted and retried later;
-- validation and other permanent `4xx` failures are logged and discarded;
-- undelivered events survive restarts in
+- `Track(...)` только сериализует событие и записывает его в ограниченный канал
+  в памяти;
+- один фоновый обработчик отправляет события пакетами в
+  `/api/metrics/v1/events`;
+- при тайм-аутах, HTTP-кодах `408`, `425`, `429`, `5xx` и сетевых ошибках
+  выполняются повторные попытки с экспоненциальной задержкой;
+- события, отклонённые из-за ошибки авторизации, сохраняются и отправляются
+  позднее;
+- события с ошибками валидации и другими постоянными ошибками `4xx`
+  записываются в журнал и отбрасываются;
+- неотправленные события переживают перезапуск и хранятся в
   `(swRoot)/data/Metrics.Core/metrics-spool.jsonl`;
-- `eventId` is stable across retries, so Flute can safely deduplicate an event
-  when a response is lost;
-- a full queue never blocks the game thread.
+- `eventId` не меняется при повторных попытках, поэтому Flute может безопасно
+  устранить дубликат события, если ответ сервера был потерян;
+- заполненная очередь никогда не блокирует игровой поток.
 
-`ZombiePlague.Core` treats Metrics as optional. If `Metrics.Core` is missing or
-unavailable, gameplay continues and analytics calls become no-ops.
+Для `ZombiePlague.Core` модуль метрик необязателен. Если `Metrics.Core`
+отсутствует или недоступен, игровой процесс продолжает работать, а вызовы
+аналитики ничего не делают.
 
-## Build and installation
+## Сборка и установка
 
 ```bash
 dotnet restore CS2ZombiePlague.sln
 dotnet build CS2ZombiePlague.sln -c Release --no-restore
 ```
 
-Copy both build outputs to the SwiftlyS2 server:
+Скопируйте на сервер SwiftlyS2 результаты сборки обоих модулей:
 
 ```text
 output/Metrics.Core/       -> (swRoot)/plugins/Metrics.Core/
 output/ZombiePlague.Core/  -> (swRoot)/plugins/ZombiePlague.Core/
 ```
 
-Install both folders before restarting the server. This ensures that the
-shared `IMetricsService` is available when `ZombiePlague.Core` binds optional
-plugin interfaces.
+Перед перезапуском сервера установите обе папки. Так общий интерфейс
+`IMetricsService` будет доступен, когда `ZombiePlague.Core` начнёт подключать
+необязательные интерфейсы других плагинов.
 
-On first load SwiftlyS2 creates:
+При первой загрузке SwiftlyS2 создаст файл:
 
 ```text
 (swRoot)/configs/plugins/Metrics.Core/metrics.json
 ```
 
-Configure it and restart `Metrics.Core` and `ZombiePlague.Core` (a full server
-restart is the safest first deployment):
+Настройте его и перезапустите `Metrics.Core` и `ZombiePlague.Core`. Для первой
+установки безопаснее полностью перезапустить сервер:
 
 ```json
 {
@@ -76,60 +82,60 @@ restart is the safest first deployment):
 }
 ```
 
-Do not commit or publish the real `ApiSecret`.
+Не добавляйте настоящий `ApiSecret` в репозиторий и не публикуйте его.
 
-## First event: `class_selected`
+## Первое событие: `class_selected`
 
-### 1. Enable the game server in Flute
+### 1. Включите игровой сервер во Flute
 
-1. Open `Elysium -> Метрики -> Серверы`.
-2. Find the required game server and click `Включить Metrics`.
-3. Click `Создать Secret` (or rotate the existing one).
-4. Copy the secret immediately; Flute shows its full value only once.
-5. Put the server card's numeric ID into `ServerId` and the copied value into
-   `ApiSecret` in `metrics.json`.
+1. Откройте `Elysium -> Метрики -> Серверы`.
+2. Найдите нужный игровой сервер и нажмите `Включить Metrics`.
+3. Нажмите `Создать Secret` или замените существующий секрет.
+4. Сразу скопируйте секрет: Flute показывает полное значение только один раз.
+5. Запишите числовой идентификатор из карточки сервера в `ServerId`, а
+   скопированное значение — в `ApiSecret` файла `metrics.json`.
 
-The server ID encoded in `emx_<server_id>_...`, the `ServerId` config value and
-the Flute server card ID must be the same.
+Идентификатор сервера внутри `emx_<server_id>_...`, значение `ServerId` в
+конфигурации и идентификатор в карточке сервера Flute должны совпадать.
 
-### 2. Create the event contract
+### 2. Создайте контракт события
 
-Open `Elysium -> Метрики -> События -> Создать событие` and use:
+Откройте `Elysium -> Метрики -> События -> Создать событие` и заполните поля:
 
-| Field | Value |
+| Поле | Значение |
 |---|---|
-| Name | `Выбран класс` |
-| Event key | `class_selected` |
-| Category | `Классы` |
-| Status | `Активно` |
-| Description | `Игрок выбрал класс в меню ZombiePlague.Core` |
+| Название | `Выбран класс` |
+| Ключ события | `class_selected` |
+| Категория | `Классы` |
+| Статус | `Активно` |
+| Описание | `Игрок выбрал класс в меню ZombiePlague.Core` |
 
-Enable this context:
+Включите следующий контекст:
 
-| Context | Enabled | Required |
+| Контекст | Включён | Обязателен |
 |---|---:|---:|
-| Server ID | yes | yes |
-| SteamID игрока | yes | yes |
-| Session ID | yes | no |
-| Map | yes | no |
-| Release version | yes | no |
-| Round ID | no | no |
+| ID сервера | да | да |
+| SteamID игрока | да | да |
+| ID сессии | да | нет |
+| Карта | да | нет |
+| Версия релиза | да | нет |
+| ID раунда | нет | нет |
 
-Add three properties:
+Добавьте три свойства:
 
-| Name | Key | Type | Required | Nullable | Suggested constraint |
+| Название | Ключ | Тип | Обязательно | Допускает `null` | Ограничение |
 |---|---|---|---:|---:|---|
-| ID класса | `class_id` | String | yes | no | max length `64` |
-| Название класса | `class_name` | String | yes | no | max length `128` |
-| Тип класса | `class_type` | Enum | yes | no | value `zombie`, label `Зомби` |
+| ID класса | `class_id` | Строка | да | нет | максимальная длина `64` |
+| Название класса | `class_name` | Строка | да | нет | максимальная длина `128` |
+| Тип класса | `class_type` | Перечисление | да | нет | значение `zombie`, подпись `Зомби` |
 
-Save the event. Its first schema version is `1`, which must match
-`SchemaVersions.class_selected` in `metrics.json`.
+Сохраните событие. Версия его первой схемы — `1`; она должна совпадать со
+значением `SchemaVersions.class_selected` в `metrics.json`.
 
-### 3. Produce and verify the event
+### 3. Отправьте и проверьте событие
 
-Restart the server, join it, open the zombie class menu with `!zclass` and
-choose a class that is not already selected. `ZombiePlague.Core` executes:
+Перезапустите сервер, подключитесь к нему, откройте меню классов зомби командой
+`!zclass` и выберите класс, который ещё не выбран. `ZombiePlague.Core` выполнит:
 
 ```csharp
 metrics.Track(
@@ -144,16 +150,17 @@ metrics.Track(
 );
 ```
 
-Within the configured flush interval, open
-`Elysium -> Метрики -> Raw Events`. The event should have status `ACCEPTED`.
-If it is `REJECTED`, open the row: Flute displays the exact field and reason.
+После истечения интервала отправки откройте
+`Elysium -> Метрики -> Raw Events`. Событие должно иметь статус `ACCEPTED`.
+Если указан статус `REJECTED`, откройте строку: Flute покажет точное поле и
+причину ошибки.
 
-## Adding another event
+## Добавление нового события
 
-1. Create and activate its contract in Flute.
-2. Add its current schema version to `SchemaVersions`.
-3. Inject `IMetricsService` into the producing service and call `Track` only
-   after the game action succeeds.
-4. Keep property keys identical to the Flute schema, including letter case.
-5. If a production schema change creates version `2`, update the matching
-   config entry and deploy the corresponding server code together.
+1. Создайте и активируйте контракт события во Flute.
+2. Добавьте текущую версию его схемы в `SchemaVersions`.
+3. Внедрите `IMetricsService` в сервис-источник и вызывайте `Track` только после
+   успешного выполнения игрового действия.
+4. Ключи свойств должны полностью совпадать со схемой Flute, включая регистр.
+5. Если изменение рабочей схемы создаёт версию `2`, обновите соответствующую
+   запись конфигурации и разверните связанный серверный код одновременно.

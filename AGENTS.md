@@ -29,6 +29,10 @@ from `bin/`, `obj/` or `output/`.
   dependencies.
 - Preserve nullable annotations and backward compatibility of public contracts
   unless a breaking change is explicitly requested.
+- Новые XML-комментарии и поясняющие комментарии в коде пишутся на русском
+  языке.
+- Каждый публичный интерфейс и каждый его член должны иметь XML-документацию,
+  описывающую назначение и контракт использования.
 
 ## Lifecycle conventions
 

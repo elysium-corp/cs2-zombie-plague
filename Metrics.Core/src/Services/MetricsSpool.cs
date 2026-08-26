@@ -249,8 +249,8 @@ internal sealed class MetricsSpool(
                 await destination.FlushAsync(cancellationToken).ConfigureAwait(false);
             }
 
-            // Resetting the cursor first can only cause duplicate delivery after a crash.
-            // eventId deduplication on the server makes that safer than skipping events.
+            // Предварительный сброс курсора после сбоя может привести только к повторной доставке.
+            // Сервер устраняет дубликаты по eventId, поэтому это безопаснее, чем пропуск событий.
             await WriteCursorAsync(0, cancellationToken).ConfigureAwait(false);
             File.Move(temporaryPath, SpoolPath, overwrite: true);
         }
