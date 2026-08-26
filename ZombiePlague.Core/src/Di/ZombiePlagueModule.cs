@@ -6,6 +6,7 @@ using Common.Di;
 using Common.Hooks;
 using Common.Hooks.Abstractions;
 using Menu.Api.Extensions;
+using Metrics.Api;
 using Microsoft.Extensions.DependencyInjection;
 using SwiftlyS2.Shared;
 using ZombiePlague.Api.Data.Store;
@@ -38,6 +39,7 @@ using ZombiePlague.Core.Database.Entities;
 using ZombiePlague.Core.Menus;
 using ZombiePlague.Core.Menus.Admin;
 using ZombiePlague.Core.Menus.Admin.Round;
+using ZombiePlague.Core.Metrics;
 using ZombiePlague.Core.Store.Data;
 using ZombiePlague.Core.Store.Repository;
 
@@ -136,6 +138,9 @@ public sealed class ZombiePlagueModule(ISwiftlyCore core) : BaseModule(core)
         
         AddSingleton<AdminApiProxy>(service);
         AddSingleton<IAdminApi>(service, provider => provider.GetRequiredService<AdminApiProxy>());
+
+        AddSingleton<MetricsServiceProxy>(service);
+        AddSingleton<IMetricsService>(service, provider => provider.GetRequiredService<MetricsServiceProxy>());
         
         AddSingleton<MainMenu>(service);
         AddSingleton<ZClassMenu>(service);
