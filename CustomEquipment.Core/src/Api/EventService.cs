@@ -9,11 +9,25 @@ namespace CustomEquipment.Api;
 
 internal class EventService : IEventSubscriber, IEventPublisher
 {
+    public event EventDelegates.OnItemBought? OnItemBought;
     public event EventDelegates.OnItemGiven? OnItemGiven;
     public event EventDelegates.OnGrenadeGiven? OnGrenadeGiven;
     public event EventDelegates.OnWeaponGiven? OnWeaponGiven;
     public event EventDelegates.OnGrenadeThrown? OnGrenadeThrown;
     public event EventDelegates.OnGrenadeDetonated? OnGrenadeDetonated;
+    public event EventDelegates.OnMinePlaced? OnMinePlaced;
+
+    void IEventPublisher.OnItemBought(IPlayer player, IShopItem item)
+    {
+        var handlers = OnItemBought;
+        if (handlers == null) return;
+        
+        foreach (var @delegate in handlers.GetInvocationList())
+        {
+            var handler = (EventDelegates.OnItemBought)@delegate;
+            handler(player, item);
+        }
+    }
 
     void IEventPublisher.OnItemGiven(IPlayer player, IItem item)
     {
@@ -72,6 +86,18 @@ internal class EventService : IEventSubscriber, IEventPublisher
         {
             var handler = (EventDelegates.OnGrenadeDetonated)@delegate;
             handler(grenade, projectile, position);
+        }
+    }
+
+    void IEventPublisher.OnMinePlaced(IPlayer player, LaserMineEntityBase mine)
+    {
+        var handlers = OnMinePlaced;
+        if (handlers == null) return;
+        
+        foreach (var @delegate in handlers.GetInvocationList())
+        {
+            var handler = (EventDelegates.OnMinePlaced)@delegate;
+            handler(player, mine);
         }
     }
 }

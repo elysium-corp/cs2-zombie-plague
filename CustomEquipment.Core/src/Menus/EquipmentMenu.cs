@@ -1,5 +1,6 @@
 ﻿using CustomEquipment.Api.Data.Contracts;
 using CustomEquipment.Api.Enums;
+using CustomEquipment.Api.Events;
 using CustomEquipment.Data.Catalog;
 using CustomEquipment.Giver;
 using CustomEquipment.Menus.Utils;
@@ -20,7 +21,8 @@ internal sealed class EquipmentMenu(
     ISwiftlyCore core, 
     IEquipmentService equipmentService,
     IEquipmentShopCatalog shopCatalog,
-    IEconomyApi economyApi
+    IEconomyApi economyApi,
+    IEventPublisher eventPublisher
 ) : MenuBase(core)
 {
     public override string Id => "equipment.menu.select-equipment";
@@ -112,7 +114,9 @@ internal sealed class EquipmentMenu(
                 }
 
                 core.Scheduler.NextTickAsync(() => BuyItem(playerFromArgs, item));
-
+                
+                eventPublisher.OnItemBought(player, item);
+                
                 return ValueTask.CompletedTask;
             };
 

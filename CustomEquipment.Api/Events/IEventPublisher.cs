@@ -8,6 +8,8 @@ namespace CustomEquipment.Api.Events;
 
 public interface IEventPublisher
 {
+    void OnItemBought(IPlayer player, IShopItem item);
+    
     void OnItemGiven(IPlayer player, IItem item);
     
     void OnWeaponGiven(IPlayer player, IWeapon weapon);
@@ -17,4 +19,5 @@ public interface IEventPublisher
     void OnGrenadeThrown(IGrenade grenade, CBaseCSGrenadeProjectile projectile);
 
     void OnGrenadeDetonated(IGrenade grenade, CBaseCSGrenadeProjectile projectile, Vector position);
+    void OnMinePlaced(IPlayer player, LaserMineEntityBase mine);
 }
