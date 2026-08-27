@@ -17,7 +17,7 @@ namespace Advertisement.Core;
 
 [PluginMetadata(
     Id = "Advertisement.Core",
-    Version = "1.1.1",
+    Version = "1.1.2",
     Name = "Elysium Advertisements",
     Author = "Elysium",
     Description = "Локализованная реклама и информационные сообщения с управлением через Flute CMS.")]
@@ -52,9 +52,9 @@ internal sealed class AdvertisementPlugin(ISwiftlyCore core) : Plugin<Advertisem
 
     protected override void OnReady()
     {
-        // GlobalVars и текущее имя карты гарантированно доступны только после
-        // завершения инициализации SwiftlyS2 и внедрения shared interfaces.
-        _scheduler.Value.StartFromCurrentMap();
+        // При обычном старте сервера карта ещё может не быть загружена. В этом
+        // случае scheduler будет инициализирован позже через OnMapLoad.
+        _scheduler.Value.TryStartFromCurrentMap();
         _schedulerTimer = Core.Scheduler.RepeatBySeconds(1f, _scheduler.Value.Tick);
 
         foreach (var player in Core.PlayerManager.GetAllPlayers().Where(player => player.IsAuthorized))
@@ -62,7 +62,7 @@ internal sealed class AdvertisementPlugin(ISwiftlyCore core) : Plugin<Advertisem
             BindAndLoadLocale(player.PlayerID, player.SteamID);
         }
 
-        Core.Logger.LogInformation("[Advertisement] Advertisement.Core 1.1.1 загружен.");
+        Core.Logger.LogInformation("[Advertisement] Advertisement.Core 1.1.2 загружен.");
     }
 
     protected override void OnUnload()
@@ -201,11 +201,11 @@ internal sealed class AdvertisementPlugin(ISwiftlyCore core) : Plugin<Advertisem
     private void StatusCommand(ICommandContext context)
     {
         var snapshot = _cache.Value.Current;
-        if (snapshot is null) { context.Reply("Advertisement.Core 1.1.1\nSnapshot: загружается"); return; }
+        if (snapshot is null) { context.Reply("Advertisement.Core 1.1.2\nSnapshot: загружается"); return; }
         var players = Core.PlayerManager.GetAllPlayers().ToArray();
         var bots = players.Count(x => x.IsFakeClient);
         var count = snapshot.Settings.ExcludeBotsFromPlayers ? players.Length - bots : players.Length;
-        context.Reply($"Advertisement.Core 1.1.1\nSource: {snapshot.Source}\nMessages: {snapshot.Messages.Count}\nActive: {snapshot.ActiveMessageCount(DateTimeOffset.UtcNow, count)}\nDefault locale: {snapshot.Settings.DefaultLocale}\nVersion: {snapshot.Settings.ConfigurationVersion}");
+        context.Reply($"Advertisement.Core 1.1.2\nSource: {snapshot.Source}\nMessages: {snapshot.Messages.Count}\nActive: {snapshot.ActiveMessageCount(DateTimeOffset.UtcNow, count)}\nDefault locale: {snapshot.Settings.DefaultLocale}\nVersion: {snapshot.Settings.ConfigurationVersion}");
     }
 
     private void ReloadCommand(ICommandContext context)
