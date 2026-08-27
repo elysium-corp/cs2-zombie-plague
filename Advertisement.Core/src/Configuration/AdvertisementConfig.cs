@@ -3,7 +3,6 @@ namespace Advertisement.Core.Configuration;
 internal sealed class AdvertisementConfig
 {
     public bool Enabled { get; set; } = true;
-    public long ServerId { get; set; } = 1;
     public string DefaultLocale { get; set; } = "ru";
     public List<string> AllowedLocales { get; set; } = ["ru", "en", "uk", "pl", "de"];
     public int IntervalSeconds { get; set; } = 90;

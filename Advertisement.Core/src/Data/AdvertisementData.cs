@@ -33,7 +33,6 @@ internal sealed record AdvertisementTag(
 
 internal sealed record AdvertisementMessage(
     long Id,
-    long? ServerId,
     string Key,
     string Name,
     long? TagId,
@@ -135,7 +134,7 @@ internal sealed class ConfigAdvertisementProvider(IOptionsMonitor<AdvertisementC
             var id = messageId--;
             long? resolvedTag = message.Tag is not null && tagIds.TryGetValue(message.Tag, out var value) ? value : null;
             messages[id] = new AdvertisementMessage(
-                id, config.ServerId, message.Key,
+                id, message.Key,
                 string.IsNullOrWhiteSpace(message.Name) ? message.Key : message.Name,
                 resolvedTag, message.Type, message.Enabled, message.Priority, Math.Max(0, message.Weight),
                 message.SortOrder, message.IntervalSeconds, message.MinPlayers, message.MaxPlayers,
@@ -166,26 +165,20 @@ internal sealed class ConfigAdvertisementProvider(IOptionsMonitor<AdvertisementC
 }
 
 internal sealed class DatabaseAdvertisementProvider(
-    IDbContextFactory<AdvertisementDbContext> contextFactory,
-    IOptionsMonitor<AdvertisementConfig> options)
+    IDbContextFactory<AdvertisementDbContext> contextFactory)
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
     public async Task<AdvertisementSnapshot> LoadAsync(CancellationToken cancellationToken)
     {
         await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
-        var serverId = options.CurrentValue.ServerId;
-
         var settingsEntity = await context.Settings.AsNoTracking()
-            .Where(x => x.ServerId == null || x.ServerId == serverId)
-            .OrderByDescending(x => x.ServerId != null)
-            .FirstOrDefaultAsync(cancellationToken)
-            ?? throw new InvalidOperationException("В advertisement.settings отсутствует глобальная настройка.");
+            .SingleOrDefaultAsync(cancellationToken)
+            ?? throw new InvalidOperationException("В advertisement.settings отсутствует настройка.");
 
         var tags = await context.Tags.AsNoTracking().Include(x => x.Translations)
             .OrderBy(x => x.SortOrder).ThenBy(x => x.Id).ToListAsync(cancellationToken);
         var messages = await context.Messages.AsNoTracking().Include(x => x.Translations)
-            .Where(x => x.ServerId == null || x.ServerId == serverId)
             .OrderByDescending(x => x.Priority).ThenBy(x => x.SortOrder).ThenBy(x => x.Id)
             .ToListAsync(cancellationToken);
 
@@ -211,7 +204,7 @@ internal sealed class DatabaseAdvertisementProvider(
         Normalize(entity.Translations.Select(x => (x.Locale, x.Text))));
 
     private static AdvertisementMessage MapMessage(AdvertisementMessageEntity entity) => new(
-        entity.Id, entity.ServerId, entity.Key, entity.Name, entity.TagId, entity.Type, entity.Enabled,
+        entity.Id, entity.Key, entity.Name, entity.TagId, entity.Type, entity.Enabled,
         entity.Priority, entity.Weight, entity.SortOrder, entity.IntervalSeconds, entity.MinPlayers,
         entity.MaxPlayers, entity.StartsAt, entity.EndsAt,
         Normalize(entity.Translations.Select(x => (x.Locale, x.Text))));

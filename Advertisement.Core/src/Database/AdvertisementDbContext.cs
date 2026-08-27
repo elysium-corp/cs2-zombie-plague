@@ -130,9 +130,13 @@ internal sealed class AdvertisementDbContext(DbContextOptions<AdvertisementDbCon
                     "starts_at IS NULL OR ends_at IS NULL OR starts_at < ends_at");
             });
 
-        entity.HasIndex(x => new { x.ServerId, x.Enabled, x.Priority, x.SortOrder, x.Id })
-            .HasDatabaseName("messages_active_scope_idx")
-            .IsDescending(false, false, true, false, false);
+        entity.HasIndex(x => x.Key)
+            .HasDatabaseName("messages_key_unique")
+            .IsUnique();
+
+        entity.HasIndex(x => new { x.Enabled, x.Priority, x.SortOrder, x.Id })
+            .HasDatabaseName("messages_active_idx")
+            .IsDescending(false, true, false, false);
 
         entity.HasIndex(x => new { x.StartsAt, x.EndsAt })
             .HasDatabaseName("messages_schedule_idx")

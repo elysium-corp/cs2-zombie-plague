@@ -10,9 +10,6 @@ internal sealed class AdvertisementMessageEntity
     [Column("id")]
     public long Id { get; set; }
 
-    [Column("server_id")]
-    public long? ServerId { get; set; }
-
     [MaxLength(64)]
     [Column("key")]
     public string Key { get; set; } = string.Empty;

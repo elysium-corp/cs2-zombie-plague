@@ -17,7 +17,7 @@ namespace Advertisement.Core;
 
 [PluginMetadata(
     Id = "Advertisement.Core",
-    Version = "1.1.2",
+    Version = "1.1.3",
     Name = "Elysium Advertisements",
     Author = "Elysium",
     Description = "Локализованная реклама и информационные сообщения с управлением через Flute CMS.")]
@@ -62,7 +62,7 @@ internal sealed class AdvertisementPlugin(ISwiftlyCore core) : Plugin<Advertisem
             BindAndLoadLocale(player.PlayerID, player.SteamID);
         }
 
-        Core.Logger.LogInformation("[Advertisement] Advertisement.Core 1.1.2 загружен.");
+        Core.Logger.LogInformation("[Advertisement] Advertisement.Core 1.1.3 загружен.");
     }
 
     protected override void OnUnload()
@@ -201,11 +201,11 @@ internal sealed class AdvertisementPlugin(ISwiftlyCore core) : Plugin<Advertisem
     private void StatusCommand(ICommandContext context)
     {
         var snapshot = _cache.Value.Current;
-        if (snapshot is null) { context.Reply("Advertisement.Core 1.1.2\nSnapshot: загружается"); return; }
+        if (snapshot is null) { context.Reply("Advertisement.Core 1.1.3\nSnapshot: загружается"); return; }
         var players = Core.PlayerManager.GetAllPlayers().ToArray();
         var bots = players.Count(x => x.IsFakeClient);
         var count = snapshot.Settings.ExcludeBotsFromPlayers ? players.Length - bots : players.Length;
-        context.Reply($"Advertisement.Core 1.1.2\nSource: {snapshot.Source}\nMessages: {snapshot.Messages.Count}\nActive: {snapshot.ActiveMessageCount(DateTimeOffset.UtcNow, count)}\nDefault locale: {snapshot.Settings.DefaultLocale}\nVersion: {snapshot.Settings.ConfigurationVersion}");
+        context.Reply($"Advertisement.Core 1.1.3\nSource: {snapshot.Source}\nMessages: {snapshot.Messages.Count}\nActive: {snapshot.ActiveMessageCount(DateTimeOffset.UtcNow, count)}\nDefault locale: {snapshot.Settings.DefaultLocale}\nVersion: {snapshot.Settings.ConfigurationVersion}");
     }
 
     private void ReloadCommand(ICommandContext context)
