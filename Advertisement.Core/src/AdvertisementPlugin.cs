@@ -17,7 +17,7 @@ namespace Advertisement.Core;
 
 [PluginMetadata(
     Id = "Advertisement.Core",
-    Version = "1.1.0",
+    Version = "1.1.1",
     Name = "Elysium Advertisements",
     Author = "Elysium",
     Description = "Локализованная реклама и информационные сообщения с управлением через Flute CMS.")]
@@ -39,41 +39,70 @@ internal sealed class AdvertisementPlugin(ISwiftlyCore core) : Plugin<Advertisem
 
     protected override void OnStart()
     {
-        try
-        {
-            _databaseMigrator.Value.Migrate();
-        }
-        catch (Exception exception)
-        {
-            Core.Logger.LogError(exception,
-                "[Advertisement] Миграция PostgreSQL не выполнена. Плагин продолжит работу с fallback-конфигурацией.");
-        }
+        TryMigrateDatabase();
 
         Core.Event.OnMapLoad += OnMapLoad;
         Core.Event.OnClientSteamAuthorize += OnClientSteamAuthorize;
         Core.Event.OnClientDisconnected += OnClientDisconnected;
         RegisterCommands();
 
+        // Загрузка конфигурации не зависит от игрового состояния и может начинаться сразу.
+        _coordinator.Value.Start();
+    }
+
+    protected override void OnReady()
+    {
+        // GlobalVars и текущее имя карты гарантированно доступны только после
+        // завершения инициализации SwiftlyS2 и внедрения shared interfaces.
         _scheduler.Value.StartFromCurrentMap();
         _schedulerTimer = Core.Scheduler.RepeatBySeconds(1f, _scheduler.Value.Tick);
-        _coordinator.Value.Start();
 
         foreach (var player in Core.PlayerManager.GetAllPlayers().Where(player => player.IsAuthorized))
+        {
             BindAndLoadLocale(player.PlayerID, player.SteamID);
+        }
 
-        Core.Logger.LogInformation("[Advertisement] Advertisement.Core 1.1.0 загружен.");
+        Core.Logger.LogInformation("[Advertisement] Advertisement.Core 1.1.1 загружен.");
     }
 
     protected override void OnUnload()
     {
-        if (_chatHook is { } hook) Core.Command.UnhookClientChat(hook);
-        foreach (var command in _commands) Core.Command.UnregisterCommand(command);
+        if (_chatHook is { } hook)
+        {
+            Core.Command.UnhookClientChat(hook);
+            _chatHook = null;
+        }
+
+        foreach (var command in _commands)
+        {
+            Core.Command.UnregisterCommand(command);
+        }
+
         _commands.Clear();
+
         _schedulerTimer?.Cancel();
+        _schedulerTimer = null;
+
         Core.Event.OnMapLoad -= OnMapLoad;
         Core.Event.OnClientSteamAuthorize -= OnClientSteamAuthorize;
         Core.Event.OnClientDisconnected -= OnClientDisconnected;
+
         _coordinator.Value.Dispose();
+    }
+
+    private void TryMigrateDatabase()
+    {
+        try
+        {
+            _databaseMigrator.Value.Migrate();
+        }
+        catch (Exception exception)
+        {
+            Core.Logger.LogError(
+                exception,
+                "[Advertisement] Миграция PostgreSQL не выполнена. Плагин продолжит работу с fallback-конфигурацией."
+            );
+        }
     }
 
     private void RegisterCommands()
@@ -172,11 +201,11 @@ internal sealed class AdvertisementPlugin(ISwiftlyCore core) : Plugin<Advertisem
     private void StatusCommand(ICommandContext context)
     {
         var snapshot = _cache.Value.Current;
-        if (snapshot is null) { context.Reply("Advertisement.Core 1.1.0\nSnapshot: загружается"); return; }
+        if (snapshot is null) { context.Reply("Advertisement.Core 1.1.1\nSnapshot: загружается"); return; }
         var players = Core.PlayerManager.GetAllPlayers().ToArray();
         var bots = players.Count(x => x.IsFakeClient);
         var count = snapshot.Settings.ExcludeBotsFromPlayers ? players.Length - bots : players.Length;
-        context.Reply($"Advertisement.Core 1.1.0\nSource: {snapshot.Source}\nMessages: {snapshot.Messages.Count}\nActive: {snapshot.ActiveMessageCount(DateTimeOffset.UtcNow, count)}\nDefault locale: {snapshot.Settings.DefaultLocale}\nVersion: {snapshot.Settings.ConfigurationVersion}");
+        context.Reply($"Advertisement.Core 1.1.1\nSource: {snapshot.Source}\nMessages: {snapshot.Messages.Count}\nActive: {snapshot.ActiveMessageCount(DateTimeOffset.UtcNow, count)}\nDefault locale: {snapshot.Settings.DefaultLocale}\nVersion: {snapshot.Settings.ConfigurationVersion}");
     }
 
     private void ReloadCommand(ICommandContext context)
