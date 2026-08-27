@@ -100,6 +100,11 @@ internal sealed class AdvertisementDbContext(DbContextOptions<AdvertisementDbCon
         entity.Property(x => x.Priority).HasDefaultValue(0);
         entity.Property(x => x.Weight).HasDefaultValue(100);
         entity.Property(x => x.SortOrder).HasDefaultValue(0);
+        entity.Property(x => x.DispatchMode).HasDefaultValue("periodic");
+        entity.Property(x => x.DailyTimesJson)
+            .HasColumnType("jsonb")
+            .HasDefaultValueSql("'[]'::jsonb");
+        entity.Property(x => x.AudienceType).HasDefaultValue("all");
         entity.Property(x => x.CreatedAt).HasDefaultValueSql(PostgreSqlCurrentTimestamp);
         entity.Property(x => x.UpdatedAt).HasDefaultValueSql(PostgreSqlCurrentTimestamp);
 
@@ -116,6 +121,16 @@ internal sealed class AdvertisementDbContext(DbContextOptions<AdvertisementDbCon
                 table.HasCheckConstraint(
                     "ck_advertisement_messages_interval",
                     "interval_seconds IS NULL OR interval_seconds >= 10");
+                table.HasCheckConstraint(
+                    "messages_dispatch_mode_valid",
+                    "dispatch_mode IN ('periodic', 'daily', 'manual')");
+                table.HasCheckConstraint(
+                    "messages_daily_times_array",
+                    "jsonb_typeof(daily_times) = 'array'");
+                table.HasCheckConstraint(
+                    "messages_audience_valid",
+                    "(audience_type = 'all' AND audience_group IS NULL) OR " +
+                    "(audience_type = 'admin_group' AND audience_group IS NOT NULL AND btrim(audience_group) <> '')");
                 table.HasCheckConstraint(
                     "ck_advertisement_messages_min_players",
                     "min_players IS NULL OR min_players >= 0");
@@ -141,6 +156,9 @@ internal sealed class AdvertisementDbContext(DbContextOptions<AdvertisementDbCon
         entity.HasIndex(x => new { x.StartsAt, x.EndsAt })
             .HasDatabaseName("messages_schedule_idx")
             .HasFilter("enabled = TRUE");
+
+        entity.HasIndex(x => new { x.Enabled, x.DispatchMode })
+            .HasDatabaseName("messages_dispatch_idx");
 
         entity.HasOne(x => x.Tag)
             .WithMany(x => x.Messages)

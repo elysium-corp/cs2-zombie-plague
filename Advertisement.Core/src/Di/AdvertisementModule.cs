@@ -1,4 +1,5 @@
 using Advertisement.Core.Application;
+using Advertisement.Core.Api;
 using Advertisement.Core.Configuration;
 using Advertisement.Core.Data;
 using Advertisement.Core.Database;
@@ -21,10 +22,12 @@ internal sealed class AdvertisementModule(ISwiftlyCore core) : BaseModule(core)
         AddSingleton<AdvertisementCache>(services);
         AddSingleton<PlayerLocaleStore>(services);
         AddSingleton<PlayerLocaleResolver>(services);
+        AddSingleton<AdminAudienceResolver>(services);
         AddSingleton<MarkupRenderer>(services);
         AddSingleton<PlaceholderResolver>(services);
         AddSingleton<AdvertisementSender>(services);
         AddSingleton<AdvertisementScheduler>(services);
+        AddSingleton<AdvertisementApi>(services);
         AddSingleton<ConfigAdvertisementProvider>(services);
         AddSingleton<DatabaseAdvertisementProvider>(services);
         AddSingleton<PlayerPreferenceRepository>(services);
