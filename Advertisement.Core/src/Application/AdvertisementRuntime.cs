@@ -154,7 +154,22 @@ internal sealed class AdvertisementScheduler(ISwiftlyCore core, AdvertisementCac
     private int _sequence;
     private string _mapName = string.Empty;
 
-    public void StartFromCurrentMap() => OnMapLoaded(core.Engine.GlobalVars.MapName.Value);
+    public bool TryStartFromCurrentMap()
+    {
+        try
+        {
+            var mapName = core.Engine.GlobalVars.MapName.Value;
+            if (string.IsNullOrWhiteSpace(mapName)) return false;
+
+            OnMapLoaded(mapName);
+            return true;
+        }
+        catch (InvalidOperationException)
+        {
+            return false;
+        }
+    }
+
     public void OnMapLoaded(string mapName)
     {
         _mapName = mapName; _sequence = 0; _lastSent.Clear();
@@ -165,7 +180,7 @@ internal sealed class AdvertisementScheduler(ISwiftlyCore core, AdvertisementCac
     {
         var snapshot = cache.Current;
         var now = DateTimeOffset.UtcNow;
-        if (snapshot is null || !snapshot.Settings.Enabled || now < _nextDispatchAt) return;
+        if (snapshot is null || !snapshot.Settings.Enabled || string.IsNullOrWhiteSpace(_mapName) || now < _nextDispatchAt) return;
         var players = core.PlayerManager.GetAllPlayers().Where(x => x.IsAuthorized).ToArray();
         var bots = players.Count(x => x.IsFakeClient);
         var humans = players.Length - bots;
