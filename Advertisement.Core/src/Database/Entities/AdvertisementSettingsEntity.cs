@@ -10,9 +10,6 @@ internal sealed class AdvertisementSettingsEntity
     [Column("id")]
     public long Id { get; set; }
 
-    [Column("server_id")]
-    public long? ServerId { get; set; }
-
     [Column("enabled")]
     public bool Enabled { get; set; } = true;
 

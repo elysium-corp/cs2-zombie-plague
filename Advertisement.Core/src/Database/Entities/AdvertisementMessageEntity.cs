@@ -10,9 +10,6 @@ internal sealed class AdvertisementMessageEntity
     [Column("id")]
     public long Id { get; set; }
 
-    [Column("server_id")]
-    public long? ServerId { get; set; }
-
     [MaxLength(64)]
     [Column("key")]
     public string Key { get; set; } = string.Empty;
@@ -46,6 +43,27 @@ internal sealed class AdvertisementMessageEntity
 
     [Column("interval_seconds")]
     public int? IntervalSeconds { get; set; }
+
+    [MaxLength(16)]
+    [Column("dispatch_mode")]
+    public string DispatchMode { get; set; } = "periodic";
+
+    [Column("daily_times", TypeName = "jsonb")]
+    public string DailyTimesJson { get; set; } = "[]";
+
+    [Column("daily_start_time")]
+    public TimeOnly? DailyStartTime { get; set; }
+
+    [Column("daily_end_time")]
+    public TimeOnly? DailyEndTime { get; set; }
+
+    [MaxLength(16)]
+    [Column("audience_type")]
+    public string AudienceType { get; set; } = "all";
+
+    [MaxLength(64)]
+    [Column("audience_group")]
+    public string? AudienceGroup { get; set; }
 
     [Column("min_players")]
     public int? MinPlayers { get; set; }

@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Text;
 using System.Text.RegularExpressions;
+using Admin.Api;
 using Advertisement.Core.Data;
 using Microsoft.Extensions.Logging;
 using SwiftlyS2.Shared;
@@ -31,6 +32,45 @@ internal sealed class PlayerLocaleResolver(PlayerLocaleStore store)
             return settings.AllowedLocales.Contains(manual) ? manual : settings.DefaultLocale;
         var engine = LocaleNormalizer.Normalize(player.PlayerLanguage.Value);
         return settings.AllowedLocales.Contains(engine) ? engine : settings.DefaultLocale;
+    }
+}
+
+internal sealed class AdminAudienceResolver
+{
+    private IAdminApi? _adminApi;
+
+    public void Initialize(IAdminApi adminApi)
+    {
+        _adminApi = adminApi;
+    }
+
+    public void Uninitialize()
+    {
+        _adminApi = null;
+    }
+
+    public IPlayer[] Resolve(AdvertisementMessage message, IEnumerable<IPlayer> players)
+    {
+        var targets = players
+            .Where(player => player is { IsAuthorized: true, IsFakeClient: false })
+            .ToArray();
+
+        if (message.AudienceType == AdvertisementAudienceType.All)
+        {
+            return targets;
+        }
+
+        var group = message.AudienceGroup;
+        var adminApi = _adminApi;
+        if (adminApi is null || string.IsNullOrWhiteSpace(group))
+        {
+            return [];
+        }
+
+        return targets
+            .Where(player => adminApi.GetPlayerPrivileges(player)
+                .Any(privilege => string.Equals(privilege.Group, group, StringComparison.OrdinalIgnoreCase)))
+            .ToArray();
     }
 }
 
@@ -120,7 +160,7 @@ internal sealed class AdvertisementSender(
 {
     public void Send(AdvertisementSnapshot snapshot, AdvertisementMessage message, IEnumerable<IPlayer> targets,
         int humans, int bots, string serverName, string mapName, string nextMap, int maxPlayers,
-        DateTimeOffset now, string? localeOverride = null)
+        DateTimeOffset now, AdvertisementTag? tag, string? localeOverride = null)
     {
         foreach (var player in targets)
         {
@@ -132,7 +172,7 @@ internal sealed class AdvertisementSender(
             var resolved = placeholderResolver.Resolve(text, player, serverName, mapName,
                 snapshot.Settings.ExcludeBotsFromPlayers ? humans : humans + bots, bots, maxPlayers, nextMap, now);
             var output = new StringBuilder(resolved.Length + 48);
-            if (message.TagId is { } tagId && snapshot.Tags.TryGetValue(tagId, out var tag) && tag.Enabled)
+            if (tag is { Enabled: true })
             {
                 var tagText = ResolveTranslation(tag.Translations, locale, snapshot.Settings.DefaultLocale);
                 if (!string.IsNullOrWhiteSpace(tagText))
@@ -147,10 +187,16 @@ internal sealed class AdvertisementSender(
         translations.TryGetValue(locale, out var value) ? value : translations.GetValueOrDefault(fallback);
 }
 
-internal sealed class AdvertisementScheduler(ISwiftlyCore core, AdvertisementCache cache, AdvertisementSender sender)
+internal sealed class AdvertisementScheduler(
+    ISwiftlyCore core,
+    AdvertisementCache cache,
+    AdvertisementSender sender,
+    AdminAudienceResolver audienceResolver)
 {
     private readonly ConcurrentDictionary<long, DateTimeOffset> _lastSent = new();
+    private readonly ConcurrentDictionary<string, byte> _dailyOccurrences = new(StringComparer.Ordinal);
     private DateTimeOffset _nextDispatchAt = DateTimeOffset.MaxValue;
+    private DateOnly _dailyDate;
     private int _sequence;
     private string _mapName = string.Empty;
 
@@ -180,20 +226,31 @@ internal sealed class AdvertisementScheduler(ISwiftlyCore core, AdvertisementCac
     {
         var snapshot = cache.Current;
         var now = DateTimeOffset.UtcNow;
-        if (snapshot is null || !snapshot.Settings.Enabled || string.IsNullOrWhiteSpace(_mapName) || now < _nextDispatchAt) return;
+        if (snapshot is null || !snapshot.Settings.Enabled || string.IsNullOrWhiteSpace(_mapName)) return;
+
         var players = core.PlayerManager.GetAllPlayers().Where(x => x.IsAuthorized).ToArray();
         var bots = players.Count(x => x.IsFakeClient);
         var humans = players.Length - bots;
         var conditionCount = snapshot.Settings.ExcludeBotsFromPlayers ? humans : players.Length;
-        var candidates = snapshot.Messages.Values.Where(x => x.IsActive(now, conditionCount))
+
+        DispatchDaily(snapshot, players, humans, bots, conditionCount, now);
+
+        if (now < _nextDispatchAt)
+        {
+            return;
+        }
+
+        var candidates = snapshot.Messages.Values
+            .Where(x => x.DispatchMode == AdvertisementDispatchMode.Periodic)
+            .Where(x => x.IsActive(now, conditionCount))
             .Where(x => !_lastSent.TryGetValue(x.Id, out var last) || now - last >= TimeSpan.FromSeconds(x.IntervalSeconds ?? snapshot.Settings.IntervalSeconds))
+            .Where(x => audienceResolver.Resolve(x, players).Length > 0)
             .OrderByDescending(x => x.Priority).ThenBy(x => x.SortOrder).ThenBy(x => x.Id).ToArray();
         if (candidates.Length == 0) { _nextDispatchAt = now.AddSeconds(Math.Min(10, snapshot.Settings.IntervalSeconds)); return; }
+
         var message = Select(candidates, snapshot.Settings.OrderMode);
-        sender.Send(snapshot, message, players, humans, bots,
-            core.ConVar.FindAsString("hostname")?.ValueAsString ?? "Elysium", _mapName,
-            core.ConVar.FindAsString("nextlevel")?.ValueAsString ?? string.Empty,
-            core.PlayerManager.MaxPlayers, now);
+        var targets = audienceResolver.Resolve(message, players);
+        Send(snapshot, message, targets, humans, bots, now, ResolveConfiguredTag(snapshot, message));
         _lastSent[message.Id] = now;
         _nextDispatchAt = now.AddSeconds(message.IntervalSeconds ?? snapshot.Settings.IntervalSeconds);
     }
@@ -206,7 +263,110 @@ internal sealed class AdvertisementScheduler(ISwiftlyCore core, AdvertisementCac
         sender.Send(snapshot, message, [player], humans, bots,
             core.ConVar.FindAsString("hostname")?.ValueAsString ?? "Elysium", _mapName,
             core.ConVar.FindAsString("nextlevel")?.ValueAsString ?? string.Empty,
-            core.PlayerManager.MaxPlayers, DateTimeOffset.UtcNow, locale);
+            core.PlayerManager.MaxPlayers, DateTimeOffset.UtcNow,
+            ResolveConfiguredTag(snapshot, message), locale);
+    }
+
+    public bool SendManual(AdvertisementMessage message, IEnumerable<IPlayer> targets, string? tagKey)
+    {
+        var snapshot = cache.Current;
+        if (snapshot is null)
+        {
+            return false;
+        }
+
+        AdvertisementTag? tag;
+        if (tagKey is null)
+        {
+            tag = ResolveConfiguredTag(snapshot, message);
+        }
+        else
+        {
+            tag = snapshot.Tags.Values.FirstOrDefault(value =>
+                value.Enabled && value.Key.Equals(tagKey, StringComparison.OrdinalIgnoreCase));
+            if (tag is null)
+            {
+                return false;
+            }
+        }
+
+        var all = core.PlayerManager.GetAllPlayers().Where(x => x.IsAuthorized).ToArray();
+        var bots = all.Count(x => x.IsFakeClient);
+        var humans = all.Length - bots;
+        Send(snapshot, message, targets, humans, bots, DateTimeOffset.UtcNow, tag);
+        return true;
+    }
+
+    private void DispatchDaily(
+        AdvertisementSnapshot snapshot,
+        IPlayer[] players,
+        int humans,
+        int bots,
+        int conditionCount,
+        DateTimeOffset now)
+    {
+        var local = now.LocalDateTime;
+        var currentDate = DateOnly.FromDateTime(local);
+        if (_dailyDate != currentDate)
+        {
+            _dailyDate = currentDate;
+            _dailyOccurrences.Clear();
+        }
+
+        foreach (var message in snapshot.Messages.Values
+                     .Where(x => x.DispatchMode == AdvertisementDispatchMode.Daily)
+                     .Where(x => x.IsActive(now, conditionCount))
+                     .OrderByDescending(x => x.Priority).ThenBy(x => x.SortOrder).ThenBy(x => x.Id))
+        {
+            var scheduledTime = message.DailyTimes
+                .Where(time => time.Hour == local.Hour && time.Minute == local.Minute)
+                .Select(time => (TimeOnly?)time)
+                .FirstOrDefault();
+            if (scheduledTime is null)
+            {
+                continue;
+            }
+
+            var occurrence = $"{message.Id}:{currentDate:yyyyMMdd}:{scheduledTime.Value:HHmm}";
+            if (_dailyOccurrences.ContainsKey(occurrence))
+            {
+                continue;
+            }
+
+            var targets = audienceResolver.Resolve(message, players);
+            if (targets.Length == 0 || !_dailyOccurrences.TryAdd(occurrence, 0))
+            {
+                continue;
+            }
+
+            Send(snapshot, message, targets, humans, bots, now, ResolveConfiguredTag(snapshot, message));
+        }
+    }
+
+    private void Send(
+        AdvertisementSnapshot snapshot,
+        AdvertisementMessage message,
+        IEnumerable<IPlayer> targets,
+        int humans,
+        int bots,
+        DateTimeOffset now,
+        AdvertisementTag? tag)
+    {
+        sender.Send(snapshot, message, targets, humans, bots,
+            core.ConVar.FindAsString("hostname")?.ValueAsString ?? "Elysium", _mapName,
+            core.ConVar.FindAsString("nextlevel")?.ValueAsString ?? string.Empty,
+            core.PlayerManager.MaxPlayers, now, tag);
+    }
+
+    private static AdvertisementTag? ResolveConfiguredTag(
+        AdvertisementSnapshot snapshot,
+        AdvertisementMessage message)
+    {
+        return message.TagId is { } tagId
+               && snapshot.Tags.TryGetValue(tagId, out var tag)
+               && tag.Enabled
+            ? tag
+            : null;
     }
 
     private AdvertisementMessage Select(AdvertisementMessage[] items, AdvertisementOrderMode mode)

@@ -3,7 +3,6 @@ namespace Advertisement.Core.Configuration;
 internal sealed class AdvertisementConfig
 {
     public bool Enabled { get; set; } = true;
-    public long ServerId { get; set; } = 1;
     public string DefaultLocale { get; set; } = "ru";
     public List<string> AllowedLocales { get; set; } = ["ru", "en", "uk", "pl", "de"];
     public int IntervalSeconds { get; set; } = 90;
@@ -70,6 +69,12 @@ internal sealed class FallbackMessageConfig
     public int Weight { get; set; } = 100;
     public int SortOrder { get; set; }
     public int? IntervalSeconds { get; set; }
+    public string DispatchMode { get; set; } = "periodic";
+    public List<string> DailyTimes { get; set; } = [];
+    public string? DailyStartTime { get; set; }
+    public string? DailyEndTime { get; set; }
+    public string AudienceType { get; set; } = "all";
+    public string? AudienceGroup { get; set; }
     public int? MinPlayers { get; set; }
     public int? MaxPlayers { get; set; }
     public DateTimeOffset? StartsAt { get; set; }

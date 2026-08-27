@@ -1,4 +1,7 @@
+using Admin.Api;
+using Advertisement.Api;
 using Advertisement.Core.Application;
+using Advertisement.Core.Api;
 using Advertisement.Core.Data;
 using Advertisement.Core.Database;
 using Advertisement.Core.Di;
@@ -17,7 +20,7 @@ namespace Advertisement.Core;
 
 [PluginMetadata(
     Id = "Advertisement.Core",
-    Version = "1.1.2",
+    Version = "1.2.0",
     Name = "Elysium Advertisements",
     Author = "Elysium",
     Description = "Локализованная реклама и информационные сообщения с управлением через Flute CMS.")]
@@ -27,6 +30,8 @@ internal sealed class AdvertisementPlugin(ISwiftlyCore core) : Plugin<Advertisem
     private readonly Lazy<AdvertisementCache> _cache = GetRequiredServiceLazy<AdvertisementCache>();
     private readonly Lazy<AdvertisementCoordinator> _coordinator = GetRequiredServiceLazy<AdvertisementCoordinator>();
     private readonly Lazy<AdvertisementScheduler> _scheduler = GetRequiredServiceLazy<AdvertisementScheduler>();
+    private readonly Lazy<AdvertisementApi> _api = GetRequiredServiceLazy<AdvertisementApi>();
+    private readonly Lazy<AdminAudienceResolver> _audienceResolver = GetRequiredServiceLazy<AdminAudienceResolver>();
     private readonly Lazy<PlayerPreferenceRepository> _preferences = GetRequiredServiceLazy<PlayerPreferenceRepository>();
     private readonly Lazy<PlayerLocaleStore> _localeStore = GetRequiredServiceLazy<PlayerLocaleStore>();
     private readonly Lazy<PlayerLocaleResolver> _localeResolver = GetRequiredServiceLazy<PlayerLocaleResolver>();
@@ -36,6 +41,26 @@ internal sealed class AdvertisementPlugin(ISwiftlyCore core) : Plugin<Advertisem
 
     private CancellationTokenSource? _schedulerTimer;
     private Guid? _chatHook;
+
+    protected override void OnConfigureSharedInterfaces(IInterfaceManager interfaceManager)
+    {
+        interfaceManager.AddSharedInterface<IAdvertisementApi, AdvertisementApi>(
+            IAdvertisementApi.SharedApiKey,
+            _api.Value);
+    }
+
+    protected override void OnSharedInterfacesInjected(IInterfaceManager interfaceManager)
+    {
+        if (interfaceManager.TryGetSharedInterface<IAdminApi>(IAdminApi.SharedApiKey, out var adminApi))
+        {
+            _audienceResolver.Value.Initialize(adminApi);
+        }
+        else
+        {
+            Core.Logger.LogWarning(
+                "[Advertisement] Admin.Core не загружен. Аудитории admin_group будут пропущены.");
+        }
+    }
 
     protected override void OnStart()
     {
@@ -62,7 +87,7 @@ internal sealed class AdvertisementPlugin(ISwiftlyCore core) : Plugin<Advertisem
             BindAndLoadLocale(player.PlayerID, player.SteamID);
         }
 
-        Core.Logger.LogInformation("[Advertisement] Advertisement.Core 1.1.2 загружен.");
+        Core.Logger.LogInformation("[Advertisement] Advertisement.Core 1.2.0 загружен.");
     }
 
     protected override void OnUnload()
@@ -87,6 +112,7 @@ internal sealed class AdvertisementPlugin(ISwiftlyCore core) : Plugin<Advertisem
         Core.Event.OnClientSteamAuthorize -= OnClientSteamAuthorize;
         Core.Event.OnClientDisconnected -= OnClientDisconnected;
 
+        _audienceResolver.Value.Uninitialize();
         _coordinator.Value.Dispose();
     }
 
@@ -201,11 +227,11 @@ internal sealed class AdvertisementPlugin(ISwiftlyCore core) : Plugin<Advertisem
     private void StatusCommand(ICommandContext context)
     {
         var snapshot = _cache.Value.Current;
-        if (snapshot is null) { context.Reply("Advertisement.Core 1.1.2\nSnapshot: загружается"); return; }
+        if (snapshot is null) { context.Reply("Advertisement.Core 1.2.0\nSnapshot: загружается"); return; }
         var players = Core.PlayerManager.GetAllPlayers().ToArray();
         var bots = players.Count(x => x.IsFakeClient);
         var count = snapshot.Settings.ExcludeBotsFromPlayers ? players.Length - bots : players.Length;
-        context.Reply($"Advertisement.Core 1.1.2\nSource: {snapshot.Source}\nMessages: {snapshot.Messages.Count}\nActive: {snapshot.ActiveMessageCount(DateTimeOffset.UtcNow, count)}\nDefault locale: {snapshot.Settings.DefaultLocale}\nVersion: {snapshot.Settings.ConfigurationVersion}");
+        context.Reply($"Advertisement.Core 1.2.0\nSource: {snapshot.Source}\nMessages: {snapshot.Messages.Count}\nActive: {snapshot.ActiveMessageCount(DateTimeOffset.UtcNow, count)}\nDefault locale: {snapshot.Settings.DefaultLocale}\nVersion: {snapshot.Settings.ConfigurationVersion}");
     }
 
     private void ReloadCommand(ICommandContext context)

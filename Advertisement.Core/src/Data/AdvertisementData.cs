@@ -10,6 +10,8 @@ namespace Advertisement.Core.Data;
 
 internal enum AdvertisementSource { Database, Cache, Config }
 internal enum AdvertisementOrderMode { Sequential, Random, WeightedRandom }
+internal enum AdvertisementDispatchMode { Periodic, Daily, Manual }
+internal enum AdvertisementAudienceType { All, AdminGroup }
 
 internal sealed record AdvertisementSettings(
     bool Enabled,
@@ -33,7 +35,6 @@ internal sealed record AdvertisementTag(
 
 internal sealed record AdvertisementMessage(
     long Id,
-    long? ServerId,
     string Key,
     string Name,
     long? TagId,
@@ -43,18 +44,54 @@ internal sealed record AdvertisementMessage(
     int Weight,
     int SortOrder,
     int? IntervalSeconds,
+    AdvertisementDispatchMode DispatchMode,
+    FrozenSet<TimeOnly> DailyTimes,
+    TimeOnly? DailyStartTime,
+    TimeOnly? DailyEndTime,
+    AdvertisementAudienceType AudienceType,
+    string? AudienceGroup,
     int? MinPlayers,
     int? MaxPlayers,
     DateTimeOffset? StartsAt,
     DateTimeOffset? EndsAt,
     FrozenDictionary<string, string> Translations)
 {
-    public bool IsActive(DateTimeOffset now, int playerCount) =>
-        Enabled
-        && (StartsAt is null || StartsAt <= now)
-        && (EndsAt is null || EndsAt >= now)
-        && (MinPlayers is null || playerCount >= MinPlayers)
-        && (MaxPlayers is null || playerCount <= MaxPlayers);
+    public bool IsActive(DateTimeOffset now, int playerCount)
+    {
+        var localTime = TimeOnly.FromDateTime(now.LocalDateTime);
+
+        return Enabled
+               && (StartsAt is null || StartsAt <= now)
+               && (EndsAt is null || EndsAt >= now)
+               && (MinPlayers is null || playerCount >= MinPlayers)
+               && (MaxPlayers is null || playerCount <= MaxPlayers)
+               && IsInsideDailyWindow(localTime);
+    }
+
+    private bool IsInsideDailyWindow(TimeOnly time)
+    {
+        var start = DailyStartTime;
+        var end = DailyEndTime;
+
+        if (start is null && end is null)
+        {
+            return true;
+        }
+
+        if (start is null)
+        {
+            return time <= end!.Value;
+        }
+
+        if (end is null)
+        {
+            return time >= start.Value;
+        }
+
+        return start.Value <= end.Value
+            ? time >= start.Value && time <= end.Value
+            : time >= start.Value || time <= end.Value;
+    }
 }
 
 internal sealed record AdvertisementSnapshot(
@@ -108,6 +145,41 @@ internal static class LocaleNormalizer
     }
 }
 
+internal static class DeliveryRuleParser
+{
+    public static AdvertisementDispatchMode ParseDispatchMode(string? value) => value?.ToLowerInvariant() switch
+    {
+        "daily" => AdvertisementDispatchMode.Daily,
+        "manual" => AdvertisementDispatchMode.Manual,
+        _ => AdvertisementDispatchMode.Periodic,
+    };
+
+    public static AdvertisementAudienceType ParseAudienceType(string? value) =>
+        string.Equals(value, "admin_group", StringComparison.OrdinalIgnoreCase)
+            ? AdvertisementAudienceType.AdminGroup
+            : AdvertisementAudienceType.All;
+
+    public static TimeOnly? ParseTime(string? value)
+    {
+        return TimeOnly.TryParse(value, out var time) ? time : null;
+    }
+
+    public static FrozenSet<TimeOnly> ParseDailyTimes(IEnumerable<string>? values)
+    {
+        return (values ?? [])
+            .Select(ParseTime)
+            .Where(x => x.HasValue)
+            .Select(x => x!.Value)
+            .ToFrozenSet();
+    }
+
+    public static FrozenSet<TimeOnly> ParseDailyTimesJson(string json)
+    {
+        var values = JsonSerializer.Deserialize<string[]>(json) ?? [];
+        return ParseDailyTimes(values);
+    }
+}
+
 internal sealed class ConfigAdvertisementProvider(IOptionsMonitor<AdvertisementConfig> options)
 {
     public AdvertisementSnapshot Load()
@@ -135,10 +207,17 @@ internal sealed class ConfigAdvertisementProvider(IOptionsMonitor<AdvertisementC
             var id = messageId--;
             long? resolvedTag = message.Tag is not null && tagIds.TryGetValue(message.Tag, out var value) ? value : null;
             messages[id] = new AdvertisementMessage(
-                id, config.ServerId, message.Key,
+                id, message.Key,
                 string.IsNullOrWhiteSpace(message.Name) ? message.Key : message.Name,
                 resolvedTag, message.Type, message.Enabled, message.Priority, Math.Max(0, message.Weight),
-                message.SortOrder, message.IntervalSeconds, message.MinPlayers, message.MaxPlayers,
+                message.SortOrder, message.IntervalSeconds,
+                DeliveryRuleParser.ParseDispatchMode(message.DispatchMode),
+                DeliveryRuleParser.ParseDailyTimes(message.DailyTimes),
+                DeliveryRuleParser.ParseTime(message.DailyStartTime),
+                DeliveryRuleParser.ParseTime(message.DailyEndTime),
+                DeliveryRuleParser.ParseAudienceType(message.AudienceType),
+                string.IsNullOrWhiteSpace(message.AudienceGroup) ? null : message.AudienceGroup.Trim(),
+                message.MinPlayers, message.MaxPlayers,
                 message.StartsAt, message.EndsAt, Normalize(message.Translations));
         }
 
@@ -166,26 +245,20 @@ internal sealed class ConfigAdvertisementProvider(IOptionsMonitor<AdvertisementC
 }
 
 internal sealed class DatabaseAdvertisementProvider(
-    IDbContextFactory<AdvertisementDbContext> contextFactory,
-    IOptionsMonitor<AdvertisementConfig> options)
+    IDbContextFactory<AdvertisementDbContext> contextFactory)
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
     public async Task<AdvertisementSnapshot> LoadAsync(CancellationToken cancellationToken)
     {
         await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
-        var serverId = options.CurrentValue.ServerId;
-
         var settingsEntity = await context.Settings.AsNoTracking()
-            .Where(x => x.ServerId == null || x.ServerId == serverId)
-            .OrderByDescending(x => x.ServerId != null)
-            .FirstOrDefaultAsync(cancellationToken)
-            ?? throw new InvalidOperationException("В advertisement.settings отсутствует глобальная настройка.");
+            .SingleOrDefaultAsync(cancellationToken)
+            ?? throw new InvalidOperationException("В advertisement.settings отсутствует настройка.");
 
         var tags = await context.Tags.AsNoTracking().Include(x => x.Translations)
             .OrderBy(x => x.SortOrder).ThenBy(x => x.Id).ToListAsync(cancellationToken);
         var messages = await context.Messages.AsNoTracking().Include(x => x.Translations)
-            .Where(x => x.ServerId == null || x.ServerId == serverId)
             .OrderByDescending(x => x.Priority).ThenBy(x => x.SortOrder).ThenBy(x => x.Id)
             .ToListAsync(cancellationToken);
 
@@ -211,9 +284,14 @@ internal sealed class DatabaseAdvertisementProvider(
         Normalize(entity.Translations.Select(x => (x.Locale, x.Text))));
 
     private static AdvertisementMessage MapMessage(AdvertisementMessageEntity entity) => new(
-        entity.Id, entity.ServerId, entity.Key, entity.Name, entity.TagId, entity.Type, entity.Enabled,
-        entity.Priority, entity.Weight, entity.SortOrder, entity.IntervalSeconds, entity.MinPlayers,
-        entity.MaxPlayers, entity.StartsAt, entity.EndsAt,
+        entity.Id, entity.Key, entity.Name, entity.TagId, entity.Type, entity.Enabled,
+        entity.Priority, entity.Weight, entity.SortOrder, entity.IntervalSeconds,
+        DeliveryRuleParser.ParseDispatchMode(entity.DispatchMode),
+        DeliveryRuleParser.ParseDailyTimesJson(entity.DailyTimesJson),
+        entity.DailyStartTime, entity.DailyEndTime,
+        DeliveryRuleParser.ParseAudienceType(entity.AudienceType),
+        string.IsNullOrWhiteSpace(entity.AudienceGroup) ? null : entity.AudienceGroup.Trim(),
+        entity.MinPlayers, entity.MaxPlayers, entity.StartsAt, entity.EndsAt,
         Normalize(entity.Translations.Select(x => (x.Locale, x.Text))));
 
     private static FrozenDictionary<string, string> Normalize(IEnumerable<(string Locale, string Text)> values) =>
