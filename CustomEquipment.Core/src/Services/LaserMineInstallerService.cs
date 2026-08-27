@@ -1,4 +1,4 @@
-using Common.Hooks;
+﻿using Common.Hooks;
 using Common.Hooks.Abstractions;
 using Common.Math;
 using CustomEquipment.Api.Events.Contexts.Mines;
@@ -109,7 +109,6 @@ public sealed class LaserMineInstallerService(
         var preContext = new MinePlacePreContext(player, entity);
 
         if (!hooks.DispatchCancellable(ref preContext) ||
-            preContext.Player is null ||
             !preContext.Player.IsValid)
         {
             economyApi.GiveMoney(player, mine.Price.Item);

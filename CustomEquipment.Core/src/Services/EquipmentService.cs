@@ -1,4 +1,4 @@
-using Common.Hooks;
+﻿using Common.Hooks;
 using Common.Hooks.Abstractions;
 using CustomEquipment.Api.Data;
 using CustomEquipment.Api.Data.Contracts;
@@ -122,7 +122,6 @@ internal sealed class EquipmentService(
         var itemPre = new ItemGivePreContext(player, item, action);
 
         if (!hooks.DispatchCancellable(ref itemPre) ||
-            itemPre.Player is null ||
             itemPre.Item is not ItemBase preparedItem ||
             !itemPre.Player.IsValid ||
             !CanUseItem(itemPre.Player, preparedItem))
@@ -140,7 +139,6 @@ internal sealed class EquipmentService(
                 var weaponPre = new WeaponGivePreContext(preparedPlayer, weapon, preparedAction);
 
                 if (!hooks.DispatchCancellable(ref weaponPre) ||
-                    weaponPre.Player is null ||
                     weaponPre.Weapon is not WeaponItemBase preparedWeapon ||
                     !weaponPre.Player.IsValid ||
                     !CanUseItem(weaponPre.Player, preparedWeapon))
@@ -159,7 +157,6 @@ internal sealed class EquipmentService(
                 var grenadePre = new GrenadeGivePreContext(preparedPlayer, grenade, preparedAction);
 
                 if (!hooks.DispatchCancellable(ref grenadePre) ||
-                    grenadePre.Player is null ||
                     grenadePre.Grenade is not GrenadeItemBase preparedGrenade ||
                     !grenadePre.Player.IsValid ||
                     !CanUseItem(grenadePre.Player, preparedGrenade))
@@ -222,10 +219,7 @@ internal sealed class EquipmentService(
 
             var preContext = new GrenadeThrowPreContext(grenade, projectile);
 
-            if (!hooks.DispatchCancellable(ref preContext) ||
-                preContext.Grenade is null ||
-                preContext.Projectile is null ||
-                !preContext.Projectile.IsValidEntity)
+            if (!hooks.DispatchCancellable(ref preContext) || !preContext.Projectile.IsValidEntity)
             {
                 return;
             }

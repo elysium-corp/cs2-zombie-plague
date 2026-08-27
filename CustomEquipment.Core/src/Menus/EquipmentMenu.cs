@@ -1,4 +1,4 @@
-using Common.Hooks;
+﻿using Common.Hooks;
 using Common.Hooks.Abstractions;
 using CustomEquipment.Api.Data.Contracts;
 using CustomEquipment.Api.Enums;
@@ -126,8 +126,6 @@ internal sealed class EquipmentMenu(
         var preContext = new ItemBuyPreContext(player, item);
 
         if (!hooks.DispatchCancellable(ref preContext) ||
-            preContext.Player is null ||
-            preContext.Item is null ||
             !preContext.Player.IsValid ||
             !preContext.Player.IsAlive)
         {

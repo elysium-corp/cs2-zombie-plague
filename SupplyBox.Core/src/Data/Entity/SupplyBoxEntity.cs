@@ -1,4 +1,4 @@
-using Common.Hooks;
+﻿using Common.Hooks;
 using Common.Hooks.Abstractions;
 using Microsoft.Extensions.Options;
 using SupplyBox.Api.Events.Contexts;
@@ -141,7 +141,6 @@ public sealed class SupplyBoxEntity : ISupplyBoxEntity
         var preContext = new SupplyBoxPickUpPreContext(player, this);
 
         if (!_hooks.DispatchCancellable(ref preContext) ||
-            preContext.Player is null ||
             !ReferenceEquals(preContext.SupplyBox, this) ||
             !CanPickUp(preContext.Player))
         {

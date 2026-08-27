@@ -76,7 +76,6 @@ internal sealed class WeaponController(
 
         if (!hooks.DispatchCancellable(ref preContext) ||
             preContext.Grenade is not GrenadeItemBase baseGrenade ||
-            preContext.Projectile is null ||
             !preContext.Projectile.IsValidEntity)
         {
             return;
