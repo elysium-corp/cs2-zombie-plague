@@ -1,13 +1,12 @@
-﻿using Common.Di;
-using SwiftlyS2.Shared;
+﻿using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
 using SwiftlyS2.Shared.Trace;
 
-namespace CustomEquipment.Data.Equipments.Weapons.Equipments.Contracts;
+namespace CustomEquipment.Api.Data;
 
-public abstract class BaseLaserMineEntity(ISwiftlyCore core)
+public abstract class LaserMineEntityBase(ISwiftlyCore core)
 {
     public virtual string LaserMineModel =>
         "models/de_overpass/decorations/security_camera/security_camera_1_base.vmdl";
@@ -15,7 +14,7 @@ public abstract class BaseLaserMineEntity(ISwiftlyCore core)
     public CBaseModelEntity? LaserMine { get; private set; }
     public virtual float TriggerInterval => 0f;
     public virtual float TracerDistance => 2000f;
-    public virtual float MaxDistanceToAttach => 100f;
+    public virtual int MaxHealth => 100;
     protected CBeam? LaserMineTracer { get; private set; }
     protected Vector LaserDirection { get; private set; }
     protected IPlayer? Owner { get; private set; }
@@ -28,23 +27,38 @@ public abstract class BaseLaserMineEntity(ISwiftlyCore core)
         if (LaserMine != null) return;
 
         Owner = owner;
-        
+
         var playerPawn = owner.PlayerPawn;
-        
-        if(playerPawn == null) return;
-        
+
+        if (playerPawn == null) return;
+
         LaserMine = core.EntitySystem.CreateEntityByDesignerName<CBaseModelEntity>("prop_dynamic_override");
+
+        LaserMine.Collision.CollisionGroup = (byte)CollisionGroup.Always;
+        LaserMine.Collision.SolidType = SolidType_t.SOLID_VPHYSICS;
+
         LaserMine.DispatchSpawn();
-        
+
         core.Scheduler.NextTick(() =>
         {
             LaserMine.SetModel(LaserMineModel);
 
             LaserMine.OwnerEntity.Raw = playerPawn.Index;
             LaserMine.OwnerEntityUpdated();
-        
-            LaserMine.Health = LaserMine.MaxHealth;
+
+            LaserMine.MaxHealth = MaxHealth;
+            LaserMine.MaxHealthUpdated();
+
+            LaserMine.Health = MaxHealth;
             LaserMine.HealthUpdated();
+
+            LaserMine.TakesDamage = true;
+            LaserMine.TakesDamageUpdated();
+
+            LaserMine.TakeDamageFlags = TakeDamageFlags_t.DFLAG_NONE;
+            LaserMine.TakeDamageFlagsUpdated();
+
+            LaserMine.Team = playerPawn.Team;
         });
 
         LaserMineTracer = core.EntitySystem.CreateEntity<CBeam>();
@@ -175,7 +189,6 @@ public abstract class BaseLaserMineEntity(ISwiftlyCore core)
         );
 
         if (!trace.DidHit) return false;
-        if (trace.Distance > MaxDistanceToAttach) return false;
 
         var normal = trace.HitNormal;
 

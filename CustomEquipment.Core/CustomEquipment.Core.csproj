@@ -65,6 +65,10 @@
       <ProjectReference Include="..\ZombiePlague.Api\ZombiePlague.Api.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="src\Data\Equipments\Weapons\Equipments\Contracts\" />
+    </ItemGroup>
+
     <Target Name="CreateZip" AfterTargets="Publish">
         <ItemGroup>
             <PublishFiles Include="$(PublishDir)**\*.*"/>

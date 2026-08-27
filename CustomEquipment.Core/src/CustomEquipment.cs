@@ -34,6 +34,7 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
     private readonly Lazy<IWeaponSoundController> _soundController = GetRequiredServiceLazy<IWeaponSoundController>();
     private readonly Lazy<IParticleController> _particleController = GetRequiredServiceLazy<IParticleController>();
     private readonly Lazy<IEquipmentService> _equipmentService = GetRequiredServiceLazy<IEquipmentService>();
+    private readonly Lazy<IMineController> _equipmentController = GetRequiredServiceLazy<IMineController>();
     private readonly Lazy<CustomEquipmentApi> _customEquipmentApi = GetRequiredServiceLazy<CustomEquipmentApi>();
     private readonly Lazy<EquipmentMenu> _equipmentMenu = GetRequiredServiceLazy<EquipmentMenu>();
     private readonly Lazy<IItemRegistry> _itemRegistry = GetRequiredServiceLazy<IItemRegistry>();
@@ -90,6 +91,7 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
 
         _equipmentService.Value.Initialize();
         _itemController.Value.Initialize();
+        _equipmentController.Value.Initialize();
         _soundController.Value.Initialize();
         _particleController.Value.Initialize();
         _equipmentMenu.Value.RegisterCommands();

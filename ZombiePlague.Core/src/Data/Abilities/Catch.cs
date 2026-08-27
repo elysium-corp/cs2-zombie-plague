@@ -24,7 +24,7 @@ internal sealed class Catch(ISwiftlyCore core, CatchConfig config) : BaseActiveA
     private MoveType_t? _targetMoveType;
     private MoveType_t? _targetActualMoveType;
 
-    private const float BodyPositionZ = 48f;
+    private static readonly Vector BodyPositionZ = new(0f, 0f, 48);
     private const float UpdateIntervalSeconds = 0.1f;
     private const float MovementTolerance = 1f;
 
@@ -46,7 +46,7 @@ internal sealed class Catch(ISwiftlyCore core, CatchConfig config) : BaseActiveA
         }
 
         Target = target;
-        
+
         CreateAndInitializeBeam();
 
         var casterPawn = Caster.PlayerPawn;
@@ -95,7 +95,7 @@ internal sealed class Catch(ISwiftlyCore core, CatchConfig config) : BaseActiveA
         if (found == null || !found.IsValid || !found.IsAlive) return false;
 
         target = found;
-        
+
         return true;
     }
 
@@ -184,25 +184,25 @@ internal sealed class Catch(ISwiftlyCore core, CatchConfig config) : BaseActiveA
 
     private bool CanCatch()
     {
-        if(_catchBeam == null || !_catchBeam.IsValidEntity) return false;
-        
+        if (_catchBeam == null || !_catchBeam.IsValidEntity) return false;
+
         if (!Caster.IsValid || !Caster.IsAlive) return false;
 
         var casterPawn = Caster.PlayerPawn;
 
         if (casterPawn == null || !casterPawn.IsValid) return false;
-        
+
         if ((casterPawn.MovementServices?.Buttons.ButtonPressed & GameButtonFlags.E) == 0) return false;
         
         if (HasMoved(casterPawn.AbsOrigin!.Value)) return false;
-    
+        
         if (Target == null || !Target.IsValid || !Target.IsAlive) return false;
 
         if (Target.Controller.Team == Caster.Controller.Team) return false;
 
         return true;
     }
-
+    
     private bool HasMoved(Vector currentPosition)
     {
         return
@@ -219,7 +219,7 @@ internal sealed class Catch(ISwiftlyCore core, CatchConfig config) : BaseActiveA
 
         if (_catchBeam == null || !_catchBeam.IsValidEntity) return;
 
-        _catchBeam.EndPos = targetPosition.Value + new Vector(0f, 0f, BodyPositionZ);
+        _catchBeam.EndPos = targetPosition.Value + BodyPositionZ;
         _catchBeam.EndPosUpdated();
     }
 
@@ -257,7 +257,7 @@ internal sealed class Catch(ISwiftlyCore core, CatchConfig config) : BaseActiveA
 
     private bool TryCatchTarget()
     {
-        var casterPosition = Caster.PlayerPawn?.AbsOrigin;
+        var casterPosition = Caster.PlayerPawn?.AbsOrigin + BodyPositionZ;
         var targetPawn = Target?.PlayerPawn;
         var targetPosition = targetPawn?.AbsOrigin;
 
@@ -279,7 +279,7 @@ internal sealed class Catch(ISwiftlyCore core, CatchConfig config) : BaseActiveA
         targetPawn.AbsVelocity = direction * config.Strength;
         return true;
     }
-    
+
     public override void PlaySound()
     {
         SoundExt.PlayAt(Caster, config.ShotSound, 1f);

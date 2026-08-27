@@ -38,6 +38,8 @@ internal sealed class CustomEquipmentModule(ISwiftlyCore core) : BaseModule(core
         AddSingleton<IEquipmentService, EquipmentService>(service);
         AddSingleton<IParticleService, ParticleService>(service);
         AddSingleton<IWeaponController, WeaponController>(service);
+        AddSingleton<ILaserMineInstallerService, LaserMineInstallerService>(service);
+        AddSingleton<IMineController, MineController>(service);
         AddSingleton<IWeaponSoundController, WeaponSoundController>(service);
         AddSingleton<IParticleController, ParticleController>(service);
         AddSingleton<IEquipmentShopCatalog, EquipmentShopCatalog>(service);

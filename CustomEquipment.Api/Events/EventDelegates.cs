@@ -8,13 +8,17 @@ namespace CustomEquipment.Api.Events;
 
 public class EventDelegates
 {
+    public delegate void OnItemBought(IPlayer player, IShopItem item);
+
     public delegate void OnItemGiven(IPlayer player, IItem item);
-    
+
     public delegate void OnWeaponGiven(IPlayer player, IWeapon weapon);
-    
+
     public delegate void OnGrenadeGiven(IPlayer player, IGrenade grenade);
-    
+
     public delegate void OnGrenadeThrown(IGrenade grenade, CBaseCSGrenadeProjectile projectile);
 
     public delegate void OnGrenadeDetonated(IGrenade grenade, CBaseCSGrenadeProjectile projectile, Vector position);
+
+    public delegate void OnMinePlaced(IPlayer player, LaserMineEntityBase mine);
 }
