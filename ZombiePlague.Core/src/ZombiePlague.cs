@@ -36,6 +36,7 @@ public sealed partial class ZombiePlague(ISwiftlyCore core) : Plugin<ZombiePlagu
     private readonly Lazy<DatabaseMigrator<ZombiePlagueDbContext>> _databaseMigrator = GetRequiredServiceLazy<DatabaseMigrator<ZombiePlagueDbContext>>();
     
     private readonly Lazy<AdminMenuExtension> _adminExtension = GetRequiredServiceLazy<AdminMenuExtension>();
+    private readonly Lazy<ZClassCardMenu> _zClassCardMenu = GetRequiredServiceLazy<ZClassCardMenu>();
     
     protected override void OnConfigureSharedInterfaces(IInterfaceManager interfaceManager)
     {
@@ -52,6 +53,7 @@ public sealed partial class ZombiePlague(ISwiftlyCore core) : Plugin<ZombiePlagu
         var adminApi = interfaceManager.GetSharedInterface<IAdminApi>(IAdminApi.SharedApiKey);
 
         _menuApiBridge.Value.Initialize(menuApi);
+        _zClassCardMenu.Value.Initialize(menuApi.Hud);
         _adminApiBridge.Value.Initialize(adminApi);
 
         if (interfaceManager.TryGetSharedInterface<IMetricsService>(IMetricsService.SharedApiKey, out var metricsApi))
@@ -78,6 +80,7 @@ public sealed partial class ZombiePlague(ISwiftlyCore core) : Plugin<ZombiePlagu
 
     protected override void OnUnload()
     {
+        _zClassCardMenu.Value.Uninitialize();
         _adminExtension.Value.Uninitialize();
         _metricsApiBridge.Value.Uninitialize();
         _adminApiBridge.Value.Uninitialize();

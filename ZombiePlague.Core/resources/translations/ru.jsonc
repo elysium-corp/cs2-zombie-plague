@@ -2,5 +2,20 @@
   "Menu.Main.Title": "Меню сервера",
   "Menu.Main.Item.ZClass.Title": "Выбрать класс зомби",
   
-  "Menu.ZClass.Title": "Классы зомби"
+  "Menu.ZClass.Title": "Классы зомби",
+  "Menu.ZClass.Card.Eyebrow": "КЛАСС ЗОМБИ",
+  "Menu.ZClass.Card.Health": "Здоровье",
+  "Menu.ZClass.Card.Speed": "Скорость",
+  "Menu.ZClass.Card.Gravity": "Гравитация",
+  "Menu.ZClass.Card.Abilities": "СПОСОБНОСТИ",
+  "Menu.ZClass.Card.SelectButton": "ВЫБРАТЬ КЛАСС",
+  "Menu.ZClass.Card.SelectedButton": "КЛАСС УЖЕ ВЫБРАН",
+  "Menu.ZClass.Card.SelectedMessage": "Вы выбрали класс зомби",
+  "Menu.ZClass.Card.NoAbilities": "Нет способностей",
+  "Menu.ZClass.Card.Ability.heal": "Лечение союзников",
+  "Menu.ZClass.Card.Ability.leap": "Длинный прыжок",
+  "Menu.ZClass.Card.Ability.trap": "Ловушка",
+  "Menu.ZClass.Card.Ability.charge": "Ускорение",
+  "Menu.ZClass.Card.Ability.blind": "Ослепление",
+  "Menu.ZClass.Card.Ability.catch": "Притягивание"
 }

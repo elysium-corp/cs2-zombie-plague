@@ -1,0 +1,66 @@
+<root>
+    <styles>
+        <include src="s2r://panorama/styles/custom_game/elysium/zombie_class_card.vcss_c" />
+    </styles>
+
+    <Panel class="zp-card-layer">
+        <Panel id="ZombieClassCard" class="zp-card">
+            <Panel class="zp-card__glow" />
+
+            <Panel class="zp-card__portrait-wrap">
+                <Image
+                    id="ZClassImageCleric"
+                    class="zp-card__portrait"
+                    src="s2r://panorama/images/custom_game/elysium/zombie_classes/cleric.svg" />
+                <Image
+                    id="ZClassImageHunter"
+                    class="zp-card__portrait"
+                    src="s2r://panorama/images/custom_game/elysium/zombie_classes/hunter.svg" />
+                <Image
+                    id="ZClassImageAssassin"
+                    class="zp-card__portrait"
+                    src="s2r://panorama/images/custom_game/elysium/zombie_classes/assassin.svg" />
+                <Image
+                    id="ZClassImageHeavy"
+                    class="zp-card__portrait"
+                    src="s2r://panorama/images/custom_game/elysium/zombie_classes/heavy.svg" />
+                <Image
+                    id="ZClassImageSmoker"
+                    class="zp-card__portrait"
+                    src="s2r://panorama/images/custom_game/elysium/zombie_classes/smoker.svg" />
+                <Image
+                    id="ZClassImageFallback"
+                    class="zp-card__portrait"
+                    src="s2r://panorama/images/custom_game/elysium/zombie_classes/fallback.svg" />
+
+                <Label class="zp-card__brand" text="ELYSIUM / ZOMBIE PLAGUE" />
+            </Panel>
+
+            <Panel class="zp-card__content">
+                <Label id="ZClassCardEyebrow" class="zp-card__eyebrow" text="{s:value}" />
+                <Label id="ZClassCardTitle" class="zp-card__title" text="{s:value}" />
+                <Label id="ZClassCardDescription" class="zp-card__description" text="{s:value}" />
+
+                <Panel class="zp-card__stats">
+                    <Label id="ZClassCardHealth" class="zp-card__stat" text="{s:value}" />
+                    <Label id="ZClassCardSpeed" class="zp-card__stat" text="{s:value}" />
+                    <Label id="ZClassCardGravity" class="zp-card__stat" text="{s:value}" />
+                </Panel>
+
+                <Panel class="zp-card__abilities-block">
+                    <Label id="ZClassCardAbilitiesTitle" class="zp-card__section-title" text="{s:value}" />
+                    <Label id="ZClassCardAbilities" class="zp-card__abilities" text="{s:value}" />
+                </Panel>
+
+                <Panel class="zp-card__actions">
+                    <Button id="ZClassCardSelect" class="zp-card__button zp-card__button--primary">
+                        <Label id="ZClassCardSelectLabel" text="{s:value}" />
+                    </Button>
+                    <Button id="ZClassCardClose" class="zp-card__button zp-card__button--close">
+                        <Label text="×" />
+                    </Button>
+                </Panel>
+            </Panel>
+        </Panel>
+    </Panel>
+</root>

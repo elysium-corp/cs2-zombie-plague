@@ -1,7 +1,6 @@
 ﻿using Menu.Api.Data;
 using Menu.Api.Data.Contracts;
 using Menu.Api.Extensions;
-using Metrics.Api;
 using SwiftlyS2.Core.Menus.OptionsBase;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Menus;
@@ -18,7 +17,7 @@ internal sealed class ZClassMenu(
     IMenuExtensionDispatcher extensionDispatcher,
     IZClassRegistrator zClassRegistrator,
     IPlayerRepository playerRepository,
-    IMetricsService metrics
+    ZClassCardMenu zClassCardMenu
 ) : DynamicOptionsMenu(core, extensionDispatcher)
 {
     public override string Id => ZombiePlagueMenuIds.ZClass;
@@ -67,8 +66,6 @@ internal sealed class ZClassMenu(
 
         var option = new ButtonMenuOption
         {
-            Enabled = !isSelected,
-
             Text = isSelected
                 ? $"{zClass.DisplayName} [выбран]"
                 : zClass.DisplayName,
@@ -80,25 +77,7 @@ internal sealed class ZClassMenu(
         {
             var player = args.Player;
 
-            playerRepository.SetZClassId(player, zClass.InternalName);
-
-            if (player.IsAuthorized && !player.IsFakeClient)
-            {
-                metrics.Track(
-                    "class_selected",
-                    player.SteamID,
-                    new
-                    {
-                        class_id = zClass.InternalName,
-                        class_name = zClass.DisplayName,
-                        class_type = "zombie"
-                    }
-                );
-            }
-
-            player.SendChatAsync($"Вы успешно выбрали класс зомби: {zClass.DisplayName}");
-
-            core.MenusAPI.CloseActiveMenu(player);
+            core.Scheduler.NextWorldUpdate(() => zClassCardMenu.Open(player, zClass));
 
             return ValueTask.CompletedTask;
         };

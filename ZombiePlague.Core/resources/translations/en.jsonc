@@ -2,5 +2,20 @@
   "Menu.Main.Title": "Server menu",
   "Menu.Main.Item.ZClass.Title": "Select zombie class",
 
-  "Menu.ZClass.Title": "Zombie classes"
+  "Menu.ZClass.Title": "Zombie classes",
+  "Menu.ZClass.Card.Eyebrow": "ZOMBIE CLASS",
+  "Menu.ZClass.Card.Health": "Health",
+  "Menu.ZClass.Card.Speed": "Speed",
+  "Menu.ZClass.Card.Gravity": "Gravity",
+  "Menu.ZClass.Card.Abilities": "ABILITIES",
+  "Menu.ZClass.Card.SelectButton": "SELECT CLASS",
+  "Menu.ZClass.Card.SelectedButton": "CLASS ALREADY SELECTED",
+  "Menu.ZClass.Card.SelectedMessage": "Zombie class selected",
+  "Menu.ZClass.Card.NoAbilities": "No abilities",
+  "Menu.ZClass.Card.Ability.heal": "Heal allies",
+  "Menu.ZClass.Card.Ability.leap": "Long jump",
+  "Menu.ZClass.Card.Ability.trap": "Trap",
+  "Menu.ZClass.Card.Ability.charge": "Charge",
+  "Menu.ZClass.Card.Ability.blind": "Blind",
+  "Menu.ZClass.Card.Ability.catch": "Pull target"
 }

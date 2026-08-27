@@ -9,7 +9,7 @@
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
         <PublishDir>$(OutputPath)publish/ZombiePlague.Core</PublishDir>
         <AssemblyName>ZombiePlague.Core</AssemblyName>
-        <PluginVersion>0.1.0</PluginVersion>
+        <PluginVersion>0.2.0</PluginVersion>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)' == 'Migrations'">
@@ -42,16 +42,18 @@
             <ExcludeAssets Condition="'$(Configuration)' != 'Migrations'">runtime</ExcludeAssets>
         </PackageReference>
 
-        <PackageReference Include="SwiftlyS2.CS2" Version="1.4.6-beta.8" PrivateAssets="all">
+        <PackageReference Include="SwiftlyS2.CS2" Version="1.4.6-beta.9" PrivateAssets="all">
             <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <ExcludeAssets Condition="'$(Configuration)' != 'Migrations'">runtime</ExcludeAssets>
         </PackageReference>
     </ItemGroup>
 
     <ItemGroup>
-        <Content Include="resources/gamedata/**/*;resources/templates/**/*;resources/translations/**/*">
+        <Content Include="resources/gamedata/**/*;resources/templates/**/*;resources/translations/**/*;resources/exports/**/*">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
+
+        <CustomHudSource Include="$(MSBuildProjectDirectory)\resources\exports\custom_hud\**\*" />
     </ItemGroup>
 
     <ItemGroup>
@@ -101,6 +103,17 @@
         <ItemGroup>
             <Compile Include="$(IntermediateOutputPath)BuildInfo.cs" />
         </ItemGroup>
+    </Target>
+
+    <!-- Общий export-target пересоздаёт resources/exports, поэтому возвращаем исходники VPK после него. -->
+    <Target
+            Name="CopyCustomHudSource"
+            AfterTargets="ExportAllCommonAndOwnApiToZombiePlagueCore"
+            Condition="'$(Configuration)' != 'Migrations'">
+        <Copy
+                SourceFiles="@(CustomHudSource)"
+                DestinationFiles="@(CustomHudSource->'$(OutDir)resources\exports\custom_hud\%(RecursiveDir)%(Filename)%(Extension)')"
+                SkipUnchangedFiles="true" />
     </Target>
 
 </Project>

@@ -36,7 +36,7 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.3" />
-        <PackageReference Include="SwiftlyS2.CS2" Version="1.4.6-beta.8" PrivateAssets="all">
+        <PackageReference Include="SwiftlyS2.CS2" Version="1.4.6-beta.9" PrivateAssets="all">
           <ExcludeAssets Condition="'$(Configuration)' != 'Migrations'">runtime</ExcludeAssets>
           <IncludeAssets Condition="'$(Configuration)' != 'Migrations'">compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>

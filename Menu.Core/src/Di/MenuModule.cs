@@ -1,7 +1,9 @@
 ﻿using Common.Di;
 using Menu.Api.Extensions;
+using Menu.Api.Hud;
 using Menu.Core.Api;
 using Menu.Core.Extensions;
+using Menu.Core.Hud;
 using Microsoft.Extensions.DependencyInjection;
 using SwiftlyS2.Shared;
 
@@ -17,6 +19,7 @@ internal class MenuModule(ISwiftlyCore core) : BaseModule(core)
 
         AddSingleton<MenuApi>(service);
         AddSingleton<MenuExtensionRegistry>(service);
+        AddSingleton<HudMenuService>(service);
         AddSingleton<IMenuExtensionRegistry>(
             service,
             provider => provider.GetRequiredService<MenuExtensionRegistry>()
@@ -24,6 +27,10 @@ internal class MenuModule(ISwiftlyCore core) : BaseModule(core)
         AddSingleton<IMenuExtensionDispatcher>(
             service,
             provider => provider.GetRequiredService<MenuExtensionRegistry>()
+        );
+        AddSingleton<IHudMenuApi>(
+            service,
+            provider => provider.GetRequiredService<HudMenuService>()
         );
 
         return (service.BuildServiceProvider(), service);
