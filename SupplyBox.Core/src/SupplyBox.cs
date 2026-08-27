@@ -117,7 +117,8 @@ internal sealed partial class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxMod
 
     private void OnSupplyBoxPickedUp(ref SupplyBoxPickUpPostContext context)
     {
-        var box = _droppedSupplyBoxes.Find(box => box.Index == context.SupplyBox.Index);
+        var supplyBoxIndex = context.SupplyBox.Index;
+        var box = _droppedSupplyBoxes.Find(box => box.Index == supplyBoxIndex);
 
         if (box != null)
         {
