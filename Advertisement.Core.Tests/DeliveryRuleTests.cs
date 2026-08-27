@@ -31,8 +31,8 @@ public sealed class DeliveryRuleTests
         var values = DeliveryRuleParser.ParseDailyTimes(["09:15", "bad", "09:15", "22:30"]);
 
         Assert.Equal(2, values.Count);
-        Assert.Contains(new TimeOnly(9, 15), values);
-        Assert.Contains(new TimeOnly(22, 30), values);
+        Assert.True(values.Contains(new TimeOnly(9, 15)));
+        Assert.True(values.Contains(new TimeOnly(22, 30)));
     }
 
     [Theory]
