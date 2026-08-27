@@ -200,6 +200,8 @@ internal sealed class AdvertisementScheduler(
     private int _sequence;
     private string _mapName = string.Empty;
 
+    public string CurrentMapName => _mapName;
+
     public bool TryStartFromCurrentMap()
     {
         try
@@ -396,28 +398,36 @@ internal sealed class AdvertisementCoordinator(
     private readonly SemaphoreSlim _reloadLock = new(1, 1);
     private Task? _task;
 
-    public void Start() => _task ??= RunAsync(_lifetime.Token);
-    public Task<(bool Success, string Message)> ReloadNowAsync() => ReloadDatabaseAsync(_lifetime.Token);
-
-    private async Task RunAsync(CancellationToken token)
+    public void Start()
     {
-        cache.Replace(configProvider.Load());
-        while (!token.IsCancellationRequested)
+        if (_task is not null)
         {
-            _ = await ReloadDatabaseAsync(token);
-            try { await Task.Delay(TimeSpan.FromSeconds(Math.Max(5, cache.Current?.Settings.RefreshIntervalSeconds ?? 30)), token); }
-            catch (OperationCanceledException) when (token.IsCancellationRequested) { break; }
+            return;
         }
+
+        cache.Replace(configProvider.Load());
+        _task = ReloadDatabaseAsync(_lifetime.Token, "запуск плагина");
     }
 
-    private async Task<(bool Success, string Message)> ReloadDatabaseAsync(CancellationToken token)
+    public Task<(bool Success, string Message)> ReloadNowAsync() =>
+        ReloadDatabaseAsync(_lifetime.Token, "команда ads_reload");
+
+    public Task<(bool Success, string Message)> ReloadForMapAsync(string mapName) =>
+        ReloadDatabaseAsync(_lifetime.Token, $"смена карты на {mapName}");
+
+    private async Task<(bool Success, string Message)> ReloadDatabaseAsync(
+        CancellationToken token,
+        string reason)
     {
         await _reloadLock.WaitAsync(token);
         try
         {
             var snapshot = await databaseProvider.LoadAsync(token);
             cache.Replace(snapshot);
-            logger.LogInformation("[Advertisement] Загружено {Messages} сообщений из PostgreSQL.", snapshot.Messages.Count);
+            logger.LogInformation(
+                "[Advertisement] Загружено {Messages} сообщений из PostgreSQL. Причина: {Reason}.",
+                snapshot.Messages.Count,
+                reason);
             return (true, $"Snapshot обновлён: {snapshot.Messages.Count} сообщений.");
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested) { throw; }

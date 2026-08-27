@@ -20,7 +20,7 @@ namespace Advertisement.Core;
 
 [PluginMetadata(
     Id = "Advertisement.Core",
-    Version = "1.2.0",
+    Version = "1.2.1",
     Name = "Elysium Advertisements",
     Author = "Elysium",
     Description = "Локализованная реклама и информационные сообщения с управлением через Flute CMS.")]
@@ -41,6 +41,7 @@ internal sealed class AdvertisementPlugin(ISwiftlyCore core) : Plugin<Advertisem
 
     private CancellationTokenSource? _schedulerTimer;
     private Guid? _chatHook;
+    private string _currentMapName = string.Empty;
 
     protected override void OnConfigureSharedInterfaces(IInterfaceManager interfaceManager)
     {
@@ -80,6 +81,7 @@ internal sealed class AdvertisementPlugin(ISwiftlyCore core) : Plugin<Advertisem
         // При обычном старте сервера карта ещё может не быть загружена. В этом
         // случае scheduler будет инициализирован позже через OnMapLoad.
         _scheduler.Value.TryStartFromCurrentMap();
+        _currentMapName = _scheduler.Value.CurrentMapName;
         _schedulerTimer = Core.Scheduler.RepeatBySeconds(1f, _scheduler.Value.Tick);
 
         foreach (var player in Core.PlayerManager.GetAllPlayers().Where(player => player.IsAuthorized))
@@ -87,7 +89,7 @@ internal sealed class AdvertisementPlugin(ISwiftlyCore core) : Plugin<Advertisem
             BindAndLoadLocale(player.PlayerID, player.SteamID);
         }
 
-        Core.Logger.LogInformation("[Advertisement] Advertisement.Core 1.2.0 загружен.");
+        Core.Logger.LogInformation("[Advertisement] Advertisement.Core 1.2.1 загружен.");
     }
 
     protected override void OnUnload()
@@ -144,7 +146,20 @@ internal sealed class AdvertisementPlugin(ISwiftlyCore core) : Plugin<Advertisem
         _chatHook = Core.Command.HookClientChat(OnClientChat);
     }
 
-    private void OnMapLoad(IOnMapLoadEvent @event) => _scheduler.Value.OnMapLoaded(@event.MapName);
+    private void OnMapLoad(IOnMapLoadEvent @event)
+    {
+        var previousMap = _currentMapName;
+        _currentMapName = @event.MapName;
+        _scheduler.Value.OnMapLoaded(@event.MapName);
+
+        // Первая карта уже покрыта начальной загрузкой из OnStart. PostgreSQL
+        // перечитывается только при фактическом переходе на другую карту.
+        if (!string.IsNullOrWhiteSpace(previousMap)
+            && !string.Equals(previousMap, @event.MapName, StringComparison.OrdinalIgnoreCase))
+        {
+            _ = _coordinator.Value.ReloadForMapAsync(@event.MapName);
+        }
+    }
 
     private void OnClientSteamAuthorize(IOnClientSteamAuthorizeEvent @event)
     {
@@ -227,11 +242,11 @@ internal sealed class AdvertisementPlugin(ISwiftlyCore core) : Plugin<Advertisem
     private void StatusCommand(ICommandContext context)
     {
         var snapshot = _cache.Value.Current;
-        if (snapshot is null) { context.Reply("Advertisement.Core 1.2.0\nSnapshot: загружается"); return; }
+        if (snapshot is null) { context.Reply("Advertisement.Core 1.2.1\nSnapshot: загружается"); return; }
         var players = Core.PlayerManager.GetAllPlayers().ToArray();
         var bots = players.Count(x => x.IsFakeClient);
         var count = snapshot.Settings.ExcludeBotsFromPlayers ? players.Length - bots : players.Length;
-        context.Reply($"Advertisement.Core 1.2.0\nSource: {snapshot.Source}\nMessages: {snapshot.Messages.Count}\nActive: {snapshot.ActiveMessageCount(DateTimeOffset.UtcNow, count)}\nDefault locale: {snapshot.Settings.DefaultLocale}\nVersion: {snapshot.Settings.ConfigurationVersion}");
+        context.Reply($"Advertisement.Core 1.2.1\nSource: {snapshot.Source}\nMessages: {snapshot.Messages.Count}\nActive: {snapshot.ActiveMessageCount(DateTimeOffset.UtcNow, count)}\nDefault locale: {snapshot.Settings.DefaultLocale}\nVersion: {snapshot.Settings.ConfigurationVersion}");
     }
 
     private void ReloadCommand(ICommandContext context)
