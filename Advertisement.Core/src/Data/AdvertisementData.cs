@@ -70,24 +70,27 @@ internal sealed record AdvertisementMessage(
 
     private bool IsInsideDailyWindow(TimeOnly time)
     {
-        if (DailyStartTime is null && DailyEndTime is null)
+        var start = DailyStartTime;
+        var end = DailyEndTime;
+
+        if (start is null && end is null)
         {
             return true;
         }
 
-        if (DailyStartTime is null)
+        if (start is null)
         {
-            return time <= DailyEndTime.Value;
+            return time <= end!.Value;
         }
 
-        if (DailyEndTime is null)
+        if (end is null)
         {
-            return time >= DailyStartTime.Value;
+            return time >= start.Value;
         }
 
-        return DailyStartTime.Value <= DailyEndTime.Value
-            ? time >= DailyStartTime.Value && time <= DailyEndTime.Value
-            : time >= DailyStartTime.Value || time <= DailyEndTime.Value;
+        return start.Value <= end.Value
+            ? time >= start.Value && time <= end.Value
+            : time >= start.Value || time <= end.Value;
     }
 }
 

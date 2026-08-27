@@ -36,15 +36,15 @@ public sealed class DeliveryRuleTests
     }
 
     [Theory]
-    [InlineData("periodic", AdvertisementDispatchMode.Periodic)]
-    [InlineData("daily", AdvertisementDispatchMode.Daily)]
-    [InlineData("manual", AdvertisementDispatchMode.Manual)]
-    [InlineData("unknown", AdvertisementDispatchMode.Periodic)]
+    [InlineData("periodic", "Periodic")]
+    [InlineData("daily", "Daily")]
+    [InlineData("manual", "Manual")]
+    [InlineData("unknown", "Periodic")]
     public void ParseDispatchMode_ReturnsSafeValue(
         string value,
-        AdvertisementDispatchMode expected)
+        string expected)
     {
-        Assert.Equal(expected, DeliveryRuleParser.ParseDispatchMode(value));
+        Assert.Equal(expected, DeliveryRuleParser.ParseDispatchMode(value).ToString());
     }
 
     private static AdvertisementMessage CreateMessage(
