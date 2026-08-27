@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+        <AssemblyName>Advertisement.Core</AssemblyName>
+        <RootNamespace>Advertisement.Core</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.3" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.3">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.0" ExcludeAssets="runtime" PrivateAssets="all" />
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.3" />
+        <PackageReference Include="SwiftlyS2.CS2" Version="1.4.6-beta.8" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Common.Database\Common.Database.csproj">
+            <Private>true</Private>
+        </ProjectReference>
+        <ProjectReference Include="..\Common.Di\Common.Di.csproj">
+            <Private Condition="'$(Configuration)' == 'Migrations'">true</Private>
+        </ProjectReference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="Advertisement.Core.Tests" />
+    </ItemGroup>
+
+</Project>
