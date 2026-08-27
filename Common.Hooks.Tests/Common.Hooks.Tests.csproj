@@ -19,7 +19,9 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Common.Hooks\Common.Hooks.csproj" />
+        <ProjectReference Include="..\Common.Hooks\Common.Hooks.csproj">
+            <Private>true</Private>
+        </ProjectReference>
     </ItemGroup>
 
 </Project>
