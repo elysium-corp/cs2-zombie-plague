@@ -1,4 +1,4 @@
-﻿using CustomEquipment.Api.Data;
+using CustomEquipment.Api.Data;
 using CustomEquipment.Api.Enums;
 using SwiftlyS2.Shared.Players;
 
@@ -8,7 +8,7 @@ internal interface IEquipmentService
 {
     void Initialize();
 
-    void GiveItem(IPlayer player, string internalName, GiveAction action = GiveAction.Drop);
+    bool TryGiveItem(IPlayer player, string internalName, GiveAction action = GiveAction.Drop);
 
     bool CanUseItem(IPlayer player, string internalName);
 

@@ -165,7 +165,7 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
 
         foreach (var item in items)
         {
-            _equipmentService.Value.GiveItem(player, item.InternalName);
+            _equipmentService.Value.TryGiveItem(player, item.InternalName);
         }
     }
 

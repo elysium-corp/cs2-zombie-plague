@@ -23,6 +23,10 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\Common.Hooks\Common.Hooks.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
         <Content Include="resources/gamedata/**/*;resources/templates/**/*;resources/translations/**/*">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>

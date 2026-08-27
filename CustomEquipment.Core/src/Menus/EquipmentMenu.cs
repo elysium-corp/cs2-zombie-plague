@@ -1,14 +1,15 @@
-﻿using CustomEquipment.Api.Data.Contracts;
+using Common.Hooks;
+using Common.Hooks.Abstractions;
+using CustomEquipment.Api.Data.Contracts;
 using CustomEquipment.Api.Enums;
-using CustomEquipment.Api.Events;
+using CustomEquipment.Api.Events.Contexts.Items;
 using CustomEquipment.Data.Catalog;
-using CustomEquipment.Giver;
 using CustomEquipment.Menus.Utils;
 using CustomEquipment.Services;
 using CustomEquipment.Utils;
+using Economy.Api;
 using Menu.Api.Data;
 using Menu.Api.Data.Contracts;
-using Economy.Api;
 using SwiftlyS2.Core.Menus.OptionsBase;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Menus;
@@ -18,17 +19,17 @@ using SwiftlyS2.Shared.Translation;
 namespace CustomEquipment.Menus;
 
 internal sealed class EquipmentMenu(
-    ISwiftlyCore core, 
+    ISwiftlyCore core,
     IEquipmentService equipmentService,
     IEquipmentShopCatalog shopCatalog,
     IEconomyApi economyApi,
-    IEventPublisher eventPublisher
+    IHookPublisher hooks
 ) : MenuBase(core)
 {
     public override string Id => "equipment.menu.select-equipment";
-    
+
     protected override MenuTeamAccess AllowedTeams => MenuTeamAccess.Players;
-    
+
     protected override IReadOnlyCollection<string> Commands { get; } =
     [
         "equipment",
@@ -38,11 +39,10 @@ internal sealed class EquipmentMenu(
         "цуфзщты",
         "уйгшзьуте"
     ];
-    
-    private const string EquipmentMenuTitle = "Menu.Equipment.Title";
 
+    private const string EquipmentMenuTitle = "Menu.Equipment.Title";
     private const string BaseCategoryMenuPath = "Menu.Equipment.Category";
-    
+
     private static readonly Category[] Categories = Enum
         .GetValues<WeaponType>()
         .Select(WeaponTypeToCategory)
@@ -54,7 +54,7 @@ internal sealed class EquipmentMenu(
         var localizer = Core.Translation.GetPlayerLocalizer(player);
 
         BuildCategories(builder, localizer, player);
-        
+
         return builder.Build();
     }
 
@@ -69,9 +69,7 @@ internal sealed class EquipmentMenu(
 
     private void BuildCategories(IMenuBuilderAPI builder, ILocalizer localizer, IPlayer player)
     {
-        var categories = Categories.OrderBy(category => category.Order);
-        
-        foreach (var category in categories)
+        foreach (var category in Categories.OrderBy(category => category.Order))
         {
             BuildCategory(builder, localizer, player, category);
         }
@@ -84,7 +82,7 @@ internal sealed class EquipmentMenu(
 
         builder.AddOption(submenuCategory);
     }
-    
+
     private IMenuAPI BuildCategoryMenu(ILocalizer localizer, IPlayer player, Category category)
     {
         var title = WeaponTypeToTitle(category.WeaponType, localizer);
@@ -94,10 +92,9 @@ internal sealed class EquipmentMenu(
         foreach (var item in items)
         {
             var price = item.Price.Item;
-            
             var canUse = equipmentService.CanUseItem(player, item.InternalName);
             var hasMoney = economyApi.HasEnoughMoney(player, price);
-            
+
             var option = new ButtonMenuOption
             {
                 Text = BuildTextItem(item),
@@ -114,9 +111,7 @@ internal sealed class EquipmentMenu(
                 }
 
                 core.Scheduler.NextTickAsync(() => BuyItem(playerFromArgs, item));
-                
-                eventPublisher.OnItemBought(player, item);
-                
+
                 return ValueTask.CompletedTask;
             };
 
@@ -128,23 +123,42 @@ internal sealed class EquipmentMenu(
 
     private void BuyItem(IPlayer player, IShopItem item)
     {
-        if (!equipmentService.CanUseItem(player, item.InternalName))
-        {
-            player.SendChat("Не возможно купить для текущей роли!");
+        var preContext = new ItemBuyPreContext(player, item);
 
+        if (!hooks.DispatchCancellable(ref preContext) ||
+            preContext.Player is null ||
+            preContext.Item is null ||
+            !preContext.Player.IsValid ||
+            !preContext.Player.IsAlive)
+        {
             return;
         }
 
-        if (!economyApi.TrySpendMoney(player, item.Price.Item))
-        {
-            player.SendChat("Недостаточно денег!");
+        var preparedPlayer = preContext.Player;
+        var preparedItem = preContext.Item;
 
+        if (!equipmentService.CanUseItem(preparedPlayer, preparedItem.InternalName))
+        {
+            preparedPlayer.SendChat("Невозможно купить для текущей роли!");
             return;
         }
 
-        equipmentService.GiveItem(player, item.InternalName);
+        if (!economyApi.TrySpendMoney(preparedPlayer, preparedItem.Price.Item))
+        {
+            preparedPlayer.SendChat("Недостаточно денег!");
+            return;
+        }
+
+        if (!equipmentService.TryGiveItem(preparedPlayer, preparedItem.InternalName))
+        {
+            economyApi.GiveMoney(preparedPlayer, preparedItem.Price.Item);
+            return;
+        }
+
+        var postContext = new ItemBuyPostContext(preparedPlayer, preparedItem);
+        hooks.Dispatch(ref postContext);
     }
-    
+
     private static Category WeaponTypeToCategory(WeaponType weaponType, int index)
     {
         return new Category(

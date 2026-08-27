@@ -8,7 +8,7 @@
         <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
         <AssemblyName>MovementUnlocker</AssemblyName>
-        <OutputPath>$(MSBuildThisFileDirectory)build/</OutputPath>
+        <OutputPath>$(MSBuildThisFileDirectory)..\output\MovementUnlocker\</OutputPath>
         <PublishDir>$(OutputPath)publish/MovementUnlocker</PublishDir>
     </PropertyGroup>
 

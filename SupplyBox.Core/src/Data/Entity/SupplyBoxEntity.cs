@@ -1,6 +1,8 @@
-﻿using Microsoft.Extensions.Options;
+using Common.Hooks;
+using Common.Hooks.Abstractions;
+using Microsoft.Extensions.Options;
+using SupplyBox.Api.Events.Contexts;
 using SupplyBox.Data.Configs;
-using SupplyBox.Events;
 using SupplyBox.Utils;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Natives;
@@ -16,64 +18,68 @@ public sealed class SupplyBoxEntity : ISupplyBoxEntity
 {
     private readonly ISwiftlyCore _core;
     private readonly IZombiePlagueApi _api;
-    private readonly IEventPublisher _eventPublisher;
-    
+    private readonly IHookPublisher _hooks;
     private readonly string _parachuteSound;
-    
     private readonly CBaseModelEntity? _entityParachute;
+
     private CancellationTokenSource? _pickUpThinker;
     private CancellationTokenSource? _dropThinker;
-    
     private SupplyBoxEntityConfig? _data;
     private uint _soundGuid;
-    
+
     public CDynamicProp? Entity { get; }
     public int Index { get; private set; }
 
-    public SupplyBoxEntity(ISwiftlyCore core, IEventPublisher eventPublisher, IOptions<SupplyBoxConfig> config)
+    public SupplyBoxEntity(
+        ISwiftlyCore core,
+        IHookPublisher hooks,
+        IOptions<SupplyBoxConfig> config)
     {
         _core = core;
-        _eventPublisher = eventPublisher;
+        _hooks = hooks;
         _api = SupplyBox.ZombiePlagueApi;
-        
+
         var boxModel = config.Value.SupplyBoxModel;
         var parachuteModel = config.Value.ParachuteModel;
         _parachuteSound = config.Value.ParachuteSound;
-        
+
         Entity = core.EntitySystem.CreateEntity<CDynamicProp>();
-        
         _entityParachute = core.EntitySystem.CreateEntity<CBaseModelEntity>();
-        
-        core.Scheduler.NextWorldUpdate(()=>
+
+        core.Scheduler.NextWorldUpdate(() =>
         {
             Entity.SetModel(boxModel);
-            
+
             _entityParachute.SetModel(parachuteModel);
             _entityParachute.SetScale(0.9f);
-            _entityParachute.AcceptInput<string>("SetParent", "!activator", activator: Entity, caller: _entityParachute);
+            _entityParachute.AcceptInput<string>(
+                "SetParent",
+                "!activator",
+                activator: Entity,
+                caller: _entityParachute);
         });
     }
-    
+
     public void Spawn(SupplyBoxEntityConfig config)
     {
         if (Entity == null)
         {
             return;
         }
-        
+
         _data = config;
         Index = config.Index;
-        
+
         Entity.DispatchSpawn();
-        Entity.Teleport(_data.Position + new Vector(0,0,1000), ToQAngles(_data.Rotation), null);
-        
+        Entity.Teleport(_data.Position + new Vector(0, 0, 1000), ToQAngles(_data.Rotation), null);
+
         if (_entityParachute != null)
         {
             _soundGuid = PlaySound(_parachuteSound);
             _entityParachute.DispatchSpawn();
-            _entityParachute.Teleport(Entity.AbsOrigin + new Vector(-10,-5,-40), Entity.AbsRotation, null);
+            _entityParachute.Teleport(Entity.AbsOrigin + new Vector(-10, -5, -40), Entity.AbsRotation, null);
         }
-        
+
         SetThinkers();
     }
 
@@ -85,32 +91,25 @@ public sealed class SupplyBoxEntity : ISupplyBoxEntity
 
     private void DropThinker()
     {
-        if (Entity == null || !Entity.IsValidEntity)
+        if (Entity == null || !Entity.IsValidEntity || _data == null)
         {
             _dropThinker?.Cancel();
             return;
         }
 
-        if (_data == null)
-        {
-            _dropThinker?.Cancel();
-            return;
-        }
-        
-        var entityPosition = Entity!.AbsOrigin!.Value;
-        
+        var entityPosition = Entity.AbsOrigin!.Value;
+
         if (entityPosition.Z > _data.Position.Z)
         {
-            Entity.Teleport(Entity.AbsOrigin + new Vector(0,0,-4), Entity.AbsRotation, null);
+            Entity.Teleport(Entity.AbsOrigin + new Vector(0, 0, -4), Entity.AbsRotation, null);
+            return;
         }
-        else
-        {
-            StopSound();
-            _dropThinker?.Cancel();
-            _entityParachute?.Despawn();
-        }
+
+        StopSound();
+        _dropThinker?.Cancel();
+        _entityParachute?.Despawn();
     }
-    
+
     private void PickUpThinker()
     {
         if (Entity == null || !Entity.IsValidEntity)
@@ -118,16 +117,13 @@ public sealed class SupplyBoxEntity : ISupplyBoxEntity
             _pickUpThinker?.Cancel();
             return;
         }
-        
-        var playerAround = MathAlgorithm.FindAllPlayersInSphere(50f, Entity!.AbsOrigin!.Value);
-        foreach (var player in playerAround)
+
+        var playersAround = MathAlgorithm.FindAllPlayersInSphere(50f, Entity.AbsOrigin!.Value);
+
+        foreach (var player in playersAround)
         {
-            if (CanPickUp(player))
+            if (CanPickUp(player) && TryPickUp(player))
             {
-                _pickUpThinker?.Cancel();
-                
-                PickUp(player);
-                
                 return;
             }
         }
@@ -135,55 +131,65 @@ public sealed class SupplyBoxEntity : ISupplyBoxEntity
 
     private bool CanPickUp(IPlayer player)
     {
-        if (_api.IsInfected(player))
+        return player.IsValid &&
+               player.IsAlive &&
+               !_api.IsInfected(player);
+    }
+
+    private bool TryPickUp(IPlayer player)
+    {
+        var preContext = new SupplyBoxPickUpPreContext(player, this);
+
+        if (!_hooks.DispatchCancellable(ref preContext) ||
+            preContext.Player is null ||
+            !ReferenceEquals(preContext.SupplyBox, this) ||
+            !CanPickUp(preContext.Player))
         {
             return false;
         }
 
+        Destroy();
+
+        var postContext = new SupplyBoxPickUpPostContext(preContext.Player, this);
+        _hooks.Dispatch(ref postContext);
+
         return true;
     }
 
-    private void PickUp(IPlayer player)
-    {
-        _eventPublisher.OnSupplyBoxPickedUp(player, this);
-        
-        Destroy();
-    }
-    
     private void Destroy()
     {
         if (Entity != null && Entity.IsValidEntity)
         {
             Entity.Despawn();
         }
-        
+
         if (_entityParachute != null && _entityParachute.IsValidEntity)
         {
             _entityParachute.Despawn();
         }
-        
+
         _dropThinker?.Cancel();
         _pickUpThinker?.Cancel();
     }
-    
-    private QAngle ToQAngles(Vector rotation)
+
+    private static QAngle ToQAngles(Vector rotation)
     {
         return new QAngle(rotation.X, rotation.Y, rotation.Z);
     }
 
     private uint PlaySound(string soundName)
     {
-        using var soundEvent = new SoundEvent()
+        using var soundEvent = new SoundEvent
         {
             Volume = 1.7f,
             Name = soundName,
-            SourceEntityIndex = (int)Entity.Index
+            SourceEntityIndex = (int)Entity!.Index
         };
-        
+
         soundEvent.Recipients.AddAllPlayers();
         return soundEvent.Emit();
     }
-    
+
     private void StopSound()
     {
         if (_soundGuid == 0) return;

@@ -1,7 +1,10 @@
-﻿using CustomEquipment.Api.Data;
+using Common.Hooks;
+using Common.Hooks.Abstractions;
+using CustomEquipment.Api.Data;
 using CustomEquipment.Api.Data.Contracts;
 using CustomEquipment.Api.Enums;
-using CustomEquipment.Api.Events;
+using CustomEquipment.Api.Events.Contexts.Grenades;
+using CustomEquipment.Api.Events.Contexts.Items;
 using CustomEquipment.Data.Equipments.Weapons;
 using CustomEquipment.Giver;
 using CustomEquipment.Registry;
@@ -13,7 +16,6 @@ using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
 using ZombiePlague.Api;
-using IEventSubscriber = CustomEquipment.Api.Events.IEventSubscriber;
 
 namespace CustomEquipment.Services;
 
@@ -21,8 +23,7 @@ internal sealed class EquipmentService(
     ISwiftlyCore core,
     IItemGiver itemGiver,
     IItemRegistry itemRegistry,
-    IEventPublisher eventPublisher,
-    IEventSubscriber eventSubscriber,
+    IHookPublisher hooks,
     Func<IZombiePlagueApi> zombiePlagueApi
 ) : IEquipmentService, IDisposable
 {
@@ -37,8 +38,6 @@ internal sealed class EquipmentService(
         core.GameHooks.Weapons.CanUse.Pre += OnWeaponCanUsePre;
         core.GameHooks.Weapons.CanUse.Post += OnWeaponCanUsePost;
         core.GameHooks.Weapons.Drop.Post += OnWeaponDropPost;
-
-        eventSubscriber.OnGrenadeThrown += OnGrenadeThrown;
     }
 
     public void Dispose()
@@ -49,15 +48,8 @@ internal sealed class EquipmentService(
         core.GameHooks.Weapons.CanUse.Pre -= OnWeaponCanUsePre;
         core.GameHooks.Weapons.CanUse.Post -= OnWeaponCanUsePost;
         core.GameHooks.Weapons.Drop.Post -= OnWeaponDropPost;
-
-        eventSubscriber.OnGrenadeThrown -= OnGrenadeThrown;
     }
 
-    private void OnGrenadeThrown(IGrenade grenade, CBaseCSGrenadeProjectile projectile)
-    {
-        projectile.SetModel(grenade.Model);
-    }
-    
     public bool CanUseItem(IPlayer player, ItemBase item)
     {
         ArgumentNullException.ThrowIfNull(player);
@@ -91,50 +83,105 @@ internal sealed class EquipmentService(
 
         return CanUseItemInternal(player, item);
     }
-    
-    private void OnItemGiven(IPlayer player, ItemBase item)
+
+    private void OnItemGiven(IPlayer player, ItemBase item, GiveAction action)
     {
         switch (item)
         {
             case WeaponItemBase weapon:
                 AddOrReplace(weapon);
-                eventPublisher.OnWeaponGiven(player, weapon);
+                var weaponPost = new WeaponGivePostContext(player, weapon, action);
+                hooks.Dispatch(ref weaponPost);
                 break;
 
             case GrenadeItemBase grenade:
                 AddOrReplace(grenade);
-                eventPublisher.OnGrenadeGiven(player, grenade);
-                break;
-
-            case EquipmentItemBase:
+                var grenadePost = new GrenadeGivePostContext(player, grenade, action);
+                hooks.Dispatch(ref grenadePost);
                 break;
         }
 
-        eventPublisher.OnItemGiven(player, item);
+        var itemPost = new ItemGivePostContext(player, item, action);
+        hooks.Dispatch(ref itemPost);
     }
 
-    public void GiveItem(IPlayer player, string internalName, GiveAction action = GiveAction.Drop)
+    public bool TryGiveItem(IPlayer player, string internalName, GiveAction action = GiveAction.Drop)
     {
         ArgumentNullException.ThrowIfNull(player);
 
-        if (!CanUseItem(player, internalName))
+        if (!player.IsValid || !CanUseItem(player, internalName))
         {
-            return;
+            return false;
         }
 
-        var createdItem = itemRegistry.Create(internalName);
-
-        if (createdItem is not ItemBase item)
+        if (itemRegistry.Create(internalName) is not ItemBase item)
         {
             throw new InvalidOperationException($"Item '{internalName}' is not an ItemBase!");
         }
 
+        var itemPre = new ItemGivePreContext(player, item, action);
+
+        if (!hooks.DispatchCancellable(ref itemPre) ||
+            itemPre.Player is null ||
+            itemPre.Item is not ItemBase preparedItem ||
+            !itemPre.Player.IsValid ||
+            !CanUseItem(itemPre.Player, preparedItem))
+        {
+            return false;
+        }
+
+        var preparedPlayer = itemPre.Player;
+        var preparedAction = itemPre.Action;
+
+        switch (preparedItem)
+        {
+            case WeaponItemBase weapon:
+            {
+                var weaponPre = new WeaponGivePreContext(preparedPlayer, weapon, preparedAction);
+
+                if (!hooks.DispatchCancellable(ref weaponPre) ||
+                    weaponPre.Player is null ||
+                    weaponPre.Weapon is not WeaponItemBase preparedWeapon ||
+                    !weaponPre.Player.IsValid ||
+                    !CanUseItem(weaponPre.Player, preparedWeapon))
+                {
+                    return false;
+                }
+
+                preparedPlayer = weaponPre.Player;
+                preparedItem = preparedWeapon;
+                preparedAction = weaponPre.Action;
+                break;
+            }
+
+            case GrenadeItemBase grenade:
+            {
+                var grenadePre = new GrenadeGivePreContext(preparedPlayer, grenade, preparedAction);
+
+                if (!hooks.DispatchCancellable(ref grenadePre) ||
+                    grenadePre.Player is null ||
+                    grenadePre.Grenade is not GrenadeItemBase preparedGrenade ||
+                    !grenadePre.Player.IsValid ||
+                    !CanUseItem(grenadePre.Player, preparedGrenade))
+                {
+                    return false;
+                }
+
+                preparedPlayer = grenadePre.Player;
+                preparedItem = preparedGrenade;
+                preparedAction = grenadePre.Action;
+                break;
+            }
+        }
+
         itemGiver.GiveItem(
-            player,
-            item,
-            action,
-            completedItem => OnItemGiven(player, completedItem)
+            preparedPlayer,
+            preparedItem,
+            preparedAction,
+            completedItem => OnItemGiven(preparedPlayer, completedItem, preparedAction)
         );
+
+        return true;
     }
 
     public TItem? GetActiveItem<TItem>(IPlayer player) where TItem : ItemBase
@@ -169,12 +216,24 @@ internal sealed class EquipmentService(
         core.Scheduler.NextWorldUpdate(() =>
         {
             var projectile = entity.As<CBaseCSGrenadeProjectile>();
-
             var grenade = ResolveGrenadeByProjectile(projectile);
 
             if (grenade == null) return;
 
-            eventPublisher.OnGrenadeThrown(grenade, projectile);
+            var preContext = new GrenadeThrowPreContext(grenade, projectile);
+
+            if (!hooks.DispatchCancellable(ref preContext) ||
+                preContext.Grenade is null ||
+                preContext.Projectile is null ||
+                !preContext.Projectile.IsValidEntity)
+            {
+                return;
+            }
+
+            preContext.Projectile.SetModel(preContext.Grenade.Model);
+
+            var postContext = new GrenadeThrowPostContext(preContext.Grenade, preContext.Projectile);
+            hooks.Dispatch(ref postContext);
         });
     }
 
@@ -188,15 +247,9 @@ internal sealed class EquipmentService(
     private void OnWeaponCanUsePre(ref CanUseWeaponPreContext context)
     {
         var weapon = context.Params.Weapon;
-
         var customWeapon = GetWeaponByIndex(weapon.Index);
 
-        if (customWeapon is null)
-        {
-            return;
-        }
-
-        if (CanUseItem(context.Params.Player, customWeapon))
+        if (customWeapon is null || CanUseItem(context.Params.Player, customWeapon))
         {
             return;
         }
@@ -214,7 +267,6 @@ internal sealed class EquipmentService(
 
         var player = context.Params.Player;
         var weapon = context.Params.Weapon;
-
         var customWeapon = GetWeaponByIndex(weapon.Index);
 
         if (customWeapon is null)

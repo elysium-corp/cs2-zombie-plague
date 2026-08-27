@@ -1,12 +1,15 @@
 using Common.Di;
 using Common.Di.Utils;
+using Common.Hooks;
+using Common.Hooks.Abstractions;
 using Microsoft.Extensions.Options;
 using SupplyBox.Api;
+using SupplyBox.Api.Events;
+using SupplyBox.Api.Events.Contexts;
 using SupplyBox.Data;
 using SupplyBox.Data.Configs;
 using SupplyBox.Data.Entity;
 using SupplyBox.Di;
-using SupplyBox.Events;
 using SupplyBox.Services;
 using SupplyBox.Utils;
 using SwiftlyS2.Shared;
@@ -14,13 +17,10 @@ using SwiftlyS2.Shared.Commands;
 using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Misc;
-using SwiftlyS2.Shared.Players;
 using ZombiePlague.Api;
 using ZombiePlague.Api.Data;
 using ZombiePlague.Api.Data.Rounds;
-using ZombiePlague.Api.Events.Contexts;
 using ZombiePlague.Api.Events.Contexts.Round;
-using IEventSubscriber = SupplyBox.Events.IEventSubscriber;
 
 namespace SupplyBox;
 
@@ -37,23 +37,23 @@ internal sealed partial class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxMod
     private readonly Lazy<SupplyBoxMenuService> _menuService = GetRequiredServiceLazy<SupplyBoxMenuService>();
     private readonly Lazy<SupplyBoxEditService> _editService = GetRequiredServiceLazy<SupplyBoxEditService>();
     private readonly Lazy<IOptions<SupplyBoxConfig>> _config = GetRequiredServiceLazy<IOptions<SupplyBoxConfig>>();
-    private readonly Lazy<IEventPublisher> _eventPublisher = GetRequiredServiceLazy<IEventPublisher>();
-    private readonly Lazy<IEventSubscriber> _eventSubscriber = GetRequiredServiceLazy<IEventSubscriber>();
-    
+    private readonly Lazy<IHookPublisher> _hooks = GetRequiredServiceLazy<IHookPublisher>();
+    private readonly Lazy<ISupplyBoxEvents> _events = GetRequiredServiceLazy<ISupplyBoxEvents>();
+
     private Guid _guidOnEventRoundEndPost = Guid.Empty;
     private Guid _guidOnEventCsPreRestartPost = Guid.Empty;
-    
+
     private readonly List<SupplyBoxEntity> _droppedSupplyBoxes = [];
     private CancellationTokenSource? _respawnSupplyBoxThinker;
-    
+
     public static IZombiePlagueApi ZombiePlagueApi = null!;
-    
+
     protected override void OnConfigureSharedInterfaces(IInterfaceManager interfaceManager)
     {
-        var supplyBoxApi = new SupplyBoxApi(_eventSubscriber.Value);
+        var supplyBoxApi = new SupplyBoxApi(_events.Value);
         interfaceManager.AddSharedInterface<ISupplyBoxApi, SupplyBoxApi>(ISupplyBoxApi.SharedApiKey, supplyBoxApi);
     }
-    
+
     protected override void OnUseSharedInterfaces(IInterfaceManager interfaceManager)
     {
         ZombiePlagueApi = interfaceManager.GetSharedInterface<IZombiePlagueApi>(IZombiePlagueApi.SharedApiKey);
@@ -63,12 +63,12 @@ internal sealed partial class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxMod
     {
         _guidOnEventRoundEndPost = core.GameEvent.HookPost<EventRoundEnd>(OnRoundEnd);
         _guidOnEventCsPreRestartPost = core.GameEvent.HookPost<EventCsPreRestart>(OnGameRestart);
-        
-        _eventSubscriber.Value.OnSupplyBoxPickedUp += OnSupplyBoxPickedUp;
+
+        _events.Value.Post.PickUpEvent += OnSupplyBoxPickedUp;
         ZombiePlagueApi.Events.Post.RoundStartEvent += OnRoundStarted;
-        
+
         core.Event.OnMapLoad += OnMapLoad;
-        
+
         Core.Command.RegisterCommand(
             commandName: "supply",
             handler: SupplyEditorHandler,
@@ -80,29 +80,29 @@ internal sealed partial class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxMod
     {
         Core.GameEvent.Unhook(_guidOnEventRoundEndPost);
         Core.GameEvent.Unhook(_guidOnEventCsPreRestartPost);
-        
+
         ZombiePlagueApi.Events.Post.RoundStartEvent -= OnRoundStarted;
-        _eventSubscriber.Value.OnSupplyBoxPickedUp -= OnSupplyBoxPickedUp;
-        
+        _events.Value.Post.PickUpEvent -= OnSupplyBoxPickedUp;
+
         core.Event.OnMapLoad -= OnMapLoad;
     }
-    
+
     private HookResult OnRoundEnd(EventRoundEnd @event)
     {
         _respawnSupplyBoxThinker?.Cancel();
         _droppedSupplyBoxes.Clear();
-        
+
         return HookResult.Continue;
     }
-    
+
     private HookResult OnGameRestart(EventCsPreRestart @event)
     {
         _respawnSupplyBoxThinker?.Cancel();
         _droppedSupplyBoxes.Clear();
-        
+
         return HookResult.Continue;
     }
-    
+
     private void SupplyEditorHandler(ICommandContext context)
     {
         var player = context.Sender;
@@ -111,52 +111,47 @@ internal sealed partial class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxMod
         {
             return;
         }
-        
+
         _menuService.Value.ShowMainMenu(player);
     }
-    
-    private void OnSupplyBoxPickedUp(IPlayer player, ISupplyBoxEntity supplyBox)
-    {
-        var box = _droppedSupplyBoxes.Find(box => box.Index == supplyBox.Index);
 
-        if (box == null)
+    private void OnSupplyBoxPickedUp(ref SupplyBoxPickUpPostContext context)
+    {
+        var box = _droppedSupplyBoxes.Find(box => box.Index == context.SupplyBox.Index);
+
+        if (box != null)
         {
-            return;
+            _droppedSupplyBoxes.Remove(box);
         }
-        
-        _droppedSupplyBoxes.Remove(box);
     }
-    
+
     private void OnRoundStarted(ref RoundStartPostContext context)
     {
         CreateRespawnTimer(context.Round);
     }
-    
+
     private void OnMapLoad(IOnMapLoadEvent @event)
-    { 
+    {
         _mapConfigService.Value.LoadConfig(@event.MapName);
     }
-    
+
     private void TrySpawnSupplyBox(IRound round)
     {
         CreateRespawnTimer(round);
-        
-        if (!CanDrop(round))
+
+        if (!CanDrop(round) || !IsDropSuccessful())
         {
             return;
         }
-        
-        if (!IsDropSuccessful())
-        {
-            return;
-        }
-        
+
         SpawnSupplyBox();
     }
-    
+
     private void CreateRespawnTimer(IRound round)
     {
-        var respawnTime = Numeric.Random(_config.Get().RespawnTimeBySeconds, _config.Get().RespawnTimeBySeconds+_config.Get().TimeSpreadBySeconds);
+        var respawnTime = Numeric.Random(
+            _config.Get().RespawnTimeBySeconds,
+            _config.Get().RespawnTimeBySeconds + _config.Get().TimeSpreadBySeconds);
 
         _respawnSupplyBoxThinker = core.Scheduler.DelayBySeconds(respawnTime, () =>
         {
@@ -166,36 +161,39 @@ internal sealed partial class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxMod
 
     private void SpawnSupplyBox()
     {
+        var preContext = new SupplyBoxDropPreContext(
+            _droppedSupplyBoxes.Cast<ISupplyBoxEntity>().ToArray());
+
+        if (!_hooks.Value.DispatchCancellable(ref preContext))
+        {
+            return;
+        }
+
         var supplyBox = _editService.Value.TrySpawnUniqueSupplyBox(_droppedSupplyBoxes);
-        
+
         if (supplyBox == null)
         {
             return;
         }
-        
-        _eventPublisher.Value.OnSupplyBoxDropped(supplyBox);
-        
+
         _droppedSupplyBoxes.Add(supplyBox);
+
+        var postContext = new SupplyBoxDropPostContext(supplyBox);
+        _hooks.Value.Dispatch(ref postContext);
     }
-    
+
     private bool IsDropSuccessful()
     {
         return Numeric.Random(0, 100) <= _config.Get().ChanceDrop;
-        
     }
-    
+
     private bool CanDrop(IRound round)
     {
         if (ZombiePlagueApi.IsSurvivorRound(round) || ZombiePlagueApi.IsNemesisRound(round))
         {
             return false;
         }
-        
-        if (_droppedSupplyBoxes.Count >= _config.Get().MaxCountTogether)
-        {
-            return false;
-        }
-        
-        return true;
+
+        return _droppedSupplyBoxes.Count < _config.Get().MaxCountTogether;
     }
 }

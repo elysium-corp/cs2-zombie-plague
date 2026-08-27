@@ -1,6 +1,8 @@
-﻿using CustomEquipment.Api.Data;
+using CustomEquipment.Api.Data;
 using CustomEquipment.Api.Data.Contracts;
 using CustomEquipment.Api.Events;
+using CustomEquipment.Api.Events.Contexts.Items;
+using CustomEquipment.Api.Events.Contexts.Mines;
 using CustomEquipment.Data.Equipments.Weapons.Equipments;
 using CustomEquipment.Services;
 using CustomEquipment.Utils;
@@ -14,7 +16,7 @@ namespace CustomEquipment.Controllers;
 
 internal sealed class MineController(
     ISwiftlyCore core,
-    IEventSubscriber eventSubscriber,
+    ICustomEquipmentEvents events,
     IEconomyApi economyApi,
     ILaserMineInstallerService laserMineInstallerService)
     : IMineController, IDisposable
@@ -23,26 +25,25 @@ internal sealed class MineController(
 
     public void Initialize()
     {
-        eventSubscriber.OnItemBought += OnItemBought;
-        eventSubscriber.OnMinePlaced += OnMinePlaced;
+        events.Post.ItemBuyEvent += OnItemBought;
+        events.Post.MinePlaceEvent += OnMinePlaced;
         core.GameHooks.Entities.TakeDamage.Pre += OnEntityTakeDamage;
     }
 
     public void Dispose()
     {
-        eventSubscriber.OnItemBought -= OnItemBought;
-        eventSubscriber.OnMinePlaced -= OnMinePlaced;
+        events.Post.ItemBuyEvent -= OnItemBought;
+        events.Post.MinePlaceEvent -= OnMinePlaced;
         core.GameHooks.Entities.TakeDamage.Pre -= OnEntityTakeDamage;
     }
 
-    private void OnItemBought(IPlayer player, IShopItem item)
+    private void OnItemBought(ref ItemBuyPostContext context)
     {
-        var laserMine = item as LaserMine;
-
-        if (laserMine == null) return;
+        if (context.Item is not LaserMine laserMine) return;
 
         UpdateNotValidMines();
 
+        var player = context.Player;
         var playerPawn = player.PlayerPawn;
 
         if (playerPawn == null || !playerPawn.IsValid || !player.IsAlive) return;
@@ -50,27 +51,24 @@ internal sealed class MineController(
         if (_mineOwners.ContainsValue(player))
         {
             core.PlayerManager.SendAlertAsync("У вас уже есть мина");
-
-            economyApi.GiveMoney(player, item.Price.Item);
-
+            economyApi.GiveMoney(player, context.Item.Price.Item);
             return;
         }
 
         if (!laserMineInstallerService.TrySetup(player, laserMine))
         {
             core.PlayerManager.SendAlertAsync("Невозможно разместить");
-
-            economyApi.GiveMoney(player, item.Price.Item);
+            economyApi.GiveMoney(player, context.Item.Price.Item);
         }
     }
 
-    private void OnMinePlaced(IPlayer player, LaserMineEntityBase mine)
+    private void OnMinePlaced(ref MinePlacePostContext context)
     {
-        var entity = mine.LaserMine;
+        var entity = context.Mine.LaserMine;
 
         if (entity == null) return;
 
-        _mineOwners.Add(entity, player);
+        _mineOwners[entity] = context.Player;
     }
 
     private void OnEntityTakeDamage(ref TakeDamageEntityPreContext hook)
@@ -79,9 +77,7 @@ internal sealed class MineController(
         var victim = hook.Params.Entity as CBaseModelEntity;
 
         if (victim == null || attacker == null) return;
-
         if (!_mineOwners.ContainsKey(victim)) return;
-
         if (attacker.PlayerPawn?.Team != victim.Team) return;
 
         _mineOwners.TryGetValue(victim, out var player);

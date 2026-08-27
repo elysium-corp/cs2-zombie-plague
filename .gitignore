@@ -133,3 +133,6 @@ _NCrunch_*
 .NCrunch_*
 .*crunch*.local.xml
 nCrunchTemp_*
+
+# Generated output from the legacy MovementUnlocker project
+/MovementUnlocker/build/

@@ -1,5 +1,9 @@
-﻿using Common.Di;
+using Common.Database;
+using Common.Database.Utils;
+using Common.Di;
 using Common.Di.Utils;
+using Common.Hooks;
+using Common.Hooks.Abstractions;
 using CustomEquipment.Api;
 using CustomEquipment.Api.Data;
 using CustomEquipment.Api.Data.Contracts;
@@ -14,10 +18,8 @@ using CustomEquipment.Giver;
 using CustomEquipment.Menus;
 using CustomEquipment.Registry;
 using CustomEquipment.Services;
-using Microsoft.Extensions.DependencyInjection;
-using Common.Database;
-using Common.Database.Utils;
 using Economy.Api;
+using Microsoft.Extensions.DependencyInjection;
 using SwiftlyS2.Shared;
 using ZombiePlague.Api;
 
@@ -29,10 +31,17 @@ internal sealed class CustomEquipmentModule(ISwiftlyCore core) : BaseModule(core
     {
         var service = new ServiceCollection();
 
-        service.AddSwiftly(core); 
-        
+        service.AddSwiftly(core);
+
         service.AddSharedInterface<IEconomyApi>();
         service.AddSharedInterface<IZombiePlagueApi>();
+
+        AddSingleton<HookService>(service);
+        AddSingleton<IHookSubscriber>(service, provider => provider.GetRequiredService<HookService>());
+        AddSingleton<IHookPublisher>(service, provider => provider.GetRequiredService<HookService>());
+        AddSingleton<CustomEquipmentPreEvents>(service);
+        AddSingleton<CustomEquipmentPostEvents>(service);
+        AddSingleton<ICustomEquipmentEvents, CustomEquipmentEvents>(service);
 
         AddSingleton<IEquipmentFetcher>(service, OnWeaponRegistratorFactory);
         AddSingleton<IEquipmentService, EquipmentService>(service);
@@ -49,10 +58,7 @@ internal sealed class CustomEquipmentModule(ISwiftlyCore core) : BaseModule(core
         AddSingleton<IEquipmentRegistrar>(service, provider => provider.GetRequiredService<ItemRegistry>());
 
         AddSingleton<EquipmentMenu>(service);
-        
         AddSingleton<CustomEquipmentApi>(service);
-        
-        EventServiceRegistration(service);
 
         AddDatabase(service);
 
@@ -72,13 +78,6 @@ internal sealed class CustomEquipmentModule(ISwiftlyCore core) : BaseModule(core
 
         service.AddPostgreSqlDatabase<CustomEquipmentDbContext>(Core, options);
         AddSingleton<IWeaponCatalogRepository, WeaponCatalogRepository>(service);
-    }
-
-    private void EventServiceRegistration(ServiceCollection service)
-    {
-        AddSingleton<EventService>(service);
-        AddSingleton<IEventSubscriber>(service, sp => sp.GetRequiredService<EventService>());
-        AddSingleton<IEventPublisher>(service, sp => sp.GetRequiredService<EventService>());
     }
 
     private IEquipmentFetcher OnWeaponRegistratorFactory(IServiceProvider service)

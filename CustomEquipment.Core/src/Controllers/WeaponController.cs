@@ -1,7 +1,10 @@
-﻿using CustomEquipment.Api.Data;
+﻿using Common.Hooks;
+using Common.Hooks.Abstractions;
+using CustomEquipment.Api.Data;
 using CustomEquipment.Api.Data.Contracts;
 using CustomEquipment.Api.Enums;
 using CustomEquipment.Api.Events;
+using CustomEquipment.Api.Events.Contexts.Grenades;
 using CustomEquipment.Services;
 using CustomEquipment.Utils;
 using Economy.Api;
@@ -13,7 +16,6 @@ using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.SchemaDefinitions;
 using EventDelegates = SwiftlyS2.Shared.Events.EventDelegates;
-using IEventSubscriber = CustomEquipment.Api.Events.IEventSubscriber;
 
 namespace CustomEquipment.Controllers;
 
@@ -21,14 +23,14 @@ internal sealed class WeaponController(
     ISwiftlyCore core,
     IEquipmentService equipmentService,
     IParticleService particleService,
-    IEventSubscriber eventSubscriber,
-    IEventPublisher eventPublisher,
+    ICustomEquipmentEvents events,
+    IHookPublisher hooks,
     IEconomyApi economyApi
 ) : IWeaponController, IDisposable
 {
     private Guid _guidBulletImpactPost = Guid.Empty;
 
-    private readonly GrenadeHandler _grenadeHandler = new(eventPublisher);
+    private readonly GrenadeHandler _grenadeHandler = new();
 
     private const float MinParticleLifetime = 0.1f;
 
@@ -43,8 +45,7 @@ internal sealed class WeaponController(
         core.GameHooks.Entities.TakeDamage.Pre += OnEntityTakeDamage;
         core.Event.OnClientKeyStateChanged += OnClientKeyStateChanged;
 
-        eventSubscriber.OnGrenadeThrown += OnGrenadeThrown;
-        eventSubscriber.OnGrenadeDetonated += OnGrenadeDetonated;
+        events.Post.GrenadeThrowEvent += OnGrenadeThrown;
 
         _guidBulletImpactPost = core.GameEvent.HookPost<EventBulletImpact>(OnBulletImpactPost);
     }
@@ -55,31 +56,47 @@ internal sealed class WeaponController(
         core.GameHooks.Entities.TakeDamage.Pre -= OnEntityTakeDamage;
         core.Event.OnClientKeyStateChanged -= OnClientKeyStateChanged;
 
-        eventSubscriber.OnGrenadeThrown -= OnGrenadeThrown;
-        eventSubscriber.OnGrenadeDetonated -= OnGrenadeDetonated;
+        events.Post.GrenadeThrowEvent -= OnGrenadeThrown;
 
         core.GameEvent.Unhook(_guidBulletImpactPost);
     }
 
     private void OnTick() =>
-        _grenadeHandler.OnTick();
+        _grenadeHandler.OnTick(OnGrenadeDetonated);
 
-    private void OnGrenadeThrown(IGrenade grenade, CBaseCSGrenadeProjectile projectile) =>
-        _grenadeHandler.OnGrenadeThrown(grenade, projectile);
+    private void OnGrenadeThrown(ref GrenadeThrowPostContext context) =>
+        _grenadeHandler.OnGrenadeThrown(context.Grenade, context.Projectile);
 
-    private void OnGrenadeDetonated(IGrenade grenade, CBaseCSGrenadeProjectile projectile, Vector position)
+    private void OnGrenadeDetonated(
+        IGrenade grenade,
+        CBaseCSGrenadeProjectile projectile,
+        Vector position)
     {
-        _grenadeHandler.OnGrenadeDetonated(grenade, projectile, position);
+        var preContext = new GrenadeDetonatePreContext(grenade, projectile, position);
 
-        if (grenade is not GrenadeItemBase baseGrenade) return;
+        if (!hooks.DispatchCancellable(ref preContext) ||
+            preContext.Grenade is not GrenadeItemBase baseGrenade ||
+            preContext.Projectile is null ||
+            !preContext.Projectile.IsValidEntity)
+        {
+            return;
+        }
 
-        var thrower = projectile.OriginalThrower.Value?.ToPlayer();
+        var thrower = preContext.Projectile.OriginalThrower.Value?.ToPlayer();
 
-        if (thrower == null) return;
+        if (thrower == null || !thrower.IsValid)
+        {
+            return;
+        }
 
-        projectile.Despawn();
+        preContext.Projectile.Despawn();
+        baseGrenade.OnDetonate(thrower, preContext.Position);
 
-        baseGrenade.OnDetonate(thrower, position);
+        var postContext = new GrenadeDetonatePostContext(
+            baseGrenade,
+            preContext.Projectile,
+            preContext.Position);
+        hooks.Dispatch(ref postContext);
     }
 
     private void OnEntityTakeDamage(ref TakeDamageEntityPreContext hook)
