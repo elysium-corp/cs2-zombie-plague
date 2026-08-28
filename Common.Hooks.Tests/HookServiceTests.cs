@@ -48,6 +48,49 @@ public sealed class HookServiceTests
         Assert.Equal(new[] { "high", "normal-first", "normal-second" }, calls);
     }
 
+    [Fact]
+    public void Dispatch_UsesStableSnapshot_WhenHandlerUnhooksItself()
+    {
+        var hooks = new HookService();
+        var calls = new List<string>();
+
+        HookHandler<TestPostContext>? selfRemoving = null;
+        selfRemoving = (ref TestPostContext context) =>
+        {
+            calls.Add("self");
+            hooks.Unhook(selfRemoving!);
+        };
+
+        hooks.Hook(selfRemoving!);
+        hooks.Hook<TestPostContext>((ref TestPostContext context) => calls.Add("remaining"));
+
+        var first = new TestPostContext();
+        hooks.Dispatch(ref first);
+
+        var second = new TestPostContext();
+        hooks.Dispatch(ref second);
+
+        Assert.Equal(new[] { "self", "remaining", "remaining" }, calls);
+    }
+
+    [Fact]
+    public void Dispatch_ContinuesAfterHandlerException()
+    {
+        var failures = new List<Exception>();
+        var hooks = new HookService((exception, _, _) => failures.Add(exception));
+        var called = false;
+
+        hooks.Hook<TestPostContext>((ref TestPostContext context) => throw new InvalidOperationException("boom"));
+        hooks.Hook<TestPostContext>((ref TestPostContext context) => called = true);
+
+        var context = new TestPostContext();
+        hooks.Dispatch(ref context);
+
+        Assert.True(called);
+        Assert.Single(failures);
+        Assert.IsType<InvalidOperationException>(failures[0]);
+    }
+
     private struct TestPreContext : IPreHookContext
     {
         public bool IsCancelled { get; private set; }
