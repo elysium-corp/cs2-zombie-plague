@@ -19,8 +19,8 @@ public abstract class AdaptiveOptionsMenu(ISwiftlyCore core) : BaseMenu(core)
             .SetMenuTitle("Всем дарова ушлепки");
 
         if (parent is not null) builder.BindToParent(parent);
-        
-        builder.AddOption()
+
+        builder.AddOption();
 
         return builder;
     }
