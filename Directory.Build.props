@@ -14,6 +14,11 @@
         <DebugType>portable</DebugType>
     </PropertyGroup>
 
+    <PropertyGroup Condition="'$(IsApiProject)' == 'True' or '$(MSBuildProjectName)' == 'Common.Hooks'">
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <NoWarn>$(NoWarn);1591</NoWarn>
+    </PropertyGroup>
+
     <!-- Папка output создаётся только для Core -->
     <PropertyGroup Condition="'$(IsCoreProject)' == 'True'">
         <OutputPath>$(MSBuildThisFileDirectory)output\$(MSBuildProjectName)\</OutputPath>

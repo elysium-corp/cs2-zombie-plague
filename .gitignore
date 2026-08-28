@@ -12,6 +12,8 @@
 **/[Oo]bj/
 /artifacts/
 /.artifacts/
+/api/
+/docs/_site/
 [Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/
