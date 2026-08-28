@@ -1,13 +1,23 @@
 ﻿<Project>
     <PropertyGroup>
+        <!-- Корень репозитория -->
         <RepoRoot>$(MSBuildThisFileDirectory)</RepoRoot>
-        <ModulePrefix>$([System.Text.RegularExpressions.Regex]::Replace('$(MSBuildProjectName)', '(\.Core|Core)$', ''))</ModulePrefix>
 
-        <IsZombiePlagueCoreProject Condition="'$(MSBuildProjectName)' == 'ZombiePlague.Core'">True</IsZombiePlagueCoreProject>
+        <!-- Специальная конфигурация для EF migrations -->
         <IsMigrationsBuild Condition="'$(Configuration)' == 'Migrations'">True</IsMigrationsBuild>
     </PropertyGroup>
 
-    <!-- Автокопирование resources/** для проектов, где такая папка есть -->
+    <!--
+        Автоматически переносим resources/** в output проекта.
+
+        Важно:
+        TargetPath должен находиться в одной строке.
+        Переносы строк внутри значения TargetPath становятся
+        частью пути и ломают CopyToOutputDirectory на Windows.
+
+        Runtime-структура плагинов здесь НЕ формируется.
+        За неё отвечает scripts/package.ps1.
+    -->
     <ItemGroup Condition="Exists('$(MSBuildProjectDirectory)\resources')">
         <Content Include="$(MSBuildProjectDirectory)\resources\**\*">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -16,180 +26,32 @@
     </ItemGroup>
 
     <!--
-        Для обычного Core оставляем в output только:
-        - свою dll
-        - свой pdb
-        - свой deps.json
-        - свои .resources.dll
-        - resources/**
-        - разрешённые runtime-зависимости
-        - runtimes/**
-        - runtimeconfig.json
+        Для EF migrations assembly всех прямых ProjectReference
+        должны физически находиться рядом с основной assembly.
 
-        Для Configuration=Migrations этот target НЕ запускается,
-        чтобы dotnet ef получил полный набор зависимостей.
+        Для обычных Debug/Release этот target не выполняется.
     -->
-    <Target Name="KeepOnlyOwnAssemblyDepsAndResources"
-            AfterTargets="Build"
-            Condition="'$(IsCoreProject)' == 'True' and '$(IsMigrationsBuild)' != 'True'">
-
-        <ItemGroup>
-            <FilesToKeep Include="$(TargetPath)" />
-
-            <FilesToKeep
-                    Include="$(TargetDir)$(TargetName).pdb"
-                    Condition="Exists('$(TargetDir)$(TargetName).pdb')" />
-
-            <FilesToKeep Include="$(OutDir)$(TargetName).deps.json" />
-
-            <FilesToKeep Include="$(OutDir)**\$(TargetName).resources.dll" />
-
-            <FilesToKeep Include="$(OutDir)resources\**\*" />
-
-            <FilesToKeep Include="@(ReferenceCopyLocalPaths->'$(OutDir)%(DestinationSubDirectory)%(Filename)%(Extension)')" />
-
-            <FilesToKeep Include="$(OutDir)runtimes\**\*" />
-
-            <FilesToKeep
-                    Include="$(TargetDir)$(TargetName).runtimeconfig.json"
-                    Condition="Exists('$(TargetDir)$(TargetName).runtimeconfig.json')" />
-        </ItemGroup>
-
-        <ItemGroup>
-            <FilesToDelete Include="$(OutDir)**\*.*" />
-            <FilesToDelete Remove="@(FilesToKeep)" />
-        </ItemGroup>
-
-        <Delete Files="@(FilesToDelete)" />
-    </Target>
-
-    <!--
-        Для обычного Core копируем только соответствующий Api.
-        Для Configuration=Migrations ничего не экспортируем.
-    -->
-    <Target Name="ExportMatchingApiToCore"
-            AfterTargets="KeepOnlyOwnAssemblyDepsAndResources"
-            Condition="'$(IsCoreProject)' == 'True'
-                       and '$(IsZombiePlagueCoreProject)' != 'True'
-                       and '$(IsMigrationsBuild)' != 'True'">
-
-        <RemoveDir
-                Directories="$(OutDir)resources\exports"
-                Condition="Exists('$(OutDir)resources\exports')" />
-
-        <MakeDir Directories="$(OutDir)resources\exports" />
-
-        <ItemGroup>
-            <!-- Ищем только Api с тем же префиксом -->
-            <MatchingApiProjects Include="$(RepoRoot)**\$(ModulePrefix).Api.csproj" />
-            <MatchingApiProjects Include="$(RepoRoot)**\$(ModulePrefix)Api.csproj" />
-        </ItemGroup>
-
-        <MSBuild Projects="@(MatchingApiProjects)"
-                 Targets="GetTargetPath"
-                 BuildInParallel="true"
-                 Properties="Configuration=$(Configuration);TargetFramework=$(TargetFramework)">
-            <Output TaskParameter="TargetOutputs" ItemName="MatchingApiAssemblies" />
-        </MSBuild>
-
-        <Copy SourceFiles="@(MatchingApiAssemblies)"
-              DestinationFolder="$(OutDir)resources\exports\"
-              SkipUnchangedFiles="true"
-              Condition="'@(MatchingApiAssemblies)' != ''" />
-    </Target>
-
-    <!--
-        Для ZombiePlague.Core:
-        копируем все Common.* + ZombiePlague.Api + optional shared contracts.
-
-        Для Configuration=Migrations этот target не запускается.
-    -->
-    <Target Name="ExportAllCommonAndOwnApiToZombiePlagueCore"
-            AfterTargets="KeepOnlyOwnAssemblyDepsAndResources"
-            Condition="'$(IsZombiePlagueCoreProject)' == 'True'
-                       and '$(IsMigrationsBuild)' != 'True'">
-
-        <RemoveDir
-                Directories="$(OutDir)resources\exports"
-                Condition="Exists('$(OutDir)resources\exports')" />
-
-        <MakeDir Directories="$(OutDir)resources\exports" />
-
-        <ItemGroup>
-            <!-- Все Common проекты -->
-            <AllCommonProjects Include="$(RepoRoot)**\Common.*.csproj" />
-            <!-- Common.Database является private runtime dependency плагинов -->
-            <AllCommonProjects Remove="$(RepoRoot)**\Common.Database.csproj" />
-
-            <!-- Только ZombiePlague.Api -->
-            <ZombieApiProjects Include="$(RepoRoot)**\ZombiePlague.Api.csproj" />
-            <ZombieApiProjects Include="$(RepoRoot)**\ZombiePlagueApi.csproj" />
-
-            <!-- Необязательный контракт Metrics.Core: ZP должен загружаться и без плагина-поставщика -->
-            <OptionalSharedApiProjects Include="$(RepoRoot)**\Metrics.Api.csproj" />
-        </ItemGroup>
-
-        <MSBuild Projects="@(AllCommonProjects)"
-                 Targets="GetTargetPath"
-                 BuildInParallel="true"
-                 Properties="Configuration=$(Configuration);TargetFramework=$(TargetFramework)">
-            <Output TaskParameter="TargetOutputs" ItemName="AllCommonAssemblies" />
-        </MSBuild>
-
-        <MSBuild Projects="@(ZombieApiProjects)"
-                 Targets="GetTargetPath"
-                 BuildInParallel="true"
-                 Properties="Configuration=$(Configuration);TargetFramework=$(TargetFramework)">
-            <Output TaskParameter="TargetOutputs" ItemName="ZombieApiAssemblies" />
-        </MSBuild>
-
-        <MSBuild Projects="@(OptionalSharedApiProjects)"
-                 Targets="GetTargetPath"
-                 BuildInParallel="true"
-                 Properties="Configuration=$(Configuration);TargetFramework=$(TargetFramework)">
-            <Output TaskParameter="TargetOutputs" ItemName="OptionalSharedApiAssemblies" />
-        </MSBuild>
-
-        <Copy SourceFiles="@(AllCommonAssemblies)"
-              DestinationFolder="$(OutDir)resources\exports\"
-              SkipUnchangedFiles="true"
-              Condition="'@(AllCommonAssemblies)' != ''" />
-
-        <Copy SourceFiles="@(ZombieApiAssemblies)"
-              DestinationFolder="$(OutDir)resources\exports\"
-              SkipUnchangedFiles="true"
-              Condition="'@(ZombieApiAssemblies)' != ''" />
-
-        <Copy SourceFiles="@(OptionalSharedApiAssemblies)"
-              DestinationFolder="$(OutDir)resources\exports\"
-              SkipUnchangedFiles="true"
-              Condition="'@(OptionalSharedApiAssemblies)' != ''" />
-    </Target>
-
-    <!--
-    Для EF migrations кладём assembly всех прямых ProjectReference
-    рядом с Core assembly.
-
-    dotnet ef загружает CustomKnife.Core.dll как обычную .NET assembly,
-    поэтому Common.Di, Menu.Api, ZombiePlague.Api должны физически
-    находиться рядом в design-time output.
--->
-    <Target Name="CopyProjectReferencesForMigrations"
+    <Target
+            Name="CopyProjectReferencesForMigrations"
             AfterTargets="Build"
             Condition="'$(IsMigrationsBuild)' == 'True'">
 
-        <MSBuild Projects="@(ProjectReference)"
-                 Targets="GetTargetPath"
-                 BuildInParallel="true"
-                 Properties="Configuration=$(Configuration);TargetFramework=$(TargetFramework)">
-            <Output TaskParameter="TargetOutputs"
+        <MSBuild
+                Projects="@(ProjectReference)"
+                Targets="GetTargetPath"
+                BuildInParallel="true"
+                Properties="Configuration=$(Configuration);TargetFramework=$(TargetFramework)">
+
+            <Output
+                    TaskParameter="TargetOutputs"
                     ItemName="MigrationProjectReferenceAssemblies" />
         </MSBuild>
 
-        <Copy SourceFiles="@(MigrationProjectReferenceAssemblies)"
-              DestinationFolder="$(TargetDir)"
-              SkipUnchangedFiles="true"
-              Condition="'@(MigrationProjectReferenceAssemblies)' != ''" />
+        <Copy
+                SourceFiles="@(MigrationProjectReferenceAssemblies)"
+                DestinationFolder="$(TargetDir)"
+                SkipUnchangedFiles="true"
+                Condition="'@(MigrationProjectReferenceAssemblies)' != ''" />
 
     </Target>
 </Project>

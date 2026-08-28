@@ -5,6 +5,7 @@
 /build/
 /output/
 /publish/
+/dist/
 /CS2ZombiePlague.zip
 
 # .NET / MSBuild output
