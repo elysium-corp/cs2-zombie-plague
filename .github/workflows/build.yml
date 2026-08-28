@@ -71,11 +71,22 @@ jobs:
             --run-id "$GITHUB_RUN_ID" \
             --source-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/tree/$GITHUB_SHA"
 
+      - name: Check build artifacts
+        shell: bash
+        run: |
+          echo "=== dist ==="
+          find dist -type f -print 2>/dev/null || true
+
+          echo "=== artifact ==="
+          find artifact -type f -print 2>/dev/null || true
+
       - name: Upload plugin artifacts
         uses: actions/upload-artifact@v7
         with:
           name: cs2-zombie-plague-${{ github.sha }}
-          path: output/**
+          path: |
+            dist/**
+            artifact/**
           if-no-files-found: error
           retention-days: 14
           compression-level: 6
