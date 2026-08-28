@@ -41,14 +41,25 @@ jobs:
       - name: Show .NET information
         run: dotnet --info
 
+      # Корневой CS2ZombiePlague.csproj не входит в solution,
+      # поэтому восстанавливаем зависимости отдельно.
       - name: Restore dependencies
-        run: dotnet restore CS2ZombiePlague.sln
+        run: |
+          dotnet restore CS2ZombiePlague.sln
+          dotnet restore CS2ZombiePlague.csproj
 
       - name: Build solution
-        run: dotnet build CS2ZombiePlague.sln --configuration Release --no-restore
+        run: |
+          dotnet build CS2ZombiePlague.sln \
+            --configuration Release \
+            --no-restore
 
       - name: Run tests
-        run: dotnet test CS2ZombiePlague.sln --configuration Release --no-build --no-restore
+        run: |
+          dotnet test CS2ZombiePlague.sln \
+            --configuration Release \
+            --no-build \
+            --no-restore
 
       - name: Publish CS2 Zombie Plague
         run: |
@@ -87,51 +98,59 @@ jobs:
             --run-id "$GITHUB_RUN_ID" \
             --source-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/tree/$GITHUB_SHA"
 
-      - name: Check generated artifacts
+      # Показываем фактическую структуру новой artifacts-системы.
+      # Если в будущем изменится layout сборки, это сразу будет видно в CI.
+      - name: Inspect generated artifacts
         shell: bash
         run: |
-          echo "=== Plugin ZIP ==="
-          if [[ -f CS2ZombiePlague.zip ]]; then
-            ls -lh CS2ZombiePlague.zip
-          else
-            echo "::error::CS2ZombiePlague.zip was not generated"
-            exit 1
-          fi
+          echo "=== artifacts ==="
+          find artifacts -maxdepth 6 -type f -print | sort
 
           echo
-          echo "=== Published plugin files ==="
-          if [[ -d build/publish/CS2ZombiePlague ]]; then
-            find build/publish/CS2ZombiePlague -type f -print
-          else
-            echo "::error::build/publish/CS2ZombiePlague does not exist"
-            exit 1
-          fi
+          echo "=== documentation ==="
 
-          echo
-          echo "=== Documentation package ==="
-          if [[ -f artifacts/documentation.json ]]; then
-            ls -lh artifacts/documentation.json
-          else
+          if [[ ! -f artifacts/documentation.json ]]; then
             echo "::error::artifacts/documentation.json was not generated"
             exit 1
           fi
 
+          ls -lh artifacts/documentation.json
+
           echo
           echo "=== DocFX site ==="
-          if [[ -d docs/_site ]]; then
-            find docs/_site -type f | head -100
-          else
+
+          if [[ ! -d docs/_site ]]; then
             echo "::error::docs/_site does not exist"
             exit 1
           fi
 
-      - name: Upload plugin artifacts
+          docfx_file_count="$(find docs/_site -type f | wc -l)"
+
+          if [[ "$docfx_file_count" -eq 0 ]]; then
+            echo "::error::docs/_site is empty"
+            exit 1
+          fi
+
+          echo "DocFX files: $docfx_file_count"
+
+      # Загружаем результаты .NET build/publish.
+      #
+      # Directory.Build.props использует:
+      #   UseArtifactsOutput = true
+      #   ArtifactsPath = ./artifacts
+      #
+      # Поэтому bin/publish/package находятся внутри artifacts.
+      #
+      # documentation.json исключаем, поскольку для документации
+      # существует отдельный artifact ниже.
+      - name: Upload build artifacts
         uses: actions/upload-artifact@v7
         with:
           name: cs2-zombie-plague-${{ github.sha }}
           path: |
-            CS2ZombiePlague.zip
-            build/publish/CS2ZombiePlague/**
+            artifacts/bin/**
+            artifacts/publish/**
+            artifacts/package/**
           if-no-files-found: error
           retention-days: 14
           compression-level: 6
