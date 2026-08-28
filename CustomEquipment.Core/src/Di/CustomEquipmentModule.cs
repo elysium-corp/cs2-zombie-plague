@@ -39,8 +39,10 @@ internal sealed class CustomEquipmentModule(ISwiftlyCore core) : BaseModule(core
         AddSingleton<HookService>(service);
         AddSingleton<IHookSubscriber>(service, provider => provider.GetRequiredService<HookService>());
         AddSingleton<IHookPublisher>(service, provider => provider.GetRequiredService<HookService>());
-        AddSingleton<CustomEquipmentPreEvents>(service);
-        AddSingleton<CustomEquipmentPostEvents>(service);
+        AddSingleton<CustomEquipmentItemEvents>(service);
+        AddSingleton<CustomEquipmentWeaponEvents>(service);
+        AddSingleton<CustomEquipmentGrenadeEvents>(service);
+        AddSingleton<CustomEquipmentMineEvents>(service);
         AddSingleton<ICustomEquipmentEvents, CustomEquipmentEvents>(service);
 
         AddSingleton<IEquipmentFetcher>(service, OnWeaponRegistratorFactory);

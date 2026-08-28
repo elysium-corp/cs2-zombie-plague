@@ -25,19 +25,19 @@ internal sealed class MineController(
 
     public void Initialize()
     {
-        events.Post.ItemBuyEvent += OnItemBought;
-        events.Post.MinePlaceEvent += OnMinePlaced;
+        events.Items.Purchased.Hook(OnItemBought);
+        events.Mines.Placed.Hook(OnMinePlaced);
         core.GameHooks.Entities.TakeDamage.Pre += OnEntityTakeDamage;
     }
 
     public void Dispose()
     {
-        events.Post.ItemBuyEvent -= OnItemBought;
-        events.Post.MinePlaceEvent -= OnMinePlaced;
+        events.Items.Purchased.Unhook(OnItemBought);
+        events.Mines.Placed.Unhook(OnMinePlaced);
         core.GameHooks.Entities.TakeDamage.Pre -= OnEntityTakeDamage;
     }
 
-    private void OnItemBought(ref ItemBuyPostContext context)
+    private void OnItemBought(ref ItemPurchasedContext context)
     {
         if (context.Item is not LaserMine laserMine) return;
 
@@ -62,7 +62,7 @@ internal sealed class MineController(
         }
     }
 
-    private void OnMinePlaced(ref MinePlacePostContext context)
+    private void OnMinePlaced(ref MinePlacedContext context)
     {
         var entity = context.Mine.LaserMine;
 

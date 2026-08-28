@@ -1,4 +1,6 @@
 ﻿using Common.Database.Storages;
+using Common.Hooks.Abstractions;
+using Economy.Api.Events;
 using Economy.Core.Data.Configs;
 using Economy.Core.Data.Store;
 using Microsoft.Extensions.Options;
@@ -10,7 +12,8 @@ namespace Economy.Core.Services;
 
 internal sealed class EconomyService(
     IOptions<EconomyConfig> config,
-    PlayerSessionStore<PlayerAccountState> sessions
+    PlayerSessionStore<PlayerAccountState> sessions,
+    IHookPublisher hooks
 ) : IEconomyService
 {
     public int GetBalance(IPlayer player)
@@ -60,19 +63,50 @@ internal sealed class EconomyService(
             return;
         }
 
-        var session = sessions.Get(player.SteamID);
+        var preContext = new EconomyTransactionProcessingContext(
+            player,
+            amount,
+            EconomyTransactionKind.Credit
+        );
 
-        if (session is null)
+        hooks.Dispatch(ref preContext);
+
+        if (preContext.IsCancelled)
+        {
+            DispatchRejected(preContext, EconomyTransactionRejectionReason.Cancelled);
+            return;
+        }
+
+        if (preContext.Amount < 0)
+        {
+            DispatchRejected(preContext, EconomyTransactionRejectionReason.InvalidAmount);
+            return;
+        }
+
+        if (preContext.Amount == 0)
         {
             return;
         }
 
+        var preparedPlayer = preContext.Player;
+        var preparedAmount = preContext.Amount;
+        var session = sessions.Get(preparedPlayer.SteamID);
+
+        if (session is null)
+        {
+            DispatchRejected(preContext, EconomyTransactionRejectionReason.AccountUnavailable);
+            return;
+        }
+
+        var previousBalance = 0;
         var newBalance = 0;
 
         var changed = session.TryUpdate(data =>
         {
+            previousBalance = data.Balance;
+
             var balance = Math.Clamp(
-                (long)data.Balance + amount,
+                (long)data.Balance + preparedAmount,
                 0L,
                 config.Value.MaxMoney
             );
@@ -91,10 +125,30 @@ internal sealed class EconomyService(
 
         if (!changed)
         {
+            DispatchRejected(preContext, EconomyTransactionRejectionReason.BalanceLimitReached);
             return;
         }
 
-        ApplyBalanceToGame(player, newBalance);
+        try
+        {
+            ApplyBalanceToGame(preparedPlayer, newBalance);
+        }
+        catch (Exception exception)
+        {
+            DispatchFailed(preparedPlayer, preparedAmount, EconomyTransactionKind.Credit, exception);
+            throw;
+        }
+
+        var postContext = new EconomyTransactionCommittedContext(
+            preparedPlayer,
+            preparedAmount,
+            newBalance - previousBalance,
+            previousBalance,
+            newBalance,
+            EconomyTransactionKind.Credit
+        );
+
+        hooks.Dispatch(ref postContext);
     }
 
     public bool TrySpendMoney(IPlayer player, int amount)
@@ -107,10 +161,38 @@ internal sealed class EconomyService(
             return true;
         }
 
-        var session = sessions.Get(player.SteamID);
+        var preContext = new EconomyTransactionProcessingContext(
+            player,
+            amount,
+            EconomyTransactionKind.Debit
+        );
+
+        hooks.Dispatch(ref preContext);
+
+        if (preContext.IsCancelled)
+        {
+            DispatchRejected(preContext, EconomyTransactionRejectionReason.Cancelled);
+            return false;
+        }
+
+        if (preContext.Amount < 0)
+        {
+            DispatchRejected(preContext, EconomyTransactionRejectionReason.InvalidAmount);
+            return false;
+        }
+
+        if (preContext.Amount == 0)
+        {
+            return true;
+        }
+
+        var preparedPlayer = preContext.Player;
+        var preparedAmount = preContext.Amount;
+        var session = sessions.Get(preparedPlayer.SteamID);
 
         if (session is null)
         {
+            DispatchRejected(preContext, EconomyTransactionRejectionReason.AccountUnavailable);
             return false;
         }
 
@@ -118,19 +200,22 @@ internal sealed class EconomyService(
 
         if (!snapshot.IsLoaded)
         {
+            DispatchRejected(preContext, EconomyTransactionRejectionReason.AccountNotLoaded);
             return false;
         }
 
+        var previousBalance = 0;
         var newBalance = 0;
 
         var spent = session.TryUpdate(data =>
         {
-            if (data.Balance < amount)
+            if (data.Balance < preparedAmount)
             {
                 return false;
             }
 
-            data.Balance -= amount;
+            previousBalance = data.Balance;
+            data.Balance -= preparedAmount;
 
             newBalance = data.Balance;
 
@@ -139,12 +224,58 @@ internal sealed class EconomyService(
 
         if (!spent)
         {
+            DispatchRejected(preContext, EconomyTransactionRejectionReason.InsufficientFunds);
             return false;
         }
 
-        ApplyBalanceToGame(player, newBalance);
+        try
+        {
+            ApplyBalanceToGame(preparedPlayer, newBalance);
+        }
+        catch (Exception exception)
+        {
+            DispatchFailed(preparedPlayer, preparedAmount, EconomyTransactionKind.Debit, exception);
+            throw;
+        }
+
+        var postContext = new EconomyTransactionCommittedContext(
+            preparedPlayer,
+            preparedAmount,
+            previousBalance - newBalance,
+            previousBalance,
+            newBalance,
+            EconomyTransactionKind.Debit
+        );
+
+        hooks.Dispatch(ref postContext);
 
         return true;
+    }
+
+    private void DispatchRejected(
+        EconomyTransactionProcessingContext transaction,
+        EconomyTransactionRejectionReason reason
+    )
+    {
+        var context = new EconomyTransactionRejectedContext(
+            transaction.Player,
+            transaction.Amount,
+            transaction.Kind,
+            reason
+        );
+
+        hooks.Dispatch(ref context);
+    }
+
+    private void DispatchFailed(
+        IPlayer player,
+        int amount,
+        EconomyTransactionKind kind,
+        Exception exception
+    )
+    {
+        var context = new EconomyTransactionFailedContext(player, amount, kind, exception);
+        hooks.Dispatch(ref context);
     }
 
     private static void ApplyBalanceToGame(IPlayer player, int balance)

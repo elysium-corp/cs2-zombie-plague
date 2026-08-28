@@ -2,9 +2,18 @@ using ZombiePlague.Api.Events;
 
 namespace ZombiePlague.Core.Api.Events;
 
-internal sealed class ZombiePlagueEvents(ZombiePlaguePreEvents pre, ZombiePlaguePostEvents post) : IZombiePlagueEvents
+internal sealed class ZombiePlagueEvents(
+    ZombiePlaguePlayerEvents players,
+    ZombiePlagueClassEvents classes,
+    ZombiePlagueRoundEvents rounds,
+    ZombiePlagueCombatEvents combat
+) : IZombiePlagueEvents
 {
-    public IZombiePlaguePreEvents Pre => pre;
+    public IZombiePlaguePlayerEvents Players => players;
 
-    public IZombiePlaguePostEvents Post => post;
+    public IZombiePlagueClassEvents Classes => classes;
+
+    public IZombiePlagueRoundEvents Rounds => rounds;
+
+    public IZombiePlagueCombatEvents Combat => combat;
 }

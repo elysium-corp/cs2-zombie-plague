@@ -100,8 +100,10 @@ public sealed class ZombiePlagueModule(ISwiftlyCore core) : BaseModule(core)
         AddSingleton<HookService>(service);
         AddSingleton<IHookSubscriber>(service, provider => provider.GetRequiredService<HookService>());
         AddSingleton<IHookPublisher>(service, provider => provider.GetRequiredService<HookService>());
-        AddSingleton<ZombiePlaguePreEvents>(service);
-        AddSingleton<ZombiePlaguePostEvents>(service);
+        AddSingleton<ZombiePlaguePlayerEvents>(service);
+        AddSingleton<ZombiePlagueClassEvents>(service);
+        AddSingleton<ZombiePlagueRoundEvents>(service);
+        AddSingleton<ZombiePlagueCombatEvents>(service);
         AddSingleton<IZombiePlagueEvents, ZombiePlagueEvents>(service);
 
         AddSingleton<IResourceLoader, ResourceLoader>(service);

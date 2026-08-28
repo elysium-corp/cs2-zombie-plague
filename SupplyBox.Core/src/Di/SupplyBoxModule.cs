@@ -39,8 +39,6 @@ internal sealed class SupplyBoxModule(ISwiftlyCore core) : BaseModule(core)
         AddSingleton<HookService>(service);
         AddSingleton<IHookSubscriber>(service, provider => provider.GetRequiredService<HookService>());
         AddSingleton<IHookPublisher>(service, provider => provider.GetRequiredService<HookService>());
-        AddSingleton<SupplyBoxPreEvents>(service);
-        AddSingleton<SupplyBoxPostEvents>(service);
         AddSingleton<ISupplyBoxEvents, SupplyBoxEvents>(service);
 
         AddSingleton<SupplyBoxMapConfigService>(service);

@@ -3,10 +3,17 @@ using CustomEquipment.Api.Events;
 namespace CustomEquipment.Api;
 
 internal sealed class CustomEquipmentEvents(
-    CustomEquipmentPreEvents pre,
-    CustomEquipmentPostEvents post) : ICustomEquipmentEvents
+    CustomEquipmentItemEvents items,
+    CustomEquipmentWeaponEvents weapons,
+    CustomEquipmentGrenadeEvents grenades,
+    CustomEquipmentMineEvents mines
+) : ICustomEquipmentEvents
 {
-    public ICustomEquipmentPreEvents Pre => pre;
+    public ICustomEquipmentItemEvents Items => items;
 
-    public ICustomEquipmentPostEvents Post => post;
+    public ICustomEquipmentWeaponEvents Weapons => weapons;
+
+    public ICustomEquipmentGrenadeEvents Grenades => grenades;
+
+    public ICustomEquipmentMineEvents Mines => mines;
 }

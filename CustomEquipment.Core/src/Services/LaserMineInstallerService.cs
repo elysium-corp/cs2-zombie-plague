@@ -102,22 +102,40 @@ public sealed class LaserMineInstallerService(
             !EntityPlacer.CanAttachToGround(pawn, MaxDistanceToAttach))
         {
             economyApi.GiveMoney(player, mine.Price.Item);
+            DispatchPlacementRejected(player, null, MinePlacementRejectionReason.InvalidSurface);
             return;
         }
 
         var entity = new LaserMineEntity(core);
-        var preContext = new MinePlacePreContext(player, entity);
+        var preContext = new MinePlacingContext(player, entity);
 
-        if (!hooks.DispatchCancellable(ref preContext) ||
-            !preContext.Player.IsValid)
+        if (!hooks.DispatchCancellable(ref preContext))
         {
             economyApi.GiveMoney(player, mine.Price.Item);
+            DispatchPlacementRejected(player, entity, MinePlacementRejectionReason.Cancelled);
+            return;
+        }
+
+        if (!preContext.Player.IsValid)
+        {
+            economyApi.GiveMoney(player, mine.Price.Item);
+            DispatchPlacementRejected(preContext.Player, entity, MinePlacementRejectionReason.InvalidPlayer);
             return;
         }
 
         entity.Spawn(preContext.Player);
 
-        var postContext = new MinePlacePostContext(preContext.Player, entity);
+        var postContext = new MinePlacedContext(preContext.Player, entity);
         hooks.Dispatch(ref postContext);
+    }
+
+    private void DispatchPlacementRejected(
+        IPlayer player,
+        LaserMineEntityBase? mine,
+        MinePlacementRejectionReason reason
+    )
+    {
+        var context = new MinePlacementRejectedContext(player, mine, reason);
+        hooks.Dispatch(ref context);
     }
 }

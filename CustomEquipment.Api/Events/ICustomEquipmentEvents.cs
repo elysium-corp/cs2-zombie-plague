@@ -5,9 +5,15 @@ namespace CustomEquipment.Api.Events;
 /// </summary>
 public interface ICustomEquipmentEvents
 {
-    /// <summary>События до выполнения операций.</summary>
-    ICustomEquipmentPreEvents Pre { get; }
+    /// <summary>События покупок и общей выдачи предметов.</summary>
+    ICustomEquipmentItemEvents Items { get; }
 
-    /// <summary>События после выполнения операций.</summary>
-    ICustomEquipmentPostEvents Post { get; }
+    /// <summary>События пользовательского оружия.</summary>
+    ICustomEquipmentWeaponEvents Weapons { get; }
+
+    /// <summary>События пользовательских гранат.</summary>
+    ICustomEquipmentGrenadeEvents Grenades { get; }
+
+    /// <summary>События лазерных мин.</summary>
+    ICustomEquipmentMineEvents Mines { get; }
 }

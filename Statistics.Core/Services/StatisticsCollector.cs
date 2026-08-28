@@ -78,9 +78,9 @@ internal sealed class StatisticsCollector(
         _roundEndHook = core.GameEvent.HookPost<EventRoundEnd>(OnRoundEnd);
         _gameRestartHook = core.GameEvent.HookPost<EventCsPreRestart>(OnGameRestart);
 
-        zombiePlagueApi.Events.Pre.PlayerInfect.Hook(OnPlayerInfecting, HookPriority.Low);
-        zombiePlagueApi.Events.Post.PlayerInfectEvent += OnPlayerInfected;
-        zombiePlagueApi.Events.Post.RoundStartEvent += OnRoundStarted;
+        zombiePlagueApi.Events.Players.Infecting.Hook(OnPlayerInfecting, HookPriority.Low);
+        zombiePlagueApi.Events.Players.Infected.Hook(OnPlayerInfected);
+        zombiePlagueApi.Events.Rounds.Started.Hook(OnRoundStarted);
 
         core.Event.OnMapLoad += OnMapLoad;
         core.Event.OnMapUnload += OnMapUnload;
@@ -98,9 +98,9 @@ internal sealed class StatisticsCollector(
 
         var zombiePlagueApi = GetZombiePlagueApi();
 
-        zombiePlagueApi.Events.Pre.PlayerInfect.Unhook(OnPlayerInfecting);
-        zombiePlagueApi.Events.Post.PlayerInfectEvent -= OnPlayerInfected;
-        zombiePlagueApi.Events.Post.RoundStartEvent -= OnRoundStarted;
+        zombiePlagueApi.Events.Players.Infecting.Unhook(OnPlayerInfecting);
+        zombiePlagueApi.Events.Players.Infected.Unhook(OnPlayerInfected);
+        zombiePlagueApi.Events.Rounds.Started.Unhook(OnRoundStarted);
 
         core.Event.OnMapLoad -= OnMapLoad;
         core.Event.OnMapUnload -= OnMapUnload;
@@ -282,7 +282,7 @@ internal sealed class StatisticsCollector(
         return HookResult.Continue;
     }
 
-    private void OnPlayerInfecting(ref PlayerInfectPreContext context)
+    private void OnPlayerInfecting(ref PlayerInfectingContext context)
     {
         if (!_isRoundActive || context.IsCancelled || !CanTrack(context.Player))
         {
@@ -295,7 +295,7 @@ internal sealed class StatisticsCollector(
         SetRole(context.Player, PlayerRole.Human);
     }
 
-    private void OnPlayerInfected(ref PlayerInfectPostContext context)
+    private void OnPlayerInfected(ref PlayerInfectedContext context)
     {
         if (!_isRoundActive || !CanTrack(context.Player))
         {
@@ -323,7 +323,7 @@ internal sealed class StatisticsCollector(
         SetRole(player, PlayerRole.Zombie);
     }
 
-    private void OnRoundStarted(ref RoundStartPostContext context)
+    private void OnRoundStarted(ref RoundStartedContext context)
     {
         _ = context.Round;
 

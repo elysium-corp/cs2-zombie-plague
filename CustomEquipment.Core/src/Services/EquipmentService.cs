@@ -90,18 +90,18 @@ internal sealed class EquipmentService(
         {
             case WeaponItemBase weapon:
                 AddOrReplace(weapon);
-                var weaponPost = new WeaponGivePostContext(player, weapon, action);
+                var weaponPost = new WeaponGivenContext(player, weapon, action);
                 hooks.Dispatch(ref weaponPost);
                 break;
 
             case GrenadeItemBase grenade:
                 AddOrReplace(grenade);
-                var grenadePost = new GrenadeGivePostContext(player, grenade, action);
+                var grenadePost = new GrenadeGivenContext(player, grenade, action);
                 hooks.Dispatch(ref grenadePost);
                 break;
         }
 
-        var itemPost = new ItemGivePostContext(player, item, action);
+        var itemPost = new ItemGivenContext(player, item, action);
         hooks.Dispatch(ref itemPost);
     }
 
@@ -109,23 +109,54 @@ internal sealed class EquipmentService(
     {
         ArgumentNullException.ThrowIfNull(player);
 
-        if (!player.IsValid || !CanUseItem(player, internalName))
+        if (!player.IsValid)
         {
+            DispatchGiveRejected(player, internalName, null, action, ItemGiveRejectionReason.InvalidPlayer);
             return false;
         }
 
-        if (itemRegistry.Create(internalName) is not ItemBase item)
+        if (!CanUseItem(player, internalName))
         {
-            throw new InvalidOperationException($"Item '{internalName}' is not an ItemBase!");
+            DispatchGiveRejected(player, internalName, null, action, ItemGiveRejectionReason.CannotUse);
+            return false;
         }
 
-        var itemPre = new ItemGivePreContext(player, item, action);
+        ItemBase item;
 
-        if (!hooks.DispatchCancellable(ref itemPre) ||
-            itemPre.Item is not ItemBase preparedItem ||
+        try
+        {
+            if (itemRegistry.Create(internalName) is not ItemBase createdItem)
+            {
+                throw new InvalidOperationException($"Item '{internalName}' is not an ItemBase!");
+            }
+
+            item = createdItem;
+        }
+        catch (Exception exception)
+        {
+            DispatchGiveFailed(player, internalName, action, exception);
+            throw;
+        }
+
+        var itemPre = new ItemGivingContext(player, item, action);
+
+        if (!hooks.DispatchCancellable(ref itemPre))
+        {
+            DispatchGiveRejected(player, internalName, item, action, ItemGiveRejectionReason.Cancelled);
+            return false;
+        }
+
+        if (itemPre.Item is not ItemBase preparedItem ||
             !itemPre.Player.IsValid ||
             !CanUseItem(itemPre.Player, preparedItem))
         {
+            DispatchGiveRejected(
+                itemPre.Player,
+                internalName,
+                itemPre.Item,
+                itemPre.Action,
+                ItemGiveRejectionReason.InvalidReplacement
+            );
             return false;
         }
 
@@ -136,13 +167,31 @@ internal sealed class EquipmentService(
         {
             case WeaponItemBase weapon:
             {
-                var weaponPre = new WeaponGivePreContext(preparedPlayer, weapon, preparedAction);
+                var weaponPre = new WeaponGivingContext(preparedPlayer, weapon, preparedAction);
 
-                if (!hooks.DispatchCancellable(ref weaponPre) ||
-                    weaponPre.Weapon is not WeaponItemBase preparedWeapon ||
+                if (!hooks.DispatchCancellable(ref weaponPre))
+                {
+                    DispatchGiveRejected(
+                        weaponPre.Player,
+                        internalName,
+                        weaponPre.Weapon,
+                        weaponPre.Action,
+                        ItemGiveRejectionReason.TypeSpecificCancelled
+                    );
+                    return false;
+                }
+
+                if (weaponPre.Weapon is not WeaponItemBase preparedWeapon ||
                     !weaponPre.Player.IsValid ||
                     !CanUseItem(weaponPre.Player, preparedWeapon))
                 {
+                    DispatchGiveRejected(
+                        weaponPre.Player,
+                        internalName,
+                        weaponPre.Weapon,
+                        weaponPre.Action,
+                        ItemGiveRejectionReason.InvalidReplacement
+                    );
                     return false;
                 }
 
@@ -154,13 +203,31 @@ internal sealed class EquipmentService(
 
             case GrenadeItemBase grenade:
             {
-                var grenadePre = new GrenadeGivePreContext(preparedPlayer, grenade, preparedAction);
+                var grenadePre = new GrenadeGivingContext(preparedPlayer, grenade, preparedAction);
 
-                if (!hooks.DispatchCancellable(ref grenadePre) ||
-                    grenadePre.Grenade is not GrenadeItemBase preparedGrenade ||
+                if (!hooks.DispatchCancellable(ref grenadePre))
+                {
+                    DispatchGiveRejected(
+                        grenadePre.Player,
+                        internalName,
+                        grenadePre.Grenade,
+                        grenadePre.Action,
+                        ItemGiveRejectionReason.TypeSpecificCancelled
+                    );
+                    return false;
+                }
+
+                if (grenadePre.Grenade is not GrenadeItemBase preparedGrenade ||
                     !grenadePre.Player.IsValid ||
                     !CanUseItem(grenadePre.Player, preparedGrenade))
                 {
+                    DispatchGiveRejected(
+                        grenadePre.Player,
+                        internalName,
+                        grenadePre.Grenade,
+                        grenadePre.Action,
+                        ItemGiveRejectionReason.InvalidReplacement
+                    );
                     return false;
                 }
 
@@ -171,14 +238,45 @@ internal sealed class EquipmentService(
             }
         }
 
-        itemGiver.GiveItem(
-            preparedPlayer,
-            preparedItem,
-            preparedAction,
-            completedItem => OnItemGiven(preparedPlayer, completedItem, preparedAction)
-        );
+        try
+        {
+            itemGiver.GiveItem(
+                preparedPlayer,
+                preparedItem,
+                preparedAction,
+                completedItem => OnItemGiven(preparedPlayer, completedItem, preparedAction)
+            );
+        }
+        catch (Exception exception)
+        {
+            DispatchGiveFailed(preparedPlayer, internalName, preparedAction, exception);
+            throw;
+        }
 
         return true;
+    }
+
+    private void DispatchGiveRejected(
+        IPlayer player,
+        string internalName,
+        IItem? item,
+        GiveAction action,
+        ItemGiveRejectionReason reason
+    )
+    {
+        var context = new ItemGiveRejectedContext(player, internalName, item, action, reason);
+        hooks.Dispatch(ref context);
+    }
+
+    private void DispatchGiveFailed(
+        IPlayer player,
+        string internalName,
+        GiveAction action,
+        Exception exception
+    )
+    {
+        var context = new ItemGiveFailedContext(player, internalName, action, exception);
+        hooks.Dispatch(ref context);
     }
 
     public TItem? GetActiveItem<TItem>(IPlayer player) where TItem : ItemBase
@@ -217,18 +315,43 @@ internal sealed class EquipmentService(
 
             if (grenade == null) return;
 
-            var preContext = new GrenadeThrowPreContext(grenade, projectile);
+            var preContext = new GrenadeThrowingContext(grenade, projectile);
 
-            if (!hooks.DispatchCancellable(ref preContext) || !preContext.Projectile.IsValidEntity)
+            if (!hooks.DispatchCancellable(ref preContext))
             {
+                DispatchGrenadeThrowRejected(
+                    preContext.Grenade,
+                    preContext.Projectile,
+                    GrenadeThrowRejectionReason.Cancelled
+                );
+                return;
+            }
+
+            if (!preContext.Projectile.IsValidEntity)
+            {
+                DispatchGrenadeThrowRejected(
+                    preContext.Grenade,
+                    preContext.Projectile,
+                    GrenadeThrowRejectionReason.InvalidProjectile
+                );
                 return;
             }
 
             preContext.Projectile.SetModel(preContext.Grenade.Model);
 
-            var postContext = new GrenadeThrowPostContext(preContext.Grenade, preContext.Projectile);
+            var postContext = new GrenadeThrownContext(preContext.Grenade, preContext.Projectile);
             hooks.Dispatch(ref postContext);
         });
+    }
+
+    private void DispatchGrenadeThrowRejected(
+        IGrenade grenade,
+        CBaseCSGrenadeProjectile projectile,
+        GrenadeThrowRejectionReason reason
+    )
+    {
+        var context = new GrenadeThrowRejectedContext(grenade, projectile, reason);
+        hooks.Dispatch(ref context);
     }
 
     private void OnEntityDeleted(IOnEntityDeletedEvent hook)

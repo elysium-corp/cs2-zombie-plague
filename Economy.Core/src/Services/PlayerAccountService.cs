@@ -1,6 +1,8 @@
 ﻿using Common.Database.Sessions;
 using Common.Database.Storages;
 using Common.Database.Tasks;
+using Common.Hooks.Abstractions;
+using Economy.Api.Events;
 using Economy.Core.Data.Configs;
 using Economy.Core.Data.Store;
 using Microsoft.Extensions.Options;
@@ -16,7 +18,8 @@ internal sealed class PlayerAccountService(
     PlayerSessionStore<PlayerAccountState> sessions,
     IAccountPersistenceService persistenceService,
     DatabaseTaskTracker databaseTasks,
-    SteamIdOperationQueue databaseOperations
+    SteamIdOperationQueue databaseOperations,
+    IHookPublisher hooks
 )
 {
     public void Initialize(IPlayer player)
@@ -39,6 +42,9 @@ internal sealed class PlayerAccountService(
 
         ApplyBalanceToGame(player, startBalance);
 
+        var initializedContext = new EconomyAccountInitializedContext(player, startBalance);
+        hooks.Dispatch(ref initializedContext);
+
         databaseTasks.Run(
             () => InitializeAsync(steamId, session, startBalance),
             $"Load economy account {steamId}"
@@ -54,6 +60,8 @@ internal sealed class PlayerAccountService(
             return;
         }
 
+        DispatchRemoved(steamId, session);
+
         databaseTasks.Run(
             () => SaveAsync(steamId, session),
             $"Save economy account {steamId}"
@@ -68,6 +76,8 @@ internal sealed class PlayerAccountService(
             {
                 continue;
             }
+
+            DispatchRemoved(steamId, session);
 
             databaseTasks.Run(
                 () => SaveAsync(steamId, session),
@@ -98,52 +108,71 @@ internal sealed class PlayerAccountService(
         int startBalance,
         CancellationToken cancellationToken = default)
     {
-        var shouldRefreshProjection =
-            await databaseOperations.RunAsync(
-                steamId,
-                async () =>
-                {
-                    var databaseBalance =
-                        await persistenceService
-                            .LoadAsync(steamId, cancellationToken)
-                            .ConfigureAwait(false);
-
-                    if (databaseBalance is null)
-                    {
-                        session.CompleteLoadAsNew();
-
-                        return false;
-                    }
-
-                    var maxBalance = config.Value.MaxMoney;
-
-                    session.CompleteLoadMerged(
-                        current =>
-                        {
-                            var localDelta = (long)current.Balance - startBalance;
-
-                            var mergedBalance = databaseBalance.Value + localDelta;
-
-                            current.Balance = (int)Math.Clamp(mergedBalance, 0L, maxBalance);
-                        }
-                    );
-
-                    return true;
-                }
-            )
-            .ConfigureAwait(false);
-
-        if (!shouldRefreshProjection)
+        try
         {
-            return;
-        }
+            var shouldRefreshProjection =
+                await databaseOperations.RunAsync(
+                    steamId,
+                    async () =>
+                    {
+                        var databaseBalance =
+                            await persistenceService
+                                .LoadAsync(steamId, cancellationToken)
+                                .ConfigureAwait(false);
 
-        core.Scheduler.NextWorldUpdate(
-            () =>
+                        if (databaseBalance is null)
+                        {
+                            session.CompleteLoadAsNew();
+
+                            return false;
+                        }
+
+                        var maxBalance = config.Value.MaxMoney;
+
+                        session.CompleteLoadMerged(
+                            current =>
+                            {
+                                var localDelta = (long)current.Balance - startBalance;
+
+                                var mergedBalance = databaseBalance.Value + localDelta;
+
+                                current.Balance = (int)Math.Clamp(mergedBalance, 0L, maxBalance);
+                            }
+                        );
+
+                        return true;
+                    }
+                )
+                .ConfigureAwait(false);
+
+            var balance = session.Read(data => data.Balance);
+            var loadedContext = new EconomyAccountLoadedContext(
+                steamId,
+                balance,
+                isNew: !shouldRefreshProjection
+            );
+
+            hooks.Dispatch(ref loadedContext);
+
+            if (!shouldRefreshProjection)
             {
-                ApplyLoadedBalance(steamId, session);
+                return;
             }
-        );
+
+            core.Scheduler.NextWorldUpdate(
+                () =>
+                {
+                    ApplyLoadedBalance(steamId, session);
+                }
+            );
+        }
+        catch (Exception exception)
+        {
+            var context = new EconomyAccountLoadFailedContext(steamId, exception);
+            hooks.Dispatch(ref context);
+
+            throw;
+        }
     }
 
     private void ApplyLoadedBalance(ulong steamId, PersistentSession<PlayerAccountState> session)
@@ -166,42 +195,70 @@ internal sealed class PlayerAccountService(
         ApplyBalanceToGame(player, balance);
     }
 
-    private Task SaveAsync(
+    private async Task SaveAsync(
         ulong steamId,
         PersistentSession<PlayerAccountState> session,
         CancellationToken cancellationToken = default)
     {
-        return databaseOperations.RunAsync(
-            steamId,
-            async () =>
-            {
-                await session.SaveLock
-                    .WaitAsync(cancellationToken)
-                    .ConfigureAwait(false);
+        try
+        {
+            int? savedBalance = null;
 
-                try
-                {
-                    var snapshot = session.CreateSnapshot(data => data.Balance);
-
-                    if (!snapshot.IsLoaded || !snapshot.IsDirty)
+            await databaseOperations.RunAsync(
+                    steamId,
+                    async () =>
                     {
-                        return;
+                        await session.SaveLock
+                            .WaitAsync(cancellationToken)
+                            .ConfigureAwait(false);
+
+                        try
+                        {
+                            var snapshot = session.CreateSnapshot(data => data.Balance);
+
+                            if (!snapshot.IsLoaded || !snapshot.IsDirty)
+                            {
+                                return;
+                            }
+
+                            await persistenceService
+                                .SaveAsync(steamId, snapshot.Data, cancellationToken)
+                                .ConfigureAwait(false);
+
+                            session.MarkSaved(
+                                snapshot.Revision
+                            );
+
+                            savedBalance = snapshot.Data;
+                        }
+                        finally
+                        {
+                            session.SaveLock.Release();
+                        }
                     }
+                )
+                .ConfigureAwait(false);
 
-                    await persistenceService
-                        .SaveAsync(steamId, snapshot.Data, cancellationToken)
-                        .ConfigureAwait(false);
-
-                    session.MarkSaved(
-                        snapshot.Revision
-                    );
-                }
-                finally
-                {
-                    session.SaveLock.Release();
-                }
+            if (savedBalance.HasValue)
+            {
+                var context = new EconomyAccountSavedContext(steamId, savedBalance.Value);
+                hooks.Dispatch(ref context);
             }
-        );
+        }
+        catch (Exception exception)
+        {
+            var context = new EconomyAccountSaveFailedContext(steamId, exception);
+            hooks.Dispatch(ref context);
+
+            throw;
+        }
+    }
+
+    private void DispatchRemoved(ulong steamId, PersistentSession<PlayerAccountState> session)
+    {
+        var balance = session.Read(data => data.Balance);
+        var context = new EconomyAccountRemovedContext(steamId, balance);
+        hooks.Dispatch(ref context);
     }
 
     private static void ApplyBalanceToGame(IPlayer player, int balance)

@@ -14,6 +14,7 @@ using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.GameHooks;
 using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Natives;
+using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
 using EventDelegates = SwiftlyS2.Shared.Events.EventDelegates;
 
@@ -45,7 +46,7 @@ internal sealed class WeaponController(
         core.GameHooks.Entities.TakeDamage.Pre += OnEntityTakeDamage;
         core.Event.OnClientKeyStateChanged += OnClientKeyStateChanged;
 
-        events.Post.GrenadeThrowEvent += OnGrenadeThrown;
+        events.Grenades.Thrown.Hook(OnGrenadeThrown);
 
         _guidBulletImpactPost = core.GameEvent.HookPost<EventBulletImpact>(OnBulletImpactPost);
     }
@@ -56,7 +57,7 @@ internal sealed class WeaponController(
         core.GameHooks.Entities.TakeDamage.Pre -= OnEntityTakeDamage;
         core.Event.OnClientKeyStateChanged -= OnClientKeyStateChanged;
 
-        events.Post.GrenadeThrowEvent -= OnGrenadeThrown;
+        events.Grenades.Thrown.Unhook(OnGrenadeThrown);
 
         core.GameEvent.Unhook(_guidBulletImpactPost);
     }
@@ -64,7 +65,7 @@ internal sealed class WeaponController(
     private void OnTick() =>
         _grenadeHandler.OnTick(OnGrenadeDetonated);
 
-    private void OnGrenadeThrown(ref GrenadeThrowPostContext context) =>
+    private void OnGrenadeThrown(ref GrenadeThrownContext context) =>
         _grenadeHandler.OnGrenadeThrown(context.Grenade, context.Projectile);
 
     private void OnGrenadeDetonated(
@@ -72,12 +73,23 @@ internal sealed class WeaponController(
         CBaseCSGrenadeProjectile projectile,
         Vector position)
     {
-        var preContext = new GrenadeDetonatePreContext(grenade, projectile, position);
+        var preContext = new GrenadeDetonatingContext(grenade, projectile, position);
 
-        if (!hooks.DispatchCancellable(ref preContext) ||
-            preContext.Grenade is not GrenadeItemBase baseGrenade ||
-            !preContext.Projectile.IsValidEntity)
+        if (!hooks.DispatchCancellable(ref preContext))
         {
+            DispatchDetonationRejected(preContext, GrenadeDetonationRejectionReason.Cancelled);
+            return;
+        }
+
+        if (preContext.Grenade is not GrenadeItemBase baseGrenade)
+        {
+            DispatchDetonationRejected(preContext, GrenadeDetonationRejectionReason.InvalidGrenade);
+            return;
+        }
+
+        if (!preContext.Projectile.IsValidEntity)
+        {
+            DispatchDetonationRejected(preContext, GrenadeDetonationRejectionReason.InvalidProjectile);
             return;
         }
 
@@ -85,17 +97,32 @@ internal sealed class WeaponController(
 
         if (thrower == null || !thrower.IsValid)
         {
+            DispatchDetonationRejected(preContext, GrenadeDetonationRejectionReason.InvalidThrower);
             return;
         }
 
         preContext.Projectile.Despawn();
         baseGrenade.OnDetonate(thrower, preContext.Position);
 
-        var postContext = new GrenadeDetonatePostContext(
+        var postContext = new GrenadeDetonatedContext(
             baseGrenade,
             preContext.Projectile,
             preContext.Position);
         hooks.Dispatch(ref postContext);
+    }
+
+    private void DispatchDetonationRejected(
+        GrenadeDetonatingContext grenade,
+        GrenadeDetonationRejectionReason reason
+    )
+    {
+        var context = new GrenadeDetonationRejectedContext(
+            grenade.Grenade,
+            grenade.Projectile,
+            reason
+        );
+
+        hooks.Dispatch(ref context);
     }
 
     private void OnEntityTakeDamage(ref TakeDamageEntityPreContext hook)
@@ -126,7 +153,30 @@ internal sealed class WeaponController(
             _ => hook.Params.Info.Damage
         };
 
-        hook.Params.Info.Damage = damageModified;
+        var preContext = new WeaponDamageModifyingContext(
+            attacker,
+            victim,
+            activeWeapon,
+            baseDamage,
+            damageModified
+        );
+
+        if (!hooks.DispatchCancellable(ref preContext))
+        {
+            return;
+        }
+
+        hook.Params.Info.Damage = preContext.Damage;
+
+        var postContext = new WeaponDamageModifiedContext(
+            attacker,
+            victim,
+            activeWeapon,
+            baseDamage,
+            preContext.Damage
+        );
+
+        hooks.Dispatch(ref postContext);
     }
 
     private void OnClientKeyStateChanged(IOnClientKeyStateChangedEvent @event)
@@ -149,29 +199,71 @@ internal sealed class WeaponController(
 
         if (shopItem == null) return;
 
-        var reserveAmmo = weapon?.AttachedWeapon.ReserveAmmo[0];
-        var maxReserveAmmo = weapon?.Ammunition?.ReserveAmmo;
+        var reserveAmmo = weapon.AttachedWeapon.ReserveAmmo[0];
+        var maxReserveAmmo = weapon.Ammunition?.ReserveAmmo;
         var ammoPrice = shopItem.Price.Ammo;
 
         if (!ammoPrice.HasValue || !maxReserveAmmo.HasValue)
         {
+            DispatchAmmoPurchaseRejected(player, weapon, WeaponAmmoPurchaseRejectionReason.NotConfigured);
+            return;
+        }
+
+        var preContext = new WeaponAmmoPurchasingContext(player, weapon, ammoPrice.Value, 1);
+
+        if (!hooks.DispatchCancellable(ref preContext))
+        {
+            DispatchAmmoPurchaseRejected(player, weapon, WeaponAmmoPurchaseRejectionReason.Cancelled);
+            return;
+        }
+
+        if (preContext.Price < 0 || preContext.Amount <= 0)
+        {
+            DispatchAmmoPurchaseRejected(player, weapon, WeaponAmmoPurchaseRejectionReason.InvalidValues);
             return;
         }
 
         if (reserveAmmo >= maxReserveAmmo.Value)
         {
             SoundExt.PlayLocalSound(player, CancelSound, 1f);
+            DispatchAmmoPurchaseRejected(player, weapon, WeaponAmmoPurchaseRejectionReason.ReserveFull);
 
             return;
         }
 
-        if (economyApi.TrySpendMoney(player, ammoPrice.Value))
+        if (!economyApi.TrySpendMoney(player, preContext.Price))
         {
-            weapon?.AttachedWeapon.ReserveAmmo[0] += 1;
-            weapon?.AttachedWeapon.ReserveAmmoUpdated();
-
-            SoundExt.PlayLocalSound(player, BuySounds.GetRandomString(), 1f);
+            DispatchAmmoPurchaseRejected(player, weapon, WeaponAmmoPurchaseRejectionReason.PaymentRejected);
+            return;
         }
+
+        var newReserveAmmo = Math.Min(reserveAmmo + preContext.Amount, maxReserveAmmo.Value);
+        var addedAmmo = newReserveAmmo - reserveAmmo;
+
+        weapon.AttachedWeapon.ReserveAmmo[0] = newReserveAmmo;
+        weapon.AttachedWeapon.ReserveAmmoUpdated();
+
+        SoundExt.PlayLocalSound(player, BuySounds.GetRandomString(), 1f);
+
+        var postContext = new WeaponAmmoPurchasedContext(
+            player,
+            weapon,
+            preContext.Price,
+            addedAmmo,
+            newReserveAmmo
+        );
+
+        hooks.Dispatch(ref postContext);
+    }
+
+    private void DispatchAmmoPurchaseRejected(
+        IPlayer player,
+        IWeapon weapon,
+        WeaponAmmoPurchaseRejectionReason reason
+    )
+    {
+        var context = new WeaponAmmoPurchaseRejectedContext(player, weapon, reason);
+        hooks.Dispatch(ref context);
     }
 
     private HookResult OnBulletImpactPost(EventBulletImpact hook)
@@ -186,6 +278,15 @@ internal sealed class WeaponController(
 
         var impactPos = new Vector(hook.X, hook.Y, hook.Z);
         var attachedWeapon = activeWeapon.AttachedWeapon;
+
+        var preContext = new WeaponImpactProcessingContext(attacker, activeWeapon, impactPos);
+
+        if (!hooks.DispatchCancellable(ref preContext))
+        {
+            return HookResult.Continue;
+        }
+
+        impactPos = preContext.Position;
 
         if (activeWeapon.HasTraceParticle())
         {
@@ -203,6 +304,9 @@ internal sealed class WeaponController(
         {
             particleService.CreateParticle(activeWeapon.Particle.Impact, impactPos, MinParticleLifetime);
         }
+
+        var postContext = new WeaponImpactProcessedContext(attacker, activeWeapon, impactPos);
+        hooks.Dispatch(ref postContext);
 
         return HookResult.Continue;
     }

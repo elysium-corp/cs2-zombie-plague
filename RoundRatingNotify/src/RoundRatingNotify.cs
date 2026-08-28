@@ -38,7 +38,7 @@ internal sealed partial class RoundRatingNotify(ISwiftlyCore core) : Plugin<Roun
         _guidOnEventRoundEndPost = core.GameEvent.HookPost<EventRoundEnd>(OnEventRoundEnd);
         _guidOnEvEventPlayerHurtPost = core.GameEvent.HookPost<EventPlayerHurt>(OnEventPlayerHurt);
         
-        _zombiePlagueApi.Events.Post.PlayerInfectEvent += OnPlayerInfected;
+        _zombiePlagueApi.Events.Players.Infected.Hook(OnPlayerInfected);
     }
 
     protected override void OnUnload()
@@ -46,7 +46,7 @@ internal sealed partial class RoundRatingNotify(ISwiftlyCore core) : Plugin<Roun
         core.GameEvent.Unhook(_guidOnEventRoundEndPost);
         core.GameEvent.Unhook(_guidOnEvEventPlayerHurtPost);
         
-        _zombiePlagueApi.Events.Post.PlayerInfectEvent -= OnPlayerInfected;
+        _zombiePlagueApi.Events.Players.Infected.Unhook(OnPlayerInfected);
     }
 
     private HookResult OnEventPlayerHurt(EventPlayerHurt @event)
@@ -75,7 +75,7 @@ internal sealed partial class RoundRatingNotify(ISwiftlyCore core) : Plugin<Roun
         return HookResult.Continue;
     }
 
-    private void OnPlayerInfected(ref PlayerInfectPostContext context)
+    private void OnPlayerInfected(ref PlayerInfectedContext context)
     {
         var infector = context.Infector;
 

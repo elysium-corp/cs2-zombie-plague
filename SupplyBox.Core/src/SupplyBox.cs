@@ -64,8 +64,8 @@ internal sealed partial class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxMod
         _guidOnEventRoundEndPost = core.GameEvent.HookPost<EventRoundEnd>(OnRoundEnd);
         _guidOnEventCsPreRestartPost = core.GameEvent.HookPost<EventCsPreRestart>(OnGameRestart);
 
-        _events.Value.Post.PickUpEvent += OnSupplyBoxPickedUp;
-        ZombiePlagueApi.Events.Post.RoundStartEvent += OnRoundStarted;
+        _events.Value.Collected.Hook(OnSupplyBoxCollected);
+        ZombiePlagueApi.Events.Rounds.Started.Hook(OnRoundStarted);
 
         core.Event.OnMapLoad += OnMapLoad;
 
@@ -81,8 +81,8 @@ internal sealed partial class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxMod
         Core.GameEvent.Unhook(_guidOnEventRoundEndPost);
         Core.GameEvent.Unhook(_guidOnEventCsPreRestartPost);
 
-        ZombiePlagueApi.Events.Post.RoundStartEvent -= OnRoundStarted;
-        _events.Value.Post.PickUpEvent -= OnSupplyBoxPickedUp;
+        ZombiePlagueApi.Events.Rounds.Started.Unhook(OnRoundStarted);
+        _events.Value.Collected.Unhook(OnSupplyBoxCollected);
 
         core.Event.OnMapLoad -= OnMapLoad;
     }
@@ -115,7 +115,7 @@ internal sealed partial class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxMod
         _menuService.Value.ShowMainMenu(player);
     }
 
-    private void OnSupplyBoxPickedUp(ref SupplyBoxPickUpPostContext context)
+    private void OnSupplyBoxCollected(ref SupplyBoxCollectedContext context)
     {
         var supplyBoxIndex = context.SupplyBox.Index;
         var box = _droppedSupplyBoxes.Find(box => box.Index == supplyBoxIndex);
@@ -126,7 +126,7 @@ internal sealed partial class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxMod
         }
     }
 
-    private void OnRoundStarted(ref RoundStartPostContext context)
+    private void OnRoundStarted(ref RoundStartedContext context)
     {
         CreateRespawnTimer(context.Round);
     }
@@ -140,8 +140,17 @@ internal sealed partial class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxMod
     {
         CreateRespawnTimer(round);
 
-        if (!CanDrop(round) || !IsDropSuccessful())
+        var rejectionReason = GetSpawnRejectionReason(round);
+
+        if (rejectionReason is not null)
         {
+            DispatchSpawnRejected(rejectionReason.Value);
+            return;
+        }
+
+        if (!IsDropSuccessful())
+        {
+            DispatchSpawnRejected(SupplyBoxSpawnRejectionReason.ChanceMissed);
             return;
         }
 
@@ -162,11 +171,12 @@ internal sealed partial class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxMod
 
     private void SpawnSupplyBox()
     {
-        var preContext = new SupplyBoxDropPreContext(
+        var preContext = new SupplyBoxSpawningContext(
             _droppedSupplyBoxes.Cast<ISupplyBoxEntity>().ToArray());
 
         if (!_hooks.Value.DispatchCancellable(ref preContext))
         {
+            DispatchSpawnRejected(SupplyBoxSpawnRejectionReason.Cancelled);
             return;
         }
 
@@ -174,12 +184,13 @@ internal sealed partial class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxMod
 
         if (supplyBox == null)
         {
+            DispatchSpawnRejected(SupplyBoxSpawnRejectionReason.SpawnPointUnavailable);
             return;
         }
 
         _droppedSupplyBoxes.Add(supplyBox);
 
-        var postContext = new SupplyBoxDropPostContext(supplyBox);
+        var postContext = new SupplyBoxSpawnedContext(supplyBox);
         _hooks.Value.Dispatch(ref postContext);
     }
 
@@ -188,13 +199,21 @@ internal sealed partial class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxMod
         return Numeric.Random(0, 100) <= _config.Get().ChanceDrop;
     }
 
-    private bool CanDrop(IRound round)
+    private SupplyBoxSpawnRejectionReason? GetSpawnRejectionReason(IRound round)
     {
         if (ZombiePlagueApi.IsSurvivorRound(round) || ZombiePlagueApi.IsNemesisRound(round))
         {
-            return false;
+            return SupplyBoxSpawnRejectionReason.RoundNotSupported;
         }
 
-        return _droppedSupplyBoxes.Count < _config.Get().MaxCountTogether;
+        return _droppedSupplyBoxes.Count >= _config.Get().MaxCountTogether
+            ? SupplyBoxSpawnRejectionReason.ActiveLimitReached
+            : null;
+    }
+
+    private void DispatchSpawnRejected(SupplyBoxSpawnRejectionReason reason)
+    {
+        var context = new SupplyBoxSpawnRejectedContext(reason);
+        _hooks.Value.Dispatch(ref context);
     }
 }

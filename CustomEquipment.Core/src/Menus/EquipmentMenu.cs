@@ -123,12 +123,17 @@ internal sealed class EquipmentMenu(
 
     private void BuyItem(IPlayer player, IShopItem item)
     {
-        var preContext = new ItemBuyPreContext(player, item);
+        var preContext = new ItemPurchasingContext(player, item);
 
-        if (!hooks.DispatchCancellable(ref preContext) ||
-            !preContext.Player.IsValid ||
-            !preContext.Player.IsAlive)
+        if (!hooks.DispatchCancellable(ref preContext))
         {
+            DispatchPurchaseRejected(preContext.Player, preContext.Item, ItemPurchaseRejectionReason.Cancelled);
+            return;
+        }
+
+        if (!preContext.Player.IsValid || !preContext.Player.IsAlive)
+        {
+            DispatchPurchaseRejected(preContext.Player, preContext.Item, ItemPurchaseRejectionReason.InvalidPlayer);
             return;
         }
 
@@ -138,23 +143,45 @@ internal sealed class EquipmentMenu(
         if (!equipmentService.CanUseItem(preparedPlayer, preparedItem.InternalName))
         {
             preparedPlayer.SendChat("Невозможно купить для текущей роли!");
+            DispatchPurchaseRejected(preparedPlayer, preparedItem, ItemPurchaseRejectionReason.CannotUse);
             return;
         }
 
-        if (!economyApi.TrySpendMoney(preparedPlayer, preparedItem.Price.Item))
+        var price = preparedItem.Price.Item;
+
+        if (!economyApi.TrySpendMoney(preparedPlayer, price))
         {
             preparedPlayer.SendChat("Недостаточно денег!");
+            DispatchPurchaseRejected(preparedPlayer, preparedItem, ItemPurchaseRejectionReason.PaymentRejected);
             return;
         }
+
+        var paymentContext = new ItemPaymentCommittedContext(preparedPlayer, preparedItem, price);
+        hooks.Dispatch(ref paymentContext);
 
         if (!equipmentService.TryGiveItem(preparedPlayer, preparedItem.InternalName))
         {
-            economyApi.GiveMoney(preparedPlayer, preparedItem.Price.Item);
+            economyApi.GiveMoney(preparedPlayer, price);
+
+            var refundContext = new ItemPaymentRefundedContext(preparedPlayer, preparedItem, price);
+            hooks.Dispatch(ref refundContext);
+
+            DispatchPurchaseRejected(preparedPlayer, preparedItem, ItemPurchaseRejectionReason.GrantRejected);
             return;
         }
 
-        var postContext = new ItemBuyPostContext(preparedPlayer, preparedItem);
+        var postContext = new ItemPurchasedContext(preparedPlayer, preparedItem);
         hooks.Dispatch(ref postContext);
+    }
+
+    private void DispatchPurchaseRejected(
+        IPlayer player,
+        IShopItem item,
+        ItemPurchaseRejectionReason reason
+    )
+    {
+        var context = new ItemPurchaseRejectedContext(player, item, reason);
+        hooks.Dispatch(ref context);
     }
 
     private static Category WeaponTypeToCategory(WeaponType weaponType, int index)

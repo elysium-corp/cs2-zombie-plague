@@ -108,6 +108,9 @@ public sealed class SupplyBoxEntity : ISupplyBoxEntity
         StopSound();
         _dropThinker?.Cancel();
         _entityParachute?.Despawn();
+
+        var context = new SupplyBoxLandedContext(this);
+        _hooks.Dispatch(ref context);
     }
 
     private void PickUpThinker()
@@ -138,25 +141,47 @@ public sealed class SupplyBoxEntity : ISupplyBoxEntity
 
     private bool TryPickUp(IPlayer player)
     {
-        var preContext = new SupplyBoxPickUpPreContext(player, this);
+        var preContext = new SupplyBoxCollectingContext(player, this);
 
-        if (!_hooks.DispatchCancellable(ref preContext) ||
-            !ReferenceEquals(preContext.SupplyBox, this) ||
-            !CanPickUp(preContext.Player))
+        if (!_hooks.DispatchCancellable(ref preContext))
         {
+            DispatchCollectionRejected(player, SupplyBoxCollectionRejectionReason.Cancelled);
             return false;
         }
 
-        Destroy();
+        if (!ReferenceEquals(preContext.SupplyBox, this))
+        {
+            DispatchCollectionRejected(preContext.Player, SupplyBoxCollectionRejectionReason.InvalidSupplyBox);
+            return false;
+        }
 
-        var postContext = new SupplyBoxPickUpPostContext(preContext.Player, this);
+        if (!CanPickUp(preContext.Player))
+        {
+            DispatchCollectionRejected(preContext.Player, SupplyBoxCollectionRejectionReason.InvalidPlayer);
+            return false;
+        }
+
+        if (!Destroy())
+        {
+            DispatchCollectionRejected(preContext.Player, SupplyBoxCollectionRejectionReason.DestructionCancelled);
+            return false;
+        }
+
+        var postContext = new SupplyBoxCollectedContext(preContext.Player, this);
         _hooks.Dispatch(ref postContext);
 
         return true;
     }
 
-    private void Destroy()
+    private bool Destroy()
     {
+        var preContext = new SupplyBoxDestroyingContext(this);
+
+        if (!_hooks.DispatchCancellable(ref preContext))
+        {
+            return false;
+        }
+
         if (Entity != null && Entity.IsValidEntity)
         {
             Entity.Despawn();
@@ -169,6 +194,20 @@ public sealed class SupplyBoxEntity : ISupplyBoxEntity
 
         _dropThinker?.Cancel();
         _pickUpThinker?.Cancel();
+
+        var postContext = new SupplyBoxDestroyedContext(this);
+        _hooks.Dispatch(ref postContext);
+
+        return true;
+    }
+
+    private void DispatchCollectionRejected(
+        IPlayer player,
+        SupplyBoxCollectionRejectionReason reason
+    )
+    {
+        var context = new SupplyBoxCollectionRejectedContext(player, this, reason);
+        _hooks.Dispatch(ref context);
     }
 
     private static QAngle ToQAngles(Vector rotation)
