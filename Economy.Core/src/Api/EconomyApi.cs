@@ -1,11 +1,14 @@
 ﻿using Economy.Api;
+using Economy.Api.Events;
 using Economy.Core.Services;
 using SwiftlyS2.Shared.Players;
 
 namespace Economy.Core.Api;
 
-internal sealed class EconomyApi(IEconomyService economyService) : IEconomyApi
+internal sealed class EconomyApi(IEconomyService economyService, IEconomyEvents events) : IEconomyApi
 {
+    public IEconomyEvents Events => events;
+
     public int GetBalance(IPlayer player)
     {
         return economyService.GetBalance(player);

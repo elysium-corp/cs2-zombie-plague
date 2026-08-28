@@ -5,21 +5,58 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
         <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+
         <AssemblyName>MovementUnlocker</AssemblyName>
-        <OutputPath>$(MSBuildThisFileDirectory)build/</OutputPath>
-        <PublishDir>$(OutputPath)publish/MovementUnlocker</PublishDir>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" ExcludeAssets="runtime" PrivateAssets="all"/>
-        <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.0" ExcludeAssets="runtime" PrivateAssets="all"/>
-        <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.0" ExcludeAssets="runtime" PrivateAssets="all"/>
-        <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.0" ExcludeAssets="runtime" PrivateAssets="all"/>
-        <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.0" ExcludeAssets="runtime" PrivateAssets="all"/>
-        <PackageReference Include="SwiftlyS2.CS2" Version="1.4.6-beta.8" ExcludeAssets="runtime" PrivateAssets="all">
-          <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        <PackageReference
+                Include="Microsoft.Extensions.DependencyInjection"
+                Version="10.0.0"
+                ExcludeAssets="runtime"
+                PrivateAssets="all" />
+
+        <PackageReference
+                Include="Microsoft.Extensions.Configuration"
+                Version="10.0.0"
+                ExcludeAssets="runtime"
+                PrivateAssets="all" />
+
+        <PackageReference
+                Include="Microsoft.Extensions.Configuration.Json"
+                Version="10.0.0"
+                ExcludeAssets="runtime"
+                PrivateAssets="all" />
+
+        <PackageReference
+                Include="Microsoft.Extensions.Configuration.Binder"
+                Version="10.0.0"
+                ExcludeAssets="runtime"
+                PrivateAssets="all" />
+
+        <PackageReference
+                Include="Microsoft.Extensions.Logging"
+                Version="10.0.0"
+                ExcludeAssets="runtime"
+                PrivateAssets="all" />
+
+        <PackageReference
+                Include="SwiftlyS2.CS2"
+                Version="1.4.6-beta.8"
+                ExcludeAssets="runtime"
+                PrivateAssets="all">
+
+            <IncludeAssets>
+                compile;
+                build;
+                native;
+                contentfiles;
+                analyzers;
+                buildtransitive
+            </IncludeAssets>
         </PackageReference>
     </ItemGroup>
 
@@ -30,15 +67,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Compile Remove="examples\**\*.cs"/>
+        <Compile Remove="examples\**\*.cs" />
     </ItemGroup>
 
-    <Target Name="CreateZip" AfterTargets="Publish">
-        <ItemGroup>
-            <PublishFiles Include="$(PublishDir)**\*.*"/>
-        </ItemGroup>
-
-        <ZipDirectory SourceDirectory="$(PublishDir)../" DestinationFile="$(OutputPath)../$(AssemblyName).zip" Overwrite="true"/>
-    </Target>
-
-</Project> 
+</Project>

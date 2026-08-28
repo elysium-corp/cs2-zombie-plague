@@ -53,6 +53,7 @@
         <ProjectReference Include="..\Common.Di\Common.Di.csproj">
             <Private Condition="'$(Configuration)' == 'Migrations'">true</Private>
         </ProjectReference>
+        <ProjectReference Include="..\Common.Hooks\Common.Hooks.csproj" />
 
         <ProjectReference Include="..\Economy.Api\Economy.Api.csproj">
             <Private Condition="'$(Configuration)' == 'Migrations'">true</Private>

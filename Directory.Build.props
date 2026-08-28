@@ -1,25 +1,60 @@
 ﻿<Project>
     <PropertyGroup>
+        <!-- Тип проекта -->
         <IsCoreProject>$([System.Text.RegularExpressions.Regex]::IsMatch('$(MSBuildProjectName)', '(\.Core|Core)$'))</IsCoreProject>
         <IsApiProject>$([System.Text.RegularExpressions.Regex]::IsMatch('$(MSBuildProjectName)', '(\.Api|Api)$'))</IsApiProject>
         <IsCommonProject>$([System.Text.RegularExpressions.Regex]::IsMatch('$(MSBuildProjectName)', '^Common\.'))</IsCommonProject>
 
-        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-        <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+        <!--
+            Все промежуточные результаты .NET хранятся централизованно.
 
+            artifacts/
+              bin/
+              obj/
+              publish/
+              package/
+        -->
+        <UseArtifactsOutput>true</UseArtifactsOutput>
+        <ArtifactsPath>$(MSBuildThisFileDirectory)artifacts</ArtifactsPath>
+
+        <!--
+            По умолчанию ProjectReference не копируется рядом с проектом.
+
+            Готовая runtime-структура формируется централизованно
+            через scripts/package.ps1.
+        -->
         <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+
         <GenerateDependencyFile>true</GenerateDependencyFile>
         <GenerateDocumentationFile>false</GenerateDocumentationFile>
+
+        <!--
+            PDB полезны при локальной разработке.
+            В release ZIP они не попадут — package.ps1 их удаляет.
+        -->
         <DebugSymbols>true</DebugSymbols>
         <DebugType>portable</DebugType>
     </PropertyGroup>
 
-    <!-- Папка output создаётся только для Core -->
-    <PropertyGroup Condition="'$(IsCoreProject)' == 'True'">
-        <OutputPath>$(MSBuildThisFileDirectory)output\$(MSBuildProjectName)\</OutputPath>
-        <OutDir>$(OutputPath)</OutDir>
+    <PropertyGroup Condition="'$(IsApiProject)' == 'True' or '$(MSBuildProjectName)' == 'Common.Hooks'">
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <NoWarn>$(NoWarn);1591</NoWarn>
     </PropertyGroup>
 
+    <!--
+        Core-проектам нужны runtime NuGet-зависимости в build output,
+        потому что из этого output затем собирается runtime-пакет.
+    -->
+    <PropertyGroup Condition="'$(IsCoreProject)' == 'True'">
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    </PropertyGroup>
+
+    <!--
+        ProjectReference не должен автоматически разбрасывать
+        Common/Api DLL по всем output-папкам.
+
+        Правильная структура создаётся package.ps1.
+    -->
     <ItemDefinitionGroup>
         <ProjectReference>
             <Private>false</Private>

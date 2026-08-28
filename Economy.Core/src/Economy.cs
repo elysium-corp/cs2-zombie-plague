@@ -1,6 +1,7 @@
 using Common.Database.Migrator;
 using Common.Di;
 using Economy.Api;
+using Economy.Api.Events;
 using Economy.Core.Api;
 using Economy.Core.Data.Configs;
 using Economy.Core.Database;
@@ -35,6 +36,7 @@ internal sealed partial class Economy(ISwiftlyCore core) : Plugin<EconomyModule>
     private IZombiePlagueApi _zombiePlagueApi = null!;
     
     private readonly Lazy<IEconomyService> _economyServiceLazy = GetRequiredServiceLazy<IEconomyService>();
+    private readonly Lazy<IEconomyEvents> _economyEvents = GetRequiredServiceLazy<IEconomyEvents>();
     private readonly Lazy<IOptions<EconomyConfig>> _config = GetRequiredServiceLazy<IOptions<EconomyConfig>>();
     private readonly Lazy<PlayerAccountService> _playerAccountService = GetRequiredServiceLazy<PlayerAccountService>();
     private readonly Lazy<DatabaseMigrator<EconomyDbContext>> _databaseMigrator = GetRequiredServiceLazy<DatabaseMigrator<EconomyDbContext>>();
@@ -46,7 +48,7 @@ internal sealed partial class Economy(ISwiftlyCore core) : Plugin<EconomyModule>
 
     protected override void OnConfigureSharedInterfaces(IInterfaceManager interfaceManager)
     {
-        var mSServiceApi = new EconomyApi(_economyServiceLazy.Value);
+        var mSServiceApi = new EconomyApi(_economyServiceLazy.Value, _economyEvents.Value);
         interfaceManager.AddSharedInterface<IEconomyApi, EconomyApi>(IEconomyApi.SharedApiKey, mSServiceApi);
     }
 
@@ -62,7 +64,7 @@ internal sealed partial class Economy(ISwiftlyCore core) : Plugin<EconomyModule>
         _guidOnPlayerPlayerDisconnectPre = Core.GameEvent.HookPre<EventPlayerDisconnect>(OnPlayerDisconnect);
         _roundPoststartHook = Core.GameEvent.HookPost<EventRoundPoststart>(OnRoundPostStart);
 
-        _zombiePlagueApi.Events.Post.PlayerInfectEvent += OnPlayerInfected;
+        _zombiePlagueApi.Events.Players.Infected.Hook(OnPlayerInfected);
     }
 
     protected override void OnUnload()
@@ -72,12 +74,12 @@ internal sealed partial class Economy(ISwiftlyCore core) : Plugin<EconomyModule>
         Core.GameEvent.Unhook(_guidOnPlayerPlayerDisconnectPre);
         Core.GameEvent.Unhook(_roundPoststartHook);
 
-        _zombiePlagueApi.Events.Post.PlayerInfectEvent -= OnPlayerInfected;
+        _zombiePlagueApi.Events.Players.Infected.Unhook(OnPlayerInfected);
 
         _playerAccountService.Value.SaveAllAndWait();
     }
 
-    private void OnPlayerInfected(ref PlayerInfectPostContext context)
+    private void OnPlayerInfected(ref PlayerInfectedContext context)
     {
         var infector = context.Infector;
 

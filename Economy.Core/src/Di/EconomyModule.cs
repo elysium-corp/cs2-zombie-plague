@@ -2,6 +2,10 @@
 using Common.Database.Storages;
 using Common.Database.Utils;
 using Common.Di;
+using Common.Hooks;
+using Common.Hooks.Abstractions;
+using Economy.Api.Events;
+using Economy.Core.Api;
 using Microsoft.Extensions.DependencyInjection;
 using Economy.Core.Data.Configs;
 using Economy.Core.Data.Store;
@@ -39,6 +43,13 @@ internal sealed class EconomyModule(ISwiftlyCore core) : BaseModule(core)
 
     private void BuildSingletons(ServiceCollection service)
     {
+        AddSingleton<HookService>(service);
+        AddSingleton<IHookSubscriber>(service, provider => provider.GetRequiredService<HookService>());
+        AddSingleton<IHookPublisher>(service, provider => provider.GetRequiredService<HookService>());
+        AddSingleton<EconomyTransactionEvents>(service);
+        AddSingleton<EconomyAccountEvents>(service);
+        AddSingleton<IEconomyEvents, EconomyEvents>(service);
+
         AddSingleton<IAccountPersistenceService, AccountPersistenceService>(service);
         AddSingleton<IEconomyService, EconomyService>(service);
         AddSingleton<PlayerSessionStore<PlayerAccountState>>(service);

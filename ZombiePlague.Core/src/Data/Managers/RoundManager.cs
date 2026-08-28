@@ -50,7 +50,21 @@ internal sealed class RoundManager(
 
     public void Prepare()
     {
+        var preContext = new RoundPreparingContext();
+
+        hooks.Dispatch(ref preContext);
+
+        if (preContext.IsCancelled)
+        {
+            return;
+        }
+
         End();
+
+        if (CurrentRound is not null)
+        {
+            return;
+        }
 
         if (IsWarmupActive())
         {
@@ -75,12 +89,16 @@ internal sealed class RoundManager(
             periodSeconds: PeriodSecondsPreparationTask,
             task: OnPrepareTask
         );
+
+        var postContext = new RoundPreparedContext(_remainingPreparationTime);
+        hooks.Dispatch(ref postContext);
     }
 
     public void Start()
     {
         if (_preparationTimer is null)
         {
+            DispatchStartRejected(null, RoundStartRejectionReason.NotPreparing);
             return;
         }
 
@@ -93,11 +111,13 @@ internal sealed class RoundManager(
     {
         if (_preparationTimer is null)
         {
+            DispatchStartRejected(round.Id, RoundStartRejectionReason.NotPreparing);
             return RoundStartResult.NotPreparing;
         }
 
         if (!round.CanStart())
         {
+            DispatchStartRejected(round.Id, RoundStartRejectionReason.CannotStart);
             return RoundStartResult.CannotStart;
         }
 
@@ -108,6 +128,7 @@ internal sealed class RoundManager(
     {
         if (!IsPreparing)
         {
+            DispatchStartRejected(null, RoundStartRejectionReason.NotPreparing);
             return RoundStartResult.NotPreparing;
         }
 
@@ -118,14 +139,24 @@ internal sealed class RoundManager(
 
     public void End()
     {
-        StopPreparation();
-
         var round = CurrentRound;
 
         if (round is null)
         {
+            StopPreparation();
             return;
         }
+
+        var preContext = new RoundEndingContext(round);
+
+        hooks.Dispatch(ref preContext);
+
+        if (preContext.IsCancelled)
+        {
+            return;
+        }
+
+        StopPreparation();
 
         try
         {
@@ -135,16 +166,50 @@ internal sealed class RoundManager(
         {
             CurrentRound = null;
         }
+
+        var postContext = new RoundEndedContext(round);
+        hooks.Dispatch(ref postContext);
     }
 
     public void SelectNextRound(RoundBase round)
     {
+        var preContext = new RoundSchedulingContext(round);
+
+        hooks.Dispatch(ref preContext);
+
+        if (preContext.IsCancelled)
+        {
+            return;
+        }
+
         NextRound = round;
+
+        var postContext = new RoundScheduledContext(round);
+        hooks.Dispatch(ref postContext);
     }
 
     public void ClearNextRound()
     {
+        var round = NextRound;
+
+        if (round is null)
+        {
+            return;
+        }
+
+        var preContext = new RoundScheduleClearingContext(round);
+
+        hooks.Dispatch(ref preContext);
+
+        if (preContext.IsCancelled)
+        {
+            return;
+        }
+
         NextRound = null;
+
+        var postContext = new RoundScheduleClearedContext(round);
+        hooks.Dispatch(ref postContext);
     }
 
     public HookResult OnPlayerConnected(EventPlayerConnectFull @event)
@@ -283,7 +348,7 @@ internal sealed class RoundManager(
     {
         var originalRound = round;
 
-        var preContext = new RoundStartPreContext(originalRound.Id);
+        var preContext = new RoundStartingContext(originalRound.Id);
 
         hooks.Dispatch(ref preContext);
 
@@ -292,6 +357,8 @@ internal sealed class RoundManager(
             StopPreparation();
 
             NextRound = null;
+
+            DispatchStartRejected(originalRound.Id, RoundStartRejectionReason.Cancelled);
 
             return RoundStartResult.Cancelled;
         }
@@ -312,10 +379,12 @@ internal sealed class RoundManager(
         {
             CurrentRound = null;
 
+            DispatchStartRejected(round.Id, RoundStartRejectionReason.CannotStart);
+
             return RoundStartResult.CannotStart;
         }
 
-        var postContext = new RoundStartPostContext(startedRound);
+        var postContext = new RoundStartedContext(startedRound);
 
         hooks.Dispatch(ref postContext);
 
@@ -407,9 +476,12 @@ internal sealed class RoundManager(
                 return true;
             }
         }
-        catch
+        catch (Exception exception)
         {
             CurrentRound = null;
+
+            var context = new RoundStartFailedContext(round, exception);
+            hooks.Dispatch(ref context);
 
             throw;
         }
@@ -417,6 +489,12 @@ internal sealed class RoundManager(
         CurrentRound = null;
 
         return false;
+    }
+
+    private void DispatchStartRejected(string? roundId, RoundStartRejectionReason reason)
+    {
+        var context = new RoundStartRejectedContext(roundId, reason);
+        hooks.Dispatch(ref context);
     }
 
     private void PlayCountdownSound()

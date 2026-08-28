@@ -201,6 +201,27 @@ Feature.Core/
     └── translations/
 ```
 
+## События модулей
+
+Публичные события используют единый синхронный механизм `Common.Hooks` и доменную навигацию без `Pre`/`Post`-веток, например `Events.Players.Infecting`, `Events.Items.Purchased` и `Events.Transactions.Committed`.
+
+Полный [каталог событий](docs/events.md) содержит точку вызова каждого события, ожидаемую частоту, допустимую нагрузку обработчика и оценку риска для игрового сервера.
+
+Документация событий хранится рядом с контрактами в XML-комментариях. Поля `Когда`, `Частота`, `Нагрузка`, `Риск` и `Поток` обязательны: генератор и CI отклонят новое или изменённое событие без полного описания.
+
+```bash
+# Обновить Markdown и машиночитаемый каталог
+dotnet run --project tools/EventDocsGenerator/EventDocsGenerator.csproj -- generate
+
+# Проверить, что сгенерированные файлы актуальны
+dotnet run --project tools/EventDocsGenerator/EventDocsGenerator.csproj -- check
+
+# Собрать локальный DocFX-сайт; добавьте --serve для предпросмотра
+./docs/build.sh
+```
+
+Готовый сайт создаётся в `docs/_site`, а структурированный каталог — в `docs/generated/events.json`. В CI оба формата публикуются как artifact; после успешного push в `develop` JSON-каталог может автоматически отправляться в модуль `ElysiumDocumentation` для Flute CMS.
+
 ## Сборка
 
 ### Требования

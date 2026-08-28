@@ -25,9 +25,9 @@ env:
 
 jobs:
   build:
-    name: Build .NET 10 solution
+    name: Build, test and document .NET 10 solution
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
 
     steps:
       - name: Checkout repository
@@ -50,6 +50,27 @@ jobs:
       - name: Run tests
         run: dotnet test CS2ZombiePlague.sln --configuration Release --no-build --no-restore
 
+      - name: Verify event documentation
+        run: dotnet run --project tools/EventDocsGenerator/EventDocsGenerator.csproj --configuration Release -- check
+
+      - name: Restore documentation tools
+        run: dotnet tool restore
+
+      - name: Build DocFX site
+        run: dotnet docfx docfx.json
+
+      - name: Create Flute documentation package
+        shell: bash
+        run: |
+          branch="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
+          dotnet run --project tools/EventDocsGenerator/EventDocsGenerator.csproj --configuration Release -- package \
+            --output artifacts/documentation.json \
+            --repository "$GITHUB_REPOSITORY" \
+            --branch "$branch" \
+            --commit "$GITHUB_SHA" \
+            --run-id "$GITHUB_RUN_ID" \
+            --source-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/tree/$GITHUB_SHA"
+
       - name: Upload plugin artifacts
         uses: actions/upload-artifact@v7
         with:
@@ -58,3 +79,39 @@ jobs:
           if-no-files-found: error
           retention-days: 14
           compression-level: 6
+
+      - name: Upload documentation artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: documentation-${{ github.sha }}
+          path: |
+            docs/_site/**
+            artifacts/documentation.json
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 6
+
+      - name: Publish documentation to Flute CMS
+        if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+        shell: bash
+        env:
+          FLUTE_DOCUMENTATION_URL: ${{ secrets.FLUTE_DOCUMENTATION_URL }}
+          FLUTE_DOCUMENTATION_TOKEN: ${{ secrets.FLUTE_DOCUMENTATION_TOKEN }}
+        run: |
+          if [[ -z "$FLUTE_DOCUMENTATION_URL" || -z "$FLUTE_DOCUMENTATION_TOKEN" ]]; then
+            echo "::notice::Flute documentation publishing is not configured; the CI artifact is still available."
+            exit 0
+          fi
+
+          checksum="$(sha256sum artifacts/documentation.json | cut -d ' ' -f 1)"
+          curl --fail-with-body --silent --show-error \
+            --retry 3 --retry-all-errors \
+            --retry-delay 2 \
+            --connect-timeout 10 \
+            --max-time 60 \
+            --request POST "$FLUTE_DOCUMENTATION_URL" \
+            --header "Authorization: Bearer $FLUTE_DOCUMENTATION_TOKEN" \
+            --header "Accept: application/json" \
+            --header "Content-Type: application/json" \
+            --header "X-Documentation-SHA256: $checksum" \
+            --data-binary @artifacts/documentation.json

@@ -1,5 +1,6 @@
 namespace Common.Hooks.Abstractions;
 
+/// <summary>Публикует типизированные hook-контексты.</summary>
 public interface IHookPublisher
 {
     /// <summary>

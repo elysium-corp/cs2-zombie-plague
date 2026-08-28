@@ -66,7 +66,7 @@ internal sealed class PlayerManager(
             return false;
         }
 
-        var preContext = new PlayerInfectPreContext(player, infector);
+        var preContext = new PlayerInfectingContext(player, infector);
 
         hooks.Dispatch(ref preContext);
 
@@ -94,7 +94,7 @@ internal sealed class PlayerManager(
             preContext.Player
         );
 
-        var postContext = new PlayerInfectPostContext(
+        var postContext = new PlayerInfectedContext(
             preContext.Player,
             preContext.Infector
         );
@@ -111,12 +111,24 @@ internal sealed class PlayerManager(
             return false;
         }
 
-        if (!humanController.TryCreate(player, out var human))
+        var preContext = new PlayerDisinfectingContext(player);
+
+        hooks.Dispatch(ref preContext);
+
+        if (preContext.IsCancelled || !preContext.Player.IsValid || !IsZombie(preContext.Player))
+        {
+            return false;
+        }
+
+        if (!humanController.TryCreate(preContext.Player, out var human))
         {
             return false;
         }
 
         AddOrReplaceRole(human);
+
+        var postContext = new PlayerDisinfectedContext(preContext.Player);
+        hooks.Dispatch(ref postContext);
         
         return true;
     }
@@ -128,12 +140,25 @@ internal sealed class PlayerManager(
             return false;
         }
 
-        if (!humanController.TryCreate(player, out var human))
+        var preContext = new PlayerHumanizingContext(player);
+
+        hooks.Dispatch(ref preContext);
+
+        if (preContext.IsCancelled ||
+            (!preContext.Player.IsValid && !preContext.Player.IsFakeClient))
+        {
+            return false;
+        }
+
+        if (!humanController.TryCreate(preContext.Player, out var human))
         {
             return false;
         }
 
         AddOrReplaceRole(human);
+
+        var postContext = new PlayerHumanizedContext(preContext.Player);
+        hooks.Dispatch(ref postContext);
 
         return true;
     }
@@ -147,7 +172,16 @@ internal sealed class PlayerManager(
             return false;
         }
 
-        nemesis = zombieController.CreateNemesis(player);
+        var preContext = new PlayerBecomingNemesisContext(player);
+
+        hooks.Dispatch(ref preContext);
+
+        if (preContext.IsCancelled || !preContext.Player.IsValid || !preContext.Player.IsAlive)
+        {
+            return false;
+        }
+
+        nemesis = zombieController.CreateNemesis(preContext.Player);
 
         if (nemesis is null)
         {
@@ -155,6 +189,9 @@ internal sealed class PlayerManager(
         }
 
         AddOrReplaceRole(nemesis);
+
+        var postContext = new PlayerBecameNemesisContext(preContext.Player);
+        hooks.Dispatch(ref postContext);
         
         return true;
     }
@@ -168,7 +205,16 @@ internal sealed class PlayerManager(
             return false;
         }
 
-        if (!humanController.TryCreateSurvivor(player, out var human))
+        var preContext = new PlayerBecomingSurvivorContext(player);
+
+        hooks.Dispatch(ref preContext);
+
+        if (preContext.IsCancelled || !preContext.Player.IsValid || !preContext.Player.IsAlive)
+        {
+            return false;
+        }
+
+        if (!humanController.TryCreateSurvivor(preContext.Player, out var human))
         {
             return false;
         }
@@ -176,6 +222,9 @@ internal sealed class PlayerManager(
         AddOrReplaceRole(human);
 
         survivor = human;
+
+        var postContext = new PlayerBecameSurvivorContext(preContext.Player);
+        hooks.Dispatch(ref postContext);
 
         return true;
     }
@@ -187,11 +236,26 @@ internal sealed class PlayerManager(
             return false;
         }
 
+        var preContext = new PlayerRespawningContext(player);
+
+        hooks.Dispatch(ref preContext);
+
+        if (preContext.IsCancelled ||
+            !preContext.Player.IsValid ||
+            preContext.Player.IsAlive ||
+            !_players.TryGetValue(preContext.Player, out role))
+        {
+            return false;
+        }
+
         role.Unbind();
 
         MoveToRoleTeam(role);
 
-        player.Respawn();
+        preContext.Player.Respawn();
+
+        var postContext = new PlayerRespawnedContext(preContext.Player);
+        hooks.Dispatch(ref postContext);
 
         return true;
     }
@@ -203,10 +267,25 @@ internal sealed class PlayerManager(
             return false;
         }
 
+        var preContext = new PlayerApplyingRoleContext(player);
+
+        hooks.Dispatch(ref preContext);
+
+        if (preContext.IsCancelled ||
+            !preContext.Player.IsValid ||
+            !preContext.Player.IsAlive ||
+            !_players.TryGetValue(preContext.Player, out role))
+        {
+            return false;
+        }
+
         role.Unbind();
 
         MoveToRoleTeam(role);
         role.Bind();
+
+        var postContext = new PlayerRoleAppliedContext(preContext.Player);
+        hooks.Dispatch(ref postContext);
 
         return true;
     }
@@ -218,7 +297,19 @@ internal sealed class PlayerManager(
             return false;
         }
 
+        var preContext = new PlayerDeactivatingRoleContext(player);
+
+        hooks.Dispatch(ref preContext);
+
+        if (preContext.IsCancelled || !_players.TryGetValue(preContext.Player, out role))
+        {
+            return false;
+        }
+
         role.Unbind();
+
+        var postContext = new PlayerRoleDeactivatedContext(preContext.Player);
+        hooks.Dispatch(ref postContext);
 
         return true;
     }

@@ -5,6 +5,7 @@
 /build/
 /output/
 /publish/
+/dist/
 /CS2ZombiePlague.zip
 
 # .NET / MSBuild output
@@ -12,6 +13,8 @@
 **/[Oo]bj/
 /artifacts/
 /.artifacts/
+/api/
+/docs/_site/
 [Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/
@@ -133,3 +136,6 @@ _NCrunch_*
 .NCrunch_*
 .*crunch*.local.xml
 nCrunchTemp_*
+
+# Generated output from the legacy MovementUnlocker project
+/MovementUnlocker/build/

@@ -2,14 +2,21 @@ using Common.Hooks.Abstractions;
 
 namespace Common.Hooks;
 
+/// <summary>
+/// Потокобезопасный синхронный dispatcher контекстов с приоритетами и snapshot-семантикой.
+/// </summary>
+/// <param name="exceptionHandler">Необязательный обработчик исключений подписчиков.</param>
 public sealed class HookService(Action<Exception, Type, Delegate>? exceptionHandler = null) : IHookSubscriber, IHookPublisher
 {
     private readonly Lock _sync = new();
 
-    private readonly Dictionary<Type, List<HookRegistration>> _hooks = [];
+    // Массивы никогда не изменяются после публикации в словаре. Dispatch получает
+    // стабильный snapshot без выделения памяти на каждом игровом событии.
+    private readonly Dictionary<Type, HookRegistration[]> _hooks = [];
 
     private long _registrationOrder;
 
+    /// <inheritdoc />
     public void Hook<TContext>(
         HookHandler<TContext> handler,
         HookPriority priority = HookPriority.Normal)
@@ -27,15 +34,13 @@ public sealed class HookService(Action<Exception, Type, Delegate>? exceptionHand
 
         lock (_sync)
         {
-            if (!_hooks.TryGetValue(contextType, out var registrations))
-            {
-                registrations = [];
-                _hooks[contextType] = registrations;
-            }
+            var registrations = _hooks.GetValueOrDefault(contextType) ?? [];
+            var updated = new HookRegistration[registrations.Length + 1];
 
-            registrations.Add(registration);
+            registrations.CopyTo(updated, 0);
+            updated[^1] = registration;
 
-            registrations.Sort(static (left, right) =>
+            Array.Sort(updated, static (left, right) =>
             {
                 var priorityComparison = right.Priority.CompareTo(left.Priority);
 
@@ -46,9 +51,12 @@ public sealed class HookService(Action<Exception, Type, Delegate>? exceptionHand
 
                 return left.Order.CompareTo(right.Order);
             });
+
+            _hooks[contextType] = updated;
         }
     }
 
+    /// <inheritdoc />
     public void Unhook<TContext>(HookHandler<TContext> handler) where TContext : struct, IHookContext
     {
         ArgumentNullException.ThrowIfNull(handler);
@@ -62,24 +70,47 @@ public sealed class HookService(Action<Exception, Type, Delegate>? exceptionHand
                 return;
             }
 
-            var registration = registrations
-                .Where(registration => Equals(registration.Handler, handler))
-                .MaxBy(registration => registration.Order);
+            var removeIndex = -1;
+            var latestOrder = long.MinValue;
 
-            if (registration is null)
+            for (var index = 0; index < registrations.Length; index++)
+            {
+                var registration = registrations[index];
+
+                if (Equals(registration.Handler, handler) && registration.Order > latestOrder)
+                {
+                    removeIndex = index;
+                    latestOrder = registration.Order;
+                }
+            }
+
+            if (removeIndex < 0)
             {
                 return;
             }
 
-            registrations.Remove(registration);
-
-            if (registrations.Count == 0)
+            if (registrations.Length == 1)
             {
                 _hooks.Remove(contextType);
+                return;
             }
+
+            var updated = new HookRegistration[registrations.Length - 1];
+
+            Array.Copy(registrations, 0, updated, 0, removeIndex);
+            Array.Copy(
+                registrations,
+                removeIndex + 1,
+                updated,
+                removeIndex,
+                registrations.Length - removeIndex - 1
+            );
+
+            _hooks[contextType] = updated;
         }
     }
 
+    /// <inheritdoc />
     public void Dispatch<TContext>(ref TContext context) where TContext : struct, IHookContext
     {
         var contextType = typeof(TContext);
@@ -88,12 +119,10 @@ public sealed class HookService(Action<Exception, Type, Delegate>? exceptionHand
 
         lock (_sync)
         {
-            if (!_hooks.TryGetValue(contextType, out var registeredHooks))
+            if (!_hooks.TryGetValue(contextType, out registrations))
             {
                 return;
             }
-
-            registrations = [.. registeredHooks];
         }
 
         foreach (var registration in registrations)

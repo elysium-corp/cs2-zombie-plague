@@ -25,7 +25,7 @@ internal sealed class InfectionService(
         core.GameHooks.Weapons.CanUse.Pre += OnCanUse;
         core.GameHooks.Weapons.Drop.Pre += OnDrop;
         
-        events.Post.PlayerInfectEvent += OnPlayerInfected;
+        events.Players.Infected.Hook(OnPlayerInfected);
     }
 
     public void Unregister()
@@ -34,7 +34,7 @@ internal sealed class InfectionService(
         core.GameHooks.Weapons.CanUse.Pre -= OnCanUse;
         core.GameHooks.Weapons.Drop.Pre -= OnDrop;
         
-        events.Post.PlayerInfectEvent -= OnPlayerInfected;
+        events.Players.Infected.Unhook(OnPlayerInfected);
     }
     
     private void OnCanAcquire(ref CanAcquireItemPreContext context)
@@ -85,7 +85,7 @@ internal sealed class InfectionService(
         context.SetHookResult(HookResult.Stop);
     }
 
-    private void OnPlayerInfected(ref PlayerInfectPostContext context)
+    private void OnPlayerInfected(ref PlayerInfectedContext context)
     {
         var player = context.Player;
         

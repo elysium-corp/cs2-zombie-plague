@@ -10,4 +10,8 @@
       <PackageReference Include="SwiftlyS2.CS2" Version="1.4.6-beta.8" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\Common.Hooks\Common.Hooks.csproj" />
+    </ItemGroup>
+
 </Project>

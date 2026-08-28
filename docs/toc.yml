@@ -1,0 +1,6 @@
+- name: Обзор
+  href: index.md
+- name: Каталог событий
+  href: events.md
+- name: API reference
+  href: api/index.md

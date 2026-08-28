@@ -1,3 +1,5 @@
+using Common.Hooks;
+using Common.Hooks.Abstractions;
 using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
@@ -6,6 +8,7 @@ using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
 using ZombiePlague.Api.Data;
+using ZombiePlague.Api.Events.Contexts.Combat;
 using ZombiePlague.Core.Config.Core;
 using ZombiePlague.Core.Data.Managers;
 using ZombiePlague.Core.Data.Managers.Contracts;
@@ -17,7 +20,8 @@ namespace ZombiePlague.Core.Data.Service;
 internal sealed class KnockbackService(
     ISwiftlyCore core,
     IPlayerManager playerManager,
-    IOptions<ZombiePlagueCoreConfig> config
+    IOptions<ZombiePlagueCoreConfig> config,
+    IHookPublisher hooks
 ) : IKnockbackService
 {
     private const int SpeedRestoreDelay = 20;
@@ -129,7 +133,23 @@ internal sealed class KnockbackService(
             return false;
         }
 
-        ApplyKnockback(victim, velocity);
+        var preContext = new KnockbackApplyingContext(attacker, victim, data, velocity);
+
+        if (!hooks.DispatchCancellable(ref preContext))
+        {
+            return false;
+        }
+
+        ApplyKnockback(victim, preContext.Velocity);
+
+        var postContext = new KnockbackAppliedContext(
+            attacker,
+            victim,
+            data,
+            preContext.Velocity
+        );
+
+        hooks.Dispatch(ref postContext);
 
         return true;
     }

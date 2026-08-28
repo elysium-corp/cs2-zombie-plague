@@ -1,8 +1,8 @@
-﻿using SupplyBox.Events;
+using SupplyBox.Api.Events;
 
 namespace SupplyBox.Api;
 
-public sealed class SupplyBoxApi(IEventSubscriber eventSubscriber) : ISupplyBoxApi
+public sealed class SupplyBoxApi(ISupplyBoxEvents events) : ISupplyBoxApi
 {
-    public IEventSubscriber EventSubscriber => eventSubscriber;
+    public ISupplyBoxEvents Events => events;
 }

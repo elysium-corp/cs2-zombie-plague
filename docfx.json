@@ -1,0 +1,68 @@
+{
+  "$schema": "https://raw.githubusercontent.com/dotnet/docfx/main/schemas/docfx.schema.json",
+  "metadata": [
+    {
+      "src": [
+        {
+          "files": [
+            "**/*.Api.csproj",
+            "Common.Hooks/Common.Hooks.csproj"
+          ],
+          "exclude": [
+            "**/*.Tests.csproj",
+            "tools/**"
+          ]
+        }
+      ],
+      "dest": "api",
+      "disableGitFeatures": false,
+      "properties": {
+        "TargetFramework": "net10.0"
+      }
+    }
+  ],
+  "build": {
+    "content": [
+      {
+        "files": [
+          "**/*.md",
+          "toc.yml"
+        ],
+        "src": "docs",
+        "exclude": [
+          "events.intro.md",
+          "events.footer.md"
+        ]
+      },
+      {
+        "files": [
+          "**/*.yml",
+          "index.md"
+        ],
+        "src": "api",
+        "dest": "api"
+      }
+    ],
+    "resource": [
+      {
+        "files": [
+          "**/*"
+        ],
+        "src": "docs/assets",
+        "dest": "assets"
+      }
+    ],
+    "dest": "docs/_site",
+    "template": [
+      "default",
+      "modern"
+    ],
+    "globalMetadata": {
+      "_appName": "Elysium CS2 API",
+      "_appTitle": "Elysium CS2 API",
+      "_appFooter": "Elysium",
+      "_enableSearch": true,
+      "_disableContribution": false
+    }
+  }
+}

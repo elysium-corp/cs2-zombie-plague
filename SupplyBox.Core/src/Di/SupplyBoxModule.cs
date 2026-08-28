@@ -1,8 +1,10 @@
-﻿using Common.Di;
+using Common.Di;
+using Common.Hooks;
+using Common.Hooks.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
+using SupplyBox.Api.Events;
 using SupplyBox.Data.Configs;
 using SupplyBox.Data.Entity;
-using SupplyBox.Events;
 using SupplyBox.Services;
 using SwiftlyS2.Shared;
 
@@ -13,13 +15,13 @@ internal sealed class SupplyBoxModule(ISwiftlyCore core) : BaseModule(core)
     public override (ServiceProvider, ServiceCollection) GetProvider()
     {
         var service = new ServiceCollection();
-        
+
         service.AddSwiftly(core);
 
         BuildConfigs(service);
         BuildSingletons(service);
         BuildTransients(service);
-            
+
         return (service.BuildServiceProvider(), service);
     }
 
@@ -34,12 +36,14 @@ internal sealed class SupplyBoxModule(ISwiftlyCore core) : BaseModule(core)
 
     private void BuildSingletons(ServiceCollection service)
     {
+        AddSingleton<HookService>(service);
+        AddSingleton<IHookSubscriber>(service, provider => provider.GetRequiredService<HookService>());
+        AddSingleton<IHookPublisher>(service, provider => provider.GetRequiredService<HookService>());
+        AddSingleton<ISupplyBoxEvents, SupplyBoxEvents>(service);
+
         AddSingleton<SupplyBoxMapConfigService>(service);
         AddSingleton<SupplyBoxMenuService>(service);
         AddSingleton<SupplyBoxEditService>(service);
-        AddSingleton<EventService>(service);
-        AddSingleton<IEventSubscriber>(service, s => s.GetRequiredService<EventService>());
-        AddSingleton<IEventPublisher>(service, s => s.GetRequiredService<EventService>());
     }
 
     private void BuildTransients(ServiceCollection service)
