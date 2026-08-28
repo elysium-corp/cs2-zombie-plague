@@ -50,8 +50,18 @@ jobs:
       - name: Run tests
         run: dotnet test CS2ZombiePlague.sln --configuration Release --no-build --no-restore
 
+      - name: Publish CS2 Zombie Plague
+        run: |
+          dotnet publish CS2ZombiePlague.csproj \
+            --configuration Release \
+            --no-restore
+
       - name: Verify event documentation
-        run: dotnet run --project tools/EventDocsGenerator/EventDocsGenerator.csproj --configuration Release -- check
+        run: |
+          dotnet run \
+            --project tools/EventDocsGenerator/EventDocsGenerator.csproj \
+            --configuration Release \
+            -- check
 
       - name: Restore documentation tools
         run: dotnet tool restore
@@ -63,7 +73,13 @@ jobs:
         shell: bash
         run: |
           branch="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
-          dotnet run --project tools/EventDocsGenerator/EventDocsGenerator.csproj --configuration Release -- package \
+
+          mkdir -p artifacts
+
+          dotnet run \
+            --project tools/EventDocsGenerator/EventDocsGenerator.csproj \
+            --configuration Release \
+            -- package \
             --output artifacts/documentation.json \
             --repository "$GITHUB_REPOSITORY" \
             --branch "$branch" \
@@ -71,25 +87,56 @@ jobs:
             --run-id "$GITHUB_RUN_ID" \
             --source-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/tree/$GITHUB_SHA"
 
-      - name: Check build artifacts
+      - name: Check generated artifacts
         shell: bash
         run: |
-          echo "=== dist ==="
-          find dist -type f -print 2>/dev/null || true
+          echo "=== Plugin ZIP ==="
+          if [[ -f CS2ZombiePlague.zip ]]; then
+            ls -lh CS2ZombiePlague.zip
+          else
+            echo "::error::CS2ZombiePlague.zip was not generated"
+            exit 1
+          fi
 
-          echo "=== artifact ==="
-          find artifact -type f -print 2>/dev/null || true
+          echo
+          echo "=== Published plugin files ==="
+          if [[ -d build/publish/CS2ZombiePlague ]]; then
+            find build/publish/CS2ZombiePlague -type f -print
+          else
+            echo "::error::build/publish/CS2ZombiePlague does not exist"
+            exit 1
+          fi
+
+          echo
+          echo "=== Documentation package ==="
+          if [[ -f artifacts/documentation.json ]]; then
+            ls -lh artifacts/documentation.json
+          else
+            echo "::error::artifacts/documentation.json was not generated"
+            exit 1
+          fi
+
+          echo
+          echo "=== DocFX site ==="
+          if [[ -d docs/_site ]]; then
+            find docs/_site -type f | head -100
+          else
+            echo "::error::docs/_site does not exist"
+            exit 1
+          fi
 
       - name: Upload plugin artifacts
         uses: actions/upload-artifact@v7
         with:
           name: cs2-zombie-plague-${{ github.sha }}
           path: |
-            dist/**
-            artifact/**
+            CS2ZombiePlague.zip
+            build/publish/CS2ZombiePlague/**
           if-no-files-found: error
           retention-days: 14
           compression-level: 6
+          overwrite: false
+          include-hidden-files: false
 
       - name: Upload documentation artifacts
         uses: actions/upload-artifact@v7
@@ -101,6 +148,8 @@ jobs:
           if-no-files-found: error
           retention-days: 30
           compression-level: 6
+          overwrite: false
+          include-hidden-files: false
 
       - name: Publish documentation to Flute CMS
         if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
@@ -115,8 +164,13 @@ jobs:
           fi
 
           checksum="$(sha256sum artifacts/documentation.json | cut -d ' ' -f 1)"
-          curl --fail-with-body --silent --show-error \
-            --retry 3 --retry-all-errors \
+
+          curl \
+            --fail-with-body \
+            --silent \
+            --show-error \
+            --retry 3 \
+            --retry-all-errors \
             --retry-delay 2 \
             --connect-timeout 10 \
             --max-time 60 \
