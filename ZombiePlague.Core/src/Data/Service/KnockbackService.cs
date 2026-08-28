@@ -1,3 +1,4 @@
+using Common.Hooks;
 using Common.Hooks.Abstractions;
 using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;

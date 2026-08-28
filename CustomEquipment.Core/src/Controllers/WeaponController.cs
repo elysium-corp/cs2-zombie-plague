@@ -5,6 +5,7 @@ using CustomEquipment.Api.Data.Contracts;
 using CustomEquipment.Api.Enums;
 using CustomEquipment.Api.Events;
 using CustomEquipment.Api.Events.Contexts.Grenades;
+using CustomEquipment.Api.Events.Contexts.Items;
 using CustomEquipment.Services;
 using CustomEquipment.Utils;
 using Economy.Api;

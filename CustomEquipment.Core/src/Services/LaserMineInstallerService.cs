@@ -1,6 +1,7 @@
 ﻿using Common.Hooks;
 using Common.Hooks.Abstractions;
 using Common.Math;
+using CustomEquipment.Api.Data;
 using CustomEquipment.Api.Events.Contexts.Mines;
 using CustomEquipment.Data.Equipments.Weapons.Equipments;
 using CustomEquipment.Data.Equipments.Weapons.Equipments.Entities;
