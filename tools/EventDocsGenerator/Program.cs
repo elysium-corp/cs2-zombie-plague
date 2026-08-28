@@ -290,7 +290,7 @@ internal static partial class Program
             }
         }
 
-        builder.AppendLine(footer.TrimEnd()).AppendLine();
+        builder.AppendLine(footer.TrimEnd());
         return builder.ToString();
     }
 
