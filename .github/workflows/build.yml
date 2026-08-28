@@ -41,12 +41,9 @@ jobs:
       - name: Show .NET information
         run: dotnet --info
 
-      # Корневой CS2ZombiePlague.csproj не входит в solution,
-      # поэтому восстанавливаем зависимости отдельно.
       - name: Restore dependencies
         run: |
           dotnet restore CS2ZombiePlague.sln
-          dotnet restore CS2ZombiePlague.csproj
 
       - name: Build solution
         run: |
@@ -59,12 +56,6 @@ jobs:
           dotnet test CS2ZombiePlague.sln \
             --configuration Release \
             --no-build \
-            --no-restore
-
-      - name: Publish CS2 Zombie Plague
-        run: |
-          dotnet publish CS2ZombiePlague.csproj \
-            --configuration Release \
             --no-restore
 
       - name: Verify event documentation
@@ -98,16 +89,38 @@ jobs:
             --run-id "$GITHUB_RUN_ID" \
             --source-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/tree/$GITHUB_SHA"
 
-      # Показываем фактическую структуру новой artifacts-системы.
-      # Если в будущем изменится layout сборки, это сразу будет видно в CI.
       - name: Inspect generated artifacts
         shell: bash
         run: |
-          echo "=== artifacts ==="
-          find artifacts -maxdepth 6 -type f -print | sort
+          echo "=== artifacts/bin ==="
+
+          if [[ -d artifacts/bin ]]; then
+            find artifacts/bin -type f -print | sort
+          else
+            echo "::error::artifacts/bin does not exist"
+            exit 1
+          fi
 
           echo
-          echo "=== documentation ==="
+          echo "=== artifacts/package ==="
+
+          if [[ -d artifacts/package ]]; then
+            find artifacts/package -type f -print | sort
+          else
+            echo "::notice::artifacts/package does not exist"
+          fi
+
+          echo
+          echo "=== artifacts/publish ==="
+
+          if [[ -d artifacts/publish ]]; then
+            find artifacts/publish -type f -print | sort
+          else
+            echo "::notice::artifacts/publish does not exist"
+          fi
+
+          echo
+          echo "=== documentation.json ==="
 
           if [[ ! -f artifacts/documentation.json ]]; then
             echo "::error::artifacts/documentation.json was not generated"
@@ -133,24 +146,14 @@ jobs:
 
           echo "DocFX files: $docfx_file_count"
 
-      # Загружаем результаты .NET build/publish.
-      #
-      # Directory.Build.props использует:
-      #   UseArtifactsOutput = true
-      #   ArtifactsPath = ./artifacts
-      #
-      # Поэтому bin/publish/package находятся внутри artifacts.
-      #
-      # documentation.json исключаем, поскольку для документации
-      # существует отдельный artifact ниже.
       - name: Upload build artifacts
         uses: actions/upload-artifact@v7
         with:
           name: cs2-zombie-plague-${{ github.sha }}
           path: |
             artifacts/bin/**
-            artifacts/publish/**
             artifacts/package/**
+            artifacts/publish/**
           if-no-files-found: error
           retention-days: 14
           compression-level: 6
