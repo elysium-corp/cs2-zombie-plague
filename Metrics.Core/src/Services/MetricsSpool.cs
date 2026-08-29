@@ -16,6 +16,8 @@ internal sealed class MetricsSpool(
 ) : IDisposable
 {
     private const long MinimumCompactionPrefixBytes = 1_048_576;
+    private const long MinimumTrimHeadroomBytes = 65_536;
+    private const long MaximumTrimHeadroomBytes = 4_194_304;
 
     private static readonly Encoding Utf8NoBom = new UTF8Encoding(false);
 
@@ -270,7 +272,7 @@ internal sealed class MetricsSpool(
             return;
         }
 
-        var bytesToDrop = file.Length - maxBytes;
+        var bytesToDrop = file.Length - CalculateTrimTarget(maxBytes);
         var retainedOffset = 0L;
         var droppedEvents = 0L;
         var boundaryFound = false;
@@ -331,6 +333,12 @@ internal sealed class MetricsSpool(
             maxBytes,
             droppedEvents
         );
+    }
+
+    internal static long CalculateTrimTarget(long maxBytes)
+    {
+        var headroom = Math.Clamp(maxBytes / 10, MinimumTrimHeadroomBytes, MaximumTrimHeadroomBytes);
+        return Math.Max(0, maxBytes - headroom);
     }
 
     private async Task CopyTailAndReplaceAsync(long offset, CancellationToken cancellationToken)

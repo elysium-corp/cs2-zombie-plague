@@ -88,8 +88,8 @@ internal sealed class SupplyBoxMenuService(ISwiftlyCore core, SupplyBoxMapConfig
             .Design.SetMenuTitle("Удаление контейнеров")
             .EnableSound();
 
-        var supplyBoxesList = mapConfigService.SupplyBoxesData;
-        if (supplyBoxesList == null)
+        var supplyBoxesList = mapConfigService.GetSnapshot();
+        if (supplyBoxesList.Count == 0)
         {
             return menu.Build();
         }

@@ -35,6 +35,7 @@ internal sealed class RoundManager(
     public bool IsPreparing => _preparationTimer is not null;
 
     private CancellationTokenSource? _preparationTimer;
+    private readonly Dictionary<int, CancellationTokenSource> _preparationRespawns = [];
 
     private int _remainingPreparationTime;
 
@@ -169,6 +170,21 @@ internal sealed class RoundManager(
 
         var postContext = new RoundEndedContext(round);
         hooks.Dispatch(ref postContext);
+    }
+
+    public void ForceStop(bool dispatchEndedEvent = false)
+    {
+        var round = CurrentRound;
+        CurrentRound = null;
+        StopPreparation();
+        if (round is null) return;
+
+        round.End();
+        if (dispatchEndedEvent)
+        {
+            var context = new RoundEndedContext(round);
+            hooks.Dispatch(ref context);
+        }
     }
 
     public void SelectNextRound(RoundBase round)
@@ -311,10 +327,11 @@ internal sealed class RoundManager(
         return roundFactory.Create<Infection>();
     }
 
-    private static IRoundConfig SelectByWeight(IReadOnlyCollection<IRoundConfig> candidates, Random random)
+    internal static IRoundConfig SelectByWeight(IReadOnlyCollection<IRoundConfig> candidates, Random random)
     {
-        var totalWeight = candidates.Sum(static round => (long)round.Weight
-        );
+        if (candidates.Count == 0) throw new ArgumentException("At least one round is required.", nameof(candidates));
+        var totalWeight = candidates.Sum(static round => Math.Max(0L, round.Weight));
+        if (totalWeight <= 0) return candidates.First();
 
         var roll = random.NextInt64(totalWeight);
 
@@ -322,6 +339,7 @@ internal sealed class RoundManager(
 
         foreach (var candidate in candidates)
         {
+            if (candidate.Weight <= 0) continue;
             accumulatedWeight += candidate.Weight;
 
             if (roll < accumulatedWeight)
@@ -340,6 +358,12 @@ internal sealed class RoundManager(
 
         _preparationTimer?.Cancel();
         _preparationTimer = null;
+
+        foreach (var respawn in _preparationRespawns.Values)
+        {
+            respawn.Cancel();
+        }
+        _preparationRespawns.Clear();
 
         CancelPreparationSounds();
     }
@@ -451,8 +475,18 @@ internal sealed class RoundManager(
         var playerId = player.PlayerID;
         var sessionId = player.SessionId;
 
-        core.Scheduler.DelayBySeconds(coreConfig.Value.ZombieSpawnDelay, () =>
+        if (_preparationRespawns.Remove(playerId, out var previous))
         {
+            previous.Cancel();
+        }
+
+        CancellationTokenSource? timer = null;
+        timer = core.Scheduler.DelayBySeconds(Math.Max(0.05f, coreConfig.Value.ZombieSpawnDelay), () =>
+        {
+            if (!_preparationRespawns.TryGetValue(playerId, out var currentTimer) ||
+                !ReferenceEquals(currentTimer, timer)) return;
+            _preparationRespawns.Remove(playerId);
+
             var currentPlayer = core.PlayerManager.GetPlayer(playerId);
 
             if (currentPlayer is not { IsValid: true } ||
@@ -463,6 +497,7 @@ internal sealed class RoundManager(
 
             TryRespawnPlayer(currentPlayer);
         });
+        _preparationRespawns[playerId] = timer;
     }
 
     private bool TryStartRoundInternal(RoundBase round)
@@ -479,6 +514,7 @@ internal sealed class RoundManager(
         catch (Exception exception)
         {
             CurrentRound = null;
+            round.End();
 
             var context = new RoundStartFailedContext(round, exception);
             hooks.Dispatch(ref context);
@@ -487,6 +523,7 @@ internal sealed class RoundManager(
         }
 
         CurrentRound = null;
+        round.End();
 
         return false;
     }

@@ -6,6 +6,8 @@ internal sealed class MetricsConfig
 
     public string BaseUrl { get; set; } = "https://elysiumcs.su";
 
+    public bool AllowInsecureLoopbackHttp { get; set; }
+
     public string ApiSecret { get; set; } = string.Empty;
 
     public int ServerId { get; set; } = 1;

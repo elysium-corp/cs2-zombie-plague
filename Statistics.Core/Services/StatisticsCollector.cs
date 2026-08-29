@@ -351,7 +351,7 @@ internal sealed class StatisticsCollector(
 
         AbortRound();
         _pendingPointsNotifications.Clear();
-        pointsFormulaProvider.RefreshAndWait();
+        pointsFormulaProvider.Refresh();
         CaptureMapFormula("map load");
     }
 

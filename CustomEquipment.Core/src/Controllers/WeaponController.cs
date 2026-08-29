@@ -61,6 +61,7 @@ internal sealed class WeaponController(
         events.Grenades.Thrown.Unhook(OnGrenadeThrown);
 
         core.GameEvent.Unhook(_guidBulletImpactPost);
+        _grenadeHandler.Clear();
     }
 
     private void OnTick() =>

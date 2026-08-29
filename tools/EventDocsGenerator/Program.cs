@@ -76,6 +76,7 @@ internal static partial class Program
     private static CatalogDocument BuildCatalog(string root)
     {
         var events = new List<EventDocumentation>();
+        var contexts = DiscoverContexts(root);
 
         foreach (var source in Sources)
         {
@@ -85,7 +86,7 @@ internal static partial class Program
                 throw new DocumentationException($"Event source does not exist: {source.RelativePath}");
             }
 
-            events.AddRange(ParseSource(source, File.ReadAllText(path)));
+            events.AddRange(ParseSource(source, File.ReadAllText(path), contexts));
         }
 
         var duplicate = events.GroupBy(item => item.Id, StringComparer.Ordinal)
@@ -114,10 +115,11 @@ internal static partial class Program
             })
             .ToArray();
 
-        return new CatalogDocument(1, CatalogKind, events.Count, projects, events);
+        return new CatalogDocument(2, CatalogKind, events.Count, projects, events);
     }
 
-    private static IEnumerable<EventDocumentation> ParseSource(SourceDefinition source, string text)
+    private static IEnumerable<EventDocumentation> ParseSource(SourceDefinition source, string text,
+        IReadOnlyDictionary<string, ContextDocumentation> contexts)
     {
         var matches = EventPropertyRegex().Matches(text);
         if (matches.Count == 0)
@@ -130,6 +132,8 @@ internal static partial class Program
             var documentation = ParseXmlDocumentation(match.Groups["docs"].Value, source.RelativePath);
             var eventName = match.Groups["name"].Value;
             var context = match.Groups["context"].Value;
+            if (!contexts.TryGetValue(context, out var contextDocumentation))
+                throw new DocumentationException($"Context '{context}' used by {eventName} was not found or is ambiguous.");
             var apiPath = source.PublicPrefix + eventName;
             var metadata = ReadMetadata(documentation, source.RelativePath, apiPath);
             ValidateMetadata(metadata, source.RelativePath, apiPath);
@@ -145,6 +149,8 @@ internal static partial class Program
                 apiPath,
                 eventName,
                 context,
+                contextDocumentation.IsCancellable,
+                contextDocumentation.Parameters,
                 XmlText(documentation.Element("summary")),
                 metadata["Когда"],
                 metadata["Частота"],
@@ -155,6 +161,37 @@ internal static partial class Program
                 source.RelativePath,
                 line);
         }
+    }
+
+    private static IReadOnlyDictionary<string, ContextDocumentation> DiscoverContexts(string root)
+    {
+        var result = new Dictionary<string, ContextDocumentation>(StringComparer.Ordinal);
+        foreach (var apiDirectory in Directory.EnumerateDirectories(root, "*.Api", SearchOption.TopDirectoryOnly))
+        foreach (var file in Directory.EnumerateFiles(apiDirectory, "*.cs", SearchOption.AllDirectories))
+        {
+            var text = File.ReadAllText(file);
+            foreach (Match type in ContextTypeRegex().Matches(text))
+            {
+                var name = type.Groups["name"].Value;
+                var open = type.Index + type.Length - 1;
+                if (open < 0) continue;
+                var depth = 1; var end = open + 1;
+                while (end < text.Length && depth > 0) { if (text[end] == '{') depth++; else if (text[end] == '}') depth--; end++; }
+                if (depth != 0) throw new DocumentationException($"Unbalanced context declaration in {file}.");
+                var body = text[(open + 1)..(end - 1)];
+                var parameters = ContextPropertyRegex().Matches(body).Select(property =>
+                {
+                    var propertyType = property.Groups["type"].Value.Trim();
+                    var accessor = property.Groups["accessor"].Value;
+                    return new ContextParameter(property.Groups["name"].Value, propertyType,
+                        propertyType.EndsWith("?", StringComparison.Ordinal), accessor.Contains("set;", StringComparison.Ordinal));
+                }).Where(parameter => parameter.Name != "IsCancelled").ToArray();
+                var relative = Path.GetRelativePath(root, file).Replace('\\', '/');
+                var context = new ContextDocumentation(type.Groups["interfaces"].Value.Contains("IPreHookContext", StringComparison.Ordinal), parameters, relative);
+                if (!result.TryAdd(name, context)) result.Remove(name);
+            }
+        }
+        return result;
     }
 
     private static XElement ParseXmlDocumentation(string raw, string sourcePath)
@@ -275,12 +312,14 @@ internal static partial class Program
                     builder.AppendLine("События `Loaded`, `LoadFailed`, `Saved` и `SaveFailed` выполняются из фоновой очереди БД. В их обработчиках нельзя обращаться к игровым entity/API без явного возврата в scheduler игрового потока.").AppendLine();
                 }
 
-                builder.AppendLine("| Событие | Контекст | Когда вызывается | Частота | Нагрузка | Риск и ограничения |");
+                builder.AppendLine("| Событие | Контекст и параметры | Когда вызывается | Частота | Нагрузка | Риск и ограничения |");
                 builder.AppendLine("|---|---|---|---|---|---|");
                 foreach (var item in groupEvents)
                 {
                     builder.Append("| `").Append(item.ApiPath).Append("` | `")
-                        .Append(item.Context).Append("` | ").Append(MarkdownCell(item.When))
+                        .Append(item.Context).Append("`<br>")
+                        .Append(string.Join("<br>", item.ContextParameters.Select(parameter => $"`{parameter.Name}: {parameter.Type}`{(parameter.Mutable ? " (mutable)" : "")}{(parameter.Nullable ? " (nullable)" : "")}")))
+                        .Append(item.IsCancellable ? "<br>cancellable" : string.Empty).Append(" | ").Append(MarkdownCell(item.When))
                         .Append(" | ").Append(item.Frequency)
                         .Append(" | ").Append(item.Load)
                         .Append(" | ").Append(MarkdownCell(item.Risk)).AppendLine(" |");
@@ -470,6 +509,12 @@ internal static partial class Program
     [GeneratedRegex(@"\s+")]
     private static partial Regex WhitespaceRegex();
 
+    [GeneratedRegex(@"public\s+(?:readonly\s+)?(?:record\s+)?struct\s+(?<name>[A-Za-z0-9_]+)[^{:]*?(?<interfaces>:\s*[^\{]+)?\s*\{")]
+    private static partial Regex ContextTypeRegex();
+
+    [GeneratedRegex(@"public\s+(?<type>[A-Za-z0-9_<>.,?\[\]\s]+?)\s+(?<name>[A-Za-z0-9_]+)\s*\{(?<accessor>[^{}]*)\}")]
+    private static partial Regex ContextPropertyRegex();
+
     private sealed record SourceDefinition(
         string ProjectKey,
         string Project,
@@ -501,6 +546,8 @@ internal static partial class Program
         string ApiPath,
         string Name,
         string Context,
+        bool IsCancellable,
+        IReadOnlyList<ContextParameter> ContextParameters,
         string Summary,
         string When,
         string Frequency,
@@ -510,6 +557,9 @@ internal static partial class Program
         string Thread,
         string SourcePath,
         int SourceLine);
+
+    private sealed record ContextDocumentation(bool IsCancellable, IReadOnlyList<ContextParameter> Parameters, string SourcePath);
+    private sealed record ContextParameter(string Name, string Type, bool Nullable, bool Mutable);
 
     private sealed record DocumentationPackage(
         int SchemaVersion,

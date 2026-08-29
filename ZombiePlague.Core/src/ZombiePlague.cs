@@ -1,6 +1,7 @@
 using Admin.Api;
 using Common.Database.Migrator;
 using Common.Di;
+using Common.Effects;
 using Menu.Api;
 using Metrics.Api;
 using Microsoft.Extensions.Logging;
@@ -78,6 +79,7 @@ public sealed partial class ZombiePlague(ISwiftlyCore core) : Plugin<ZombiePlagu
 
     protected override void OnUnload()
     {
+        EffectService.Release(Core);
         _adminExtension.Value.Uninitialize();
         _metricsApiBridge.Value.Uninitialize();
         _adminApiBridge.Value.Uninitialize();

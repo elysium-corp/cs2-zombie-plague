@@ -14,7 +14,7 @@ using ZombiePlague.Api;
 
 namespace SupplyBox.Data.Entity;
 
-public sealed class SupplyBoxEntity : ISupplyBoxEntity
+public sealed class SupplyBoxEntity : ISupplyBoxEntity, IDisposable
 {
     private readonly ISwiftlyCore _core;
     private readonly IZombiePlagueApi _api;
@@ -26,6 +26,7 @@ public sealed class SupplyBoxEntity : ISupplyBoxEntity
     private CancellationTokenSource? _dropThinker;
     private SupplyBoxEntityConfig? _data;
     private uint _soundGuid;
+    private int _disposed;
 
     public CDynamicProp? Entity { get; }
     public int Index { get; private set; }
@@ -48,6 +49,7 @@ public sealed class SupplyBoxEntity : ISupplyBoxEntity
 
         core.Scheduler.NextWorldUpdate(() =>
         {
+            if (Volatile.Read(ref _disposed) != 0) return;
             Entity.SetModel(boxModel);
 
             _entityParachute.SetModel(parachuteModel);
@@ -182,23 +184,30 @@ public sealed class SupplyBoxEntity : ISupplyBoxEntity
             return false;
         }
 
-        if (Entity != null && Entity.IsValidEntity)
-        {
-            Entity.Despawn();
-        }
-
-        if (_entityParachute != null && _entityParachute.IsValidEntity)
-        {
-            _entityParachute.Despawn();
-        }
-
-        _dropThinker?.Cancel();
-        _pickUpThinker?.Cancel();
+        CleanupEntities();
 
         var postContext = new SupplyBoxDestroyedContext(this);
         _hooks.Dispatch(ref postContext);
 
         return true;
+    }
+
+    public void Dispose()
+    {
+        if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
+        CleanupEntities();
+    }
+
+    private void CleanupEntities()
+    {
+        _dropThinker?.Cancel();
+        _dropThinker = null;
+        _pickUpThinker?.Cancel();
+        _pickUpThinker = null;
+        StopSound();
+
+        if (Entity is { IsValidEntity: true }) Entity.Despawn();
+        if (_entityParachute is { IsValidEntity: true }) _entityParachute.Despawn();
     }
 
     private void DispatchCollectionRejected(

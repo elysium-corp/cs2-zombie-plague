@@ -21,7 +21,7 @@ internal sealed class MineController(
     ILaserMineInstallerService laserMineInstallerService)
     : IMineController, IDisposable
 {
-    private readonly Dictionary<CBaseModelEntity, IPlayer> _mineOwners = [];
+    private readonly Dictionary<CBaseModelEntity, (IPlayer Owner, LaserMineEntityBase Mine)> _mines = [];
 
     public void Initialize()
     {
@@ -35,6 +35,8 @@ internal sealed class MineController(
         events.Items.Purchased.Unhook(OnItemBought);
         events.Mines.Placed.Unhook(OnMinePlaced);
         core.GameHooks.Entities.TakeDamage.Pre -= OnEntityTakeDamage;
+        foreach (var mine in _mines.Values) mine.Mine.Dispose();
+        _mines.Clear();
     }
 
     private void OnItemBought(ref ItemPurchasedContext context)
@@ -48,7 +50,7 @@ internal sealed class MineController(
 
         if (playerPawn == null || !playerPawn.IsValid || !player.IsAlive) return;
 
-        if (_mineOwners.ContainsValue(player))
+        if (_mines.Values.Any(entry => entry.Owner.Equals(player)))
         {
             core.PlayerManager.SendAlertAsync("У вас уже есть мина");
             economyApi.GiveMoney(player, context.Item.Price.Item);
@@ -68,7 +70,7 @@ internal sealed class MineController(
 
         if (entity == null) return;
 
-        _mineOwners[entity] = context.Player;
+        _mines[entity] = (context.Player, context.Mine);
     }
 
     private void OnEntityTakeDamage(ref TakeDamageEntityPreContext hook)
@@ -77,12 +79,10 @@ internal sealed class MineController(
         var victim = hook.Params.Entity as CBaseModelEntity;
 
         if (victim == null || attacker == null) return;
-        if (!_mineOwners.ContainsKey(victim)) return;
+        if (!_mines.TryGetValue(victim, out var entry)) return;
         if (attacker.PlayerPawn?.Team != victim.Team) return;
 
-        _mineOwners.TryGetValue(victim, out var player);
-
-        if (!attacker.Equals(player))
+        if (!attacker.Equals(entry.Owner))
         {
             hook.Params.Info.Damage = 0;
             return;
@@ -90,17 +90,19 @@ internal sealed class MineController(
 
         if (victim.Health - hook.Params.Info.Damage <= 0)
         {
-            _mineOwners.Remove(victim);
+            _mines.Remove(victim);
+            entry.Mine.Dispose();
         }
     }
 
     private void UpdateNotValidMines()
     {
-        foreach (var pair in _mineOwners.ToArray())
+        foreach (var pair in _mines.ToArray())
         {
             if (!pair.Key.IsValidEntity)
             {
-                _mineOwners.Remove(pair.Key);
+                _mines.Remove(pair.Key);
+                pair.Value.Mine.Dispose();
             }
         }
     }

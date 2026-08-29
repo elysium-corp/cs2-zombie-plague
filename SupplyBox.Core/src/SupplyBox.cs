@@ -33,6 +33,7 @@ namespace SupplyBox;
 ]
 internal sealed partial class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxModule>(core)
 {
+    internal const string EditorPermission = "supply_box.admin.edit";
     private readonly Lazy<SupplyBoxMapConfigService> _mapConfigService = GetRequiredServiceLazy<SupplyBoxMapConfigService>();
     private readonly Lazy<SupplyBoxMenuService> _menuService = GetRequiredServiceLazy<SupplyBoxMenuService>();
     private readonly Lazy<SupplyBoxEditService> _editService = GetRequiredServiceLazy<SupplyBoxEditService>();
@@ -42,9 +43,11 @@ internal sealed partial class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxMod
 
     private Guid _guidOnEventRoundEndPost = Guid.Empty;
     private Guid _guidOnEventCsPreRestartPost = Guid.Empty;
+    private Guid _supplyCommand = Guid.Empty;
 
     private readonly List<SupplyBoxEntity> _droppedSupplyBoxes = [];
     private CancellationTokenSource? _respawnSupplyBoxThinker;
+    private bool _roundActive;
 
     public static IZombiePlagueApi ZombiePlagueApi = null!;
 
@@ -69,15 +72,17 @@ internal sealed partial class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxMod
 
         core.Event.OnMapLoad += OnMapLoad;
 
-        Core.Command.RegisterCommand(
+        _supplyCommand = Core.Command.RegisterCommand(
             commandName: "supply",
             handler: SupplyEditorHandler,
-            registerRaw: true
+            registerRaw: true,
+            permission: EditorPermission
         );
     }
 
     protected override void OnUnload()
     {
+        StopRound();
         Core.GameEvent.Unhook(_guidOnEventRoundEndPost);
         Core.GameEvent.Unhook(_guidOnEventCsPreRestartPost);
 
@@ -85,20 +90,24 @@ internal sealed partial class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxMod
         _events.Value.Collected.Unhook(OnSupplyBoxCollected);
 
         core.Event.OnMapLoad -= OnMapLoad;
+
+        if (_supplyCommand != Guid.Empty)
+        {
+            Core.Command.UnregisterCommand(_supplyCommand);
+            _supplyCommand = Guid.Empty;
+        }
     }
 
     private HookResult OnRoundEnd(EventRoundEnd @event)
     {
-        _respawnSupplyBoxThinker?.Cancel();
-        _droppedSupplyBoxes.Clear();
+        StopRound();
 
         return HookResult.Continue;
     }
 
     private HookResult OnGameRestart(EventCsPreRestart @event)
     {
-        _respawnSupplyBoxThinker?.Cancel();
-        _droppedSupplyBoxes.Clear();
+        StopRound();
 
         return HookResult.Continue;
     }
@@ -128,6 +137,8 @@ internal sealed partial class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxMod
 
     private void OnRoundStarted(ref RoundStartedContext context)
     {
+        StopRound();
+        _roundActive = true;
         CreateRespawnTimer(context.Round);
     }
 
@@ -138,35 +149,44 @@ internal sealed partial class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxMod
 
     private void TrySpawnSupplyBox(IRound round)
     {
-        CreateRespawnTimer(round);
-
         var rejectionReason = GetSpawnRejectionReason(round);
 
         if (rejectionReason is not null)
         {
             DispatchSpawnRejected(rejectionReason.Value);
+            CreateRespawnTimer(round);
             return;
         }
 
         if (!IsDropSuccessful())
         {
             DispatchSpawnRejected(SupplyBoxSpawnRejectionReason.ChanceMissed);
+            CreateRespawnTimer(round);
             return;
         }
 
         SpawnSupplyBox();
+        CreateRespawnTimer(round);
     }
 
     private void CreateRespawnTimer(IRound round)
     {
-        var respawnTime = Numeric.Random(
-            _config.Get().RespawnTimeBySeconds,
-            _config.Get().RespawnTimeBySeconds + _config.Get().TimeSpreadBySeconds);
+        CancelRespawnTimer();
+        if (!_roundActive) return;
 
-        _respawnSupplyBoxThinker = core.Scheduler.DelayBySeconds(respawnTime, () =>
+        var minimum = Math.Max(1, _config.Get().RespawnTimeBySeconds);
+        var spread = Math.Max(0, _config.Get().TimeSpreadBySeconds);
+        var maximum = (int)Math.Min(int.MaxValue, (long)minimum + spread);
+        var respawnTime = minimum == maximum ? minimum : Numeric.Random(minimum, maximum);
+
+        CancellationTokenSource? timer = null;
+        timer = core.Scheduler.DelayBySeconds(respawnTime, () =>
         {
+            if (!_roundActive || !ReferenceEquals(_respawnSupplyBoxThinker, timer)) return;
+            _respawnSupplyBoxThinker = null;
             TrySpawnSupplyBox(round);
         });
+        _respawnSupplyBoxThinker = timer;
     }
 
     private void SpawnSupplyBox()
@@ -196,7 +216,21 @@ internal sealed partial class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxMod
 
     private bool IsDropSuccessful()
     {
-        return Numeric.Random(0, 100) <= _config.Get().ChanceDrop;
+        return Numeric.Random(0, 100) < Math.Clamp(_config.Get().ChanceDrop, 0, 100);
+    }
+
+    private void StopRound()
+    {
+        _roundActive = false;
+        CancelRespawnTimer();
+        foreach (var box in _droppedSupplyBoxes.ToArray()) box.Dispose();
+        _droppedSupplyBoxes.Clear();
+    }
+
+    private void CancelRespawnTimer()
+    {
+        _respawnSupplyBoxThinker?.Cancel();
+        _respawnSupplyBoxThinker = null;
     }
 
     private SupplyBoxSpawnRejectionReason? GetSpawnRejectionReason(IRound round)

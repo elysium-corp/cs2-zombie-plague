@@ -14,6 +14,8 @@ namespace Common.Di;
 */
 public abstract class Plugin<TModule>(ISwiftlyCore core) : BasePlugin(core) where TModule : IModule
 {
+    private bool _moduleAttached;
+    private int _cleanupStarted;
     /// <summary>
     /// Текущий модуль плагина.
     /// Гарантированно доступен только после стадии инициализации модуля.
@@ -123,21 +125,36 @@ public abstract class Plugin<TModule>(ISwiftlyCore core) : BasePlugin(core) wher
     /// </param>
     public sealed override void Load(bool hotReload)
     {
-        OnLoad();
-        
-        Module = DependencyManager.BuildModule<TModule>(Core);
-        
-        OnStart();
+        try
+        {
+            OnLoad();
+            Module = DependencyManager.BuildModule<TModule>(Core);
+            _moduleAttached = true;
+            OnStart();
+        }
+        catch (Exception loadException)
+        {
+            try
+            {
+                Cleanup();
+            }
+            catch (Exception cleanupException)
+            {
+                throw new AggregateException("Plugin load and rollback failed.", loadException, cleanupException);
+            }
+
+            throw;
+        }
     }
     
     public sealed override void ConfigureSharedInterface(IInterfaceManager interfaceManager)
     {
-        OnConfigureSharedInterfaces(interfaceManager);
+        ExecuteOrRollback(() => OnConfigureSharedInterfaces(interfaceManager));
     }
     
     public sealed override void UseSharedInterface(IInterfaceManager interfaceManager)
     {
-        OnUseSharedInterfaces(interfaceManager);
+        ExecuteOrRollback(() => OnUseSharedInterfaces(interfaceManager));
     }
 
     /// <summary>
@@ -145,9 +162,7 @@ public abstract class Plugin<TModule>(ISwiftlyCore core) : BasePlugin(core) wher
     /// </summary>
     public sealed override void OnSharedInterfaceInjected(IInterfaceManager interfaceManager)
     {
-        OnSharedInterfacesInjected(interfaceManager);
-
-        OnReady();
+        ExecuteOrRollback(() => { OnSharedInterfacesInjected(interfaceManager); OnReady(); });
     }
 
     /// <summary>
@@ -158,10 +173,40 @@ public abstract class Plugin<TModule>(ISwiftlyCore core) : BasePlugin(core) wher
     /// </summary>
     public sealed override void Unload()
     {
-        OnUnload();
-        
-        DependencyManager.DestroyModule<TModule>();
-        
-        OnStop();
+        Cleanup();
+    }
+
+    private void Cleanup()
+    {
+        if (Interlocked.Exchange(ref _cleanupStarted, 1) != 0) return;
+
+        List<Exception> failures = [];
+        try { OnUnload(); } catch (Exception exception) { failures.Add(exception); }
+
+        if (_moduleAttached)
+        {
+            try { DependencyManager.DestroyModule<TModule>(); }
+            catch (Exception exception) { failures.Add(exception); }
+            _moduleAttached = false;
+        }
+
+        try { OnStop(); } catch (Exception exception) { failures.Add(exception); }
+
+        if (failures.Count == 1) throw failures[0];
+        if (failures.Count > 1) throw new AggregateException("Plugin cleanup failed.", failures);
+    }
+
+    private void ExecuteOrRollback(Action phase)
+    {
+        try { phase(); }
+        catch (Exception phaseException)
+        {
+            try { Cleanup(); }
+            catch (Exception cleanupException)
+            {
+                throw new AggregateException("Plugin lifecycle phase and rollback failed.", phaseException, cleanupException);
+            }
+            throw;
+        }
     }
 }

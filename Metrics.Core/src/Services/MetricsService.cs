@@ -14,6 +14,8 @@ namespace Metrics.Core.Services;
 
 internal sealed class MetricsService : IMetricsService, IDisposable
 {
+    private static readonly TimeSpan ShutdownTimeout = TimeSpan.FromSeconds(3);
+    private const int UnknownWarningCapacity = 256;
     private static readonly JsonElement EmptyProperties = JsonSerializer.SerializeToElement(
         new Dictionary<string, object?>(),
         MetricsJson.Options
@@ -26,6 +28,8 @@ internal sealed class MetricsService : IMetricsService, IDisposable
     private readonly ILogger<MetricsService> _logger;
     private readonly Channel<MetricEventEnvelope> _queue;
     private readonly ConcurrentDictionary<string, byte> _unknownEventWarnings = new(StringComparer.Ordinal);
+    private readonly Lock _unknownWarningLock = new();
+    private int _unknownWarningCapacityLogged;
     private readonly Lock _lifecycleLock = new();
     private readonly string _sessionId = "session_" + Guid.NewGuid().ToString("N");
 
@@ -123,9 +127,15 @@ internal sealed class MetricsService : IMetricsService, IDisposable
 
         try
         {
-            worker.GetAwaiter().GetResult();
+            if (!worker.Wait(ShutdownTimeout))
+                _logger.LogWarning("Metrics worker exceeded the {TimeoutMs} ms shutdown deadline.", ShutdownTimeout.TotalMilliseconds);
         }
         catch (OperationCanceledException)
+        {
+            // Ожидаемая ситуация во время выгрузки плагина.
+        }
+        catch (AggregateException exception) when (
+            exception.InnerExceptions.All(static inner => inner is OperationCanceledException))
         {
             // Ожидаемая ситуация во время выгрузки плагина.
         }
@@ -482,14 +492,20 @@ internal sealed class MetricsService : IMetricsService, IDisposable
     {
         var warningKey = eventName + ":" + reason;
 
-        if (_unknownEventWarnings.TryAdd(warningKey, 0))
+        lock (_unknownWarningLock)
         {
-            _logger.LogWarning(
-                "Metrics event '{EventKey}' was ignored because its {Reason}.",
-                eventName,
-                reason
-            );
+            if (_unknownEventWarnings.ContainsKey(warningKey)) return;
+            if (_unknownEventWarnings.Count >= UnknownWarningCapacity)
+            {
+                if (Interlocked.Exchange(ref _unknownWarningCapacityLogged, 1) == 0)
+                    _logger.LogWarning("Metrics unknown-event warning cache reached its {Capacity} key limit.", UnknownWarningCapacity);
+                return;
+            }
+
+            _unknownEventWarnings.TryAdd(warningKey, 0);
         }
+
+        _logger.LogWarning("Metrics event '{EventKey}' was ignored because its {Reason}.", eventName, reason);
     }
 
     private void LogConfigurationError(string error)

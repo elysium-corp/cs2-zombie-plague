@@ -42,6 +42,7 @@ internal sealed class RoundService(
 
     public void Unregister()
     {
+        roundManager.ForceStop();
         core.GameEvent.Unhook(_roundStartHook);
         core.GameEvent.Unhook(_roundEndHook);
         core.GameEvent.Unhook(_gameRestartHook);
@@ -69,14 +70,14 @@ internal sealed class RoundService(
     {
         _isRoundEnded = true;
 
-        roundManager.End();
+        roundManager.ForceStop(dispatchEndedEvent: true);
 
         return HookResult.Continue;
     }
 
     private HookResult OnGameRestart(EventCsPreRestart @event)
     {
-        roundManager.End();
+        roundManager.ForceStop(dispatchEndedEvent: true);
 
         return HookResult.Continue;
     }

@@ -17,14 +17,19 @@ namespace CustomEquipment.Services;
 public sealed class LaserMineInstallerService(
     ISwiftlyCore core,
     IHookPublisher hooks,
-    IEconomyApi economyApi) : ILaserMineInstallerService
+    IEconomyApi economyApi) : ILaserMineInstallerService, IDisposable
 {
     private const float MaxDistanceToAttach = 100f;
     private const float SetupDuration = 1.0f;
     private const int UpdateIntervalMs = 100;
+    private readonly CancellationTokenSource _shutdown = new();
+    private readonly Dictionary<int, CancellationTokenSource> _pending = [];
+    private readonly Lock _pendingLock = new();
 
     public bool TrySetup(IPlayer player, LaserMine mine)
     {
+        if (_shutdown.IsCancellationRequested) return false;
+        lock (_pendingLock) if (_pending.ContainsKey(player.PlayerID)) return false;
         var pawn = player.PlayerPawn;
 
         if (pawn == null || !pawn.IsValid) return false;
@@ -35,41 +40,49 @@ public sealed class LaserMineInstallerService(
         if (gameRules != null && gameRules.WarmupPeriod) return false;
         if (!EntityPlacer.CanAttachToGround(pawn, MaxDistanceToAttach)) return false;
 
-        _ = SetupAsync(player, mine);
+        var cancellation = CancellationTokenSource.CreateLinkedTokenSource(_shutdown.Token);
+        lock (_pendingLock) _pending[player.PlayerID] = cancellation;
+        _ = SetupAsync(player, mine, cancellation);
         return true;
     }
 
-    private async Task SetupAsync(IPlayer player, LaserMine mine)
+    private async Task SetupAsync(IPlayer player, LaserMine mine, CancellationTokenSource cancellation)
     {
-        var progress = 0f;
-        var window = CreateSetupWindow(() => progress);
-
-        core.MenusAPI.OpenMenuForPlayer(player, window);
-
-        while (progress < 1f)
+        try
         {
-            await Task.Delay(UpdateIntervalMs);
+            var progress = 0f;
+            var window = CreateSetupWindow(() => progress);
 
-            if (!player.IsValid)
+            core.MenusAPI.OpenMenuForPlayer(player, window);
+
+            while (progress < 1f)
             {
-                return;
+                await Task.Delay(UpdateIntervalMs, cancellation.Token).ConfigureAwait(false);
+
+                if (!player.IsValid) return;
+
+                progress = Math.Clamp(progress + UpdateIntervalMs / 1000f / SetupDuration, 0f, 1f);
             }
 
-            progress = Math.Clamp(
-                progress + UpdateIntervalMs / 1000f / SetupDuration,
-                0f,
-                1f);
+            await Task.Delay(500, cancellation.Token).ConfigureAwait(false);
+
+            if (!player.IsValid || cancellation.IsCancellationRequested) return;
+            var token = cancellation.Token;
+            core.Scheduler.NextTick(() =>
+            {
+                if (token.IsCancellationRequested || !player.IsValid) return;
+                core.MenusAPI.CloseActiveMenu(player);
+                Spawn(player, mine);
+            });
         }
-
-        await Task.Delay(500);
-
-        if (!player.IsValid)
+        catch (OperationCanceledException) when (cancellation.IsCancellationRequested) { }
+        finally
         {
-            return;
+            lock (_pendingLock)
+                if (_pending.TryGetValue(player.PlayerID, out var current) && ReferenceEquals(current, cancellation))
+                    _pending.Remove(player.PlayerID);
+            cancellation.Dispose();
         }
-
-        core.MenusAPI.CloseActiveMenu(player);
-        await core.Scheduler.NextTickAsync(() => Spawn(player, mine));
     }
 
     private IMenuAPI CreateSetupWindow(Func<float> getProgress)
@@ -112,6 +125,7 @@ public sealed class LaserMineInstallerService(
 
         if (!hooks.DispatchCancellable(ref preContext))
         {
+            entity.Dispose();
             economyApi.GiveMoney(player, mine.Price.Item);
             DispatchPlacementRejected(player, entity, MinePlacementRejectionReason.Cancelled);
             return;
@@ -119,6 +133,7 @@ public sealed class LaserMineInstallerService(
 
         if (!preContext.Player.IsValid)
         {
+            entity.Dispose();
             economyApi.GiveMoney(player, mine.Price.Item);
             DispatchPlacementRejected(preContext.Player, entity, MinePlacementRejectionReason.InvalidPlayer);
             return;
@@ -128,6 +143,15 @@ public sealed class LaserMineInstallerService(
 
         var postContext = new MinePlacedContext(preContext.Player, entity);
         hooks.Dispatch(ref postContext);
+    }
+
+    public void Dispose()
+    {
+        _shutdown.Cancel();
+        CancellationTokenSource[] pending;
+        lock (_pendingLock) { pending = _pending.Values.ToArray(); _pending.Clear(); }
+        foreach (var cancellation in pending) cancellation.Cancel();
+        _shutdown.Dispose();
     }
 
     private void DispatchPlacementRejected(

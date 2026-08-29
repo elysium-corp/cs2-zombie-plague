@@ -21,6 +21,8 @@ internal interface IRoundManager
 
     void End();
 
+    void ForceStop(bool dispatchEndedEvent = false);
+
     RoundStartResult TryStartRound(RoundBase round);
     
     RoundStartResult TryStartRandomRound();

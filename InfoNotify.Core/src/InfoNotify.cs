@@ -18,7 +18,7 @@ namespace InfoNotify.Core;
 )]
 internal sealed partial class InfoNotify(ISwiftlyCore core) : Plugin<InfoNotifyModule>(core)
 {
-    private readonly Lazy<IOptions<InfoNotifyConfig>> _config = DependencyResolver.GetRequiredServiceLazy<IOptions<InfoNotifyConfig>>();
+    private readonly Lazy<IOptions<InfoNotifyConfig>> _config = GetRequiredServiceLazy<IOptions<InfoNotifyConfig>>();
     
     private Guid _guidOnPlayerConnectFullPost = Guid.Empty;
     private Guid _guidOnRoundStartPost = Guid.Empty;
@@ -35,6 +35,7 @@ internal sealed partial class InfoNotify(ISwiftlyCore core) : Plugin<InfoNotifyM
 
     protected override void OnUnload()
     {
+        StopEventMessagesTimer();
         core.GameEvent.Unhook(_guidOnPlayerConnectFullPost);
         core.GameEvent.Unhook(_guidOnRoundStartPost);
         core.GameEvent.Unhook(_guidOnRoundEndPost);
@@ -42,6 +43,7 @@ internal sealed partial class InfoNotify(ISwiftlyCore core) : Plugin<InfoNotifyM
     
     private HookResult OnPlayerConnectFull(EventPlayerConnectFull @event)
     {
+        if (!_config.Get().Enable) return HookResult.Continue;
         var player = @event.UserIdPlayer;
         
         if (player == null || !player.IsValid)
@@ -66,6 +68,7 @@ internal sealed partial class InfoNotify(ISwiftlyCore core) : Plugin<InfoNotifyM
 
     private HookResult OnRoundStart(EventRoundStart @event)
     {
+        if (!_config.Get().Enable) return HookResult.Continue;
         TryStartEventMessagesTimer();
         
         var roundStartMessages = _config.Get().RoundStartMessages;
@@ -85,6 +88,8 @@ internal sealed partial class InfoNotify(ISwiftlyCore core) : Plugin<InfoNotifyM
 
     private HookResult OnRoundEnd(EventRoundEnd @event)
     {
+        StopEventMessagesTimer();
+        if (!_config.Get().Enable) return HookResult.Continue;
         var roundEndMessages = _config.Get().RoundEndMessages;
 
         if (roundEndMessages.Count == 0)
@@ -103,7 +108,7 @@ internal sealed partial class InfoNotify(ISwiftlyCore core) : Plugin<InfoNotifyM
     private void TryStartEventMessagesTimer()
     {
         var config =  _config.Get();
-        _eventMessagesHandler?.Cancel();
+        StopEventMessagesTimer();
         
         var roundEventMessages = config.RoundEventMessages;
 
@@ -112,8 +117,8 @@ internal sealed partial class InfoNotify(ISwiftlyCore core) : Plugin<InfoNotifyM
             return;
         }
 
-        var delayBeforeFirstMessages = config.TimeBetweenEventMessagesPerSeconds;
-        var timeBetweenMessages =  config.TimeBetweenEventMessagesPerSeconds;
+        var delayBeforeFirstMessages = Math.Max(0.05f, config.DelayBeforeFirstEventMessagesPerSeconds);
+        var timeBetweenMessages = Math.Max(1f, config.TimeBetweenEventMessagesPerSeconds);
         var randomEventMessagesEnable = config.RandomEventMessagesEnable;
         
         _eventMessagesHandler = core.Scheduler.DelayAndRepeatBySeconds(delayBeforeFirstMessages, timeBetweenMessages,
@@ -128,6 +133,12 @@ internal sealed partial class InfoNotify(ISwiftlyCore core) : Plugin<InfoNotifyM
                     SendChatEventMessages(roundEventMessages);
                 }
             });
+    }
+
+    private void StopEventMessagesTimer()
+    {
+        _eventMessagesHandler?.Cancel();
+        _eventMessagesHandler = null;
     }
     
     private void SendChatEventMessages(List<string> messages)
