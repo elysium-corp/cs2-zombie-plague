@@ -138,7 +138,6 @@ internal sealed partial class InfoNotify(ISwiftlyCore core) : Plugin<InfoNotifyM
     private void StopEventMessagesTimer()
     {
         _eventMessagesHandler?.Cancel();
-        _eventMessagesHandler?.Dispose();
         _eventMessagesHandler = null;
     }
     

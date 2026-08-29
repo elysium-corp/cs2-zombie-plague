@@ -136,10 +136,8 @@ internal sealed class TrapEntity(ISwiftlyCore core, TrapConfig config, IPlayer c
         }
 
         _triggerTask?.Cancel();
-        _triggerTask?.Dispose();
         _triggerTask = null;
         _despawnTask?.Cancel();
-        _despawnTask?.Dispose();
         _despawnTask = null;
     }
 

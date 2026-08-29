@@ -184,7 +184,6 @@ internal sealed partial class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxMod
         {
             if (!_roundActive || !ReferenceEquals(_respawnSupplyBoxThinker, timer)) return;
             _respawnSupplyBoxThinker = null;
-            timer!.Dispose();
             TrySpawnSupplyBox(round);
         });
         _respawnSupplyBoxThinker = timer;
@@ -231,7 +230,6 @@ internal sealed partial class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxMod
     private void CancelRespawnTimer()
     {
         _respawnSupplyBoxThinker?.Cancel();
-        _respawnSupplyBoxThinker?.Dispose();
         _respawnSupplyBoxThinker = null;
     }
 

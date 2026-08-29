@@ -201,10 +201,8 @@ public sealed class SupplyBoxEntity : ISupplyBoxEntity, IDisposable
     private void CleanupEntities()
     {
         _dropThinker?.Cancel();
-        _dropThinker?.Dispose();
         _dropThinker = null;
         _pickUpThinker?.Cancel();
-        _pickUpThinker?.Dispose();
         _pickUpThinker = null;
         StopSound();
 

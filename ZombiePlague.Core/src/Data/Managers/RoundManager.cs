@@ -357,13 +357,11 @@ internal sealed class RoundManager(
         _countdownSoundPlayed = false;
 
         _preparationTimer?.Cancel();
-        _preparationTimer?.Dispose();
         _preparationTimer = null;
 
         foreach (var respawn in _preparationRespawns.Values)
         {
             respawn.Cancel();
-            respawn.Dispose();
         }
         _preparationRespawns.Clear();
 
@@ -480,7 +478,6 @@ internal sealed class RoundManager(
         if (_preparationRespawns.Remove(playerId, out var previous))
         {
             previous.Cancel();
-            previous.Dispose();
         }
 
         CancellationTokenSource? timer = null;
@@ -489,7 +486,6 @@ internal sealed class RoundManager(
             if (!_preparationRespawns.TryGetValue(playerId, out var currentTimer) ||
                 !ReferenceEquals(currentTimer, timer)) return;
             _preparationRespawns.Remove(playerId);
-            timer!.Dispose();
 
             var currentPlayer = core.PlayerManager.GetPlayer(playerId);
 

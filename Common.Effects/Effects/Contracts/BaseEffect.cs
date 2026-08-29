@@ -87,7 +87,6 @@ public abstract class BaseEffect(ISwiftlyCore core, Action<IEffect> callback, IP
 
         callback.Invoke(this);
         DestroyDurationToken?.Cancel();
-        DestroyDurationToken?.Dispose();
         DestroyDurationToken = null;
     }
 

@@ -122,7 +122,6 @@ public abstract class LaserMineEntityBase(ISwiftlyCore core) : IDisposable
         LaserMineTracer = null;
 
         _triggerTask?.Cancel();
-        _triggerTask?.Dispose();
         _triggerTask = null;
     }
 
