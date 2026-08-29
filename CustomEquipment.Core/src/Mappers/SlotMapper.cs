@@ -13,7 +13,7 @@ internal sealed class SlotMapper : ISlotMapper
             gear_slot_t.GEAR_SLOT_PISTOL => Slot.Secondary,
             gear_slot_t.GEAR_SLOT_KNIFE => Slot.Knife,
             gear_slot_t.GEAR_SLOT_GRENADES => Slot.Grenade,
-            gear_slot_t.GEAR_SLOT_C4 => Slot.Equipment,
+            gear_slot_t.GEAR_SLOT_BOOSTS => Slot.Equipment,
             _ => throw new ArgumentOutOfRangeException(nameof(slot), slot, null)
         };
     }
@@ -26,7 +26,7 @@ internal sealed class SlotMapper : ISlotMapper
             Slot.Secondary => gear_slot_t.GEAR_SLOT_PISTOL,
             Slot.Knife => gear_slot_t.GEAR_SLOT_KNIFE,
             Slot.Grenade => gear_slot_t.GEAR_SLOT_GRENADES,
-            Slot.Equipment => gear_slot_t.GEAR_SLOT_C4,
+            Slot.Equipment => gear_slot_t.GEAR_SLOT_BOOSTS,
             _ => throw new ArgumentOutOfRangeException(nameof(slot), slot, null)
         };
     }

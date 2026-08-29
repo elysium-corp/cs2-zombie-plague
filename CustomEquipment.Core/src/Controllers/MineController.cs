@@ -107,8 +107,8 @@ internal sealed class MineController(
             return;
         }
 
-        // C4 используется только как предмет в руках: стандартное действие
-        // установки бомбы для лазерной мины блокируется.
+        // Healthshot используется только как предмет-носитель лазерной мины:
+        // его стандартное применение блокируется.
         buttons.ButtonPressed &= ~GameButtonFlags.Mouse1;
         buttons.ButtonChanged &= ~GameButtonFlags.Mouse1;
 
