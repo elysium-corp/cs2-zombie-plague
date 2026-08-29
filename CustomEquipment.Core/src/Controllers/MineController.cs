@@ -63,14 +63,15 @@ internal sealed class MineController(
         }
 
         UpdateNotValidMines();
+        var player = context.Player;
 
-        if (!equipmentService.HasItem<LaserMine>(context.Player) &&
-            !_mines.Values.Any(entry => entry.Owner.Equals(context.Player)))
+        if (!equipmentService.HasItem<LaserMine>(player) &&
+            !_mines.Values.Any(entry => entry.Owner.Equals(player)))
         {
             return;
         }
 
-        context.Player.SendAlert("У вас уже есть лазерная мина");
+        player.SendAlert("У вас уже есть лазерная мина");
         context.Cancel();
     }
 
