@@ -146,6 +146,8 @@ internal sealed class MineController(
 
     private void OnWeaponCanUse(ref CanUseWeaponPreContext context)
     {
+        var player = context.Params.Player;
+
         if (equipmentService.GetItemByEntityIndex<LaserMine>(context.Params.Weapon.Index) is null)
         {
             return;
@@ -153,7 +155,7 @@ internal sealed class MineController(
 
         UpdateNotValidMines();
 
-        if (!_mines.Values.Any(entry => entry.Owner.Equals(context.Params.Player)))
+        if (!_mines.Values.Any(entry => entry.Owner.Equals(player)))
         {
             return;
         }
