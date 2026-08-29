@@ -17,12 +17,27 @@ public abstract class BaseEffect(ISwiftlyCore core, Action<IEffect> callback, IP
     public abstract float Duration { get; }
 
     private CancellationTokenSource? DestroyDurationToken { get; set; }
+    private int _started;
+    private int _destroyed;
 
     public abstract void Destroy();
 
     public virtual void Start()
     {
-        TryApply();
+        TryStart();
+    }
+
+    internal bool TryStart()
+    {
+        if (Interlocked.CompareExchange(ref _started, 1, 0) != 0 ||
+            !Target.IsValid || !Target.IsAlive || !CanApply())
+        {
+            return false;
+        }
+
+        StartDestroyTimer();
+        ApplyEffect();
+        return true;
     }
 
     /// <summary>
@@ -65,25 +80,15 @@ public abstract class BaseEffect(ISwiftlyCore core, Action<IEffect> callback, IP
     /// </remarks>
     protected virtual void DestroyEffect()
     {
+        if (Interlocked.Exchange(ref _destroyed, 1) != 0)
+        {
+            return;
+        }
+
         callback.Invoke(this);
         DestroyDurationToken?.Cancel();
-    }
-
-    private void TryApply()
-    {
-        if (!Target.IsValid || !Target.IsAlive)
-        {
-            return;
-        }
-
-        if (!CanApply())
-        {
-            return;
-        }
-        
-        StartDestroyTimer();
-
-        ApplyEffect();
+        DestroyDurationToken?.Dispose();
+        DestroyDurationToken = null;
     }
 
     private void StartDestroyTimer()

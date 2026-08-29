@@ -20,6 +20,7 @@ internal abstract class RoundBase(ISwiftlyCore core, IPlayerManager playerManage
     protected ISwiftlyCore Core { get; } = core;
 
     private bool _isRoundEnded;
+    private bool _cleanupCompleted = true;
 
     protected abstract bool OnStart();
 
@@ -33,6 +34,7 @@ internal abstract class RoundBase(ISwiftlyCore core, IPlayerManager playerManage
     public bool TryStart()
     {
         _isRoundEnded = false;
+        _cleanupCompleted = false;
 
         if (OnStart())
         {
@@ -46,6 +48,8 @@ internal abstract class RoundBase(ISwiftlyCore core, IPlayerManager playerManage
 
     public virtual void End()
     {
+        if (_cleanupCompleted) return;
+        _cleanupCompleted = true;
         _isRoundEnded = true;
         
         OnEnd();

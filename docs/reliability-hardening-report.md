@@ -1,0 +1,34 @@
+# Reliability hardening evidence
+
+Baseline: `origin/develop` at `c64c4ec714e551e32ba6d9aa63e0b87495216244`.
+
+This document distinguishes a proven ownership defect from a merely possible failure mode. A leak claim is made only where the baseline creates a long-lived registration, timer, task, entity, patch, or collection and lacks a matching bounded release path.
+
+| Area | Baseline evidence and failure mechanism | Change | Verifiable result |
+|---|---|---|---|
+| Plugin DI lifecycle | A failure after module construction bypassed normal unload. The provider remained in the static registry, retaining the plugin graph. | Every lifecycle phase now rolls back; registry removal precedes provider disposal; cleanup is idempotent and aggregates failures. | For every successful module insertion there is a removal path even when `OnStart`, shared-interface setup, or `OnReady` throws. |
+| Hook failures | Subscriber exceptions were silently swallowed. That concealed partial cleanup and made an apparent “unhook leak” impossible to diagnose. | Hook failures go to `ILogger` or an injected diagnostic callback. | Unit test asserts the exact exception, context type, and handler are reported while later subscribers still run. |
+| Effects | A process-global provider and non-idempotent timers retained core/player/effect references across reload; failed starts could remain registered. | Per-core weak ownership, locked registry, successful-start-only insertion, duplicate suppression, idempotent timer disposal, explicit release on plugin unload. | The static root no longer strongly owns `ISwiftlyCore`; each effect has one terminal removal path. |
+| Duplicate particle controller | Two independent tracer implementations could create overlapping particle/timer ownership. | Removed the unused duplicate service and DI registration; the retained controller clears grenade/tracer state on dispose. | Exactly one tracer owner remains in the composition root. |
+| Supply boxes | Round timers, delayed model callbacks, sound handles and spawned entities had paths surviving round end/reload. Synchronous JSON I/O ran on the game thread. | Boxes and timers are disposable; callbacks check disposed/round generation; map I/O is serialized off-thread, size/count bounded and atomically replaced. | Round stop empties the owned box set; game-thread path no longer performs file reads/writes; corrupt/oversized input is rejected before allocation grows unbounded. |
+| Map configuration writes | Direct overwrite could leave truncated JSON after interruption; edits could queue unlimited stale writes. | Immutable snapshots, generation/version coalescing, one I/O semaphore, `.tmp` + atomic move, 1 MiB/512-point limits. | Only the newest generation/version may replace the destination, and the old complete file remains until replacement succeeds. |
+| Laser mines | `Task.Delay` continuations and scheduler callbacks captured players after unload; mine entities were not disposed on every rejected placement. | Linked shutdown cancellation, synchronized pending-operation ownership, token-guarded game-thread callback, disposal on rejection and controller teardown. | Unload cancels all known installations; no accepted continuation can spawn after cancellation. |
+| Trap ability | Rebinding/unhook did not own the spawned entity, repeat timer, delayed despawn, or movement restoration callback. | Ability disposes its current trap during replacement/unhook; entity cleanup is idempotent and disposes both timers. | Unbind has a direct path to terminate every resource created by `TrySpawn`. |
+| Grenade tracking | Tick code copied dictionaries/lists and had no population bound. | Reused buffers, reverse in-place removal, per-player and global caps, explicit clear on controller disposal. | Per-tick temporary copies are removed and retained state has a fixed upper bound. |
+| Round manager | Preparation respawns and round-start failures lacked symmetric cleanup; weighted selection could fail for invalid/non-positive weights. | Owned respawn timers, forced non-cancellable engine teardown, failed-start cleanup, safe positive `long` weighting, one-shot round cleanup. | Engine round end always terminates the active round; failed start invokes cleanup once; selection cannot call `Random.Next(0)`. |
+| Statistics/database/metrics shutdown | Blocking waits and cancellation-insensitive background work could stall the game thread indefinitely. | Startup refresh is non-blocking; shutdown waits have explicit 2–3 second ceilings; task trackers own shutdown cancellation. | The synchronous unload path now has a finite upper wait bound even if remote I/O never completes. |
+| Metrics endpoint | Arbitrary HTTP permitted credential/data disclosure; warning-key dictionaries and spool trim behavior could grow or thrash. | HTTPS by default; explicit loopback-only HTTP escape hatch; bounded warning keys; trim headroom. | Non-loopback HTTP and URI userinfo fail validation; logger cardinality and post-trim spool size are bounded. |
+| Movement patch | Unload always attempted a revert without proving this instance applied the patch; failure could leave bookkeeping inconsistent. | Check-before-apply, instance ownership flag, revert in `finally`. | An instance reverts only its own successful patch and clears ownership even when the platform throws. |
+| Commands/events | Several command IDs and event handlers were registered without a matching unload operation. | IDs are retained and unregistered; event subscriptions and scheduler tokens have symmetric teardown and guards against queued post-unload work. | Each changed registration site has a mechanically adjacent inverse operation. |
+| Event catalogue | Consumers only received a context type name, making cancellation and mutability assumptions unverifiable. | Schema v2 adds `isCancellable` and `contextParameters` (`name`, `type`, `nullable`, `mutable`) discovered from public context structs. | Generator fails when an event context is absent/ambiguous, preventing silent catalogue drift. |
+
+## Proof protocol
+
+The PR must be accepted only after the following checks are green on the exact commit:
+
+1. `dotnet build CS2ZombiePlague.sln -c Release --no-restore`
+2. `dotnet test CS2ZombiePlague.sln -c Release --no-build`
+3. `dotnet run --project tools/EventDocsGenerator -- check`
+4. `git diff --check origin/develop...HEAD`
+
+Runtime validation should additionally perform 50 plugin reloads and 100 round transitions while sampling managed heap, active scheduler callbacks, entity counts, and frame time. The evidence threshold is no monotonic growth after forced GC, no callback/entity owned by an unloaded instance, unload latency below the documented 3-second ceiling, and no new p99 frame-time regression. Static ownership proofs eliminate the identified missing release paths; they do not substitute for this server-level soak test.

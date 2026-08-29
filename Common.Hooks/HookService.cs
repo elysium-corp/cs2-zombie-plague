@@ -1,13 +1,23 @@
 using Common.Hooks.Abstractions;
+using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 
 namespace Common.Hooks;
 
 /// <summary>
 /// Потокобезопасный синхронный dispatcher контекстов с приоритетами и snapshot-семантикой.
 /// </summary>
-/// <param name="exceptionHandler">Необязательный обработчик исключений подписчиков.</param>
-public sealed class HookService(Action<Exception, Type, Delegate>? exceptionHandler = null) : IHookSubscriber, IHookPublisher
+public sealed class HookService : IHookSubscriber, IHookPublisher
 {
+    private readonly ILogger<HookService>? _logger;
+    private readonly Action<Exception, Type, Delegate>? _exceptionHandler;
+
+    /// <summary>Создаёт dispatcher без внешнего журнала.</summary>
+    public HookService() { }
+    /// <summary>Создаёт dispatcher, журналирующий сбои подписчиков.</summary>
+    public HookService(ILogger<HookService> logger) => _logger = logger;
+    /// <summary>Создаёт dispatcher с пользовательским диагностическим обработчиком.</summary>
+    public HookService(Action<Exception, Type, Delegate> exceptionHandler) => _exceptionHandler = exceptionHandler;
     private readonly Lock _sync = new();
 
     // Массивы никогда не изменяются после публикации в словаре. Dispatch получает
@@ -135,8 +145,30 @@ public sealed class HookService(Action<Exception, Type, Delegate>? exceptionHand
             }
             catch (Exception exception)
             {
-                exceptionHandler?.Invoke(exception, contextType, registration.Handler);
+                ReportFailure(exception, contextType, registration.Handler);
             }
+        }
+    }
+
+    private void ReportFailure(Exception exception, Type contextType, Delegate handler)
+    {
+        try
+        {
+            if (_exceptionHandler is not null)
+            {
+                _exceptionHandler(exception, contextType, handler);
+                return;
+            }
+            if (_logger is not null)
+            {
+                _logger.LogError(exception, "Hook subscriber {Subscriber} failed for {Context}.", handler.Method.Name, contextType.FullName);
+                return;
+            }
+            Trace.TraceError("Hook subscriber {0} failed for {1}: {2}", handler.Method.Name, contextType.FullName, exception);
+        }
+        catch (Exception diagnosticsException)
+        {
+            Trace.TraceError("Hook diagnostics failed for {0}: {1}", contextType.FullName, diagnosticsException);
         }
     }
 

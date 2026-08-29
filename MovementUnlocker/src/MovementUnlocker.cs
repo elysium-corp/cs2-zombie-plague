@@ -13,6 +13,7 @@ namespace MovementUnlocker;
 )]
 public partial class MovementUnlocker(ISwiftlyCore core) : BasePlugin(core)
 {
+    private bool _patchApplied;
     public override void Load(bool hotReload)
     {
         if (!Core.GameData.HasSignature("MovementUnlocker"))
@@ -20,10 +21,23 @@ public partial class MovementUnlocker(ISwiftlyCore core) : BasePlugin(core)
             throw new Exception("MovementUnlocker signature not found");
         }
 
+        if (!Core.GameData.HasPatch("MovementUnlocker"))
+            throw new Exception("MovementUnlocker patch not found");
+
         Core.GameData.ApplyPatch("MovementUnlocker");
+        _patchApplied = true;
     }
 
     public override void Unload()
     {
+        if (!_patchApplied) return;
+        try
+        {
+            Core.GameData.RevertPatch("MovementUnlocker");
+        }
+        finally
+        {
+            _patchApplied = false;
+        }
     }
 }

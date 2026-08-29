@@ -23,6 +23,7 @@ internal sealed class Trap(ISwiftlyCore core, TrapConfig config) : BaseActiveAbi
 
     public override void Use()
     {
+        _trapEntity?.Dispose();
         var trap = new TrapEntity(core, config, Caster);
 
         if (!trap.TrySpawn()) return;
@@ -30,6 +31,13 @@ internal sealed class Trap(ISwiftlyCore core, TrapConfig config) : BaseActiveAbi
         _trapEntity = trap;
 
         base.Use();
+    }
+
+    public override void UnHook()
+    {
+        _trapEntity?.Dispose();
+        _trapEntity = null;
+        base.UnHook();
     }
 
     protected override bool CanUse()
@@ -63,11 +71,13 @@ internal sealed class Trap(ISwiftlyCore core, TrapConfig config) : BaseActiveAbi
     }
 }
 
-internal sealed class TrapEntity(ISwiftlyCore core, TrapConfig config, IPlayer caster)
+internal sealed class TrapEntity(ISwiftlyCore core, TrapConfig config, IPlayer caster) : IDisposable
 {
     public CParticleSystem? Entity { get; private set; }
 
     private CancellationTokenSource? _triggerTask;
+    private CancellationTokenSource? _despawnTask;
+    private int _disposed;
 
     private const float Delay = 0.1f;
 
@@ -118,6 +128,7 @@ internal sealed class TrapEntity(ISwiftlyCore core, TrapConfig config, IPlayer c
 
     private void Despawn()
     {
+        if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
         if (Entity != null && Entity.IsValidEntity)
         {
             Entity.Despawn();
@@ -125,7 +136,11 @@ internal sealed class TrapEntity(ISwiftlyCore core, TrapConfig config, IPlayer c
         }
 
         _triggerTask?.Cancel();
+        _triggerTask?.Dispose();
         _triggerTask = null;
+        _despawnTask?.Cancel();
+        _despawnTask?.Dispose();
+        _despawnTask = null;
     }
 
     private void StartTriggerHandler()
@@ -135,7 +150,7 @@ internal sealed class TrapEntity(ISwiftlyCore core, TrapConfig config, IPlayer c
 
     private void StartDespawnCallback()
     {
-        core.Scheduler.DelayBySeconds(config.LiveDuration, Despawn);
+        _despawnTask = core.Scheduler.DelayBySeconds(Math.Max(0.1f, config.LiveDuration), Despawn);
     }
 
     private void Trigger()
@@ -194,4 +209,6 @@ internal sealed class TrapEntity(ISwiftlyCore core, TrapConfig config, IPlayer c
             targetPawn.MoveTypeUpdated();
         });
     }
+
+    public void Dispose() => Despawn();
 }

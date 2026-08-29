@@ -91,6 +91,18 @@ public sealed class HookServiceTests
         Assert.IsType<InvalidOperationException>(failures[0]);
     }
 
+    [Fact]
+    public void Dispatch_ContinuesWhenExceptionHandlerAlsoThrows()
+    {
+        var hooks = new HookService((_, _, _) => throw new InvalidOperationException("diagnostics"));
+        var called = false;
+        hooks.Hook<TestPostContext>((ref TestPostContext _) => throw new InvalidOperationException("subscriber"));
+        hooks.Hook<TestPostContext>((ref TestPostContext _) => called = true);
+        var context = new TestPostContext();
+        hooks.Dispatch(ref context);
+        Assert.True(called);
+    }
+
     private struct TestPreContext : IPreHookContext
     {
         public bool IsCancelled { get; private set; }

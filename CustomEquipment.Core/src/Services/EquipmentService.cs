@@ -28,7 +28,6 @@ internal sealed class EquipmentService(
 ) : IEquipmentService, IDisposable
 {
     private readonly List<ItemBase> _items = [];
-    private readonly Dictionary<IPlayer, HashSet<WeaponItemBase>> _inventories = [];
 
     public void Initialize()
     {
@@ -36,8 +35,6 @@ internal sealed class EquipmentService(
         core.Event.OnEntityDeleted += OnEntityDeleted;
 
         core.GameHooks.Weapons.CanUse.Pre += OnWeaponCanUsePre;
-        core.GameHooks.Weapons.CanUse.Post += OnWeaponCanUsePost;
-        core.GameHooks.Weapons.Drop.Post += OnWeaponDropPost;
     }
 
     public void Dispose()
@@ -46,8 +43,6 @@ internal sealed class EquipmentService(
         core.Event.OnEntityDeleted -= OnEntityDeleted;
 
         core.GameHooks.Weapons.CanUse.Pre -= OnWeaponCanUsePre;
-        core.GameHooks.Weapons.CanUse.Post -= OnWeaponCanUsePost;
-        core.GameHooks.Weapons.Drop.Post -= OnWeaponDropPost;
     }
 
     public bool CanUseItem(IPlayer player, ItemBase item)
@@ -373,60 +368,6 @@ internal sealed class EquipmentService(
 
         context.SetReturn(false);
         context.SetHookResult(HookResult.Stop);
-    }
-
-    private void OnWeaponCanUsePost(ref CanUseWeaponPostContext context)
-    {
-        if (!context.Return)
-        {
-            return;
-        }
-
-        var player = context.Params.Player;
-        var weapon = context.Params.Weapon;
-        var customWeapon = GetWeaponByIndex(weapon.Index);
-
-        if (customWeapon is null)
-        {
-            return;
-        }
-
-        AddWeaponToInventory(player, customWeapon);
-    }
-
-    private void OnWeaponDropPost(ref WeaponDropPostContext context)
-    {
-        var droppedWeapon = context.Params.Weapon;
-
-        if (droppedWeapon is null)
-        {
-            return;
-        }
-
-        var player = context.Params.Player;
-
-        if (!_inventories.TryGetValue(player, out var inventory))
-        {
-            return;
-        }
-
-        inventory.RemoveWhere(customWeapon => customWeapon.AttachedEntity.Index == droppedWeapon.Index);
-
-        if (inventory.Count == 0)
-        {
-            _inventories.Remove(player);
-        }
-    }
-
-    private void AddWeaponToInventory(IPlayer player, WeaponItemBase weaponItem)
-    {
-        if (!_inventories.TryGetValue(player, out var weapons))
-        {
-            weapons = [];
-            _inventories[player] = weapons;
-        }
-
-        weapons.Add(weaponItem);
     }
 
     private WeaponItemBase? GetWeaponByIndex(uint index)

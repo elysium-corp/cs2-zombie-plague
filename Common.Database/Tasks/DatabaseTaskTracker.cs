@@ -2,11 +2,13 @@
 
 namespace Common.Database.Tasks;
 
-public sealed class DatabaseTaskTracker(ILogger<DatabaseTaskTracker> logger)
+public sealed class DatabaseTaskTracker(ILogger<DatabaseTaskTracker> logger) : IDisposable
 {
+    private static readonly TimeSpan ShutdownTimeout = TimeSpan.FromSeconds(3);
     private readonly Lock _lock = new();
 
     private readonly HashSet<Task> _tasks = [];
+    private readonly CancellationTokenSource _shutdown = new();
 
     private bool _stopping;
 
@@ -52,6 +54,9 @@ public sealed class DatabaseTaskTracker(ILogger<DatabaseTaskTracker> logger)
             );
         }
     }
+
+    public void Run(Func<CancellationToken, Task> operation, string? operationName = null) =>
+        Run(() => operation(_shutdown.Token), operationName);
     
     public Task<TResult> RunAsync<TResult>(Func<Task<TResult>> operation, string? operationName = null)
     {
@@ -103,6 +108,9 @@ public sealed class DatabaseTaskTracker(ILogger<DatabaseTaskTracker> logger)
         }
     }
 
+    public Task<TResult> RunAsync<TResult>(Func<CancellationToken, Task<TResult>> operation, string? operationName = null) =>
+        RunAsync(() => operation(_shutdown.Token), operationName);
+
     public void StopAndWait()
     {
         Task[] pendingTasks;
@@ -110,6 +118,7 @@ public sealed class DatabaseTaskTracker(ILogger<DatabaseTaskTracker> logger)
         lock (_lock)
         {
             _stopping = true;
+            _shutdown.Cancel();
 
             pendingTasks = _tasks.ToArray();
         }
@@ -119,9 +128,14 @@ public sealed class DatabaseTaskTracker(ILogger<DatabaseTaskTracker> logger)
             return;
         }
 
-        Task.WhenAll(pendingTasks)
-            .GetAwaiter()
-            .GetResult();
+        if (!Task.WhenAll(pendingTasks).Wait(ShutdownTimeout))
+            logger.LogWarning("{Count} database operation(s) exceeded the {TimeoutMs} ms shutdown deadline.", pendingTasks.Length, ShutdownTimeout.TotalMilliseconds);
+    }
+
+    public void Dispose()
+    {
+        StopAndWait();
+        _shutdown.Dispose();
     }
 
     private async Task ObserveAsync(Task task, string? operationName)

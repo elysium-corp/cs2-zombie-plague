@@ -16,15 +16,23 @@ namespace ResetScore;
 )]
 internal sealed partial class ResetScore(ISwiftlyCore core) : Plugin<ResetScoreModule>(core)
 {
+    private Guid _command;
     protected override void OnReady()
     {
-        core.Command.RegisterCommand(
+        _command = core.Command.RegisterCommand(
             commandName: "reset",
             handler: ResetScoreHandler,
             registerRaw: true
         );
         
         core.Command.RegisterCommandAlias("reset", "rs");
+    }
+
+    protected override void OnUnload()
+    {
+        if (_command == Guid.Empty) return;
+        core.Command.UnregisterCommand(_command);
+        _command = Guid.Empty;
     }
     
     public void ResetScoreHandler(ICommandContext context)

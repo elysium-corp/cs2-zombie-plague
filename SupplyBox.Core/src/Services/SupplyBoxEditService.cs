@@ -9,45 +9,23 @@ internal sealed class SupplyBoxEditService(SupplyBoxMapConfigService mapConfigSe
 {
     public void AddSupplyBoxEntity(SupplyBoxEntityTemplate data)
     {
-        if (mapConfigService.MapConfig == null || mapConfigService.SupplyBoxesData == null)
-        {
-            return;
-        }
-        
-        var nextIndex = mapConfigService.SupplyBoxesData.Count == 0 ? 1 : mapConfigService.SupplyBoxesData.Max(x => x.Index) + 1;
-        
-        var supplyBoxEntityConfig = new SupplyBoxEntityConfig
-        {
-            Index = nextIndex,
-            Position = data.Position,
-            Rotation = data.Rotation
-        };
-        
-        mapConfigService.SupplyBoxesData.Add(supplyBoxEntityConfig);
-        
-        mapConfigService.SaveConfig();
+        mapConfigService.TryAdd(data.Position, data.Rotation);
     }
     
     public void RemoveSupplyBoxEntity(SupplyBoxEntityConfig data)
     {
-        if (mapConfigService.MapConfig == null || mapConfigService.SupplyBoxesData == null)
-        {
-            return;
-        }
-        
-        mapConfigService.SupplyBoxesData.Remove(data);
-        
-        mapConfigService.SaveConfig();
+        mapConfigService.TryRemove(data.Index);
     }
     
     public SupplyBoxEntity? TrySpawnSupplyBox()
     {
-        if (mapConfigService.SupplyBoxesData == null || mapConfigService.SupplyBoxesData.Count == 0)
+        var points = mapConfigService.GetSnapshot();
+        if (points.Count == 0)
         {
             return null;
         }
         
-        var supplyBoxData = mapConfigService.SupplyBoxesData[Numeric.Random(0, mapConfigService.SupplyBoxesData.Count)];
+        var supplyBoxData = points[Numeric.Random(0, points.Count)];
         
         var supplyBoxEntity = DependencyResolver.GetRequiredService<SupplyBoxEntity>();
         supplyBoxEntity.Spawn(supplyBoxData);
@@ -57,7 +35,8 @@ internal sealed class SupplyBoxEditService(SupplyBoxMapConfigService mapConfigSe
     
     public SupplyBoxEntity? TrySpawnUniqueSupplyBox(List<SupplyBoxEntity> droppedSupplyBoxes)
     {
-        if (mapConfigService.SupplyBoxesData == null)
+        var points = mapConfigService.GetSnapshot();
+        if (points.Count == 0)
         {
             return null;
         }
@@ -73,7 +52,7 @@ internal sealed class SupplyBoxEditService(SupplyBoxMapConfigService mapConfigSe
             spawnedSupplyBoxIndex.Add(box.Index);
         }
         
-        var supplyBoxesDataSnapshot = mapConfigService.SupplyBoxesData.Shuffle().ToList();
+        var supplyBoxesDataSnapshot = points.Shuffle().ToList();
         var data = supplyBoxesDataSnapshot.Find(box => !spawnedSupplyBoxIndex.Contains(box.Index));
         var newData = data == null ? supplyBoxesDataSnapshot.First() : data;
         

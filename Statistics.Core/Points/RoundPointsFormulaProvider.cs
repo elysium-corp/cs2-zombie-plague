@@ -48,7 +48,7 @@ internal sealed class RoundPointsFormulaProvider(
             _lifetime = new CancellationTokenSource();
         }
 
-        RefreshAndWait();
+        Refresh();
     }
 
     public PointsFormula CaptureFormula()
@@ -64,10 +64,8 @@ internal sealed class RoundPointsFormulaProvider(
         return GetConfigFormula();
     }
 
-    public void RefreshAndWait()
+    public void Refresh()
     {
-        Task refreshTask;
-
         lock (_lock)
         {
             if (_lifetime is null)
@@ -85,16 +83,6 @@ internal sealed class RoundPointsFormulaProvider(
                 );
             }
 
-            refreshTask = _refreshTask;
-        }
-
-        try
-        {
-            refreshTask.GetAwaiter().GetResult();
-        }
-        catch (OperationCanceledException)
-        {
-            // Expected when the plugin is unloading during a Web request.
         }
     }
 
@@ -120,9 +108,15 @@ internal sealed class RoundPointsFormulaProvider(
 
         try
         {
-            refreshTask.GetAwaiter().GetResult();
+            if (!refreshTask.Wait(TimeSpan.FromSeconds(2)))
+                logger.LogWarning("Statistics formula refresh did not stop within 2000 ms; unload will continue.");
         }
         catch (OperationCanceledException)
+        {
+            // Expected while the plugin is unloading.
+        }
+        catch (AggregateException exception) when (
+            exception.InnerExceptions.All(static inner => inner is OperationCanceledException))
         {
             // Expected while the plugin is unloading.
         }

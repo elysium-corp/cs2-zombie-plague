@@ -76,10 +76,17 @@ internal sealed class AdminAudienceResolver
 
 internal sealed class RateLimitedLogger(ILogger logger)
 {
+    private const int MaximumKeys = 512;
     private readonly ConcurrentDictionary<string, DateTimeOffset> _last = new(StringComparer.Ordinal);
     public void Warning(string key, TimeSpan interval, string message, params object?[] args)
     {
         var now = DateTimeOffset.UtcNow;
+        if (_last.Count >= MaximumKeys && !_last.ContainsKey(key))
+        {
+            foreach (var stale in _last.Where(item => now - item.Value >= interval).Take(64))
+                _last.TryRemove(stale.Key, out _);
+            if (_last.Count >= MaximumKeys) key = "rate-limit:overflow";
+        }
         var previous = _last.GetOrAdd(key, DateTimeOffset.MinValue);
         if (now - previous < interval || !_last.TryUpdate(key, now, previous)) return;
         logger.LogWarning(message, args);

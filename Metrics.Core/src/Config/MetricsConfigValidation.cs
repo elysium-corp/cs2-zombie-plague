@@ -14,9 +14,9 @@ internal static class MetricsConfigValidation
             return true;
         }
 
-        if (!TryBuildIngestionUri(config.BaseUrl, out _))
+        if (!TryBuildIngestionUri(config.BaseUrl, config.AllowInsecureLoopbackHttp, out _))
         {
-            error = "BaseUrl must be an absolute HTTP or HTTPS URL.";
+            error = "BaseUrl must use HTTPS; loopback HTTP requires AllowInsecureLoopbackHttp.";
 
             return false;
         }
@@ -140,11 +140,20 @@ internal static class MetricsConfigValidation
     }
 
     public static bool TryBuildIngestionUri(string baseUrl, out Uri ingestionUri)
+        => TryBuildIngestionUri(baseUrl, false, out ingestionUri);
+
+    public static bool TryBuildIngestionUri(
+        string baseUrl,
+        bool allowInsecureLoopbackHttp,
+        out Uri ingestionUri)
     {
         if (!string.IsNullOrWhiteSpace(baseUrl) &&
             Uri.TryCreate(baseUrl.TrimEnd('/') + "/", UriKind.Absolute, out var baseUri) &&
-            (string.Equals(baseUri.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase) ||
-             string.Equals(baseUri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase)))
+            string.IsNullOrEmpty(baseUri.UserInfo) &&
+            (string.Equals(baseUri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase) ||
+             allowInsecureLoopbackHttp &&
+             string.Equals(baseUri.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase) &&
+             baseUri.IsLoopback))
         {
             ingestionUri = new Uri(baseUri, "api/metrics/v1/events");
 

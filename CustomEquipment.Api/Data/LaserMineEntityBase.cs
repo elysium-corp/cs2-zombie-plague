@@ -6,7 +6,7 @@ using SwiftlyS2.Shared.Trace;
 
 namespace CustomEquipment.Api.Data;
 
-public abstract class LaserMineEntityBase(ISwiftlyCore core)
+public abstract class LaserMineEntityBase(ISwiftlyCore core) : IDisposable
 {
     public virtual string LaserMineModel =>
         "models/de_overpass/decorations/security_camera/security_camera_1_base.vmdl";
@@ -21,6 +21,7 @@ public abstract class LaserMineEntityBase(ISwiftlyCore core)
     private const float BeamWidth = 0.5f;
     private static readonly Color BeamColor = new(0, 0, 255, 255);
     private CancellationTokenSource? _triggerTask;
+    private int _disposed;
 
     public void Spawn(IPlayer owner)
     {
@@ -41,6 +42,7 @@ public abstract class LaserMineEntityBase(ISwiftlyCore core)
 
         core.Scheduler.NextTick(() =>
         {
+            if (Volatile.Read(ref _disposed) != 0 || LaserMine is not { IsValidEntity: true }) return;
             LaserMine.SetModel(LaserMineModel);
 
             LaserMine.OwnerEntity.Raw = playerPawn.Index;
@@ -100,8 +102,11 @@ public abstract class LaserMineEntityBase(ISwiftlyCore core)
         );
     }
 
-    protected void Destroy()
+    protected void Destroy() => Dispose();
+
+    public void Dispose()
     {
+        if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
         if (LaserMine?.IsValidEntity == true)
         {
             LaserMine.Despawn();
@@ -117,6 +122,7 @@ public abstract class LaserMineEntityBase(ISwiftlyCore core)
         LaserMineTracer = null;
 
         _triggerTask?.Cancel();
+        _triggerTask?.Dispose();
         _triggerTask = null;
     }
 
@@ -200,6 +206,9 @@ public abstract class LaserMineEntityBase(ISwiftlyCore core)
 
     private void StartTriggerHandler()
     {
-        _triggerTask = core.Scheduler.RepeatBySeconds(TriggerInterval, Trigger);
+        _triggerTask = core.Scheduler.RepeatBySeconds(Math.Max(0.05f, TriggerInterval), () =>
+        {
+            if (Volatile.Read(ref _disposed) == 0) Trigger();
+        });
     }
 }

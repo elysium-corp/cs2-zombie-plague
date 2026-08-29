@@ -1,5 +1,6 @@
 using Common.Database.Migrator;
 using Common.Di;
+using Common.Effects;
 using CustomEquipment.Api;
 using CustomEquipment.Api.Data;
 using CustomEquipment.Controllers;
@@ -32,7 +33,6 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
 {
     private readonly Lazy<IWeaponController> _itemController = GetRequiredServiceLazy<IWeaponController>();
     private readonly Lazy<IWeaponSoundController> _soundController = GetRequiredServiceLazy<IWeaponSoundController>();
-    private readonly Lazy<IParticleController> _particleController = GetRequiredServiceLazy<IParticleController>();
     private readonly Lazy<IEquipmentService> _equipmentService = GetRequiredServiceLazy<IEquipmentService>();
     private readonly Lazy<IMineController> _equipmentController = GetRequiredServiceLazy<IMineController>();
     private readonly Lazy<CustomEquipmentApi> _customEquipmentApi = GetRequiredServiceLazy<CustomEquipmentApi>();
@@ -93,7 +93,6 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
         _itemController.Value.Initialize();
         _equipmentController.Value.Initialize();
         _soundController.Value.Initialize();
-        _particleController.Value.Initialize();
         _equipmentMenu.Value.RegisterCommands();
 
         RegisterCommands();
@@ -101,6 +100,7 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
 
     protected override void OnUnload()
     {
+        EffectService.Release(Core);
         _mainMenuSubscription?.Dispose();
         _mainMenuSubscription = null;
 

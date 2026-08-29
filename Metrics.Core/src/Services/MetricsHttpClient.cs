@@ -112,7 +112,10 @@ internal sealed class MetricsHttpClient(
         CancellationToken cancellationToken
     )
     {
-        _ = MetricsConfigValidation.TryBuildIngestionUri(settings.BaseUrl, out var ingestionUri);
+        _ = MetricsConfigValidation.TryBuildIngestionUri(
+            settings.BaseUrl,
+            settings.AllowInsecureLoopbackHttp,
+            out var ingestionUri);
 
         using var request = new HttpRequestMessage(HttpMethod.Post, ingestionUri)
         {
