@@ -248,6 +248,19 @@ internal sealed class PlayerManager(
             return false;
         }
 
+        if (role is IZombie zombie && zombie.ZClass is not ZNemesis)
+        {
+            var refreshedZombie = zombieController.Create(preContext.Player);
+
+            if (refreshedZombie is null)
+            {
+                return false;
+            }
+
+            AddOrReplaceRole(refreshedZombie);
+            role = refreshedZombie;
+        }
+
         role.Unbind();
 
         MoveToRoleTeam(role);

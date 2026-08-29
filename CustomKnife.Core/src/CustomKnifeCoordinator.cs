@@ -1,5 +1,6 @@
 ﻿using CustomKnife.Data.Menus;
 using CustomKnife.Data.Services.Contracts;
+using CustomKnife.Data.Utils.Extensions;
 using CustomKnife.Initializer;
 using Menu.Api.Extensions;
 using SwiftlyS2.Core.Menus.OptionsBase;
@@ -9,6 +10,7 @@ using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.GameHooks;
 using SwiftlyS2.Shared.Misc;
+using SwiftlyS2.Shared.SchemaDefinitions;
 using ZombiePlague.Api.Menus;
 
 namespace CustomKnife;
@@ -109,6 +111,22 @@ internal sealed class CustomKnifeCoordinator(
     private void OnEntityTakeDamage(ref TakeDamageEntityPreContext context)
     {
         knifeService.TryApplyKnifeDamage(ref context);
+
+        if ((context.Params.Info.DamageType & DamageTypes_t.DMG_FALL) == 0)
+        {
+            return;
+        }
+
+        var player = context.Params.Entity.Address.FindPlayerByPawnAddress();
+
+        if (player is null)
+        {
+            return;
+        }
+
+        // Урон от падения меняет VelocityModifier в движке. Восстанавливаем
+        // свойства выбранного ножа после завершения обработки урона.
+        core.Scheduler.NextWorldUpdate(() => knifeService.TryApplyProperties(player));
     }
 
     private HookResult OnPlayerSpawn(EventPlayerSpawn @event)
@@ -139,7 +157,7 @@ internal sealed class CustomKnifeCoordinator(
     {
         var player = @event.UserIdPlayer;
 
-        core.Scheduler.NextTick(() => knifeService.TryApplyProperties(player));
+        core.Scheduler.NextWorldUpdate(() => knifeService.TryApplyProperties(player));
 
         knifeService.TryApplyKnifeKnockback(@event);
 

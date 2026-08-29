@@ -4,6 +4,8 @@ using Common.Effects.Effects;
 using Common.Effects.Effects.Settings;
 using Common.Math;
 using CustomEquipment.Api.Data;
+using CustomEquipment.Api.Data.Contracts;
+using CustomEquipment.Api.Data.Models;
 using CustomEquipment.Api.Enums;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Natives;
@@ -11,7 +13,7 @@ using SwiftlyS2.Shared.Players;
 
 namespace CustomEquipment.Data.Equipments.Weapons.Grenades;
 
-public class ShakeNade : GrenadeItemBase
+public class ShakeNade : GrenadeItemBase, IShopItem
 {
     public override string InheritorName => WeaponName.Smoke;
     
@@ -24,6 +26,10 @@ public class ShakeNade : GrenadeItemBase
     public override Slot Slot => Slot.Grenade;
 
     public override WeaponType WeaponType => WeaponType.Grenade;
+
+    public Price Price => new() { Item = 100 };
+
+    public ItemRarity Rarity => ItemRarity.Rare;
 
     public override string Model => "models/throwhead/throwhead_ag2.vmdl";
 

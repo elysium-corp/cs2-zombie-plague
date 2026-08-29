@@ -4,6 +4,8 @@ using Common.Effects.Effects;
 using Common.Effects.Effects.Settings;
 using Common.Math;
 using CustomEquipment.Api.Data;
+using CustomEquipment.Api.Data.Contracts;
+using CustomEquipment.Api.Data.Models;
 using CustomEquipment.Api.Enums;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Natives;
@@ -11,7 +13,7 @@ using SwiftlyS2.Shared.Players;
 
 namespace CustomEquipment.Data.Equipments.Weapons.Grenades;
 
-internal sealed class FrostNade : GrenadeItemBase
+internal sealed class FrostNade : GrenadeItemBase, IShopItem
 {
     public override string InheritorName => WeaponName.He;
     
@@ -24,6 +26,10 @@ internal sealed class FrostNade : GrenadeItemBase
     public override Slot Slot => Slot.Grenade;
 
     public override WeaponType WeaponType => WeaponType.Grenade;
+
+    public Price Price => new() { Item = 100 };
+
+    public ItemRarity Rarity => ItemRarity.Rare;
 
     public override string Model => "weapons/luci/sifi_hegrenade/sifi_hegrenade_ag2.vmdl";
 

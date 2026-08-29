@@ -25,6 +25,12 @@ public sealed class ZombiePlagueCoreConfig
     
     // Время возрождения зомби
     public int ZombieSpawnDelay { get; set; } = 5;
+
+    // Сколько единиц брони снимает обычный удар зомби
+    public int ZombiePrimaryAttackArmorDamage { get; set; } = 1;
+
+    // Сколько единиц брони снимает сильный удар зомби
+    public int ZombieSecondaryAttackArmorDamage { get; set; } = 2;
     
     // Стандартная модель человека
     public string DefaultHumanModel { get; set; } = "characters/models/ctm_sas/ctm_sas.vmdl";

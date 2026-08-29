@@ -4,6 +4,8 @@ using Common.Effects.Effects;
 using Common.Effects.Effects.Settings;
 using Common.Math;
 using CustomEquipment.Api.Data;
+using CustomEquipment.Api.Data.Contracts;
+using CustomEquipment.Api.Data.Models;
 using CustomEquipment.Api.Enums;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Natives;
@@ -11,7 +13,7 @@ using SwiftlyS2.Shared.Players;
 
 namespace CustomEquipment.Data.Equipments.Weapons.Grenades;
 
-internal sealed class FireNade : GrenadeItemBase
+internal sealed class FireNade : GrenadeItemBase, IShopItem
 {
     private const float BurnRadius = 275.0f;
 
@@ -28,6 +30,10 @@ internal sealed class FireNade : GrenadeItemBase
     public override Slot Slot => Slot.Grenade;
 
     public override WeaponType WeaponType => WeaponType.Grenade;
+
+    public Price Price => new() { Item = 100 };
+
+    public ItemRarity Rarity => ItemRarity.Uncommon;
 
     public override string Model => "weapons/luci/incenderiary_gren/incenderiary_gren_ag2.vmdl";
 

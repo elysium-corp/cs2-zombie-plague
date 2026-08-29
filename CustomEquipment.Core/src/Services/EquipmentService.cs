@@ -16,6 +16,7 @@ using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
 using ZombiePlague.Api;
+using ZombiePlague.Api.Events.Contexts.Player;
 
 namespace CustomEquipment.Services;
 
@@ -35,6 +36,13 @@ internal sealed class EquipmentService(
         core.Event.OnEntityDeleted += OnEntityDeleted;
 
         core.GameHooks.Weapons.CanUse.Pre += OnWeaponCanUsePre;
+
+        var playerEvents = zombiePlagueApi().Events.Players;
+        playerEvents.Infected.Hook(OnPlayerInfected);
+        playerEvents.Disinfected.Hook(OnPlayerDisinfected);
+        playerEvents.Humanized.Hook(OnPlayerHumanized);
+        playerEvents.BecameNemesis.Hook(OnPlayerBecameNemesis);
+        playerEvents.BecameSurvivor.Hook(OnPlayerBecameSurvivor);
     }
 
     public void Dispose()
@@ -43,6 +51,15 @@ internal sealed class EquipmentService(
         core.Event.OnEntityDeleted -= OnEntityDeleted;
 
         core.GameHooks.Weapons.CanUse.Pre -= OnWeaponCanUsePre;
+
+        var playerEvents = zombiePlagueApi().Events.Players;
+        playerEvents.Infected.Unhook(OnPlayerInfected);
+        playerEvents.Disinfected.Unhook(OnPlayerDisinfected);
+        playerEvents.Humanized.Unhook(OnPlayerHumanized);
+        playerEvents.BecameNemesis.Unhook(OnPlayerBecameNemesis);
+        playerEvents.BecameSurvivor.Unhook(OnPlayerBecameSurvivor);
+
+        _items.Clear();
     }
 
     public bool CanUseItem(IPlayer player, ItemBase item)
@@ -81,16 +98,16 @@ internal sealed class EquipmentService(
 
     private void OnItemGiven(IPlayer player, ItemBase item, GiveAction action)
     {
+        AddOrReplace(item);
+
         switch (item)
         {
             case WeaponItemBase weapon:
-                AddOrReplace(weapon);
                 var weaponPost = new WeaponGivenContext(player, weapon, action);
                 hooks.Dispatch(ref weaponPost);
                 break;
 
             case GrenadeItemBase grenade:
-                AddOrReplace(grenade);
                 var grenadePost = new GrenadeGivenContext(player, grenade, action);
                 hooks.Dispatch(ref grenadePost);
                 break;
@@ -98,6 +115,11 @@ internal sealed class EquipmentService(
 
         var itemPost = new ItemGivenContext(player, item, action);
         hooks.Dispatch(ref itemPost);
+
+        if (!CanUseItemInternal(player, item))
+        {
+            RemoveItem(player, item);
+        }
     }
 
     public bool TryGiveItem(IPlayer player, string internalName, GiveAction action = GiveAction.Drop)
@@ -276,11 +298,47 @@ internal sealed class EquipmentService(
 
     public TItem? GetActiveItem<TItem>(IPlayer player) where TItem : ItemBase
     {
-        var activeWeaponIndex = player.RequiredPawn.WeaponServices?.ActiveWeapon.Value?.Index;
+        if (!player.IsValid)
+        {
+            return null;
+        }
+
+        var activeWeaponIndex = player.PlayerPawn?.WeaponServices?.ActiveWeapon.Value?.Index;
 
         if (activeWeaponIndex == null) return null;
 
         return _items.Find(wp => wp.AttachedEntity.Index == activeWeaponIndex) as TItem;
+    }
+
+    public bool HasItem<TItem>(IPlayer player) where TItem : ItemBase
+    {
+        return GetPlayerItems<TItem>(player).Count > 0;
+    }
+
+    public int RemoveItems<TItem>(IPlayer player) where TItem : ItemBase
+    {
+        var items = GetPlayerItems<TItem>(player);
+
+        foreach (var item in items)
+        {
+            RemoveItem(player, item);
+        }
+
+        return items.Count;
+    }
+
+    public int RemoveInaccessibleItems(IPlayer player)
+    {
+        var items = GetPlayerItems<ItemBase>(player)
+            .Where(item => !CanUseItemInternal(player, item))
+            .ToArray();
+
+        foreach (var item in items)
+        {
+            RemoveItem(player, item);
+        }
+
+        return items.Length;
     }
 
     public TWeapon? GetActiveWeapon<TWeapon>(IPlayer player) where TWeapon : WeaponItemBase
@@ -359,7 +417,7 @@ internal sealed class EquipmentService(
     private void OnWeaponCanUsePre(ref CanUseWeaponPreContext context)
     {
         var weapon = context.Params.Weapon;
-        var customWeapon = GetWeaponByIndex(weapon.Index);
+        var customWeapon = GetItemByIndex(weapon.Index);
 
         if (customWeapon is null || CanUseItem(context.Params.Player, customWeapon))
         {
@@ -375,6 +433,11 @@ internal sealed class EquipmentService(
         return _items
             .OfType<WeaponItemBase>()
             .FirstOrDefault(weapon => weapon.AttachedEntity.Index == index);
+    }
+
+    private ItemBase? GetItemByIndex(uint index)
+    {
+        return _items.FirstOrDefault(item => item.AttachedEntity.Index == index);
     }
 
     private GrenadeItemBase? GetGrenadeByIndex(uint index)
@@ -421,6 +484,61 @@ internal sealed class EquipmentService(
         }
 
         return item;
+    }
+
+    private IReadOnlyList<TItem> GetPlayerItems<TItem>(IPlayer player) where TItem : ItemBase
+    {
+        if (!player.IsValid || player.PlayerPawn?.WeaponServices is not { } weaponServices)
+        {
+            return [];
+        }
+
+        var entityIndexes = weaponServices.MyValidWeapons
+            .Select(weapon => weapon.Index)
+            .ToHashSet();
+
+        return _items
+            .OfType<TItem>()
+            .Where(item => entityIndexes.Contains(item.AttachedEntity.Index))
+            .ToArray();
+    }
+
+    private void RemoveItem(IPlayer player, ItemBase item)
+    {
+        var weaponServices = player.PlayerPawn?.WeaponServices;
+        var weapon = item.AttachedEntity.As<CBasePlayerWeapon>();
+
+        if (weaponServices is not null && weapon is { IsValidEntity: true })
+        {
+            weaponServices.RemoveWeapon(weapon);
+        }
+
+        _items.Remove(item);
+    }
+
+    private void OnPlayerInfected(ref PlayerInfectedContext context)
+    {
+        RemoveInaccessibleItems(context.Player);
+    }
+
+    private void OnPlayerDisinfected(ref PlayerDisinfectedContext context)
+    {
+        RemoveInaccessibleItems(context.Player);
+    }
+
+    private void OnPlayerHumanized(ref PlayerHumanizedContext context)
+    {
+        RemoveInaccessibleItems(context.Player);
+    }
+
+    private void OnPlayerBecameNemesis(ref PlayerBecameNemesisContext context)
+    {
+        RemoveInaccessibleItems(context.Player);
+    }
+
+    private void OnPlayerBecameSurvivor(ref PlayerBecameSurvivorContext context)
+    {
+        RemoveInaccessibleItems(context.Player);
     }
 
     private bool CanUseItemInternal(IPlayer player, ItemBase item)

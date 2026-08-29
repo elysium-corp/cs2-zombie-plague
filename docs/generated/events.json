@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 1,
   "kind": "elysium.event-catalog",
   "eventCount": 81,
   "projects": [
@@ -2153,7 +2153,7 @@
       "frequency": "Игрок",
       "load": "Низкая",
       "riskLevel": "Высокий",
-      "risk": "Высокий: отмена вызывает возврат цены",
+      "risk": "Средний: при отмене предмет остаётся у игрока для повторной установки",
       "thread": "Игровой поток",
       "sourcePath": "CustomEquipment.Api/Events/ICustomEquipmentMineEvents.cs",
       "sourceLine": 22
@@ -2225,7 +2225,7 @@
       "frequency": "Игрок",
       "load": "Низкая",
       "riskLevel": "Низкий",
-      "risk": "Низкий: модуль запускает возврат цены",
+      "risk": "Низкий: предмет остаётся у игрока для повторной установки",
       "thread": "Игровой поток",
       "sourcePath": "CustomEquipment.Api/Events/ICustomEquipmentMineEvents.cs",
       "sourceLine": 48

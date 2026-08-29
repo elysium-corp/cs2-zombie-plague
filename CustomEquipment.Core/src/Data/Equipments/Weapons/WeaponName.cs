@@ -54,5 +54,5 @@ internal static class WeaponName
     internal const string Smoke = "smokegrenade";
     
     // Equipment
-    internal const string LaserMine = "lasermine";
+    internal const string C4 = "c4";
 }

@@ -1,6 +1,8 @@
 ﻿using Common.Di;
 using Common.Math;
 using CustomEquipment.Api.Data;
+using CustomEquipment.Api.Data.Contracts;
+using CustomEquipment.Api.Data.Models;
 using CustomEquipment.Api.Enums;
 using CustomEquipment.Utils;
 using SwiftlyS2.Shared;
@@ -10,7 +12,7 @@ using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace CustomEquipment.Data.Equipments.Weapons.Grenades;
 
-public class BarrierNade : GrenadeItemBase
+public class BarrierNade : GrenadeItemBase, IShopItem
 {
     public override string InheritorName => WeaponName.Smoke;
     
@@ -23,6 +25,10 @@ public class BarrierNade : GrenadeItemBase
     public override Slot Slot => Slot.Grenade;
 
     public override WeaponType WeaponType => WeaponType.Grenade;
+
+    public Price Price => new() { Item = 100 };
+
+    public ItemRarity Rarity => ItemRarity.Rare;
 
     public override string Model => "weapons/luci/elysium_smoke/elysium_smoke_ag2.vmdl";
 
