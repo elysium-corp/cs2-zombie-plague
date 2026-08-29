@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "kind": "elysium.event-catalog",
   "eventCount": 81,
   "projects": [
@@ -85,6 +85,21 @@
       "apiPath": "Events.Players.Infecting",
       "name": "Infecting",
       "context": "PlayerInfectingContext",
+      "isCancellable": true,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": true
+        },
+        {
+          "name": "Infector",
+          "type": "IPlayer?",
+          "nullable": true,
+          "mutable": true
+        }
+      ],
       "summary": "Вызывается перед заражением игрока. Обработчик может изменить участников или отменить заражение.",
       "when": "`PlayerManager.TryInfect`, после первичной проверки цели и до создания роли зомби",
       "frequency": "Игрок",
@@ -103,6 +118,21 @@
       "apiPath": "Events.Players.Infected",
       "name": "Infected",
       "context": "PlayerInfectedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Infector",
+          "type": "IPlayer?",
+          "nullable": true,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается после успешного заражения игрока.",
       "when": "После установки роли зомби и показа эффекта заражения",
       "frequency": "Игрок",
@@ -121,6 +151,15 @@
       "apiPath": "Events.Players.Disinfecting",
       "name": "Disinfecting",
       "context": "PlayerDisinfectingContext",
+      "isCancellable": true,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": true
+        }
+      ],
       "summary": "Вызывается перед возвращением зомби в человеческую роль.",
       "when": "`PlayerManager.TryDisinfect`, до создания человеческой роли",
       "frequency": "Игрок",
@@ -139,6 +178,15 @@
       "apiPath": "Events.Players.Disinfected",
       "name": "Disinfected",
       "context": "PlayerDisinfectedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается после успешного возвращения зомби в человеческую роль.",
       "when": "После успешной замены роли на человеческую",
       "frequency": "Игрок",
@@ -157,6 +205,15 @@
       "apiPath": "Events.Players.Humanizing",
       "name": "Humanizing",
       "context": "PlayerHumanizingContext",
+      "isCancellable": true,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": true
+        }
+      ],
       "summary": "Вызывается перед назначением обычной человеческой роли.",
       "when": "`PlayerManager.TrySetHuman`, до создания обычной человеческой роли",
       "frequency": "Игрок",
@@ -175,6 +232,15 @@
       "apiPath": "Events.Players.Humanized",
       "name": "Humanized",
       "context": "PlayerHumanizedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается после успешного назначения обычной человеческой роли.",
       "when": "После успешного назначения обычной человеческой роли",
       "frequency": "Игрок",
@@ -193,6 +259,15 @@
       "apiPath": "Events.Players.BecomingNemesis",
       "name": "BecomingNemesis",
       "context": "PlayerBecomingNemesisContext",
+      "isCancellable": true,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": true
+        }
+      ],
       "summary": "Вызывается перед назначением роли немезиса.",
       "when": "`PlayerManager.TrySetNemesis`, до создания специальной роли",
       "frequency": "Раунд",
@@ -211,6 +286,15 @@
       "apiPath": "Events.Players.BecameNemesis",
       "name": "BecameNemesis",
       "context": "PlayerBecameNemesisContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается после успешного назначения роли немезиса.",
       "when": "После установки роли немезиса",
       "frequency": "Раунд",
@@ -229,6 +313,15 @@
       "apiPath": "Events.Players.BecomingSurvivor",
       "name": "BecomingSurvivor",
       "context": "PlayerBecomingSurvivorContext",
+      "isCancellable": true,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": true
+        }
+      ],
       "summary": "Вызывается перед назначением роли выжившего.",
       "when": "`PlayerManager.TrySetSurvivor`, до создания специальной роли",
       "frequency": "Раунд",
@@ -247,6 +340,15 @@
       "apiPath": "Events.Players.BecameSurvivor",
       "name": "BecameSurvivor",
       "context": "PlayerBecameSurvivorContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается после успешного назначения роли выжившего.",
       "when": "После установки роли выжившего",
       "frequency": "Раунд",
@@ -265,6 +367,15 @@
       "apiPath": "Events.Players.Respawning",
       "name": "Respawning",
       "context": "PlayerRespawningContext",
+      "isCancellable": true,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": true
+        }
+      ],
       "summary": "Вызывается перед возрождением игрока с назначенной ролью.",
       "when": "`PlayerManager.TryRespawn`, после проверки смерти и наличия роли, до `Respawn()`",
       "frequency": "Игрок",
@@ -283,6 +394,15 @@
       "apiPath": "Events.Players.Respawned",
       "name": "Respawned",
       "context": "PlayerRespawnedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается после успешного возрождения игрока.",
       "when": "Сразу после вызова `Respawn()`",
       "frequency": "Игрок",
@@ -301,6 +421,15 @@
       "apiPath": "Events.Players.ApplyingRole",
       "name": "ApplyingRole",
       "context": "PlayerApplyingRoleContext",
+      "isCancellable": true,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": true
+        }
+      ],
       "summary": "Вызывается перед повторным применением назначенной роли.",
       "when": "`PlayerManager.TryApplyRole`, до `Unbind`, смены команды и `Bind`",
       "frequency": "Игрок",
@@ -319,6 +448,15 @@
       "apiPath": "Events.Players.RoleApplied",
       "name": "RoleApplied",
       "context": "PlayerRoleAppliedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается после успешного повторного применения роли.",
       "when": "После смены команды и привязки текущей роли",
       "frequency": "Игрок",
@@ -337,6 +475,15 @@
       "apiPath": "Events.Players.DeactivatingRole",
       "name": "DeactivatingRole",
       "context": "PlayerDeactivatingRoleContext",
+      "isCancellable": true,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": true
+        }
+      ],
       "summary": "Вызывается перед отключением эффектов текущей роли.",
       "when": "`PlayerManager.TryDeactivateRole`, до `Unbind`",
       "frequency": "Игрок",
@@ -355,6 +502,15 @@
       "apiPath": "Events.Players.RoleDeactivated",
       "name": "RoleDeactivated",
       "context": "PlayerRoleDeactivatedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается после отключения эффектов текущей роли.",
       "when": "После `Unbind` текущей роли",
       "frequency": "Игрок",
@@ -373,6 +529,33 @@
       "apiPath": "Events.Classes.Selecting",
       "name": "Selecting",
       "context": "ClassSelectingContext",
+      "isCancellable": true,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": true
+        },
+        {
+          "name": "OriginalClassId",
+          "type": "string",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "ClassId",
+          "type": "string",
+          "nullable": false,
+          "mutable": true
+        },
+        {
+          "name": "Kind",
+          "type": "PlayerClassKind",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается перед сохранением предпочтительного класса.",
       "when": "`PlayerRepository.SetZClassId/SetHClassId`, до доступа к persistent-сессии",
       "frequency": "Игрок",
@@ -391,6 +574,27 @@
       "apiPath": "Events.Classes.Selected",
       "name": "Selected",
       "context": "ClassSelectedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "ClassId",
+          "type": "string",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Kind",
+          "type": "PlayerClassKind",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается после сохранения предпочтительного класса в runtime-сессии.",
       "when": "После записи предпочтения в runtime-сессию",
       "frequency": "Игрок",
@@ -409,6 +613,33 @@
       "apiPath": "Events.Classes.SelectionRejected",
       "name": "SelectionRejected",
       "context": "ClassSelectionRejectedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "ClassId",
+          "type": "string",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Kind",
+          "type": "PlayerClassKind",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Reason",
+          "type": "ClassSelectionRejectionReason",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается при ожидаемом отказе сохранения выбора.",
       "when": "При отмене, пустом идентификаторе или отсутствии сессии",
       "frequency": "Редко",
@@ -427,6 +658,8 @@
       "apiPath": "Events.Rounds.Preparing",
       "name": "Preparing",
       "context": "RoundPreparingContext",
+      "isCancellable": true,
+      "contextParameters": [],
       "summary": "Вызывается перед завершением текущего режима и запуском обратного отсчёта.",
       "when": "В начале `RoundManager.Prepare`, до завершения активного режима",
       "frequency": "Раунд",
@@ -445,6 +678,15 @@
       "apiPath": "Events.Rounds.Prepared",
       "name": "Prepared",
       "context": "RoundPreparedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "DelaySeconds",
+          "type": "int",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается после запуска обратного отсчёта до режима Zombie Plague.",
       "when": "После назначения людей и запуска таймера обратного отсчёта",
       "frequency": "Раунд",
@@ -463,6 +705,21 @@
       "apiPath": "Events.Rounds.Starting",
       "name": "Starting",
       "context": "RoundStartingContext",
+      "isCancellable": true,
+      "contextParameters": [
+        {
+          "name": "OriginalRoundId",
+          "type": "string",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "RoundId",
+          "type": "string",
+          "nullable": false,
+          "mutable": true
+        }
+      ],
       "summary": "Вызывается перед запуском выбранного режима раунда. Обработчик может заменить режим или отменить запуск.",
       "when": "`RoundManager.StartRound`, до остановки подготовки и `TryStart`",
       "frequency": "Раунд",
@@ -481,6 +738,15 @@
       "apiPath": "Events.Rounds.Started",
       "name": "Started",
       "context": "RoundStartedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "Round",
+          "type": "IRound",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается после успешного запуска режима раунда.",
       "when": "После успешного запуска выбранного режима или fallback `infection`",
       "frequency": "Раунд",
@@ -499,6 +765,21 @@
       "apiPath": "Events.Rounds.StartRejected",
       "name": "StartRejected",
       "context": "RoundStartRejectedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "RoundId",
+          "type": "string?",
+          "nullable": true,
+          "mutable": false
+        },
+        {
+          "name": "Reason",
+          "type": "RoundStartRejectionReason",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается при ожидаемом отказе в запуске режима.",
       "when": "На ветках `NotPreparing`, `CannotStart` и отмены `Starting`",
       "frequency": "Редко",
@@ -517,6 +798,21 @@
       "apiPath": "Events.Rounds.StartFailed",
       "name": "StartFailed",
       "context": "RoundStartFailedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "Round",
+          "type": "IRound",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Exception",
+          "type": "Exception",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается при исключении из пользовательской логики запуска режима.",
       "when": "В `TryStartRoundInternal`, когда `Round.TryStart()` выбрасывает исключение",
       "frequency": "Редко",
@@ -535,6 +831,15 @@
       "apiPath": "Events.Rounds.Ending",
       "name": "Ending",
       "context": "RoundEndingContext",
+      "isCancellable": true,
+      "contextParameters": [
+        {
+          "name": "Round",
+          "type": "IRound",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается перед завершением активного режима.",
       "when": "`RoundManager.End`, до остановки подготовки и `Round.End()`",
       "frequency": "Раунд",
@@ -553,6 +858,15 @@
       "apiPath": "Events.Rounds.Ended",
       "name": "Ended",
       "context": "RoundEndedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "Round",
+          "type": "IRound",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается после завершения активного режима.",
       "when": "После `Round.End()` и очистки `CurrentRound`",
       "frequency": "Раунд",
@@ -571,6 +885,15 @@
       "apiPath": "Events.Rounds.Scheduling",
       "name": "Scheduling",
       "context": "RoundSchedulingContext",
+      "isCancellable": true,
+      "contextParameters": [
+        {
+          "name": "Round",
+          "type": "IRound",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается перед постановкой режима в очередь на следующий раунд.",
       "when": "`SelectNextRound`, до записи `NextRound`",
       "frequency": "Редко",
@@ -589,6 +912,15 @@
       "apiPath": "Events.Rounds.Scheduled",
       "name": "Scheduled",
       "context": "RoundScheduledContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "Round",
+          "type": "IRound",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается после постановки режима в очередь на следующий раунд.",
       "when": "После записи `NextRound`",
       "frequency": "Редко",
@@ -607,6 +939,15 @@
       "apiPath": "Events.Rounds.ScheduleClearing",
       "name": "ScheduleClearing",
       "context": "RoundScheduleClearingContext",
+      "isCancellable": true,
+      "contextParameters": [
+        {
+          "name": "Round",
+          "type": "IRound",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается перед очисткой выбранного следующего режима.",
       "when": "`ClearNextRound`, если режим был выбран, до очистки",
       "frequency": "Редко",
@@ -625,6 +966,15 @@
       "apiPath": "Events.Rounds.ScheduleCleared",
       "name": "ScheduleCleared",
       "context": "RoundScheduleClearedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "Round",
+          "type": "IRound",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается после очистки выбранного следующего режима.",
       "when": "После очистки `NextRound`",
       "frequency": "Редко",
@@ -643,6 +993,33 @@
       "apiPath": "Events.Combat.KnockbackApplying",
       "name": "KnockbackApplying",
       "context": "KnockbackApplyingContext",
+      "isCancellable": true,
+      "contextParameters": [
+        {
+          "name": "Attacker",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Victim",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Data",
+          "type": "KnockbackData",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Velocity",
+          "type": "Vector",
+          "nullable": false,
+          "mutable": true
+        }
+      ],
       "summary": "Вызывается перед применением рассчитанного отбрасывания.",
       "when": "`KnockbackService.TryApplyKnockback`, после расчёта скорости и до `Teleport`",
       "frequency": "Горячий путь",
@@ -661,6 +1038,33 @@
       "apiPath": "Events.Combat.KnockbackApplied",
       "name": "KnockbackApplied",
       "context": "KnockbackAppliedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "Attacker",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Victim",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Data",
+          "type": "KnockbackData",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Velocity",
+          "type": "Vector",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается после применения отбрасывания.",
       "when": "После `Teleport` и постановки таймера восстановления скорости",
       "frequency": "Горячий путь",
@@ -679,6 +1083,21 @@
       "apiPath": "Events.Items.Purchasing",
       "name": "Purchasing",
       "context": "ItemPurchasingContext",
+      "isCancellable": true,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": true
+        },
+        {
+          "name": "Item",
+          "type": "IShopItem",
+          "nullable": false,
+          "mutable": true
+        }
+      ],
       "summary": "Вызывается до списания денег за предмет. Покупку можно изменить или отменить.",
       "when": "`EquipmentMenu.BuyItem`, до проверки роли и списания денег",
       "frequency": "Игрок",
@@ -697,6 +1116,27 @@
       "apiPath": "Events.Items.PaymentCommitted",
       "name": "PaymentCommitted",
       "context": "ItemPaymentCommittedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Item",
+          "type": "IShopItem",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Amount",
+          "type": "int",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается непосредственно после подтверждённого списания денег.",
       "when": "Сразу после успешного `Economy.TrySpendMoney`, до постановки выдачи",
       "frequency": "Игрок",
@@ -715,6 +1155,21 @@
       "apiPath": "Events.Items.Purchased",
       "name": "Purchased",
       "context": "ItemPurchasedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Item",
+          "type": "IShopItem",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается после списания денег и успешной постановки выдачи предмета в очередь.",
       "when": "После того как `TryGiveItem` принял выдачу; для гранаты фактическое прикрепление может завершиться на следующем world update",
       "frequency": "Игрок",
@@ -733,6 +1188,27 @@
       "apiPath": "Events.Items.PurchaseRejected",
       "name": "PurchaseRejected",
       "context": "ItemPurchaseRejectedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Item",
+          "type": "IShopItem",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Reason",
+          "type": "ItemPurchaseRejectionReason",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается при ожидаемом отказе покупки.",
       "when": "При отмене, недействительном игроке, запрете роли, отказе оплаты или выдачи",
       "frequency": "Игрок",
@@ -751,6 +1227,27 @@
       "apiPath": "Events.Items.PaymentRefunded",
       "name": "PaymentRefunded",
       "context": "ItemPaymentRefundedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Item",
+          "type": "IShopItem",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Amount",
+          "type": "int",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается после возврата денег из-за отклонённой выдачи.",
       "when": "После вызова возврата денег, если `TryGiveItem` синхронно отклонил выдачу",
       "frequency": "Редко",
@@ -769,6 +1266,27 @@
       "apiPath": "Events.Items.Giving",
       "name": "Giving",
       "context": "ItemGivingContext",
+      "isCancellable": true,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": true
+        },
+        {
+          "name": "Item",
+          "type": "IItem",
+          "nullable": false,
+          "mutable": true
+        },
+        {
+          "name": "Action",
+          "type": "GiveAction",
+          "nullable": false,
+          "mutable": true
+        }
+      ],
       "summary": "Вызывается непосредственно перед выдачей любого пользовательского предмета.",
       "when": "`EquipmentService.TryGiveItem`, после создания экземпляра и до проверки конкретного типа",
       "frequency": "Игрок",
@@ -787,6 +1305,27 @@
       "apiPath": "Events.Items.Given",
       "name": "Given",
       "context": "ItemGivenContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Item",
+          "type": "IItem",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Action",
+          "type": "GiveAction",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается после завершения выдачи любого пользовательского предмета.",
       "when": "Из callback `ItemGiver` после фактического прикрепления/применения предмета",
       "frequency": "Игрок",
@@ -805,6 +1344,39 @@
       "apiPath": "Events.Items.GiveRejected",
       "name": "GiveRejected",
       "context": "ItemGiveRejectedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "InternalName",
+          "type": "string",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Item",
+          "type": "IItem?",
+          "nullable": true,
+          "mutable": false
+        },
+        {
+          "name": "Action",
+          "type": "GiveAction",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Reason",
+          "type": "ItemGiveRejectionReason",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается при ожидаемом отказе выдачи предмета.",
       "when": "На ожидаемых ветках отказа `TryGiveItem`",
       "frequency": "Игрок",
@@ -823,6 +1395,33 @@
       "apiPath": "Events.Items.GiveFailed",
       "name": "GiveFailed",
       "context": "ItemGiveFailedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "InternalName",
+          "type": "string",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Action",
+          "type": "GiveAction",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Exception",
+          "type": "Exception",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается при технической ошибке создания или постановки выдачи.",
       "when": "При исключении создания предмета или постановки выдачи",
       "frequency": "Редко",
@@ -841,6 +1440,27 @@
       "apiPath": "Events.Weapons.Giving",
       "name": "Giving",
       "context": "WeaponGivingContext",
+      "isCancellable": true,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": true
+        },
+        {
+          "name": "Weapon",
+          "type": "IWeapon",
+          "nullable": false,
+          "mutable": true
+        },
+        {
+          "name": "Action",
+          "type": "GiveAction",
+          "nullable": false,
+          "mutable": true
+        }
+      ],
       "summary": "Вызывается перед выдачей пользовательского оружия.",
       "when": "После `Items.Giving`, перед выдачей оружия",
       "frequency": "Игрок",
@@ -859,6 +1479,27 @@
       "apiPath": "Events.Weapons.Given",
       "name": "Given",
       "context": "WeaponGivenContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Weapon",
+          "type": "IWeapon",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Action",
+          "type": "GiveAction",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается после успешной выдачи пользовательского оружия.",
       "when": "После прикрепления оружия и регистрации в runtime-каталоге",
       "frequency": "Игрок",
@@ -877,6 +1518,39 @@
       "apiPath": "Events.Weapons.DamageModifying",
       "name": "DamageModifying",
       "context": "WeaponDamageModifyingContext",
+      "isCancellable": true,
+      "contextParameters": [
+        {
+          "name": "Attacker",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Victim",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Weapon",
+          "type": "IWeapon",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "OriginalDamage",
+          "type": "float",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Damage",
+          "type": "float",
+          "nullable": false,
+          "mutable": true
+        }
+      ],
       "summary": "Вызывается на пути получения урона перед применением множителя пользовательского оружия.",
       "when": "На `TakeDamage.Pre`, после штатного расчёта множителя и до записи урона",
       "frequency": "Горячий путь",
@@ -895,6 +1569,39 @@
       "apiPath": "Events.Weapons.DamageModified",
       "name": "DamageModified",
       "context": "WeaponDamageModifiedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "Attacker",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Victim",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Weapon",
+          "type": "IWeapon",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "OriginalDamage",
+          "type": "float",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Damage",
+          "type": "float",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается после применения множителя урона пользовательского оружия.",
       "when": "После записи модифицированного урона в damage info",
       "frequency": "Горячий путь",
@@ -913,6 +1620,27 @@
       "apiPath": "Events.Weapons.ImpactProcessing",
       "name": "ImpactProcessing",
       "context": "WeaponImpactProcessingContext",
+      "isCancellable": true,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Weapon",
+          "type": "IWeapon",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Position",
+          "type": "Vector",
+          "nullable": false,
+          "mutable": true
+        }
+      ],
       "summary": "Вызывается перед созданием эффектов попадания пули.",
       "when": "`OnBulletImpactPost`, до создания tracer/muzzle/impact particles",
       "frequency": "Горячий путь",
@@ -931,6 +1659,27 @@
       "apiPath": "Events.Weapons.ImpactProcessed",
       "name": "ImpactProcessed",
       "context": "WeaponImpactProcessedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Weapon",
+          "type": "IWeapon",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Position",
+          "type": "Vector",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается после создания эффектов попадания пули.",
       "when": "После создания настроенных частиц попадания",
       "frequency": "Горячий путь",
@@ -949,6 +1698,33 @@
       "apiPath": "Events.Weapons.AmmoPurchasing",
       "name": "AmmoPurchasing",
       "context": "WeaponAmmoPurchasingContext",
+      "isCancellable": true,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Weapon",
+          "type": "IWeapon",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Price",
+          "type": "int",
+          "nullable": false,
+          "mutable": true
+        },
+        {
+          "name": "Amount",
+          "type": "int",
+          "nullable": false,
+          "mutable": true
+        }
+      ],
       "summary": "Вызывается перед списанием денег за боеприпасы.",
       "when": "По нажатию `E` с активным магазинным оружием, до проверки лимита и оплаты",
       "frequency": "Игрок",
@@ -967,6 +1743,39 @@
       "apiPath": "Events.Weapons.AmmoPurchased",
       "name": "AmmoPurchased",
       "context": "WeaponAmmoPurchasedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Weapon",
+          "type": "IWeapon",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Price",
+          "type": "int",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Amount",
+          "type": "int",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "ReserveAmmo",
+          "type": "int",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается после списания денег и обновления запаса боеприпасов.",
       "when": "После оплаты и обновления reserve ammo",
       "frequency": "Игрок",
@@ -985,6 +1794,27 @@
       "apiPath": "Events.Weapons.AmmoPurchaseRejected",
       "name": "AmmoPurchaseRejected",
       "context": "WeaponAmmoPurchaseRejectedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Weapon",
+          "type": "IWeapon",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Reason",
+          "type": "WeaponAmmoPurchaseRejectionReason",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается при ожидаемом отказе покупки боеприпасов.",
       "when": "При отсутствии настройки, полном запасе, отмене, неверных значениях или отказе оплаты",
       "frequency": "Игрок",
@@ -1003,6 +1833,27 @@
       "apiPath": "Events.Grenades.Giving",
       "name": "Giving",
       "context": "GrenadeGivingContext",
+      "isCancellable": true,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": true
+        },
+        {
+          "name": "Grenade",
+          "type": "IGrenade",
+          "nullable": false,
+          "mutable": true
+        },
+        {
+          "name": "Action",
+          "type": "GiveAction",
+          "nullable": false,
+          "mutable": true
+        }
+      ],
       "summary": "Вызывается перед выдачей пользовательской гранаты.",
       "when": "После `Items.Giving`, перед выдачей гранаты",
       "frequency": "Игрок",
@@ -1021,6 +1872,27 @@
       "apiPath": "Events.Grenades.Given",
       "name": "Given",
       "context": "GrenadeGivenContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Grenade",
+          "type": "IGrenade",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Action",
+          "type": "GiveAction",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается после успешной выдачи пользовательской гранаты.",
       "when": "После поиска и прикрепления сущности гранаты на следующем world update",
       "frequency": "Игрок",
@@ -1039,6 +1911,21 @@
       "apiPath": "Events.Grenades.Throwing",
       "name": "Throwing",
       "context": "GrenadeThrowingContext",
+      "isCancellable": true,
+      "contextParameters": [
+        {
+          "name": "Grenade",
+          "type": "IGrenade",
+          "nullable": false,
+          "mutable": true
+        },
+        {
+          "name": "Projectile",
+          "type": "CBaseCSGrenadeProjectile",
+          "nullable": false,
+          "mutable": true
+        }
+      ],
       "summary": "Вызывается после появления снаряда, но до его регистрации как пользовательской гранаты.",
       "when": "После создания projectile и определения пользовательской гранаты, до установки модели",
       "frequency": "Часто",
@@ -1057,6 +1944,21 @@
       "apiPath": "Events.Grenades.Thrown",
       "name": "Thrown",
       "context": "GrenadeThrownContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "Grenade",
+          "type": "IGrenade",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Projectile",
+          "type": "CBaseCSGrenadeProjectile",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается после регистрации брошенной пользовательской гранаты.",
       "when": "После установки модели и регистрации броска",
       "frequency": "Часто",
@@ -1075,6 +1977,27 @@
       "apiPath": "Events.Grenades.ThrowRejected",
       "name": "ThrowRejected",
       "context": "GrenadeThrowRejectedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "Grenade",
+          "type": "IGrenade",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Projectile",
+          "type": "CBaseCSGrenadeProjectile",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Reason",
+          "type": "GrenadeThrowRejectionReason",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается при ожидаемом отказе обработки броска.",
       "when": "При отмене `Throwing` или недействительном projectile",
       "frequency": "Редко",
@@ -1093,6 +2016,27 @@
       "apiPath": "Events.Grenades.Detonating",
       "name": "Detonating",
       "context": "GrenadeDetonatingContext",
+      "isCancellable": true,
+      "contextParameters": [
+        {
+          "name": "Grenade",
+          "type": "IGrenade",
+          "nullable": false,
+          "mutable": true
+        },
+        {
+          "name": "Projectile",
+          "type": "CBaseCSGrenadeProjectile",
+          "nullable": false,
+          "mutable": true
+        },
+        {
+          "name": "Position",
+          "type": "Vector",
+          "nullable": false,
+          "mutable": true
+        }
+      ],
       "summary": "Вызывается перед пользовательской логикой детонации; её можно отменить.",
       "when": "Перед удалением projectile и вызовом пользовательской детонации",
       "frequency": "Часто",
@@ -1111,6 +2055,27 @@
       "apiPath": "Events.Grenades.Detonated",
       "name": "Detonated",
       "context": "GrenadeDetonatedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "Grenade",
+          "type": "IGrenade",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Projectile",
+          "type": "CBaseCSGrenadeProjectile",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Position",
+          "type": "Vector",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается после пользовательской логики детонации.",
       "when": "После `OnDetonate` пользовательской гранаты",
       "frequency": "Часто",
@@ -1129,6 +2094,27 @@
       "apiPath": "Events.Grenades.DetonationRejected",
       "name": "DetonationRejected",
       "context": "GrenadeDetonationRejectedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "Grenade",
+          "type": "IGrenade",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Projectile",
+          "type": "CBaseCSGrenadeProjectile",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Reason",
+          "type": "GrenadeDetonationRejectionReason",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается при ожидаемом отказе пользовательской детонации.",
       "when": "При отмене, неверной подмене, недействительном projectile или thrower",
       "frequency": "Редко",
@@ -1147,6 +2133,21 @@
       "apiPath": "Events.Mines.Placing",
       "name": "Placing",
       "context": "MinePlacingContext",
+      "isCancellable": true,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": true
+        },
+        {
+          "name": "Mine",
+          "type": "LaserMineEntityBase",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается перед размещением подготовленной лазерной мины; размещение можно отменить.",
       "when": "После проверки поверхности и создания сущности, до `Spawn`",
       "frequency": "Игрок",
@@ -1165,6 +2166,21 @@
       "apiPath": "Events.Mines.Placed",
       "name": "Placed",
       "context": "MinePlacedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Mine",
+          "type": "LaserMineEntityBase",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается после успешного размещения лазерной мины.",
       "when": "После `LaserMineEntity.Spawn`",
       "frequency": "Игрок",
@@ -1183,6 +2199,27 @@
       "apiPath": "Events.Mines.PlacementRejected",
       "name": "PlacementRejected",
       "context": "MinePlacementRejectedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Mine",
+          "type": "LaserMineEntityBase?",
+          "nullable": true,
+          "mutable": false
+        },
+        {
+          "name": "Reason",
+          "type": "MinePlacementRejectionReason",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается при ожидаемом отказе размещения лазерной мины.",
       "when": "При неподходящей поверхности, отмене или недействительном игроке",
       "frequency": "Игрок",
@@ -1201,6 +2238,15 @@
       "apiPath": "Events.Spawning",
       "name": "Spawning",
       "context": "SupplyBoxSpawningContext",
+      "isCancellable": true,
+      "contextParameters": [
+        {
+          "name": "ActiveSupplyBoxes",
+          "type": "IReadOnlyCollection<ISupplyBoxEntity>",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается перед созданием ящика на карте; создание можно отменить.",
       "when": "`SupplyBox.SpawnSupplyBox`, после проверок режима/шанса/лимита и до выбора точки",
       "frequency": "Раунд",
@@ -1219,6 +2265,15 @@
       "apiPath": "Events.Spawned",
       "name": "Spawned",
       "context": "SupplyBoxSpawnedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "SupplyBox",
+          "type": "ISupplyBoxEntity",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается после создания и регистрации ящика на карте.",
       "when": "После создания сущности и добавления в список активных ящиков",
       "frequency": "Раунд",
@@ -1237,6 +2292,15 @@
       "apiPath": "Events.SpawnRejected",
       "name": "SpawnRejected",
       "context": "SupplyBoxSpawnRejectedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "Reason",
+          "type": "SupplyBoxSpawnRejectionReason",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается при ожидаемом отказе создания ящика.",
       "when": "На всех ожидаемых ветках отказа: режим, лимит, шанс, отмена, отсутствие точки",
       "frequency": "Раунд",
@@ -1255,6 +2319,15 @@
       "apiPath": "Events.Landed",
       "name": "Landed",
       "context": "SupplyBoxLandedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "SupplyBox",
+          "type": "ISupplyBoxEntity",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается один раз после завершения спуска ящика.",
       "when": "Один раз в `DropThinker`, когда ящик достиг целевой высоты",
       "frequency": "Раунд",
@@ -1273,6 +2346,21 @@
       "apiPath": "Events.Collecting",
       "name": "Collecting",
       "context": "SupplyBoxCollectingContext",
+      "isCancellable": true,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": true
+        },
+        {
+          "name": "SupplyBox",
+          "type": "ISupplyBoxEntity",
+          "nullable": false,
+          "mutable": true
+        }
+      ],
       "summary": "Вызывается перед выдачей содержимого ящика игроку; сбор можно отменить.",
       "when": "При контакте допустимого игрока с ящиком, до удаления сущностей",
       "frequency": "Игрок",
@@ -1291,6 +2379,21 @@
       "apiPath": "Events.Collected",
       "name": "Collected",
       "context": "SupplyBoxCollectedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "SupplyBox",
+          "type": "ISupplyBoxEntity",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается после успешной выдачи содержимого ящика игроку.",
       "when": "После удаления сущностей и остановки thinkers",
       "frequency": "Игрок",
@@ -1309,6 +2412,27 @@
       "apiPath": "Events.CollectionRejected",
       "name": "CollectionRejected",
       "context": "SupplyBoxCollectionRejectedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "SupplyBox",
+          "type": "ISupplyBoxEntity",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Reason",
+          "type": "SupplyBoxCollectionRejectionReason",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается при ожидаемом отказе сбора ящика.",
       "when": "При отмене, неверной подмене, недействительном игроке или отмене уничтожения",
       "frequency": "Редко",
@@ -1327,6 +2451,15 @@
       "apiPath": "Events.Destroying",
       "name": "Destroying",
       "context": "SupplyBoxDestroyingContext",
+      "isCancellable": true,
+      "contextParameters": [
+        {
+          "name": "SupplyBox",
+          "type": "ISupplyBoxEntity",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается перед удалением сущностей ящика; удаление можно отменить.",
       "when": "Перед `Despawn` ящика/парашюта и отменой thinkers",
       "frequency": "Игрок",
@@ -1345,6 +2478,15 @@
       "apiPath": "Events.Destroyed",
       "name": "Destroyed",
       "context": "SupplyBoxDestroyedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "SupplyBox",
+          "type": "ISupplyBoxEntity",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается после удаления сущностей ящика и остановки его таймеров.",
       "when": "После `Despawn` и отмены thinkers",
       "frequency": "Игрок",
@@ -1363,6 +2505,39 @@
       "apiPath": "Events.Transactions.Processing",
       "name": "Processing",
       "context": "EconomyTransactionProcessingContext",
+      "isCancellable": true,
+      "contextParameters": [
+        {
+          "name": "OriginalPlayer",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": true
+        },
+        {
+          "name": "OriginalAmount",
+          "type": "int",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Amount",
+          "type": "int",
+          "nullable": false,
+          "mutable": true
+        },
+        {
+          "name": "Kind",
+          "type": "EconomyTransactionKind",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается перед изменением баланса; игрока, сумму или саму операцию можно изменить.",
       "when": "`GiveMoney` и `TrySpendMoney`, после проверки входного аргумента и до доступа к сессии",
       "frequency": "Горячий путь",
@@ -1381,6 +2556,45 @@
       "apiPath": "Events.Transactions.Committed",
       "name": "Committed",
       "context": "EconomyTransactionCommittedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "RequestedAmount",
+          "type": "int",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "AppliedAmount",
+          "type": "int",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "PreviousBalance",
+          "type": "int",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Balance",
+          "type": "int",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Kind",
+          "type": "EconomyTransactionKind",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается после изменения сессии счёта и игровой проекции баланса.",
       "when": "После атомарного изменения session balance и обновления CS2 money projection",
       "frequency": "Горячий путь",
@@ -1399,6 +2613,33 @@
       "apiPath": "Events.Transactions.Rejected",
       "name": "Rejected",
       "context": "EconomyTransactionRejectedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Amount",
+          "type": "int",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Kind",
+          "type": "EconomyTransactionKind",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Reason",
+          "type": "EconomyTransactionRejectionReason",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается при ожидаемом отказе без изменения баланса.",
       "when": "При отмене, отсутствии/незагрузившемся счёте, нехватке средств или лимите",
       "frequency": "Часто",
@@ -1417,6 +2658,33 @@
       "apiPath": "Events.Transactions.Failed",
       "name": "Failed",
       "context": "EconomyTransactionFailedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Amount",
+          "type": "int",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Kind",
+          "type": "EconomyTransactionKind",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Exception",
+          "type": "Exception",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается при ошибке обновления игровой проекции после изменения сессии счёта.",
       "when": "Если обновление CS2 money projection выбросило исключение после изменения session balance",
       "frequency": "Редко",
@@ -1435,6 +2703,21 @@
       "apiPath": "Events.Accounts.Initialized",
       "name": "Initialized",
       "context": "EconomyAccountInitializedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Balance",
+          "type": "int",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается после создания runtime-сессии со стартовым балансом.",
       "when": "После создания runtime-сессии и применения стартового баланса игроку, до фоновой загрузки",
       "frequency": "Игрок",
@@ -1453,6 +2736,27 @@
       "apiPath": "Events.Accounts.Loaded",
       "name": "Loaded",
       "context": "EconomyAccountLoadedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "SteamId",
+          "type": "ulong",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Balance",
+          "type": "int",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "IsNew",
+          "type": "bool",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается после объединения runtime-изменений с данными БД.",
       "when": "В фоновой очереди после загрузки/создания записи и merge локальной дельты",
       "frequency": "Игрок",
@@ -1471,6 +2775,21 @@
       "apiPath": "Events.Accounts.LoadFailed",
       "name": "LoadFailed",
       "context": "EconomyAccountLoadFailedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "SteamId",
+          "type": "ulong",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Exception",
+          "type": "Exception",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается при технической ошибке загрузки счёта.",
       "when": "В фоновой очереди при исключении загрузки",
       "frequency": "Редко",
@@ -1489,6 +2808,21 @@
       "apiPath": "Events.Accounts.Removed",
       "name": "Removed",
       "context": "EconomyAccountRemovedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "SteamId",
+          "type": "ulong",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Balance",
+          "type": "int",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается после удаления runtime-сессии непосредственно перед постановкой сохранения в очередь.",
       "when": "После удаления runtime-сессии при disconnect/unload, перед постановкой сохранения",
       "frequency": "Игрок",
@@ -1507,6 +2841,21 @@
       "apiPath": "Events.Accounts.Saved",
       "name": "Saved",
       "context": "EconomyAccountSavedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "SteamId",
+          "type": "ulong",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Balance",
+          "type": "int",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается после успешного сохранения dirty snapshot в БД.",
       "when": "В фоновой очереди после записи dirty snapshot и `MarkSaved`",
       "frequency": "Игрок",
@@ -1525,6 +2874,21 @@
       "apiPath": "Events.Accounts.SaveFailed",
       "name": "SaveFailed",
       "context": "EconomyAccountSaveFailedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "SteamId",
+          "type": "ulong",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Exception",
+          "type": "Exception",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
       "summary": "Вызывается при технической ошибке сохранения счёта.",
       "when": "В фоновой очереди при исключении сохранения",
       "frequency": "Редко",

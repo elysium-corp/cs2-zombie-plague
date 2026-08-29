@@ -77,143 +77,143 @@ api.Events.Players.Infected.Unhook(OnPlayerInfected);
 
 ### Players
 
-| Событие | Контекст | Когда вызывается | Частота | Нагрузка | Риск и ограничения |
+| Событие | Контекст и параметры | Когда вызывается | Частота | Нагрузка | Риск и ограничения |
 |---|---|---|---|---|---|
-| `Events.Players.Infecting` | `PlayerInfectingContext` | `PlayerManager.TryInfect`, после первичной проверки цели и до создания роли зомби | Игрок | Низкая | Высокий: отмена или подмена `Player`/`Infector` меняет заражение |
-| `Events.Players.Infected` | `PlayerInfectedContext` | После установки роли зомби и показа эффекта заражения | Игрок | Низкая | Средний: подходит для наград и статистики; не запускать повторное заражение синхронно |
-| `Events.Players.Disinfecting` | `PlayerDisinfectingContext` | `PlayerManager.TryDisinfect`, до создания человеческой роли | Игрок | Низкая | Высокий: отмена оставляет роль зомби |
-| `Events.Players.Disinfected` | `PlayerDisinfectedContext` | После успешной замены роли на человеческую | Игрок | Низкая | Средний: роль уже применена |
-| `Events.Players.Humanizing` | `PlayerHumanizingContext` | `PlayerManager.TrySetHuman`, до создания обычной человеческой роли | Игрок | Средняя | Высокий: во время подготовки вызывается для всех игроков; обработчик должен быть O(1) |
-| `Events.Players.Humanized` | `PlayerHumanizedContext` | После успешного назначения обычной человеческой роли | Игрок | Средняя | Средний: возможна серия вызовов на старте подготовки |
-| `Events.Players.BecomingNemesis` | `PlayerBecomingNemesisContext` | `PlayerManager.TrySetNemesis`, до создания специальной роли | Раунд | Низкая | Высокий: отмена может сорвать сценарий специального раунда |
-| `Events.Players.BecameNemesis` | `PlayerBecameNemesisContext` | После установки роли немезиса | Раунд | Низкая | Средний: роль уже активна |
-| `Events.Players.BecomingSurvivor` | `PlayerBecomingSurvivorContext` | `PlayerManager.TrySetSurvivor`, до создания специальной роли | Раунд | Низкая | Высокий: отмена может сорвать сценарий специального раунда |
-| `Events.Players.BecameSurvivor` | `PlayerBecameSurvivorContext` | После установки роли выжившего | Раунд | Низкая | Средний: роль уже активна |
-| `Events.Players.Respawning` | `PlayerRespawningContext` | `PlayerManager.TryRespawn`, после проверки смерти и наличия роли, до `Respawn()` | Игрок | Низкая | Высокий: подменённый игрок повторно валидируется |
-| `Events.Players.Respawned` | `PlayerRespawnedContext` | Сразу после вызова `Respawn()` | Игрок | Низкая | Средний: движок может завершать часть spawn-логики позднее |
-| `Events.Players.ApplyingRole` | `PlayerApplyingRoleContext` | `PlayerManager.TryApplyRole`, до `Unbind`, смены команды и `Bind` | Игрок | Низкая | Высокий: влияет на команду, класс и способности |
-| `Events.Players.RoleApplied` | `PlayerRoleAppliedContext` | После смены команды и привязки текущей роли | Игрок | Низкая | Средний: не вызывать рекурсивно `TryApplyRole` |
-| `Events.Players.DeactivatingRole` | `PlayerDeactivatingRoleContext` | `PlayerManager.TryDeactivateRole`, до `Unbind` | Игрок | Низкая | Высокий: отмена сохраняет эффекты роли |
-| `Events.Players.RoleDeactivated` | `PlayerRoleDeactivatedContext` | После `Unbind` текущей роли | Игрок | Низкая | Средний: запись роли остаётся в менеджере |
+| `Events.Players.Infecting` | `PlayerInfectingContext`<br>`Player: IPlayer` (mutable)<br>`Infector: IPlayer?` (mutable) (nullable)<br>cancellable | `PlayerManager.TryInfect`, после первичной проверки цели и до создания роли зомби | Игрок | Низкая | Высокий: отмена или подмена `Player`/`Infector` меняет заражение |
+| `Events.Players.Infected` | `PlayerInfectedContext`<br>`Player: IPlayer`<br>`Infector: IPlayer?` (nullable) | После установки роли зомби и показа эффекта заражения | Игрок | Низкая | Средний: подходит для наград и статистики; не запускать повторное заражение синхронно |
+| `Events.Players.Disinfecting` | `PlayerDisinfectingContext`<br>`Player: IPlayer` (mutable)<br>cancellable | `PlayerManager.TryDisinfect`, до создания человеческой роли | Игрок | Низкая | Высокий: отмена оставляет роль зомби |
+| `Events.Players.Disinfected` | `PlayerDisinfectedContext`<br>`Player: IPlayer` | После успешной замены роли на человеческую | Игрок | Низкая | Средний: роль уже применена |
+| `Events.Players.Humanizing` | `PlayerHumanizingContext`<br>`Player: IPlayer` (mutable)<br>cancellable | `PlayerManager.TrySetHuman`, до создания обычной человеческой роли | Игрок | Средняя | Высокий: во время подготовки вызывается для всех игроков; обработчик должен быть O(1) |
+| `Events.Players.Humanized` | `PlayerHumanizedContext`<br>`Player: IPlayer` | После успешного назначения обычной человеческой роли | Игрок | Средняя | Средний: возможна серия вызовов на старте подготовки |
+| `Events.Players.BecomingNemesis` | `PlayerBecomingNemesisContext`<br>`Player: IPlayer` (mutable)<br>cancellable | `PlayerManager.TrySetNemesis`, до создания специальной роли | Раунд | Низкая | Высокий: отмена может сорвать сценарий специального раунда |
+| `Events.Players.BecameNemesis` | `PlayerBecameNemesisContext`<br>`Player: IPlayer` | После установки роли немезиса | Раунд | Низкая | Средний: роль уже активна |
+| `Events.Players.BecomingSurvivor` | `PlayerBecomingSurvivorContext`<br>`Player: IPlayer` (mutable)<br>cancellable | `PlayerManager.TrySetSurvivor`, до создания специальной роли | Раунд | Низкая | Высокий: отмена может сорвать сценарий специального раунда |
+| `Events.Players.BecameSurvivor` | `PlayerBecameSurvivorContext`<br>`Player: IPlayer` | После установки роли выжившего | Раунд | Низкая | Средний: роль уже активна |
+| `Events.Players.Respawning` | `PlayerRespawningContext`<br>`Player: IPlayer` (mutable)<br>cancellable | `PlayerManager.TryRespawn`, после проверки смерти и наличия роли, до `Respawn()` | Игрок | Низкая | Высокий: подменённый игрок повторно валидируется |
+| `Events.Players.Respawned` | `PlayerRespawnedContext`<br>`Player: IPlayer` | Сразу после вызова `Respawn()` | Игрок | Низкая | Средний: движок может завершать часть spawn-логики позднее |
+| `Events.Players.ApplyingRole` | `PlayerApplyingRoleContext`<br>`Player: IPlayer` (mutable)<br>cancellable | `PlayerManager.TryApplyRole`, до `Unbind`, смены команды и `Bind` | Игрок | Низкая | Высокий: влияет на команду, класс и способности |
+| `Events.Players.RoleApplied` | `PlayerRoleAppliedContext`<br>`Player: IPlayer` | После смены команды и привязки текущей роли | Игрок | Низкая | Средний: не вызывать рекурсивно `TryApplyRole` |
+| `Events.Players.DeactivatingRole` | `PlayerDeactivatingRoleContext`<br>`Player: IPlayer` (mutable)<br>cancellable | `PlayerManager.TryDeactivateRole`, до `Unbind` | Игрок | Низкая | Высокий: отмена сохраняет эффекты роли |
+| `Events.Players.RoleDeactivated` | `PlayerRoleDeactivatedContext`<br>`Player: IPlayer` | После `Unbind` текущей роли | Игрок | Низкая | Средний: запись роли остаётся в менеджере |
 
 ### Classes
 
-| Событие | Контекст | Когда вызывается | Частота | Нагрузка | Риск и ограничения |
+| Событие | Контекст и параметры | Когда вызывается | Частота | Нагрузка | Риск и ограничения |
 |---|---|---|---|---|---|
-| `Events.Classes.Selecting` | `ClassSelectingContext` | `PlayerRepository.SetZClassId/SetHClassId`, до доступа к persistent-сессии | Игрок | Низкая | Высокий: можно отменить или заменить игрока/идентификатор класса; существование класса проверяет вызывающий UI |
-| `Events.Classes.Selected` | `ClassSelectedContext` | После записи предпочтения в runtime-сессию | Игрок | Низкая | Средний: сохранение в БД выполняется позднее при lifecycle-сохранении |
-| `Events.Classes.SelectionRejected` | `ClassSelectionRejectedContext` | При отмене, пустом идентификаторе или отсутствии сессии | Редко | Низкая | Низкий: runtime-предпочтение не изменено |
+| `Events.Classes.Selecting` | `ClassSelectingContext`<br>`Player: IPlayer` (mutable)<br>`OriginalClassId: string`<br>`ClassId: string` (mutable)<br>`Kind: PlayerClassKind`<br>cancellable | `PlayerRepository.SetZClassId/SetHClassId`, до доступа к persistent-сессии | Игрок | Низкая | Высокий: можно отменить или заменить игрока/идентификатор класса; существование класса проверяет вызывающий UI |
+| `Events.Classes.Selected` | `ClassSelectedContext`<br>`Player: IPlayer`<br>`ClassId: string`<br>`Kind: PlayerClassKind` | После записи предпочтения в runtime-сессию | Игрок | Низкая | Средний: сохранение в БД выполняется позднее при lifecycle-сохранении |
+| `Events.Classes.SelectionRejected` | `ClassSelectionRejectedContext`<br>`Player: IPlayer`<br>`ClassId: string`<br>`Kind: PlayerClassKind`<br>`Reason: ClassSelectionRejectionReason` | При отмене, пустом идентификаторе или отсутствии сессии | Редко | Низкая | Низкий: runtime-предпочтение не изменено |
 
 ### Rounds
 
-| Событие | Контекст | Когда вызывается | Частота | Нагрузка | Риск и ограничения |
+| Событие | Контекст и параметры | Когда вызывается | Частота | Нагрузка | Риск и ограничения |
 |---|---|---|---|---|---|
-| `Events.Rounds.Preparing` | `RoundPreparingContext` | В начале `RoundManager.Prepare`, до завершения активного режима | Раунд | Низкая | Высокий: отмена не запускает подготовку |
-| `Events.Rounds.Prepared` | `RoundPreparedContext` | После назначения людей и запуска таймера обратного отсчёта | Раунд | Низкая | Низкий: уведомление о запущенном countdown |
-| `Events.Rounds.Starting` | `RoundStartingContext` | `RoundManager.StartRound`, до остановки подготовки и `TryStart` | Раунд | Низкая | Высокий: можно отменить или заменить `RoundId`; неизвестная замена игнорируется |
-| `Events.Rounds.Started` | `RoundStartedContext` | После успешного запуска выбранного режима или fallback `infection` | Раунд | Низкая | Средний: `Round` содержит фактически запущенный режим |
-| `Events.Rounds.StartRejected` | `RoundStartRejectedContext` | На ветках `NotPreparing`, `CannotStart` и отмены `Starting` | Редко | Низкая | Низкий: только аудит ожидаемого отказа |
-| `Events.Rounds.StartFailed` | `RoundStartFailedContext` | В `TryStartRoundInternal`, когда `Round.TryStart()` выбрасывает исключение | Редко | Низкая | Высокий: исключение будет выброшено повторно; обработчик не должен скрывать восстановление |
-| `Events.Rounds.Ending` | `RoundEndingContext` | `RoundManager.End`, до остановки подготовки и `Round.End()` | Раунд | Низкая | Высокий: отмена оставляет активный режим |
-| `Events.Rounds.Ended` | `RoundEndedContext` | После `Round.End()` и очистки `CurrentRound` | Раунд | Низкая | Средний: состояние режима уже очищено |
-| `Events.Rounds.Scheduling` | `RoundSchedulingContext` | `SelectNextRound`, до записи `NextRound` | Редко | Низкая | Высокий: отмена не меняет текущую очередь |
-| `Events.Rounds.Scheduled` | `RoundScheduledContext` | После записи `NextRound` | Редко | Низкая | Низкий: уведомление об очереди |
-| `Events.Rounds.ScheduleClearing` | `RoundScheduleClearingContext` | `ClearNextRound`, если режим был выбран, до очистки | Редко | Низкая | Высокий: отмена сохраняет выбранный режим |
-| `Events.Rounds.ScheduleCleared` | `RoundScheduleClearedContext` | После очистки `NextRound` | Редко | Низкая | Низкий: содержит удалённый режим |
+| `Events.Rounds.Preparing` | `RoundPreparingContext`<br>cancellable | В начале `RoundManager.Prepare`, до завершения активного режима | Раунд | Низкая | Высокий: отмена не запускает подготовку |
+| `Events.Rounds.Prepared` | `RoundPreparedContext`<br>`DelaySeconds: int` | После назначения людей и запуска таймера обратного отсчёта | Раунд | Низкая | Низкий: уведомление о запущенном countdown |
+| `Events.Rounds.Starting` | `RoundStartingContext`<br>`OriginalRoundId: string`<br>`RoundId: string` (mutable)<br>cancellable | `RoundManager.StartRound`, до остановки подготовки и `TryStart` | Раунд | Низкая | Высокий: можно отменить или заменить `RoundId`; неизвестная замена игнорируется |
+| `Events.Rounds.Started` | `RoundStartedContext`<br>`Round: IRound` | После успешного запуска выбранного режима или fallback `infection` | Раунд | Низкая | Средний: `Round` содержит фактически запущенный режим |
+| `Events.Rounds.StartRejected` | `RoundStartRejectedContext`<br>`RoundId: string?` (nullable)<br>`Reason: RoundStartRejectionReason` | На ветках `NotPreparing`, `CannotStart` и отмены `Starting` | Редко | Низкая | Низкий: только аудит ожидаемого отказа |
+| `Events.Rounds.StartFailed` | `RoundStartFailedContext`<br>`Round: IRound`<br>`Exception: Exception` | В `TryStartRoundInternal`, когда `Round.TryStart()` выбрасывает исключение | Редко | Низкая | Высокий: исключение будет выброшено повторно; обработчик не должен скрывать восстановление |
+| `Events.Rounds.Ending` | `RoundEndingContext`<br>`Round: IRound`<br>cancellable | `RoundManager.End`, до остановки подготовки и `Round.End()` | Раунд | Низкая | Высокий: отмена оставляет активный режим |
+| `Events.Rounds.Ended` | `RoundEndedContext`<br>`Round: IRound` | После `Round.End()` и очистки `CurrentRound` | Раунд | Низкая | Средний: состояние режима уже очищено |
+| `Events.Rounds.Scheduling` | `RoundSchedulingContext`<br>`Round: IRound`<br>cancellable | `SelectNextRound`, до записи `NextRound` | Редко | Низкая | Высокий: отмена не меняет текущую очередь |
+| `Events.Rounds.Scheduled` | `RoundScheduledContext`<br>`Round: IRound` | После записи `NextRound` | Редко | Низкая | Низкий: уведомление об очереди |
+| `Events.Rounds.ScheduleClearing` | `RoundScheduleClearingContext`<br>`Round: IRound`<br>cancellable | `ClearNextRound`, если режим был выбран, до очистки | Редко | Низкая | Высокий: отмена сохраняет выбранный режим |
+| `Events.Rounds.ScheduleCleared` | `RoundScheduleClearedContext`<br>`Round: IRound` | После очистки `NextRound` | Редко | Низкая | Низкий: содержит удалённый режим |
 
 ### Combat
 
-| Событие | Контекст | Когда вызывается | Частота | Нагрузка | Риск и ограничения |
+| Событие | Контекст и параметры | Когда вызывается | Частота | Нагрузка | Риск и ограничения |
 |---|---|---|---|---|---|
-| `Events.Combat.KnockbackApplying` | `KnockbackApplyingContext` | `KnockbackService.TryApplyKnockback`, после расчёта скорости и до `Teleport` | Горячий путь | Высокая | Критический: только O(1); неверная `Velocity` ломает движение/физику |
-| `Events.Combat.KnockbackApplied` | `KnockbackAppliedContext` | После `Teleport` и постановки таймера восстановления скорости | Горячий путь | Высокая | Критический: нельзя выполнять I/O или тяжёлую телеметрию синхронно |
+| `Events.Combat.KnockbackApplying` | `KnockbackApplyingContext`<br>`Attacker: IPlayer`<br>`Victim: IPlayer`<br>`Data: KnockbackData`<br>`Velocity: Vector` (mutable)<br>cancellable | `KnockbackService.TryApplyKnockback`, после расчёта скорости и до `Teleport` | Горячий путь | Высокая | Критический: только O(1); неверная `Velocity` ломает движение/физику |
+| `Events.Combat.KnockbackApplied` | `KnockbackAppliedContext`<br>`Attacker: IPlayer`<br>`Victim: IPlayer`<br>`Data: KnockbackData`<br>`Velocity: Vector` | После `Teleport` и постановки таймера восстановления скорости | Горячий путь | Высокая | Критический: нельзя выполнять I/O или тяжёлую телеметрию синхронно |
 
 ## CustomEquipment.Api
 
 ### Items
 
-| Событие | Контекст | Когда вызывается | Частота | Нагрузка | Риск и ограничения |
+| Событие | Контекст и параметры | Когда вызывается | Частота | Нагрузка | Риск и ограничения |
 |---|---|---|---|---|---|
-| `Events.Items.Purchasing` | `ItemPurchasingContext` | `EquipmentMenu.BuyItem`, до проверки роли и списания денег | Игрок | Низкая | Высокий: можно отменить или подменить игрока/предмет |
-| `Events.Items.PaymentCommitted` | `ItemPaymentCommittedContext` | Сразу после успешного `Economy.TrySpendMoney`, до постановки выдачи | Игрок | Низкая | Высокий: деньги уже списаны, предмет ещё не выдан |
-| `Events.Items.Purchased` | `ItemPurchasedContext` | После того как `TryGiveItem` принял выдачу; для гранаты фактическое прикрепление может завершиться на следующем world update | Игрок | Низкая | Высокий: не считать это гарантией завершённой асинхронной выдачи; для этого есть `Items.Given` |
-| `Events.Items.PurchaseRejected` | `ItemPurchaseRejectedContext` | При отмене, недействительном игроке, запрете роли, отказе оплаты или выдачи | Игрок | Низкая | Низкий: баланс не менялся либо уже запущен возврат |
-| `Events.Items.PaymentRefunded` | `ItemPaymentRefundedContext` | После вызова возврата денег, если `TryGiveItem` синхронно отклонил выдачу | Редко | Низкая | Высокий: обработчики экономики способны изменить/отменить возврат; проверять её `Transactions` |
-| `Events.Items.Giving` | `ItemGivingContext` | `EquipmentService.TryGiveItem`, после создания экземпляра и до проверки конкретного типа | Игрок | Низкая | Высокий: отмена/подмена меняет выдачу |
-| `Events.Items.Given` | `ItemGivenContext` | Из callback `ItemGiver` после фактического прикрепления/применения предмета | Игрок | Средняя | Высокий: для гранаты вызывается на следующем world update, для других типов может быть синхронным |
-| `Events.Items.GiveRejected` | `ItemGiveRejectedContext` | На ожидаемых ветках отказа `TryGiveItem` | Игрок | Низкая | Низкий: выдача не была поставлена в очередь |
-| `Events.Items.GiveFailed` | `ItemGiveFailedContext` | При исключении создания предмета или постановки выдачи | Редко | Низкая | Высокий: исключение будет выброшено повторно |
+| `Events.Items.Purchasing` | `ItemPurchasingContext`<br>`Player: IPlayer` (mutable)<br>`Item: IShopItem` (mutable)<br>cancellable | `EquipmentMenu.BuyItem`, до проверки роли и списания денег | Игрок | Низкая | Высокий: можно отменить или подменить игрока/предмет |
+| `Events.Items.PaymentCommitted` | `ItemPaymentCommittedContext`<br>`Player: IPlayer`<br>`Item: IShopItem`<br>`Amount: int` | Сразу после успешного `Economy.TrySpendMoney`, до постановки выдачи | Игрок | Низкая | Высокий: деньги уже списаны, предмет ещё не выдан |
+| `Events.Items.Purchased` | `ItemPurchasedContext`<br>`Player: IPlayer`<br>`Item: IShopItem` | После того как `TryGiveItem` принял выдачу; для гранаты фактическое прикрепление может завершиться на следующем world update | Игрок | Низкая | Высокий: не считать это гарантией завершённой асинхронной выдачи; для этого есть `Items.Given` |
+| `Events.Items.PurchaseRejected` | `ItemPurchaseRejectedContext`<br>`Player: IPlayer`<br>`Item: IShopItem`<br>`Reason: ItemPurchaseRejectionReason` | При отмене, недействительном игроке, запрете роли, отказе оплаты или выдачи | Игрок | Низкая | Низкий: баланс не менялся либо уже запущен возврат |
+| `Events.Items.PaymentRefunded` | `ItemPaymentRefundedContext`<br>`Player: IPlayer`<br>`Item: IShopItem`<br>`Amount: int` | После вызова возврата денег, если `TryGiveItem` синхронно отклонил выдачу | Редко | Низкая | Высокий: обработчики экономики способны изменить/отменить возврат; проверять её `Transactions` |
+| `Events.Items.Giving` | `ItemGivingContext`<br>`Player: IPlayer` (mutable)<br>`Item: IItem` (mutable)<br>`Action: GiveAction` (mutable)<br>cancellable | `EquipmentService.TryGiveItem`, после создания экземпляра и до проверки конкретного типа | Игрок | Низкая | Высокий: отмена/подмена меняет выдачу |
+| `Events.Items.Given` | `ItemGivenContext`<br>`Player: IPlayer`<br>`Item: IItem`<br>`Action: GiveAction` | Из callback `ItemGiver` после фактического прикрепления/применения предмета | Игрок | Средняя | Высокий: для гранаты вызывается на следующем world update, для других типов может быть синхронным |
+| `Events.Items.GiveRejected` | `ItemGiveRejectedContext`<br>`Player: IPlayer`<br>`InternalName: string`<br>`Item: IItem?` (nullable)<br>`Action: GiveAction`<br>`Reason: ItemGiveRejectionReason` | На ожидаемых ветках отказа `TryGiveItem` | Игрок | Низкая | Низкий: выдача не была поставлена в очередь |
+| `Events.Items.GiveFailed` | `ItemGiveFailedContext`<br>`Player: IPlayer`<br>`InternalName: string`<br>`Action: GiveAction`<br>`Exception: Exception` | При исключении создания предмета или постановки выдачи | Редко | Низкая | Высокий: исключение будет выброшено повторно |
 
 ### Weapons
 
-| Событие | Контекст | Когда вызывается | Частота | Нагрузка | Риск и ограничения |
+| Событие | Контекст и параметры | Когда вызывается | Частота | Нагрузка | Риск и ограничения |
 |---|---|---|---|---|---|
-| `Events.Weapons.Giving` | `WeaponGivingContext` | После `Items.Giving`, перед выдачей оружия | Игрок | Низкая | Высокий: типовая отмена отклоняет всю выдачу |
-| `Events.Weapons.Given` | `WeaponGivenContext` | После прикрепления оружия и регистрации в runtime-каталоге | Игрок | Низкая | Средний: оружие уже доступно игроку |
-| `Events.Weapons.DamageModifying` | `WeaponDamageModifyingContext` | На `TakeDamage.Pre`, после штатного расчёта множителя и до записи урона | Горячий путь | Высокая | Критический: только O(1); отмена оставляет базовый урон, подписчик обязан не задавать NaN/Infinity/отрицательное значение |
-| `Events.Weapons.DamageModified` | `WeaponDamageModifiedContext` | После записи модифицированного урона в damage info | Горячий путь | Высокая | Критический: БД, HTTP, логирование каждого попадания запрещены |
-| `Events.Weapons.ImpactProcessing` | `WeaponImpactProcessingContext` | `OnBulletImpactPost`, до создания tracer/muzzle/impact particles | Горячий путь | Высокая | Критический: отмена отключает пользовательские частицы этого попадания |
-| `Events.Weapons.ImpactProcessed` | `WeaponImpactProcessedContext` | После создания настроенных частиц попадания | Горячий путь | Высокая | Критический: событие вызывается даже если для оружия не настроен отдельный тип частицы |
-| `Events.Weapons.AmmoPurchasing` | `WeaponAmmoPurchasingContext` | По нажатию `E` с активным магазинным оружием, до проверки лимита и оплаты | Игрок | Низкая | Высокий: цена и количество изменяемы; значения валидируются |
-| `Events.Weapons.AmmoPurchased` | `WeaponAmmoPurchasedContext` | После оплаты и обновления reserve ammo | Игрок | Низкая | Средний: содержит фактически добавленное число патронов с учётом лимита |
-| `Events.Weapons.AmmoPurchaseRejected` | `WeaponAmmoPurchaseRejectedContext` | При отсутствии настройки, полном запасе, отмене, неверных значениях или отказе оплаты | Игрок | Низкая | Низкий: боеприпасы не изменены |
+| `Events.Weapons.Giving` | `WeaponGivingContext`<br>`Player: IPlayer` (mutable)<br>`Weapon: IWeapon` (mutable)<br>`Action: GiveAction` (mutable)<br>cancellable | После `Items.Giving`, перед выдачей оружия | Игрок | Низкая | Высокий: типовая отмена отклоняет всю выдачу |
+| `Events.Weapons.Given` | `WeaponGivenContext`<br>`Player: IPlayer`<br>`Weapon: IWeapon`<br>`Action: GiveAction` | После прикрепления оружия и регистрации в runtime-каталоге | Игрок | Низкая | Средний: оружие уже доступно игроку |
+| `Events.Weapons.DamageModifying` | `WeaponDamageModifyingContext`<br>`Attacker: IPlayer`<br>`Victim: IPlayer`<br>`Weapon: IWeapon`<br>`OriginalDamage: float`<br>`Damage: float` (mutable)<br>cancellable | На `TakeDamage.Pre`, после штатного расчёта множителя и до записи урона | Горячий путь | Высокая | Критический: только O(1); отмена оставляет базовый урон, подписчик обязан не задавать NaN/Infinity/отрицательное значение |
+| `Events.Weapons.DamageModified` | `WeaponDamageModifiedContext`<br>`Attacker: IPlayer`<br>`Victim: IPlayer`<br>`Weapon: IWeapon`<br>`OriginalDamage: float`<br>`Damage: float` | После записи модифицированного урона в damage info | Горячий путь | Высокая | Критический: БД, HTTP, логирование каждого попадания запрещены |
+| `Events.Weapons.ImpactProcessing` | `WeaponImpactProcessingContext`<br>`Player: IPlayer`<br>`Weapon: IWeapon`<br>`Position: Vector` (mutable)<br>cancellable | `OnBulletImpactPost`, до создания tracer/muzzle/impact particles | Горячий путь | Высокая | Критический: отмена отключает пользовательские частицы этого попадания |
+| `Events.Weapons.ImpactProcessed` | `WeaponImpactProcessedContext`<br>`Player: IPlayer`<br>`Weapon: IWeapon`<br>`Position: Vector` | После создания настроенных частиц попадания | Горячий путь | Высокая | Критический: событие вызывается даже если для оружия не настроен отдельный тип частицы |
+| `Events.Weapons.AmmoPurchasing` | `WeaponAmmoPurchasingContext`<br>`Player: IPlayer`<br>`Weapon: IWeapon`<br>`Price: int` (mutable)<br>`Amount: int` (mutable)<br>cancellable | По нажатию `E` с активным магазинным оружием, до проверки лимита и оплаты | Игрок | Низкая | Высокий: цена и количество изменяемы; значения валидируются |
+| `Events.Weapons.AmmoPurchased` | `WeaponAmmoPurchasedContext`<br>`Player: IPlayer`<br>`Weapon: IWeapon`<br>`Price: int`<br>`Amount: int`<br>`ReserveAmmo: int` | После оплаты и обновления reserve ammo | Игрок | Низкая | Средний: содержит фактически добавленное число патронов с учётом лимита |
+| `Events.Weapons.AmmoPurchaseRejected` | `WeaponAmmoPurchaseRejectedContext`<br>`Player: IPlayer`<br>`Weapon: IWeapon`<br>`Reason: WeaponAmmoPurchaseRejectionReason` | При отсутствии настройки, полном запасе, отмене, неверных значениях или отказе оплаты | Игрок | Низкая | Низкий: боеприпасы не изменены |
 
 ### Grenades
 
-| Событие | Контекст | Когда вызывается | Частота | Нагрузка | Риск и ограничения |
+| Событие | Контекст и параметры | Когда вызывается | Частота | Нагрузка | Риск и ограничения |
 |---|---|---|---|---|---|
-| `Events.Grenades.Giving` | `GrenadeGivingContext` | После `Items.Giving`, перед выдачей гранаты | Игрок | Низкая | Высокий: типовая отмена отклоняет выдачу |
-| `Events.Grenades.Given` | `GrenadeGivenContext` | После поиска и прикрепления сущности гранаты на следующем world update | Игрок | Средняя | Средний: фактическая выдача завершена |
-| `Events.Grenades.Throwing` | `GrenadeThrowingContext` | После создания projectile и определения пользовательской гранаты, до установки модели | Часто | Средняя | Высокий: отмена не удаляет projectile, а отключает его пользовательскую регистрацию |
-| `Events.Grenades.Thrown` | `GrenadeThrownContext` | После установки модели и регистрации броска | Часто | Средняя | Средний: используется контроллером детонации |
-| `Events.Grenades.ThrowRejected` | `GrenadeThrowRejectedContext` | При отмене `Throwing` или недействительном projectile | Редко | Низкая | Низкий: только аудит отказа |
-| `Events.Grenades.Detonating` | `GrenadeDetonatingContext` | Перед удалением projectile и вызовом пользовательской детонации | Часто | Средняя | Высокий: отмена оставляет штатную дальнейшую судьбу projectile |
-| `Events.Grenades.Detonated` | `GrenadeDetonatedContext` | После `OnDetonate` пользовательской гранаты | Часто | Средняя | Средний: эффекты и урон уже созданы |
-| `Events.Grenades.DetonationRejected` | `GrenadeDetonationRejectedContext` | При отмене, неверной подмене, недействительном projectile или thrower | Редко | Низкая | Низкий: пользовательская логика не выполнена |
+| `Events.Grenades.Giving` | `GrenadeGivingContext`<br>`Player: IPlayer` (mutable)<br>`Grenade: IGrenade` (mutable)<br>`Action: GiveAction` (mutable)<br>cancellable | После `Items.Giving`, перед выдачей гранаты | Игрок | Низкая | Высокий: типовая отмена отклоняет выдачу |
+| `Events.Grenades.Given` | `GrenadeGivenContext`<br>`Player: IPlayer`<br>`Grenade: IGrenade`<br>`Action: GiveAction` | После поиска и прикрепления сущности гранаты на следующем world update | Игрок | Средняя | Средний: фактическая выдача завершена |
+| `Events.Grenades.Throwing` | `GrenadeThrowingContext`<br>`Grenade: IGrenade` (mutable)<br>`Projectile: CBaseCSGrenadeProjectile` (mutable)<br>cancellable | После создания projectile и определения пользовательской гранаты, до установки модели | Часто | Средняя | Высокий: отмена не удаляет projectile, а отключает его пользовательскую регистрацию |
+| `Events.Grenades.Thrown` | `GrenadeThrownContext`<br>`Grenade: IGrenade`<br>`Projectile: CBaseCSGrenadeProjectile` | После установки модели и регистрации броска | Часто | Средняя | Средний: используется контроллером детонации |
+| `Events.Grenades.ThrowRejected` | `GrenadeThrowRejectedContext`<br>`Grenade: IGrenade`<br>`Projectile: CBaseCSGrenadeProjectile`<br>`Reason: GrenadeThrowRejectionReason` | При отмене `Throwing` или недействительном projectile | Редко | Низкая | Низкий: только аудит отказа |
+| `Events.Grenades.Detonating` | `GrenadeDetonatingContext`<br>`Grenade: IGrenade` (mutable)<br>`Projectile: CBaseCSGrenadeProjectile` (mutable)<br>`Position: Vector` (mutable)<br>cancellable | Перед удалением projectile и вызовом пользовательской детонации | Часто | Средняя | Высокий: отмена оставляет штатную дальнейшую судьбу projectile |
+| `Events.Grenades.Detonated` | `GrenadeDetonatedContext`<br>`Grenade: IGrenade`<br>`Projectile: CBaseCSGrenadeProjectile`<br>`Position: Vector` | После `OnDetonate` пользовательской гранаты | Часто | Средняя | Средний: эффекты и урон уже созданы |
+| `Events.Grenades.DetonationRejected` | `GrenadeDetonationRejectedContext`<br>`Grenade: IGrenade`<br>`Projectile: CBaseCSGrenadeProjectile`<br>`Reason: GrenadeDetonationRejectionReason` | При отмене, неверной подмене, недействительном projectile или thrower | Редко | Низкая | Низкий: пользовательская логика не выполнена |
 
 ### Mines
 
-| Событие | Контекст | Когда вызывается | Частота | Нагрузка | Риск и ограничения |
+| Событие | Контекст и параметры | Когда вызывается | Частота | Нагрузка | Риск и ограничения |
 |---|---|---|---|---|---|
-| `Events.Mines.Placing` | `MinePlacingContext` | После проверки поверхности и создания сущности, до `Spawn` | Игрок | Низкая | Высокий: отмена вызывает возврат цены |
-| `Events.Mines.Placed` | `MinePlacedContext` | После `LaserMineEntity.Spawn` | Игрок | Низкая | Средний: владелец затем регистрируется внутренним подписчиком |
-| `Events.Mines.PlacementRejected` | `MinePlacementRejectedContext` | При неподходящей поверхности, отмене или недействительном игроке | Игрок | Низкая | Низкий: модуль запускает возврат цены |
+| `Events.Mines.Placing` | `MinePlacingContext`<br>`Player: IPlayer` (mutable)<br>`Mine: LaserMineEntityBase`<br>cancellable | После проверки поверхности и создания сущности, до `Spawn` | Игрок | Низкая | Высокий: отмена вызывает возврат цены |
+| `Events.Mines.Placed` | `MinePlacedContext`<br>`Player: IPlayer`<br>`Mine: LaserMineEntityBase` | После `LaserMineEntity.Spawn` | Игрок | Низкая | Средний: владелец затем регистрируется внутренним подписчиком |
+| `Events.Mines.PlacementRejected` | `MinePlacementRejectedContext`<br>`Player: IPlayer`<br>`Mine: LaserMineEntityBase?` (nullable)<br>`Reason: MinePlacementRejectionReason` | При неподходящей поверхности, отмене или недействительном игроке | Игрок | Низкая | Низкий: модуль запускает возврат цены |
 
 ## SupplyBox.Api
 
-| Событие | Контекст | Когда вызывается | Частота | Нагрузка | Риск и ограничения |
+| Событие | Контекст и параметры | Когда вызывается | Частота | Нагрузка | Риск и ограничения |
 |---|---|---|---|---|---|
-| `Events.Spawning` | `SupplyBoxSpawningContext` | `SupplyBox.SpawnSupplyBox`, после проверок режима/шанса/лимита и до выбора точки | Раунд | Низкая | Высокий: отмена пропускает текущую попытку создания |
-| `Events.Spawned` | `SupplyBoxSpawnedContext` | После создания сущности и добавления в список активных ящиков | Раунд | Низкая | Средний: ящик ещё спускается |
-| `Events.SpawnRejected` | `SupplyBoxSpawnRejectedContext` | На всех ожидаемых ветках отказа: режим, лимит, шанс, отмена, отсутствие точки | Раунд | Низкая | Низкий: полезно для диагностики конфигурации |
-| `Events.Landed` | `SupplyBoxLandedContext` | Один раз в `DropThinker`, когда ящик достиг целевой высоты | Раунд | Низкая | Средний: callback выполняется из scheduler игрового потока |
-| `Events.Collecting` | `SupplyBoxCollectingContext` | При контакте допустимого игрока с ящиком, до удаления сущностей | Игрок | Средняя | Высокий: проверка близости идёт каждые 0,05 с, но событие вызывается только для кандидата на сбор |
-| `Events.Collected` | `SupplyBoxCollectedContext` | После удаления сущностей и остановки thinkers | Игрок | Низкая | Средний: внутренний подписчик удаляет ящик из active-list |
-| `Events.CollectionRejected` | `SupplyBoxCollectionRejectedContext` | При отмене, неверной подмене, недействительном игроке или отмене уничтожения | Редко | Низкая | Низкий: ящик остаётся доступным |
-| `Events.Destroying` | `SupplyBoxDestroyingContext` | Перед `Despawn` ящика/парашюта и отменой thinkers | Игрок | Низкая | Высокий: отмена прерывает сбор и сохраняет сущности |
-| `Events.Destroyed` | `SupplyBoxDestroyedContext` | После `Despawn` и отмены thinkers | Игрок | Низкая | Средний: `Collected` отправляется сразу после него |
+| `Events.Spawning` | `SupplyBoxSpawningContext`<br>`ActiveSupplyBoxes: IReadOnlyCollection<ISupplyBoxEntity>`<br>cancellable | `SupplyBox.SpawnSupplyBox`, после проверок режима/шанса/лимита и до выбора точки | Раунд | Низкая | Высокий: отмена пропускает текущую попытку создания |
+| `Events.Spawned` | `SupplyBoxSpawnedContext`<br>`SupplyBox: ISupplyBoxEntity` | После создания сущности и добавления в список активных ящиков | Раунд | Низкая | Средний: ящик ещё спускается |
+| `Events.SpawnRejected` | `SupplyBoxSpawnRejectedContext`<br>`Reason: SupplyBoxSpawnRejectionReason` | На всех ожидаемых ветках отказа: режим, лимит, шанс, отмена, отсутствие точки | Раунд | Низкая | Низкий: полезно для диагностики конфигурации |
+| `Events.Landed` | `SupplyBoxLandedContext`<br>`SupplyBox: ISupplyBoxEntity` | Один раз в `DropThinker`, когда ящик достиг целевой высоты | Раунд | Низкая | Средний: callback выполняется из scheduler игрового потока |
+| `Events.Collecting` | `SupplyBoxCollectingContext`<br>`Player: IPlayer` (mutable)<br>`SupplyBox: ISupplyBoxEntity` (mutable)<br>cancellable | При контакте допустимого игрока с ящиком, до удаления сущностей | Игрок | Средняя | Высокий: проверка близости идёт каждые 0,05 с, но событие вызывается только для кандидата на сбор |
+| `Events.Collected` | `SupplyBoxCollectedContext`<br>`Player: IPlayer`<br>`SupplyBox: ISupplyBoxEntity` | После удаления сущностей и остановки thinkers | Игрок | Низкая | Средний: внутренний подписчик удаляет ящик из active-list |
+| `Events.CollectionRejected` | `SupplyBoxCollectionRejectedContext`<br>`Player: IPlayer`<br>`SupplyBox: ISupplyBoxEntity`<br>`Reason: SupplyBoxCollectionRejectionReason` | При отмене, неверной подмене, недействительном игроке или отмене уничтожения | Редко | Низкая | Низкий: ящик остаётся доступным |
+| `Events.Destroying` | `SupplyBoxDestroyingContext`<br>`SupplyBox: ISupplyBoxEntity`<br>cancellable | Перед `Despawn` ящика/парашюта и отменой thinkers | Игрок | Низкая | Высокий: отмена прерывает сбор и сохраняет сущности |
+| `Events.Destroyed` | `SupplyBoxDestroyedContext`<br>`SupplyBox: ISupplyBoxEntity` | После `Despawn` и отмены thinkers | Игрок | Низкая | Средний: `Collected` отправляется сразу после него |
 
 ## Economy.Api
 
-| Событие | Контекст | Когда вызывается | Частота | Нагрузка | Риск и ограничения |
+| Событие | Контекст и параметры | Когда вызывается | Частота | Нагрузка | Риск и ограничения |
 |---|---|---|---|---|---|
-| `Events.Transactions.Processing` | `EconomyTransactionProcessingContext` | `GiveMoney` и `TrySpendMoney`, после проверки входного аргумента и до доступа к сессии | Горячий путь | Высокая | Критический: награда за каждый урон проходит здесь; только O(1), сумма и игрок изменяемы |
-| `Events.Transactions.Committed` | `EconomyTransactionCommittedContext` | После атомарного изменения session balance и обновления CS2 money projection | Горячий путь | Высокая | Критический: persistent-состояние уже изменено; не запускать синхронный I/O |
-| `Events.Transactions.Rejected` | `EconomyTransactionRejectedContext` | При отмене, отсутствии/незагрузившемся счёте, нехватке средств или лимите | Часто | Высокая | Высокий: только наблюдение; повтор операции из обработчика может создать рекурсию |
-| `Events.Transactions.Failed` | `EconomyTransactionFailedContext` | Если обновление CS2 money projection выбросило исключение после изменения session balance | Редко | Низкая | Критический: возможна временная рассинхронизация; исключение повторно выбрасывается |
+| `Events.Transactions.Processing` | `EconomyTransactionProcessingContext`<br>`OriginalPlayer: IPlayer`<br>`Player: IPlayer` (mutable)<br>`OriginalAmount: int`<br>`Amount: int` (mutable)<br>`Kind: EconomyTransactionKind`<br>cancellable | `GiveMoney` и `TrySpendMoney`, после проверки входного аргумента и до доступа к сессии | Горячий путь | Высокая | Критический: награда за каждый урон проходит здесь; только O(1), сумма и игрок изменяемы |
+| `Events.Transactions.Committed` | `EconomyTransactionCommittedContext`<br>`Player: IPlayer`<br>`RequestedAmount: int`<br>`AppliedAmount: int`<br>`PreviousBalance: int`<br>`Balance: int`<br>`Kind: EconomyTransactionKind` | После атомарного изменения session balance и обновления CS2 money projection | Горячий путь | Высокая | Критический: persistent-состояние уже изменено; не запускать синхронный I/O |
+| `Events.Transactions.Rejected` | `EconomyTransactionRejectedContext`<br>`Player: IPlayer`<br>`Amount: int`<br>`Kind: EconomyTransactionKind`<br>`Reason: EconomyTransactionRejectionReason` | При отмене, отсутствии/незагрузившемся счёте, нехватке средств или лимите | Часто | Высокая | Высокий: только наблюдение; повтор операции из обработчика может создать рекурсию |
+| `Events.Transactions.Failed` | `EconomyTransactionFailedContext`<br>`Player: IPlayer`<br>`Amount: int`<br>`Kind: EconomyTransactionKind`<br>`Exception: Exception` | Если обновление CS2 money projection выбросило исключение после изменения session balance | Редко | Низкая | Критический: возможна временная рассинхронизация; исключение повторно выбрасывается |
 
 ### Accounts
 
 События `Loaded`, `LoadFailed`, `Saved` и `SaveFailed` выполняются из фоновой очереди БД. В их обработчиках нельзя обращаться к игровым entity/API без явного возврата в scheduler игрового потока.
 
-| Событие | Контекст | Когда вызывается | Частота | Нагрузка | Риск и ограничения |
+| Событие | Контекст и параметры | Когда вызывается | Частота | Нагрузка | Риск и ограничения |
 |---|---|---|---|---|---|
-| `Events.Accounts.Initialized` | `EconomyAccountInitializedContext` | После создания runtime-сессии и применения стартового баланса игроку, до фоновой загрузки | Игрок | Низкая | Средний: загруженный баланс ещё неизвестен |
-| `Events.Accounts.Loaded` | `EconomyAccountLoadedContext` | В фоновой очереди после загрузки/создания записи и merge локальной дельты | Игрок | Низкая | Высокий: не игровой поток; game projection существующего счёта обновляется позднее через scheduler |
-| `Events.Accounts.LoadFailed` | `EconomyAccountLoadFailedContext` | В фоновой очереди при исключении загрузки | Редко | Низкая | Высокий: не игровой поток; исключение повторно передаётся tracker-у задач |
-| `Events.Accounts.Removed` | `EconomyAccountRemovedContext` | После удаления runtime-сессии при disconnect/unload, перед постановкой сохранения | Игрок | Низкая | Средний: счёт больше недоступен через API, сохранение ещё может завершиться ошибкой |
-| `Events.Accounts.Saved` | `EconomyAccountSavedContext` | В фоновой очереди после записи dirty snapshot и `MarkSaved` | Игрок | Низкая | Высокий: не игровой поток; не хранить ссылки на игроков/entity |
-| `Events.Accounts.SaveFailed` | `EconomyAccountSaveFailedContext` | В фоновой очереди при исключении сохранения | Редко | Низкая | Высокий: runtime-сессия уже удалена; требуется внешняя диагностика/повтор инфраструктуры |
+| `Events.Accounts.Initialized` | `EconomyAccountInitializedContext`<br>`Player: IPlayer`<br>`Balance: int` | После создания runtime-сессии и применения стартового баланса игроку, до фоновой загрузки | Игрок | Низкая | Средний: загруженный баланс ещё неизвестен |
+| `Events.Accounts.Loaded` | `EconomyAccountLoadedContext`<br>`SteamId: ulong`<br>`Balance: int`<br>`IsNew: bool` | В фоновой очереди после загрузки/создания записи и merge локальной дельты | Игрок | Низкая | Высокий: не игровой поток; game projection существующего счёта обновляется позднее через scheduler |
+| `Events.Accounts.LoadFailed` | `EconomyAccountLoadFailedContext`<br>`SteamId: ulong`<br>`Exception: Exception` | В фоновой очереди при исключении загрузки | Редко | Низкая | Высокий: не игровой поток; исключение повторно передаётся tracker-у задач |
+| `Events.Accounts.Removed` | `EconomyAccountRemovedContext`<br>`SteamId: ulong`<br>`Balance: int` | После удаления runtime-сессии при disconnect/unload, перед постановкой сохранения | Игрок | Низкая | Средний: счёт больше недоступен через API, сохранение ещё может завершиться ошибкой |
+| `Events.Accounts.Saved` | `EconomyAccountSavedContext`<br>`SteamId: ulong`<br>`Balance: int` | В фоновой очереди после записи dirty snapshot и `MarkSaved` | Игрок | Низкая | Высокий: не игровой поток; не хранить ссылки на игроков/entity |
+| `Events.Accounts.SaveFailed` | `EconomyAccountSaveFailedContext`<br>`SteamId: ulong`<br>`Exception: Exception` | В фоновой очереди при исключении сохранения | Редко | Низкая | Высокий: runtime-сессия уже удалена; требуется внешняя диагностика/повтор инфраструктуры |
 
 ## Правила для обработчиков
 
