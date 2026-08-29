@@ -35,7 +35,7 @@ internal sealed class MapService(ISwiftlyCore core, IPlayerManager playerManager
 
     private void OnMapUnload(IOnMapUnloadEvent @event)
     {
-        core.Scheduler.NextTick(UnbindAllAbilities);
+        core.Scheduler.NextTick(() => UnbindAllAbilities());
     }
 
     private void RemoveAllBuyZones()
