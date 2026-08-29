@@ -20,5 +20,7 @@ internal interface IEquipmentService
 
     int RemoveInaccessibleItems(IPlayer player);
 
+    TItem? GetItemByEntityIndex<TItem>(uint entityIndex) where TItem : ItemBase;
+
     WeaponItemBase? GetWeaponByEntityIndex(uint entityIndex);
 }

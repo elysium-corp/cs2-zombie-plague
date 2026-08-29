@@ -9,11 +9,13 @@ namespace CustomEquipment.Data.Equipments.Weapons.Equipments;
 
 public sealed class LaserMine : EquipmentItemBase, IShopItem
 {
-    public override string InheritorName => WeaponName.Healthshot;
+    internal const string ItemDisplayName = "Laser Mine";
+
+    public override string InheritorName => WeaponName.C4;
 
     public override AccessFlags AccessFlags => AccessFlags.Human;
 
-    public override string DisplayName => "Laser Mine";
+    public override string DisplayName => ItemDisplayName;
 
     public override string InternalName => "custom_equipment:laser_mine";
 

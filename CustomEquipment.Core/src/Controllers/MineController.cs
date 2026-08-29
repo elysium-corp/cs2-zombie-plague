@@ -9,6 +9,7 @@ using CustomEquipment.Utils;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.GameHooks;
+using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
 using ZombiePlague.Api;
@@ -29,10 +30,12 @@ internal sealed class MineController(
     public void Initialize()
     {
         events.Items.Purchasing.Hook(OnItemPurchasing);
+        events.Items.Giving.Hook(OnItemGiving);
         events.Items.Purchased.Hook(OnItemBought);
         events.Mines.Placed.Hook(OnMinePlaced);
         core.GameHooks.Entities.TakeDamage.Pre += OnEntityTakeDamage;
         core.GameHooks.Movement.RunCommand.Pre += OnRunCommand;
+        core.GameHooks.Weapons.CanUse.Pre += OnWeaponCanUse;
 
         var playerEvents = zombiePlagueApi().Events.Players;
         playerEvents.Infected.Hook(OnPlayerInfected);
@@ -42,10 +45,12 @@ internal sealed class MineController(
     public void Dispose()
     {
         events.Items.Purchasing.Unhook(OnItemPurchasing);
+        events.Items.Giving.Unhook(OnItemGiving);
         events.Items.Purchased.Unhook(OnItemBought);
         events.Mines.Placed.Unhook(OnMinePlaced);
         core.GameHooks.Entities.TakeDamage.Pre -= OnEntityTakeDamage;
         core.GameHooks.Movement.RunCommand.Pre -= OnRunCommand;
+        core.GameHooks.Weapons.CanUse.Pre -= OnWeaponCanUse;
 
         var playerEvents = zombiePlagueApi().Events.Players;
         playerEvents.Infected.Unhook(OnPlayerInfected);
@@ -62,16 +67,25 @@ internal sealed class MineController(
             return;
         }
 
-        UpdateNotValidMines();
         var player = context.Player;
 
-        if (!equipmentService.HasItem<LaserMine>(player) &&
-            !_mines.Values.Any(entry => entry.Owner.Equals(player)))
+        if (!HasLaserMine(player))
         {
             return;
         }
 
         player.SendAlert("У вас уже есть лазерная мина");
+        context.Cancel();
+    }
+
+    private void OnItemGiving(ref ItemGivingContext context)
+    {
+        if (context.Item is not LaserMine || !HasLaserMine(context.Player))
+        {
+            return;
+        }
+
+        context.Player.SendAlert("У вас уже есть лазерная мина");
         context.Cancel();
     }
 
@@ -107,8 +121,8 @@ internal sealed class MineController(
             return;
         }
 
-        // Healthshot используется только как предмет-носитель лазерной мины:
-        // его стандартное применение блокируется.
+        // C4 используется только как предмет-носитель лазерной мины:
+        // стандартная установка бомбы блокируется.
         buttons.ButtonPressed &= ~GameButtonFlags.Mouse1;
         buttons.ButtonChanged &= ~GameButtonFlags.Mouse1;
 
@@ -128,6 +142,24 @@ internal sealed class MineController(
         {
             player.SendAlert("Наведитесь на подходящую поверхность для установки мины");
         }
+    }
+
+    private void OnWeaponCanUse(ref CanUseWeaponPreContext context)
+    {
+        if (equipmentService.GetItemByEntityIndex<LaserMine>(context.Params.Weapon.Index) is null)
+        {
+            return;
+        }
+
+        UpdateNotValidMines();
+
+        if (!_mines.Values.Any(entry => entry.Owner.Equals(context.Params.Player)))
+        {
+            return;
+        }
+
+        context.SetReturn(false);
+        context.SetHookResult(HookResult.Stop);
     }
 
     private void OnEntityTakeDamage(ref TakeDamageEntityPreContext hook)
@@ -162,6 +194,14 @@ internal sealed class MineController(
                 pair.Value.Mine.Dispose();
             }
         }
+    }
+
+    private bool HasLaserMine(IPlayer player)
+    {
+        UpdateNotValidMines();
+
+        return equipmentService.HasItem<LaserMine>(player) ||
+               _mines.Values.Any(entry => entry.Owner.Equals(player));
     }
 
     private void OnPlayerInfected(ref PlayerInfectedContext context)

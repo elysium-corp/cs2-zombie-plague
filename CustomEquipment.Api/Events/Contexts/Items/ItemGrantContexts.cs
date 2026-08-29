@@ -21,7 +21,10 @@ public enum ItemGiveRejectionReason
     InvalidReplacement,
 
     /// <summary>Выдача конкретного типа предмета отменена обработчиком.</summary>
-    TypeSpecificCancelled
+    TypeSpecificCancelled,
+
+    /// <summary>У игрока уже есть предмет, который разрешён только в одном экземпляре.</summary>
+    AlreadyOwned
 }
 
 /// <summary>Контекст ожидаемого отказа выдачи предмета.</summary>

@@ -70,6 +70,10 @@
       <Folder Include="src\Data\Equipments\Weapons\Equipments\Contracts\" />
     </ItemGroup>
 
+    <ItemGroup>
+      <InternalsVisibleTo Include="CustomEquipment.Core.Tests" />
+    </ItemGroup>
+
     <Target Name="CreateZip" AfterTargets="Publish">
         <ItemGroup>
             <PublishFiles Include="$(PublishDir)**\*.*"/>

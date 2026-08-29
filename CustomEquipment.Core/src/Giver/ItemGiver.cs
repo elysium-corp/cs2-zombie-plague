@@ -255,6 +255,11 @@ internal sealed class ItemGiver(ISwiftlyCore core) : IItemGiver
             return itemServices.GiveItem<CWeaponUSPSilencer>();
         }
 
+        if (name == $"weapon_{WeaponName.C4}")
+        {
+            return itemServices.GiveItem<CC4>();
+        }
+
         itemServices.GiveItem(name);
 
         return weaponServices.MyValidWeapons

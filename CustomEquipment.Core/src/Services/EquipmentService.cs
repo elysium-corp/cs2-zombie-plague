@@ -6,7 +6,9 @@ using CustomEquipment.Api.Enums;
 using CustomEquipment.Api.Events.Contexts.Grenades;
 using CustomEquipment.Api.Events.Contexts.Items;
 using CustomEquipment.Data.Equipments.Weapons;
+using CustomEquipment.Data.Equipments.Weapons.Equipments;
 using CustomEquipment.Giver;
+using CustomEquipment.Policies;
 using CustomEquipment.Registry;
 using CustomEquipment.Utils;
 using SwiftlyS2.Shared;
@@ -28,12 +30,19 @@ internal sealed class EquipmentService(
     Func<IZombiePlagueApi> zombiePlagueApi
 ) : IEquipmentService, IDisposable
 {
+    private const string C4DesignerName = "weapon_" + WeaponName.C4;
+    private const string LegacyLaserMineDesignerName = "weapon_healthshot";
+    private const string PlantedC4DesignerName = "planted_c4";
     private readonly List<ItemBase> _items = [];
+    private readonly HashSet<int> _laserMineGrantPlayers = [];
+    private bool _initialized;
 
     public void Initialize()
     {
+        _initialized = true;
         core.Event.OnEntityCreated += OnEntityCreated;
         core.Event.OnEntityDeleted += OnEntityDeleted;
+        core.Event.OnMapLoad += OnMapLoad;
 
         core.GameHooks.Weapons.CanUse.Pre += OnWeaponCanUsePre;
 
@@ -43,12 +52,16 @@ internal sealed class EquipmentService(
         playerEvents.Humanized.Hook(OnPlayerHumanized);
         playerEvents.BecameNemesis.Hook(OnPlayerBecameNemesis);
         playerEvents.BecameSurvivor.Hook(OnPlayerBecameSurvivor);
+
+        core.Scheduler.NextWorldUpdate(RemoveForbiddenBombsAndLegacyCarriers);
     }
 
     public void Dispose()
     {
+        _initialized = false;
         core.Event.OnEntityCreated -= OnEntityCreated;
         core.Event.OnEntityDeleted -= OnEntityDeleted;
+        core.Event.OnMapLoad -= OnMapLoad;
 
         core.GameHooks.Weapons.CanUse.Pre -= OnWeaponCanUsePre;
 
@@ -60,6 +73,7 @@ internal sealed class EquipmentService(
         playerEvents.BecameSurvivor.Unhook(OnPlayerBecameSurvivor);
 
         _items.Clear();
+        _laserMineGrantPlayers.Clear();
     }
 
     public bool CanUseItem(IPlayer player, ItemBase item)
@@ -255,6 +269,30 @@ internal sealed class EquipmentService(
             }
         }
 
+        int? laserMineGrantPlayerId = null;
+
+        if (preparedItem is LaserMine)
+        {
+            var playerId = preparedPlayer.PlayerID;
+            var hasCarriedMine = HasItem<LaserMine>(preparedPlayer);
+            var grantInProgress = _laserMineGrantPlayers.Contains(playerId);
+
+            if (!LaserMinePolicy.CanGrant(hasCarriedMine, grantInProgress) ||
+                !_laserMineGrantPlayers.Add(playerId))
+            {
+                DispatchGiveRejected(
+                    preparedPlayer,
+                    internalName,
+                    preparedItem,
+                    preparedAction,
+                    ItemGiveRejectionReason.AlreadyOwned
+                );
+                return false;
+            }
+
+            laserMineGrantPlayerId = playerId;
+        }
+
         try
         {
             itemGiver.GiveItem(
@@ -268,6 +306,13 @@ internal sealed class EquipmentService(
         {
             DispatchGiveFailed(preparedPlayer, internalName, preparedAction, exception);
             throw;
+        }
+        finally
+        {
+            if (laserMineGrantPlayerId.HasValue)
+            {
+                _laserMineGrantPlayers.Remove(laserMineGrantPlayerId.Value);
+            }
         }
 
         return true;
@@ -355,11 +400,23 @@ internal sealed class EquipmentService(
         return GetWeaponByIndex(entityIndex);
     }
 
+    public TItem? GetItemByEntityIndex<TItem>(uint entityIndex) where TItem : ItemBase
+    {
+        return GetItemByIndex(entityIndex) as TItem;
+    }
+
     private void OnEntityCreated(IOnEntityCreatedEvent hook)
     {
         var entity = hook.Entity;
 
-        if (!entity.IsValid || entity is not CBaseCSGrenadeProjectile) return;
+        if (!entity.IsValid) return;
+
+        if (IsForbiddenEntityCandidate(entity))
+        {
+            core.Scheduler.NextWorldUpdate(() => RemoveIfForbidden(entity));
+        }
+
+        if (entity is not CBaseCSGrenadeProjectile) return;
 
         core.Scheduler.NextWorldUpdate(() =>
         {
@@ -417,15 +474,38 @@ internal sealed class EquipmentService(
     private void OnWeaponCanUsePre(ref CanUseWeaponPreContext context)
     {
         var weapon = context.Params.Weapon;
-        var customWeapon = GetItemByIndex(weapon.Index);
+        var customItem = GetItemByIndex(weapon.Index);
 
-        if (customWeapon is null || CanUseItem(context.Params.Player, customWeapon))
+        if (weapon.DesignerName == C4DesignerName)
+        {
+            var isLaserMine = customItem is LaserMine;
+            // GiveNamedItem may call CanUse before OnItemGiven registers the new entity.
+            var grantInProgress = _laserMineGrantPlayers.Contains(context.Params.Player.PlayerID);
+            var accessAllowed = customItem is LaserMine laserMine &&
+                                CanUseItemInternal(context.Params.Player, laserMine);
+            var hasOtherCarriedMine = isLaserMine &&
+                                      HasOtherLaserMine(context.Params.Player, weapon.Index);
+
+            if (LaserMinePolicy.CanUseC4(
+                    isLaserMine,
+                    grantInProgress,
+                    accessAllowed,
+                    hasOtherCarriedMine
+                ))
+            {
+                return;
+            }
+
+            DenyWeaponUse(ref context);
+            return;
+        }
+
+        if (customItem is null || CanUseItem(context.Params.Player, customItem))
         {
             return;
         }
 
-        context.SetReturn(false);
-        context.SetHookResult(HookResult.Stop);
+        DenyWeaponUse(ref context);
     }
 
     private WeaponItemBase? GetWeaponByIndex(uint index)
@@ -438,6 +518,12 @@ internal sealed class EquipmentService(
     private ItemBase? GetItemByIndex(uint index)
     {
         return _items.FirstOrDefault(item => item.AttachedEntity.Index == index);
+    }
+
+    private bool HasOtherLaserMine(IPlayer player, uint entityIndex)
+    {
+        return GetPlayerItems<LaserMine>(player)
+            .Any(item => item.AttachedEntity.Index != entityIndex);
     }
 
     private GrenadeItemBase? GetGrenadeByIndex(uint index)
@@ -548,5 +634,65 @@ internal sealed class EquipmentService(
             : AccessFlags.Human;
 
         return (item.AccessFlags & playerFlag) != 0;
+    }
+
+    private void OnMapLoad(IOnMapLoadEvent _)
+    {
+        core.Scheduler.NextWorldUpdate(RemoveForbiddenBombsAndLegacyCarriers);
+    }
+
+    private void RemoveForbiddenBombsAndLegacyCarriers()
+    {
+        if (!_initialized) return;
+
+        var entities = core.EntitySystem.GetAllEntities()
+            .Where(IsForbiddenEntityCandidate)
+            .ToArray();
+
+        foreach (var entity in entities)
+        {
+            RemoveIfForbidden(entity);
+        }
+    }
+
+    private void RemoveIfForbidden(CEntityInstance entity)
+    {
+        if (!_initialized || !entity.IsValid) return;
+
+        if (entity.DesignerName == C4DesignerName)
+        {
+            if (!LaserMinePolicy.ShouldRemoveC4(GetItemByIndex(entity.Index) is LaserMine))
+            {
+                return;
+            }
+
+            entity.Despawn();
+            return;
+        }
+
+        if (entity.DesignerName == LegacyLaserMineDesignerName)
+        {
+            var legacyCarrier = entity.As<CCSWeaponBase>();
+
+            if (legacyCarrier?.AttributeManager.Item.CustomName != LaserMine.ItemDisplayName)
+            {
+                return;
+            }
+        }
+
+        entity.Despawn();
+    }
+
+    private static bool IsForbiddenEntityCandidate(CEntityInstance entity)
+    {
+        return entity.DesignerName is C4DesignerName or
+            PlantedC4DesignerName or
+            LegacyLaserMineDesignerName;
+    }
+
+    private static void DenyWeaponUse(ref CanUseWeaponPreContext context)
+    {
+        context.SetReturn(false);
+        context.SetHookResult(HookResult.Stop);
     }
 }

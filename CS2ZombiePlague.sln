@@ -34,6 +34,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.Effects", "Common.Ef
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomEquipment.Core", "CustomEquipment.Core\CustomEquipment.Core.csproj", "{0323FD52-CEC1-4EEE-B8C8-CCA57B214101}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomEquipment.Core.Tests", "CustomEquipment.Core.Tests\CustomEquipment.Core.Tests.csproj", "{96F183B9-47AF-4A1D-91DD-7D1D30C6124A}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.Math", "Common.Math\Common.Math.csproj", "{C2812F07-EA45-4FED-8FCF-36981BABD487}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Menu.Core", "Menu.Core\Menu.Core.csproj", "{2E536165-5D54-4886-86B5-822544CE0407}"
@@ -144,6 +146,10 @@ Global
         {0323FD52-CEC1-4EEE-B8C8-CCA57B214101}.Debug|Any CPU.Build.0 = Debug|Any CPU
         {0323FD52-CEC1-4EEE-B8C8-CCA57B214101}.Release|Any CPU.ActiveCfg = Release|Any CPU
         {0323FD52-CEC1-4EEE-B8C8-CCA57B214101}.Release|Any CPU.Build.0 = Release|Any CPU
+        {96F183B9-47AF-4A1D-91DD-7D1D30C6124A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+        {96F183B9-47AF-4A1D-91DD-7D1D30C6124A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+        {96F183B9-47AF-4A1D-91DD-7D1D30C6124A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+        {96F183B9-47AF-4A1D-91DD-7D1D30C6124A}.Release|Any CPU.Build.0 = Release|Any CPU
         {C2812F07-EA45-4FED-8FCF-36981BABD487}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
         {C2812F07-EA45-4FED-8FCF-36981BABD487}.Debug|Any CPU.Build.0 = Debug|Any CPU
         {C2812F07-EA45-4FED-8FCF-36981BABD487}.Release|Any CPU.ActiveCfg = Release|Any CPU
