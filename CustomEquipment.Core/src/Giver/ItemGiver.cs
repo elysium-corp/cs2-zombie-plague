@@ -24,7 +24,7 @@ internal sealed class ItemGiver(ISwiftlyCore core) : IItemGiver
                 break;
 
             case EquipmentItemBase equipment:
-                GiveEquipment(player, equipment, onCompleted);
+                GiveEquipment(player, equipment, action, onCompleted);
                 break;
 
             default:
@@ -181,11 +181,66 @@ internal sealed class ItemGiver(ISwiftlyCore core) : IItemGiver
         });
     }
 
-    private static void GiveEquipment(IPlayer player, EquipmentItemBase equipment, Action<ItemBase> onCompleted)
+    private void GiveEquipment(
+        IPlayer player,
+        EquipmentItemBase equipment,
+        GiveAction action,
+        Action<ItemBase> onCompleted
+    )
     {
-        equipment.OnPurchase(player);
+        var pawn = player.RequiredPlayerPawn;
+        var itemServices = pawn.ItemServices;
+        var weaponServices = pawn.WeaponServices;
 
+        if (itemServices == null || weaponServices == null)
+        {
+            return;
+        }
+
+        var slot = equipment.Slot.MapToGearSlot();
+
+        switch (action)
+        {
+            case GiveAction.Drop:
+                weaponServices.DropWeaponBySlot(slot);
+                break;
+
+            case GiveAction.Remove:
+                weaponServices.RemoveWeaponBySlot(slot);
+                break;
+        }
+
+        var name = ResolveInheritorName(equipment.InheritorName);
+        var originalEquipment = CreateOriginalWeapon(itemServices, weaponServices, name);
+
+        if (originalEquipment is null)
+        {
+            return;
+        }
+
+        equipment.AttachedEntity = originalEquipment;
+
+        if (!string.IsNullOrWhiteSpace(equipment.Model))
+        {
+            originalEquipment.SetModel(equipment.Model);
+        }
+
+        originalEquipment.AttributeManager.Item.CustomName = equipment.DisplayName;
+        originalEquipment.AttributeManager.Item.CustomNameOverride = equipment.DisplayName;
+        originalEquipment.AttributeManager.Item.CustomNameUpdated();
+
+        equipment.OnPurchase(player);
         onCompleted(equipment);
+
+        core.Scheduler.NextWorldUpdate(() =>
+        {
+            if (!player.IsValid || !originalEquipment.IsValidEntity)
+            {
+                return;
+            }
+
+            player.PlayerPawn?.WeaponServices?.SelectWeapon(originalEquipment);
+        });
     }
 
     private static CCSWeaponBase? CreateOriginalWeapon(CPlayer_ItemServices itemServices, CPlayer_WeaponServices weaponServices, string name)
@@ -198,6 +253,11 @@ internal sealed class ItemGiver(ISwiftlyCore core) : IItemGiver
         if (name == $"weapon_{WeaponName.UspS}")
         {
             return itemServices.GiveItem<CWeaponUSPSilencer>();
+        }
+
+        if (name == $"weapon_{WeaponName.C4}")
+        {
+            return itemServices.GiveItem<CC4>();
         }
 
         itemServices.GiveItem(name);

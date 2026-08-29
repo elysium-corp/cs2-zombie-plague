@@ -8,6 +8,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Economy.Core", "Economy.Cor
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZombiePlague.Core", "ZombiePlague.Core\ZombiePlague.Core.csproj", "{5284465A-77EE-4D74-8C4C-51EDABBFFC7E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZombiePlague.Core.Tests", "ZombiePlague.Core.Tests\ZombiePlague.Core.Tests.csproj", "{6D8E72E1-B26B-4D9C-A4DF-58A8AC685F4E}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.Di", "Common.Di\Common.Di.csproj", "{D3AFF91C-6556-4783-AEAF-9B21A4EE2D76}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Economy.Api", "Economy.Api\Economy.Api.csproj", "{6296B5E4-E4DC-4B85-9089-C21DEF305FC0}"
@@ -31,6 +33,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.Effects", "Common.Effects\Common.Effects.csproj", "{EFF43B98-1A01-483C-8A56-84D62DA6D4D1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomEquipment.Core", "CustomEquipment.Core\CustomEquipment.Core.csproj", "{0323FD52-CEC1-4EEE-B8C8-CCA57B214101}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomEquipment.Core.Tests", "CustomEquipment.Core.Tests\CustomEquipment.Core.Tests.csproj", "{96F183B9-47AF-4A1D-91DD-7D1D30C6124A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.Math", "Common.Math\Common.Math.csproj", "{C2812F07-EA45-4FED-8FCF-36981BABD487}"
 EndProject
@@ -90,6 +94,10 @@ Global
         {5284465A-77EE-4D74-8C4C-51EDABBFFC7E}.Debug|Any CPU.Build.0 = Debug|Any CPU
         {5284465A-77EE-4D74-8C4C-51EDABBFFC7E}.Release|Any CPU.ActiveCfg = Release|Any CPU
         {5284465A-77EE-4D74-8C4C-51EDABBFFC7E}.Release|Any CPU.Build.0 = Release|Any CPU
+        {6D8E72E1-B26B-4D9C-A4DF-58A8AC685F4E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+        {6D8E72E1-B26B-4D9C-A4DF-58A8AC685F4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+        {6D8E72E1-B26B-4D9C-A4DF-58A8AC685F4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+        {6D8E72E1-B26B-4D9C-A4DF-58A8AC685F4E}.Release|Any CPU.Build.0 = Release|Any CPU
         {D3AFF91C-6556-4783-AEAF-9B21A4EE2D76}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
         {D3AFF91C-6556-4783-AEAF-9B21A4EE2D76}.Debug|Any CPU.Build.0 = Debug|Any CPU
         {D3AFF91C-6556-4783-AEAF-9B21A4EE2D76}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -138,6 +146,10 @@ Global
         {0323FD52-CEC1-4EEE-B8C8-CCA57B214101}.Debug|Any CPU.Build.0 = Debug|Any CPU
         {0323FD52-CEC1-4EEE-B8C8-CCA57B214101}.Release|Any CPU.ActiveCfg = Release|Any CPU
         {0323FD52-CEC1-4EEE-B8C8-CCA57B214101}.Release|Any CPU.Build.0 = Release|Any CPU
+        {96F183B9-47AF-4A1D-91DD-7D1D30C6124A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+        {96F183B9-47AF-4A1D-91DD-7D1D30C6124A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+        {96F183B9-47AF-4A1D-91DD-7D1D30C6124A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+        {96F183B9-47AF-4A1D-91DD-7D1D30C6124A}.Release|Any CPU.Build.0 = Release|Any CPU
         {C2812F07-EA45-4FED-8FCF-36981BABD487}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
         {C2812F07-EA45-4FED-8FCF-36981BABD487}.Debug|Any CPU.Build.0 = Debug|Any CPU
         {C2812F07-EA45-4FED-8FCF-36981BABD487}.Release|Any CPU.ActiveCfg = Release|Any CPU

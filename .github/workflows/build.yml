@@ -89,6 +89,10 @@ jobs:
             --run-id "$GITHUB_RUN_ID" \
             --source-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/tree/$GITHUB_SHA"
 
+          jq -e \
+            '.schemaVersion == 1 and .catalog.schemaVersion == 1' \
+            artifacts/documentation.json >/dev/null
+
       - name: Inspect generated artifacts
         shell: bash
         run: |

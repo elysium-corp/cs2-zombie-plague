@@ -169,7 +169,7 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
         }
     }
 
-    private static void MineHandler(ICommandContext context)
+    private void MineHandler(ICommandContext context)
     {
         var player = context.Sender;
 
@@ -178,8 +178,7 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
             return;
         }
 
-        var laser = new LaserMine();
-        laser.OnPurchase(player);
+        _equipmentService.Value.TryGiveItem(player, new LaserMine().InternalName);
     }
 
     private void ReloadHandler(ICommandContext context)

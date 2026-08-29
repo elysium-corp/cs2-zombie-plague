@@ -10,6 +10,7 @@ internal static partial class Program
 {
     private const string CatalogKind = "elysium.event-catalog";
     private const string PackageKind = "elysium.documentation.catalog";
+    private const int SchemaVersion = 1;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -115,7 +116,7 @@ internal static partial class Program
             })
             .ToArray();
 
-        return new CatalogDocument(2, CatalogKind, events.Count, projects, events);
+        return new CatalogDocument(SchemaVersion, CatalogKind, events.Count, projects, events);
     }
 
     private static IEnumerable<EventDocumentation> ParseSource(SourceDefinition source, string text,
@@ -371,7 +372,7 @@ internal static partial class Program
             ? configuredSourceUrl
             : $"https://github.com/{repository}/tree/{commit}";
         var package = new DocumentationPackage(
-            1,
+            SchemaVersion,
             PackageKind,
             DateTimeOffset.UtcNow,
             new PackageProject(

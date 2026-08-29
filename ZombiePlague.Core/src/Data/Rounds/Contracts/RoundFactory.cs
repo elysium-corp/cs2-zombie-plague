@@ -3,6 +3,7 @@ using Common.Hooks.Abstractions;
 using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;
 using ZombiePlague.Api.Data.Rounds;
+using ZombiePlague.Core.Config.Core;
 using ZombiePlague.Core.Config.Round;
 using ZombiePlague.Core.Data.Managers.Contracts;
 
@@ -10,7 +11,8 @@ namespace ZombiePlague.Core.Data.Rounds.Contracts;
 
 internal class RoundFactory(
     ISwiftlyCore core, 
-    IOptions<RoundConfig> config, 
+    IOptions<RoundConfig> config,
+    IOptions<ZombiePlagueCoreConfig> coreConfig,
     IPlayerManager playerManager,
     IHookPublisher hooks
 ) : IRoundFactory
@@ -19,8 +21,8 @@ internal class RoundFactory(
     {
         return typeof(TRound) switch
         {
-            var type when type == typeof(Infection) => new Infection(core, playerManager, config.Value.Infection),
-            var type when type == typeof(Plague) => new Plague(core, playerManager, config.Value.Plague),
+            var type when type == typeof(Infection) => new Infection(core, playerManager, config.Value.Infection, coreConfig),
+            var type when type == typeof(Plague) => new Plague(core, playerManager, config.Value.Plague, coreConfig),
             var type when type == typeof(Nemesis) => new Nemesis(core, playerManager, config.Value.Nemesis),
             var type when type == typeof(Survivor) => new Survivor(core, playerManager, config.Value.Survivor),
             
@@ -32,8 +34,8 @@ internal class RoundFactory(
     {
         return roundConfig switch
         {
-            InfectionConfig value => new Infection(core, playerManager, value),
-            PlagueConfig value => new Plague(core, playerManager, value),
+            InfectionConfig value => new Infection(core, playerManager, value, coreConfig),
+            PlagueConfig value => new Plague(core, playerManager, value, coreConfig),
             NemesisConfig value => new Nemesis(core, playerManager, value),
             SurvivorConfig value => new Survivor(core, playerManager, value),
             

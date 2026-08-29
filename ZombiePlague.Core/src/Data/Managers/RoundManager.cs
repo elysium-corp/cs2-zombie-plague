@@ -259,10 +259,24 @@ internal sealed class RoundManager(
     {
         var victim = context.Params.Entity.Address.FindPlayerByPawnAddress();
 
-        if (victim is { IsValid: true } && playerManager.IsZombie(victim) && (context.Params.Info.DamageType & DamageTypes_t.DMG_FALL) != 0)
+        if (victim is { IsValid: true } &&
+            playerManager.IsZombie(victim) &&
+            (context.Params.Info.DamageType & DamageTypes_t.DMG_FALL) != 0)
         {
             context.Params.Info.Damage = 0;
             context.SetHookResult(HookResult.CancelOriginal);
+
+            core.Scheduler.NextWorldUpdate(() =>
+            {
+                if (victim is not { IsValid: true, IsAlive: true } ||
+                    !playerManager.TryGetZombie(victim, out var zombie))
+                {
+                    return;
+                }
+
+                victim.SetSpeed(zombie.ZClass.Speed);
+                victim.SetGravity(zombie.ZClass.Gravity);
+            });
 
             return;
         }

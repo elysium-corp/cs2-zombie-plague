@@ -14,5 +14,13 @@ internal interface IEquipmentService
 
     TItem? GetActiveItem<TItem>(IPlayer player) where TItem : ItemBase;
 
+    bool HasItem<TItem>(IPlayer player) where TItem : ItemBase;
+
+    int RemoveItems<TItem>(IPlayer player) where TItem : ItemBase;
+
+    int RemoveInaccessibleItems(IPlayer player);
+
+    TItem? GetItemByEntityIndex<TItem>(uint entityIndex) where TItem : ItemBase;
+
     WeaponItemBase? GetWeaponByEntityIndex(uint entityIndex);
 }

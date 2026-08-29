@@ -15,7 +15,7 @@ public interface ICustomEquipmentMineEvents
     /// <item><term>Когда</term><description>После проверки поверхности и создания сущности, до `Spawn`</description></item>
     /// <item><term>Частота</term><description>Игрок</description></item>
     /// <item><term>Нагрузка</term><description>Низкая</description></item>
-    /// <item><term>Риск</term><description>Высокий: отмена вызывает возврат цены</description></item>
+    /// <item><term>Риск</term><description>Средний: при отмене предмет остаётся у игрока для повторной установки</description></item>
     /// <item><term>Поток</term><description>Игровой поток</description></item>
     /// </list>
     /// </remarks>
@@ -41,7 +41,7 @@ public interface ICustomEquipmentMineEvents
     /// <item><term>Когда</term><description>При неподходящей поверхности, отмене или недействительном игроке</description></item>
     /// <item><term>Частота</term><description>Игрок</description></item>
     /// <item><term>Нагрузка</term><description>Низкая</description></item>
-    /// <item><term>Риск</term><description>Низкий: модуль запускает возврат цены</description></item>
+    /// <item><term>Риск</term><description>Низкий: предмет остаётся у игрока для повторной установки</description></item>
     /// <item><term>Поток</term><description>Игровой поток</description></item>
     /// </list>
     /// </remarks>

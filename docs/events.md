@@ -175,9 +175,9 @@ api.Events.Players.Infected.Unhook(OnPlayerInfected);
 
 | Событие | Контекст и параметры | Когда вызывается | Частота | Нагрузка | Риск и ограничения |
 |---|---|---|---|---|---|
-| `Events.Mines.Placing` | `MinePlacingContext`<br>`Player: IPlayer` (mutable)<br>`Mine: LaserMineEntityBase`<br>cancellable | После проверки поверхности и создания сущности, до `Spawn` | Игрок | Низкая | Высокий: отмена вызывает возврат цены |
+| `Events.Mines.Placing` | `MinePlacingContext`<br>`Player: IPlayer` (mutable)<br>`Mine: LaserMineEntityBase`<br>cancellable | После проверки поверхности и создания сущности, до `Spawn` | Игрок | Низкая | Средний: при отмене предмет остаётся у игрока для повторной установки |
 | `Events.Mines.Placed` | `MinePlacedContext`<br>`Player: IPlayer`<br>`Mine: LaserMineEntityBase` | После `LaserMineEntity.Spawn` | Игрок | Низкая | Средний: владелец затем регистрируется внутренним подписчиком |
-| `Events.Mines.PlacementRejected` | `MinePlacementRejectedContext`<br>`Player: IPlayer`<br>`Mine: LaserMineEntityBase?` (nullable)<br>`Reason: MinePlacementRejectionReason` | При неподходящей поверхности, отмене или недействительном игроке | Игрок | Низкая | Низкий: модуль запускает возврат цены |
+| `Events.Mines.PlacementRejected` | `MinePlacementRejectedContext`<br>`Player: IPlayer`<br>`Mine: LaserMineEntityBase?` (nullable)<br>`Reason: MinePlacementRejectionReason` | При неподходящей поверхности, отмене или недействительном игроке | Игрок | Низкая | Низкий: предмет остаётся у игрока для повторной установки |
 
 ## SupplyBox.Api
 

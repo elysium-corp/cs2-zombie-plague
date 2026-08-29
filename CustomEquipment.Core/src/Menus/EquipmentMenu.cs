@@ -77,17 +77,34 @@ internal sealed class EquipmentMenu(
 
     private void BuildCategory(IMenuBuilderAPI builder, ILocalizer localizer, IPlayer player, Category category)
     {
+        var items = shopCatalog
+            .GetByWeaponType(category.WeaponType)
+            .Where(item => equipmentService.CanUseItem(player, item.InternalName))
+            .ToArray();
+
+        if (items.Length == 0)
+        {
+            return;
+        }
+
         var text = localizer[category.NameLocalizationKey];
-        var submenuCategory = new SubmenuMenuOption(text, BuildCategoryMenu(localizer, player, category));
+        var submenuCategory = new SubmenuMenuOption(
+            text,
+            BuildCategoryMenu(localizer, player, category, items)
+        );
 
         builder.AddOption(submenuCategory);
     }
 
-    private IMenuAPI BuildCategoryMenu(ILocalizer localizer, IPlayer player, Category category)
+    private IMenuAPI BuildCategoryMenu(
+        ILocalizer localizer,
+        IPlayer player,
+        Category category,
+        IReadOnlyCollection<IShopItem> items
+    )
     {
         var title = WeaponTypeToTitle(category.WeaponType, localizer);
         var menu = core.MenusAPI.CreateBuilder().Design.SetMenuTitle(title);
-        var items = shopCatalog.GetByWeaponType(category.WeaponType);
 
         foreach (var item in items)
         {
