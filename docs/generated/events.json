@@ -2152,7 +2152,7 @@
       "when": "После проверки поверхности и создания сущности, до `Spawn`",
       "frequency": "Игрок",
       "load": "Низкая",
-      "riskLevel": "Высокий",
+      "riskLevel": "Средний",
       "risk": "Средний: при отмене предмет остаётся у игрока для повторной установки",
       "thread": "Игровой поток",
       "sourcePath": "CustomEquipment.Api/Events/ICustomEquipmentMineEvents.cs",
