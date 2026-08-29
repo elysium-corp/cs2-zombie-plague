@@ -108,7 +108,7 @@ api.Events.Players.Infected.Unhook(OnPlayerInfected);
 
 | Событие | Контекст и параметры | Когда вызывается | Частота | Нагрузка | Риск и ограничения |
 |---|---|---|---|---|---|
-| `Events.Rounds.Preparing` | `RoundPreparingContext`<br>cancellable | В начале `RoundManager.Prepare`, до завершения активного режима | Раунд | Низкая | Высокий: отмена не запускает подготовку |
+| `Events.Rounds.Preparing` | `RoundPreparingContext`<br><br>cancellable | В начале `RoundManager.Prepare`, до завершения активного режима | Раунд | Низкая | Высокий: отмена не запускает подготовку |
 | `Events.Rounds.Prepared` | `RoundPreparedContext`<br>`DelaySeconds: int` | После назначения людей и запуска таймера обратного отсчёта | Раунд | Низкая | Низкий: уведомление о запущенном countdown |
 | `Events.Rounds.Starting` | `RoundStartingContext`<br>`OriginalRoundId: string`<br>`RoundId: string` (mutable)<br>cancellable | `RoundManager.StartRound`, до остановки подготовки и `TryStart` | Раунд | Низкая | Высокий: можно отменить или заменить `RoundId`; неизвестная замена игнорируется |
 | `Events.Rounds.Started` | `RoundStartedContext`<br>`Round: IRound` | После успешного запуска выбранного режима или fallback `infection` | Раунд | Низкая | Средний: `Round` содержит фактически запущенный режим |
