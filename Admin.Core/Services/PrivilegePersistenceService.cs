@@ -27,31 +27,12 @@ internal sealed class PrivilegePersistenceService(IDbContextFactory<AdminDbConte
             .ToArrayAsync(cancellationToken)
             .ConfigureAwait(false);
 
-        var allPermissions = await context.Permissions
-            .AsNoTracking()
-            .Select(x => x.Key)
-            .ToArrayAsync(cancellationToken)
-            .ConfigureAwait(false);
-
         return privileges
-            .Select(x =>
-            {
-                var key = $"{x.Group}.{x.Code}";
-
-                var permissions = string.Equals(
-                    key,
-                    AdminPrivilegeKeys.Owner,
-                    StringComparison.OrdinalIgnoreCase
-                )
-                    ? allPermissions
-                    : x.Permissions;
-
-                return new PrivilegeDefinition(
-                    Id: x.Code,
-                    Group: x.Group,
-                    Permissions: permissions.ToHashSet(StringComparer.OrdinalIgnoreCase)
-                );
-            })
+            .Select(x => new PrivilegeDefinition(
+                Id: x.Code,
+                Group: x.Group,
+                Permissions: x.Permissions.ToHashSet(StringComparer.OrdinalIgnoreCase)
+            ))
             .ToArray();
     }
 }
