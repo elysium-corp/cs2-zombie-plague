@@ -1,0 +1,20 @@
+{
+  "MenuCoreConfig": {
+    "ServerKey": "zombie-1",
+    "ServerGroups": [
+      "zombie"
+    ],
+    "DatabaseConnectionName": "elysium_zp_server_1",
+    "SyncIntervalSeconds": 30,
+    "MaxNavigationDepth": 16,
+    "LastKnownGoodFileName": "menus.lkg.json",
+    "FallbackFileName": "menus.fallback.json",
+    "DefaultLocale": "ru",
+    "BroadcastPermission": "menu.audience.broadcast",
+    "ReservedCommands": [
+      "sw_menu_status",
+      "sw_menu_reload",
+      "sw_menu_validate"
+    ]
+  }
+}

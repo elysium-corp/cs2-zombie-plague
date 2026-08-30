@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "menuCoreApiVersion": 1,
+  "releaseId": 9001,
+  "generatedAt": "2026-08-30T12:00:00+00:00",
+  "checksum": null,
+  "menus": [
+    {
+      "menuKey": "fixture-main",
+      "revision": 1,
+      "status": "published",
+      "title": {
+        "default": "Fixture menu",
+        "translations": {
+          "ru": "Тестовое меню"
+        }
+      }
+    }
+  ],
+  "commands": [],
+  "metadata": {}
+}

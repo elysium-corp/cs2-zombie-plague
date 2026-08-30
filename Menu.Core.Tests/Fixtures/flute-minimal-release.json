@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "menuCoreApiVersion": 1,
+  "releaseId": 7,
+  "generatedAt": "2026-08-30T12:00:00+00:00",
+  "checksum": "fd3190be9193c733fd937c86a64e5306a0d82171d78cd0eba87531141e2e239f",
+  "menus": [
+    {
+      "menuKey": "main",
+      "revision": 1,
+      "status": "published",
+      "providerKey": null,
+      "title": {"default": "Главное меню", "translations": {}},
+      "description": null,
+      "scope": {"kind": "global", "serverKey": null, "serverGroupKey": null},
+      "parent": null,
+      "access": {"kind": "public", "permissions": []},
+      "audience": {"kind": "caller", "invokePermission": null, "explicitSteamIds": []},
+      "design": {
+        "canClose": true,
+        "freezePlayer": false,
+        "welcomeScreen": false,
+        "overlayOnly": false,
+        "showDisabledItems": true,
+        "parentNavigation": true,
+        "wrapNavigation": false,
+        "itemsPerPage": null,
+        "scrollCooldownMilliseconds": null,
+        "overrideColor": null,
+        "menuSound": null,
+        "texts": {
+          "accessTitle": null,
+          "menuTitle": null,
+          "noAccess": null,
+          "nextPage": null,
+          "previousPage": null,
+          "currentlySelected": null,
+          "centerMenuText": null,
+          "centerMenuProperty": null,
+          "centerMenuValue": null
+        },
+        "keyBindings": [],
+        "extraButtons": [],
+        "options": {}
+      },
+      "items": [],
+      "requiredFeatures": [],
+      "metadata": {}
+    }
+  ],
+  "commands": [],
+  "metadata": {"providerContracts": [], "releaseNote": null, "releaseNumber": 41}
+}

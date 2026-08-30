@@ -3,6 +3,9 @@ using Common.Database.Migrator;
 using Common.Di;
 using Common.Effects;
 using Menu.Api;
+using Menu.Api.Contracts;
+using Menu.Api.Providers;
+using Menu.Api.Results;
 using Metrics.Api;
 using Microsoft.Extensions.Logging;
 using SwiftlyS2.Shared;
@@ -34,9 +37,12 @@ public sealed partial class ZombiePlague(ISwiftlyCore core) : Plugin<ZombiePlagu
     private readonly Lazy<MenuExtensionDispatcherProxy> _menuApiBridge = GetRequiredServiceLazy<MenuExtensionDispatcherProxy>();
     private readonly Lazy<AdminApiProxy> _adminApiBridge = GetRequiredServiceLazy<AdminApiProxy>();
     private readonly Lazy<MetricsServiceProxy> _metricsApiBridge = GetRequiredServiceLazy<MetricsServiceProxy>();
+    private readonly Lazy<MainMenu> _mainMenu = GetRequiredServiceLazy<MainMenu>();
+    private readonly Lazy<ZClassMenu> _zClassMenu = GetRequiredServiceLazy<ZClassMenu>();
     private readonly Lazy<DatabaseMigrator<ZombiePlagueDbContext>> _databaseMigrator = GetRequiredServiceLazy<DatabaseMigrator<ZombiePlagueDbContext>>();
     
     private readonly Lazy<AdminMenuExtension> _adminExtension = GetRequiredServiceLazy<AdminMenuExtension>();
+    private IMenuProviderRegistration? _menuProviderRegistration;
     
     protected override void OnConfigureSharedInterfaces(IInterfaceManager interfaceManager)
     {
@@ -53,6 +59,7 @@ public sealed partial class ZombiePlague(ISwiftlyCore core) : Plugin<ZombiePlagu
         var adminApi = interfaceManager.GetSharedInterface<IAdminApi>(IAdminApi.SharedApiKey);
 
         _menuApiBridge.Value.Initialize(menuApi);
+        RegisterMenuProvider(menuApi);
         _adminApiBridge.Value.Initialize(adminApi);
 
         if (interfaceManager.TryGetSharedInterface<IMetricsService>(IMetricsService.SharedApiKey, out var metricsApi))
@@ -81,6 +88,8 @@ public sealed partial class ZombiePlague(ISwiftlyCore core) : Plugin<ZombiePlagu
     {
         EffectService.Release(Core);
         _adminExtension.Value.Uninitialize();
+        _menuProviderRegistration?.Dispose();
+        _menuProviderRegistration = null;
         _metricsApiBridge.Value.Uninitialize();
         _adminApiBridge.Value.Uninitialize();
 
@@ -101,5 +110,59 @@ public sealed partial class ZombiePlague(ISwiftlyCore core) : Plugin<ZombiePlagu
                 "Zombie Plague database migration failed. Default player preferences will be used."
             );
         }
+    }
+
+    private void RegisterMenuProvider(IMenuApi menuApi)
+    {
+        _menuProviderRegistration?.Dispose();
+        _menuProviderRegistration = menuApi.RegisterProvider(new MenuProviderDescriptor
+        {
+            ProviderKey = "zombie_plague",
+            DisplayName = "Zombie Plague",
+            PluginVersion = BuildInfo.Version,
+            Capabilities = [MenuProviderCapabilityKeys.OpenMenu],
+        });
+
+        if (!_menuProviderRegistration.IsRegistered)
+        {
+            return;
+        }
+
+        _menuProviderRegistration.RegisterMenu(CreateMenuDescriptor(
+            "main",
+            "Главное меню",
+            "Main menu",
+            context => _mainMenu.Value.Open(context.Target)));
+        _menuProviderRegistration.RegisterMenu(CreateMenuDescriptor(
+            "zclass",
+            "Класс зомби",
+            "Zombie class",
+            context => _zClassMenu.Value.Open(context.Target)));
+    }
+
+    private static MenuProviderMenuDescriptor CreateMenuDescriptor(
+        string key,
+        string russianName,
+        string englishName,
+        Action<MenuProviderInvocationContext> open)
+    {
+        return new MenuProviderMenuDescriptor
+        {
+            MenuKey = key,
+            DisplayName = new LocalizedText
+            {
+                Default = russianName,
+                Translations = new Dictionary<string, string>
+                {
+                    ["ru"] = russianName,
+                    ["en"] = englishName,
+                },
+            },
+            Handler = context =>
+            {
+                open(context);
+                return MenuOperationResult.Succeeded;
+            },
+        };
     }
 }

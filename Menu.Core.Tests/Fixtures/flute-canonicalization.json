@@ -1,0 +1,19 @@
+{
+  "description": "Shared with Flute: ordinal object sorting, root checksum omission, decimal G29, unescaped UTF-8 and escaped strings.",
+  "input": {
+    "checksum": "ignored",
+    "unicode": "Оружие",
+    "escaped": "line\n\"quote\"\\slash/✓",
+    "small": 0.00001,
+    "large": 100000000000000000000,
+    "nested": {
+      "z": 1,
+      "a": {
+        "β": 2,
+        "A": 1
+      }
+    }
+  },
+  "canonical": "{\"escaped\":\"line\\n\\\"quote\\\"\\\\slash/✓\",\"large\":100000000000000000000,\"nested\":{\"a\":{\"A\":1,\"β\":2},\"z\":1},\"small\":0.00001,\"unicode\":\"Оружие\"}",
+  "checksum": "1764a61ad9625824a3f268b053a5cf826d545e7b18e21744bd635450ef5563ed"
+}

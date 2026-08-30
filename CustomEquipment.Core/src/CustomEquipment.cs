@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Common.Database.Migrator;
 using Common.Di;
 using Common.Effects;
@@ -12,7 +13,10 @@ using CustomEquipment.Registry;
 using CustomEquipment.Services;
 using Economy.Api;
 using Menu.Api;
+using Menu.Api.Contracts;
 using Menu.Api.Extensions;
+using Menu.Api.Providers;
+using Menu.Api.Results;
 using Microsoft.Extensions.Logging;
 using SwiftlyS2.Core.Menus.OptionsBase;
 using SwiftlyS2.Shared;
@@ -44,6 +48,7 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
 
     private readonly List<Guid> _commandHooks = [];
     private IDisposable? _mainMenuSubscription;
+    private IMenuProviderRegistration? _menuProviderRegistration;
 
     protected override void OnStart()
     {
@@ -78,10 +83,77 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
     {
         var menuApi = interfaceManager.GetSharedInterface<IMenuApi>(IMenuApi.SharedApiKey);
 
+        _mainMenuSubscription?.Dispose();
         _mainMenuSubscription = menuApi.Extensions.Subscribe(
             menuId: ZombiePlagueMenuIds.Main,
             handler: ExtendMainMenu
         );
+
+        _menuProviderRegistration?.Dispose();
+        _menuProviderRegistration = menuApi.RegisterProvider(new MenuProviderDescriptor
+        {
+            ProviderKey = "custom_equipment",
+            DisplayName = "Custom Equipment",
+            PluginVersion = "0.2.0",
+            Capabilities =
+            [
+                MenuProviderCapabilityKeys.OpenMenu,
+                MenuProviderCapabilityKeys.Actions,
+            ],
+        });
+
+        if (_menuProviderRegistration.IsRegistered)
+        {
+            _menuProviderRegistration.RegisterMenu(new MenuProviderMenuDescriptor
+            {
+                MenuKey = "weapons",
+                DisplayName = new LocalizedText
+                {
+                    Default = "Оружие",
+                    Translations = new Dictionary<string, string>
+                    {
+                        ["ru"] = "Оружие",
+                        ["en"] = "Weapons",
+                    },
+                },
+                Handler = context =>
+                {
+                    _equipmentMenu.Value.Open(context.Target);
+                    return MenuOperationResult.Succeeded;
+                },
+            });
+
+            _menuProviderRegistration.RegisterAction(new MenuProviderActionDescriptor
+            {
+                ActionKey = "select_weapon",
+                DisplayName = new LocalizedText
+                {
+                    Default = "Выдать оружие",
+                    Translations = new Dictionary<string, string>
+                    {
+                        ["ru"] = "Выдать оружие",
+                        ["en"] = "Give weapon",
+                    },
+                },
+                ArgumentsSchema = JsonSerializer.SerializeToElement(new
+                {
+                    type = "object",
+                    additionalProperties = false,
+                    required = new[] { "weapon" },
+                    properties = new
+                    {
+                        weapon = new
+                        {
+                            type = "string",
+                            minLength = 1,
+                            maxLength = 128,
+                        },
+                    },
+                }),
+                Validator = ValidateSelectWeapon,
+                Handler = SelectWeapon,
+            });
+        }
     }
 
     protected override void OnReady()
@@ -103,6 +175,8 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
         EffectService.Release(Core);
         _mainMenuSubscription?.Dispose();
         _mainMenuSubscription = null;
+        _menuProviderRegistration?.Dispose();
+        _menuProviderRegistration = null;
 
         _equipmentMenu.Value.UnregisterCommands();
 
@@ -148,6 +222,50 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
         };
 
         context.Options.Add(option, 3);
+    }
+
+    private MenuValidationResult ValidateSelectWeapon(JsonElement arguments)
+    {
+        if (arguments.ValueKind != JsonValueKind.Object
+            || !arguments.TryGetProperty("weapon", out var weaponElement)
+            || weaponElement.ValueKind != JsonValueKind.String)
+        {
+            return MenuValidationResult.Invalid(
+                "weapon_required",
+                "Аргумент weapon должен быть непустой строкой.",
+                "$.weapon");
+        }
+
+        var weapon = weaponElement.GetString();
+        if (string.IsNullOrWhiteSpace(weapon)
+            || weapon.Length > 128
+            || !_itemRegistry.Value.GetDefinitions().Any(item =>
+                item.InternalName.Equals(weapon, StringComparison.Ordinal)))
+        {
+            return MenuValidationResult.Invalid(
+                "weapon_unknown",
+                "Оружие отсутствует в текущем каталоге Provider.",
+                "$.weapon");
+        }
+
+        return MenuValidationResult.Valid;
+    }
+
+    private MenuOperationResult SelectWeapon(MenuProviderInvocationContext context)
+    {
+        if (!context.Target.IsValid || !context.Target.IsAlive)
+        {
+            return MenuOperationResult.Failure(
+                Menu.Api.Enums.MenuOperationStatus.ValidationFailed,
+                "target_not_alive");
+        }
+
+        var weapon = context.Arguments.GetProperty("weapon").GetString()!;
+        return _equipmentService.Value.TryGiveItem(context.Target, weapon)
+            ? MenuOperationResult.Succeeded
+            : MenuOperationResult.Failure(
+                Menu.Api.Enums.MenuOperationStatus.ValidationFailed,
+                "weapon_unavailable");
     }
 
     private void GunHandler(ICommandContext context)
