@@ -48,6 +48,21 @@ public sealed class FallbackConfigTests
         LocalizationValidation.ValidateFallback(config);
     }
 
+    [Fact]
+    public void Build_PreservesConfiguredLanguageOrder()
+    {
+        var config = CreateConfig();
+        config.Languages = ["pl", "de", "en", "ru"];
+
+        var snapshot = FallbackLocalizationProvider.Build(config, LocalizationSource.Config);
+        var languages = snapshot.Languages.Values
+            .OrderBy(language => language.SortOrder)
+            .Select(language => language.Code)
+            .ToArray();
+
+        Assert.Equal(config.Languages, languages);
+    }
+
     private static LocalizationFallbackConfig CreateConfig()
     {
         return new LocalizationFallbackConfig

@@ -17,8 +17,13 @@ internal sealed class FallbackLocalizationProvider(IOptionsMonitor<LocalizationF
         LocalizationFallbackConfig config,
         LocalizationSource source)
     {
-        var languageCodes = LocalizationValidation.NormalizeLanguages(config.Languages);
-        var languages = languageCodes
+        var orderedLanguageCodes = config.Languages
+            .Select(LocaleNormalizer.Normalize)
+            .Where(code => code.Length > 0)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+        var languageCodes = LocalizationValidation.NormalizeLanguages(orderedLanguageCodes);
+        var languages = orderedLanguageCodes
             .Select((code, index) => LanguageNames.Create(-(index + 1L), code, index))
             .ToFrozenDictionary(language => language.Code, StringComparer.OrdinalIgnoreCase);
 
