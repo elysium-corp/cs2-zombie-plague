@@ -57,8 +57,6 @@ jobs:
           dotnet run \
             --project tools/EventDocsGenerator/EventDocsGenerator.csproj \
             --configuration Release \
-            --no-build \
-            --no-restore \
             -- check
 
       - name: Restore documentation tools
