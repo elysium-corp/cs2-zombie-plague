@@ -27,7 +27,7 @@
         <PackageReference
                 Update="SwiftlyS2.CS2"
                 PrivateAssets="all"
-                ExcludeAssets="runtime" />
+                ExcludeAssets="runtime;native" />
 
         <PackageReference
                 Update="Microsoft.EntityFrameworkCore.Design"
