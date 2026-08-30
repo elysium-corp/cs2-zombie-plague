@@ -1,5 +1,7 @@
 using System.Text.Json;
 using Menu.Api.Contracts;
+using Menu.Api.Enums;
+using Menu.Api.Results;
 using Menu.Core.Configuration;
 using Menu.Core.Commands;
 using Menu.Core.Database.Models;
@@ -420,9 +422,9 @@ internal sealed class MenuSyncCoordinator : IDisposable
             DateTimeOffset.UtcNow,
             new MenuReleaseValidationResult(
             [
-                new Menu.Api.Results.MenuValidationIssue
+                new MenuValidationIssue
                 {
-                    Severity = Menu.Api.Enums.MenuValidationSeverity.Error,
+                    Severity = MenuValidationSeverity.Error,
                     Code = code,
                     Message = message,
                     Path = "$",

@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using Menu.Api.Contracts;
 using Menu.Api.Results;
 using Menu.Core.Runtime;
 using Menu.Core.Validation;
@@ -46,7 +47,7 @@ internal sealed class MenuBootstrapLoader
     public async ValueTask<MenuBootstrapResult> TryActivateLocalAsync(
         string lastKnownGoodPath,
         string fallbackPath,
-        Func<Menu.Api.Contracts.MenuReleaseDefinition, MenuReleaseValidationContext> contextFactory,
+        Func<MenuReleaseDefinition, MenuReleaseValidationContext> contextFactory,
         DateTimeOffset attemptedAt,
         CancellationToken cancellationToken = default)
     {
