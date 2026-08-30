@@ -71,7 +71,6 @@ public sealed class DeliveryRuleTests
             null,
             null,
             null,
-            null,
-            new Dictionary<string, string> { ["ru"] = "Тест" }.ToFrozenDictionary());
+            null);
     }
 }

@@ -3,37 +3,12 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Admin.Api;
 using Advertisement.Core.Data;
+using Localization.Api;
 using Microsoft.Extensions.Logging;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Players;
 
 namespace Advertisement.Core.Application;
-
-internal sealed class PlayerLocaleStore
-{
-    private readonly ConcurrentDictionary<ulong, string?> _locales = new();
-    private readonly ConcurrentDictionary<int, ulong> _slots = new();
-
-    public void BindSlot(int playerId, ulong steamId) => _slots[playerId] = steamId;
-    public void RemoveSlot(int playerId)
-    {
-        if (_slots.TryRemove(playerId, out var steamId)) _locales.TryRemove(steamId, out _);
-    }
-    public void Set(ulong steamId, string? locale) =>
-        _locales[steamId] = string.IsNullOrWhiteSpace(locale) ? null : LocaleNormalizer.Normalize(locale);
-    public bool TryGet(ulong steamId, out string? locale) => _locales.TryGetValue(steamId, out locale);
-}
-
-internal sealed class PlayerLocaleResolver(PlayerLocaleStore store)
-{
-    public string Resolve(IPlayer player, AdvertisementSettings settings)
-    {
-        if (store.TryGet(player.SteamID, out var manual) && !string.IsNullOrWhiteSpace(manual))
-            return settings.AllowedLocales.Contains(manual) ? manual : settings.DefaultLocale;
-        var engine = LocaleNormalizer.Normalize(player.PlayerLanguage.Value);
-        return settings.AllowedLocales.Contains(engine) ? engine : settings.DefaultLocale;
-    }
-}
 
 internal sealed class AdminAudienceResolver
 {
@@ -161,7 +136,7 @@ internal sealed partial class PlaceholderResolver
 }
 
 internal sealed class AdvertisementSender(
-    PlayerLocaleResolver localeResolver,
+    Func<ILocalizationApi> localization,
     PlaceholderResolver placeholderResolver,
     MarkupRenderer markupRenderer)
 {
@@ -172,8 +147,9 @@ internal sealed class AdvertisementSender(
         foreach (var player in targets)
         {
             if (player.IsFakeClient || !player.IsAuthorized) continue;
-            var locale = localeOverride is null ? localeResolver.Resolve(player, snapshot.Settings) : LocaleNormalizer.Normalize(localeOverride);
-            var text = ResolveTranslation(message.Translations, locale, snapshot.Settings.DefaultLocale);
+            var text = localeOverride is null
+                ? localization().GetForPlayer(player, message.LocalizationKey)
+                : localization().GetForLanguage(localeOverride, message.LocalizationKey);
             if (text is null) continue;
 
             var resolved = placeholderResolver.Resolve(text, player, serverName, mapName,
@@ -181,7 +157,9 @@ internal sealed class AdvertisementSender(
             var output = new StringBuilder(resolved.Length + 48);
             if (tag is { Enabled: true })
             {
-                var tagText = ResolveTranslation(tag.Translations, locale, snapshot.Settings.DefaultLocale);
+                var tagText = localeOverride is null
+                    ? localization().GetForPlayer(player, tag.LocalizationKey)
+                    : localization().GetForLanguage(localeOverride, tag.LocalizationKey);
                 if (!string.IsNullOrWhiteSpace(tagText))
                     output.Append('[').Append(markupRenderer.NormalizeColor(tag.Color)).Append("][").Append(tagText).Append("][/] ");
             }
@@ -190,8 +168,6 @@ internal sealed class AdvertisementSender(
         }
     }
 
-    private static string? ResolveTranslation(FrozenDictionary<string, string> translations, string locale, string fallback) =>
-        translations.TryGetValue(locale, out var value) ? value : translations.GetValueOrDefault(fallback);
 }
 
 internal sealed class AdvertisementScheduler(
@@ -403,30 +379,48 @@ internal sealed class AdvertisementCoordinator(
 {
     private readonly CancellationTokenSource _lifetime = new();
     private readonly SemaphoreSlim _reloadLock = new(1, 1);
-    private Task? _task;
+    private readonly HashSet<Task> _tasks = [];
+    private readonly object _taskSync = new();
+    private int _started;
 
     public void Start()
     {
-        if (_task is not null)
+        if (Interlocked.Exchange(ref _started, 1) != 0)
         {
             return;
         }
 
         cache.Replace(configProvider.Load());
-        _task = ReloadDatabaseAsync(_lifetime.Token, "запуск плагина");
+        Track(ReloadDatabaseAsync(_lifetime.Token, "запуск плагина"));
     }
 
-    public Task<(bool Success, string Message)> ReloadNowAsync() =>
-        ReloadDatabaseAsync(_lifetime.Token, "команда ads_reload");
+    public Task<(bool Success, string Message)> ReloadNowAsync()
+    {
+        var task = ReloadDatabaseAsync(_lifetime.Token, "команда ads_reload");
+        Track(task);
+        return task;
+    }
 
-    public Task<(bool Success, string Message)> ReloadForMapAsync(string mapName) =>
-        ReloadDatabaseAsync(_lifetime.Token, $"смена карты на {mapName}");
+    public Task<(bool Success, string Message)> ReloadForMapAsync(string mapName)
+    {
+        var task = ReloadDatabaseAsync(_lifetime.Token, $"смена карты на {mapName}");
+        Track(task);
+        return task;
+    }
 
     private async Task<(bool Success, string Message)> ReloadDatabaseAsync(
         CancellationToken token,
         string reason)
     {
-        await _reloadLock.WaitAsync(token);
+        try
+        {
+            await _reloadLock.WaitAsync(token);
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
+        {
+            return (false, "Advertisement reload cancelled.");
+        }
+
         try
         {
             var snapshot = await databaseProvider.LoadAsync(token);
@@ -437,7 +431,10 @@ internal sealed class AdvertisementCoordinator(
                 reason);
             return (true, $"Snapshot обновлён: {snapshot.Messages.Count} сообщений.");
         }
-        catch (OperationCanceledException) when (token.IsCancellationRequested) { throw; }
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
+        {
+            return (false, "Advertisement reload cancelled.");
+        }
         catch (Exception ex)
         {
             cache.MarkDatabaseUnavailable();
@@ -445,8 +442,48 @@ internal sealed class AdvertisementCoordinator(
                 "[Advertisement] PostgreSQL недоступен: {Error}. Текущий snapshot сохранён.", ex.Message);
             return (false, "Reload failed. Current cache preserved.");
         }
-        finally { _reloadLock.Release(); }
+        finally
+        {
+            _reloadLock.Release();
+        }
     }
 
-    public void Dispose() => _lifetime.Cancel();
+    private void Track(Task task)
+    {
+        lock (_taskSync)
+        {
+            _tasks.Add(task);
+        }
+
+        _ = task.ContinueWith(
+            completed =>
+            {
+                lock (_taskSync)
+                {
+                    _tasks.Remove(completed);
+                }
+            },
+            CancellationToken.None,
+            TaskContinuationOptions.ExecuteSynchronously,
+            TaskScheduler.Default);
+    }
+
+    public void Dispose()
+    {
+        _lifetime.Cancel();
+        Task[] tasks;
+        lock (_taskSync)
+        {
+            tasks = _tasks.ToArray();
+        }
+
+        try
+        {
+            Task.WhenAll(tasks).Wait(TimeSpan.FromSeconds(10));
+        }
+        catch (AggregateException exception) when (
+            exception.InnerExceptions.All(inner => inner is OperationCanceledException))
+        {
+        }
+    }
 }

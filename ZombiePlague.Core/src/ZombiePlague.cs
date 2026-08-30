@@ -2,6 +2,7 @@ using Admin.Api;
 using Common.Database.Migrator;
 using Common.Di;
 using Common.Effects;
+using Localization.Api;
 using Menu.Api;
 using Metrics.Api;
 using Microsoft.Extensions.Logging;
@@ -44,6 +45,11 @@ public sealed partial class ZombiePlague(ISwiftlyCore core) : Plugin<ZombiePlagu
             IZombiePlagueApi.SharedApiKey,
             _api.Value
         );
+    }
+
+    protected override void OnUseSharedInterfaces(IInterfaceManager interfaceManager)
+    {
+        BindSharedInterface<ILocalizationApi>(interfaceManager, ILocalizationApi.SharedApiKey);
     }
 
     protected override void OnSharedInterfacesInjected(IInterfaceManager interfaceManager)

@@ -61,7 +61,8 @@
       <ProjectReference Include="..\Common.Hooks\Common.Hooks.csproj" />
       <ProjectReference Include="..\CustomEquipment.Api\CustomEquipment.Api.csproj" />
       <ProjectReference Include="..\Menu.Api\Menu.Api.csproj" />
-      <ProjectReference Include="..\Economy.Api\Economy.Api.csproj" />
+        <ProjectReference Include="..\Economy.Api\Economy.Api.csproj" />
+        <ProjectReference Include="..\Localization.Api\Localization.Api.csproj" />
       <ProjectReference Include="..\ZombiePlague.Api\ZombiePlague.Api.csproj" />
     </ItemGroup>
 

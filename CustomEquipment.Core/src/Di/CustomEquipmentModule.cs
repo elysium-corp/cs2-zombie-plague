@@ -19,6 +19,7 @@ using CustomEquipment.Menus;
 using CustomEquipment.Registry;
 using CustomEquipment.Services;
 using Economy.Api;
+using Localization.Api;
 using Microsoft.Extensions.DependencyInjection;
 using SwiftlyS2.Shared;
 using ZombiePlague.Api;
@@ -35,6 +36,7 @@ internal sealed class CustomEquipmentModule(ISwiftlyCore core) : BaseModule(core
 
         service.AddSharedInterface<IEconomyApi>();
         service.AddSharedInterface<IZombiePlagueApi>();
+        service.AddSharedInterface<ILocalizationApi>();
 
         AddSingleton<HookService>(service);
         AddSingleton<IHookSubscriber>(service, provider => provider.GetRequiredService<HookService>());

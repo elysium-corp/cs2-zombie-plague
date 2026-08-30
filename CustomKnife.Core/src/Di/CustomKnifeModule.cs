@@ -15,6 +15,7 @@ using CustomKnife.Database;
 using CustomKnife.Database.Entities;
 using CustomKnife.Initializer;
 using Menu.Api.Extensions;
+using Localization.Api;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -53,6 +54,7 @@ internal sealed class CustomKnifeModule(ISwiftlyCore core) : BaseModule(core)
     private void BuildSingletons(ServiceCollection service)
     {
         service.AddSharedInterface<IZombiePlagueApi>();
+        service.AddSharedInterface<ILocalizationApi>();
         
         AddSingleton<KnifeMenu>(service);
         AddSingleton<CustomKnifeCoordinator>(service);

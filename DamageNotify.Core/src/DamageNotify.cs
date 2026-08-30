@@ -2,6 +2,7 @@ using Common.Di;
 using Common.Di.Utils;
 using DamageNotify.Core.Data.Configs;
 using DamageNotify.Core.Di;
+using Localization.Api;
 using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
@@ -22,12 +23,14 @@ internal partial class DamageNotify(ISwiftlyCore core) : Plugin<DamageNotifyModu
     private Guid _guidOnPlayerHurtPost = Guid.Empty;
     
     private IZombiePlagueApi _zombiePlagueApi = null!;
+    private ILocalizationApi _localization = null!;
     
     private readonly Lazy<IOptions<DamageNotifyConfig>> _config = GetRequiredServiceLazy<IOptions<DamageNotifyConfig>>();
     
     protected override void OnUseSharedInterfaces(IInterfaceManager interfaceManager)
     {
         _zombiePlagueApi = interfaceManager.GetSharedInterface<IZombiePlagueApi>(IZombiePlagueApi.SharedApiKey);
+        _localization = interfaceManager.GetSharedInterface<ILocalizationApi>(ILocalizationApi.SharedApiKey);
     }
 
     protected override void OnReady()
@@ -54,14 +57,14 @@ internal partial class DamageNotify(ISwiftlyCore core) : Plugin<DamageNotifyModu
             return HookResult.Continue;
         }
 
-        var locale = core.Translation.GetPlayerLocalizer(player);
+        var hitMessage = _localization.GetForPlayer(player, "DamageNotify.HitMessage") ?? "You hit";
         var name = victim.Controller.PlayerName;
         var health = victim.RequiredPlayerPawn.Health;
         var dmgHealth = @event.DmgHealth;
         
         player.SendCenterHTML(
             duration: _config.Get().DurationMs,
-            message:  $"<font color='#FFFFFF'>{locale["DamageNotify.HitMessage"]} </font>" +
+            message:  $"<font color='#FFFFFF'>{hitMessage} </font>" +
                       $"<font color='#FF3333'>{name}</font><br>" +
                       $"<font color='#CCFF00'>{health}</font>" +
                       $" <font color='#FFFFFF'></font> " +

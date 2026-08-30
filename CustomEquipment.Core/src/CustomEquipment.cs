@@ -13,6 +13,7 @@ using CustomEquipment.Services;
 using Economy.Api;
 using Menu.Api;
 using Menu.Api.Extensions;
+using Localization.Api;
 using Microsoft.Extensions.Logging;
 using SwiftlyS2.Core.Menus.OptionsBase;
 using SwiftlyS2.Shared;
@@ -39,6 +40,7 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
     private readonly Lazy<EquipmentMenu> _equipmentMenu = GetRequiredServiceLazy<EquipmentMenu>();
     private readonly Lazy<IItemRegistry> _itemRegistry = GetRequiredServiceLazy<IItemRegistry>();
     private readonly Lazy<IWeaponCatalogRepository> _weaponCatalog = GetRequiredServiceLazy<IWeaponCatalogRepository>();
+    private readonly Lazy<ILocalizationApi> _localization = GetRequiredServiceLazy<ILocalizationApi>();
     private readonly Lazy<DatabaseMigrator<CustomEquipmentDbContext>> _databaseMigrator =
         GetRequiredServiceLazy<DatabaseMigrator<CustomEquipmentDbContext>>();
 
@@ -64,6 +66,7 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
     {
         BindSharedInterface<IEconomyApi>(interfaceManager, IEconomyApi.SharedApiKey);
         BindSharedInterface<IZombiePlagueApi>(interfaceManager, IZombiePlagueApi.SharedApiKey);
+        BindSharedInterface<ILocalizationApi>(interfaceManager, ILocalizationApi.SharedApiKey);
     }
 
     protected override void OnConfigureSharedInterfaces(IInterfaceManager interfaceManager)
@@ -138,8 +141,9 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
 
     private void ExtendMainMenu(MenuExtensionContext context)
     {
-        var localizer = core.Translation.GetPlayerLocalizer(context.Player);
-        var option = new ButtonMenuOption(localizer["Menu.Main.Item.Equipment.Title"]);
+        var title = _localization.Value.GetForPlayer(context.Player, "Menu.Main.Item.Equipment.Title")
+                    ?? "Equipment Shop";
+        var option = new ButtonMenuOption(title);
 
         option.Click += (_, args) =>
         {

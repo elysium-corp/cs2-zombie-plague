@@ -1,6 +1,7 @@
 using Advertisement.Api;
 using Advertisement.Core.Application;
 using Advertisement.Core.Data;
+using Localization.Api;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Players;
 
@@ -9,39 +10,26 @@ namespace Advertisement.Core.Api;
 internal sealed class AdvertisementApi(
     ISwiftlyCore core,
     AdvertisementCache cache,
-    PlayerLocaleResolver localeResolver,
+    Func<ILocalizationApi> localization,
     AdvertisementScheduler scheduler) : IAdvertisementApi
 {
-    public string GetPlayerLocale(IPlayer player)
-    {
-        var snapshot = cache.Current;
-        if (snapshot is not null)
-        {
-            return localeResolver.Resolve(player, snapshot.Settings);
-        }
-
-        var engineLocale = LocaleNormalizer.Normalize(player.PlayerLanguage.Value);
-        return string.IsNullOrWhiteSpace(engineLocale) ? "ru" : engineLocale;
-    }
+    [Obsolete("Используйте ILocalizationApi.Resolve(IPlayer). Метод сохранён для совместимости.")]
+    public string GetPlayerLocale(IPlayer player) => localization().Resolve(player);
 
     public string? GetText(string messageKey, string locale)
     {
-        var snapshot = cache.Current;
-        var message = FindMessage(snapshot, messageKey);
-        if (snapshot is null || message is null)
-        {
-            return null;
-        }
-
-        return ResolveTranslation(
-            message.Translations,
-            LocaleNormalizer.Normalize(locale),
-            snapshot.Settings.DefaultLocale);
+        var message = FindMessage(cache.Current, messageKey);
+        return message is null
+            ? null
+            : localization().GetForLanguage(locale, message.LocalizationKey);
     }
 
     public string? GetText(string messageKey, IPlayer player)
     {
-        return GetText(messageKey, GetPlayerLocale(player));
+        var message = FindMessage(cache.Current, messageKey);
+        return message is null
+            ? null
+            : localization().GetForPlayer(player, message.LocalizationKey);
     }
 
     public bool Send(IPlayer player, string messageKey, string? tagKey = null)
@@ -81,16 +69,6 @@ internal sealed class AdvertisementApi(
 
         return snapshot.Messages.Values.FirstOrDefault(message =>
             message.Key.Equals(messageKey.Trim(), StringComparison.OrdinalIgnoreCase));
-    }
-
-    private static string? ResolveTranslation(
-        FrozenDictionary<string, string> translations,
-        string locale,
-        string fallback)
-    {
-        return translations.TryGetValue(locale, out var value)
-            ? value
-            : translations.GetValueOrDefault(fallback);
     }
 
     private static string? NormalizeTagKey(string? tagKey)

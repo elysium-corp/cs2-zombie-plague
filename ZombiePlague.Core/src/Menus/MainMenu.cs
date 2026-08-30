@@ -1,19 +1,20 @@
 ﻿using Menu.Api.Data;
 using Menu.Api.Data.Contracts;
 using Menu.Api.Extensions;
+using Localization.Api;
 using SwiftlyS2.Core.Menus.OptionsBase;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Menus;
 using SwiftlyS2.Shared.Players;
-using SwiftlyS2.Shared.Translation;
 using ZombiePlague.Api.Menus;
 
 namespace ZombiePlague.Core.Menus;
 
 internal sealed class MainMenu(
-    ISwiftlyCore core, 
+    ISwiftlyCore core,
     IMenuExtensionDispatcher extensionDispatcher,
-    ZClassMenu zClassMenu
+    ZClassMenu zClassMenu,
+    Func<ILocalizationApi> localization
 ) : DynamicOptionsMenu(core, extensionDispatcher)
 {
     public override string Id => ZombiePlagueMenuIds.Main;
@@ -34,26 +35,23 @@ internal sealed class MainMenu(
     
     protected override IMenuBuilderAPI ConfigureDesign(IPlayer player, IMenuDesignAPI design)
     {
-        var localizer = Core.Translation.GetPlayerLocalizer(player);
-
         return design
-            .SetMenuTitle(localizer[MainMenuTitle])
+            .SetMenuTitle(localization().GetForPlayer(player, MainMenuTitle) ?? MainMenuTitle)
             .Design.SetMenuFooterVisible(false)
             .Design.EnableAutoAdjustVisibleItems();
     }
 
     protected override void BuildOptions(IPlayer player, MenuOptionsCollection options)
     {
-        var localizer = core.Translation.GetPlayerLocalizer(player);
-
-        var zClassButton = BuildZClassItem(localizer);
+        var zClassButton = BuildZClassItem(player);
 
         options.Add(zClassButton, 1);
     }
     
-    private ButtonMenuOption BuildZClassItem(ILocalizer localizer)
+    private ButtonMenuOption BuildZClassItem(IPlayer player)
     {
-        var zClassButton = new ButtonMenuOption(localizer[ZClassItemTitle]);
+        var title = localization().GetForPlayer(player, ZClassItemTitle) ?? ZClassItemTitle;
+        var zClassButton = new ButtonMenuOption(title);
 
         zClassButton.Click += (_, args) =>
         {

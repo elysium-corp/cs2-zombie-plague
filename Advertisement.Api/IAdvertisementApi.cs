@@ -12,10 +12,11 @@ namespace Advertisement.Api;
 public interface IAdvertisementApi
 {
     /// <summary>
-    /// Возвращает эффективную локаль игрока с учётом ручного выбора через <c>!lang</c>.
+    /// Возвращает эффективный язык игрока, определённый общим Localization.Core.
     /// </summary>
     /// <param name="player">Подключённый игрок.</param>
-    /// <returns>Нормализованный код локали.</returns>
+    /// <returns>Нормализованный код включённого языка.</returns>
+    [Obsolete("Используйте ILocalizationApi.Resolve(IPlayer). Метод сохранён для совместимости.")]
     string GetPlayerLocale(IPlayer player);
 
     /// <summary>

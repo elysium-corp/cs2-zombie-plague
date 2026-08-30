@@ -3,8 +3,6 @@ namespace Advertisement.Core.Configuration;
 internal sealed class AdvertisementConfig
 {
     public bool Enabled { get; set; } = true;
-    public string DefaultLocale { get; set; } = "ru";
-    public List<string> AllowedLocales { get; set; } = ["ru", "en", "uk", "pl", "de"];
     public int IntervalSeconds { get; set; } = 90;
     public int RefreshIntervalSeconds { get; set; } = 30;
     public int InitialDelaySeconds { get; set; } = 45;
@@ -27,11 +25,6 @@ internal sealed class AdvertisementConfig
         {
             Key = "elysium",
             Color = "purple",
-            Translations = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-            {
-                ["ru"] = "Elysium",
-                ["en"] = "Elysium",
-            },
         },
     ];
 
@@ -42,11 +35,6 @@ internal sealed class AdvertisementConfig
             Key = "discord",
             Name = "Discord",
             Tag = "elysium",
-            Translations = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-            {
-                ["ru"] = "Наш Discord: {accent}discord.gg/elysium{/accent}",
-                ["en"] = "Our Discord: {accent}discord.gg/elysium{/accent}",
-            },
         },
     ];
 }
@@ -55,7 +43,6 @@ internal sealed class FallbackTagConfig
 {
     public string Key { get; set; } = string.Empty;
     public string Color { get; set; } = "default";
-    public Dictionary<string, string> Translations { get; set; } = [];
 }
 
 internal sealed class FallbackMessageConfig
@@ -79,5 +66,4 @@ internal sealed class FallbackMessageConfig
     public int? MaxPlayers { get; set; }
     public DateTimeOffset? StartsAt { get; set; }
     public DateTimeOffset? EndsAt { get; set; }
-    public Dictionary<string, string> Translations { get; set; } = [];
 }
