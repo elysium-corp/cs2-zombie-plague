@@ -6,7 +6,6 @@
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
         <PublishDir>$(OutputPath)publish/ZombiePlague.Core</PublishDir>
         <AssemblyName>ZombiePlague.Core</AssemblyName>
         <PluginVersion>0.1.0</PluginVersion>
@@ -75,17 +74,6 @@
         <Folder Include="resources\exports\" />
         <Folder Include="src\Data\Rounds\Exceptions\" />
     </ItemGroup>
-
-    <Target Name="CreateZip" AfterTargets="Publish">
-        <ItemGroup>
-            <PublishFiles Include="$(PublishDir)**\*.*" />
-        </ItemGroup>
-
-        <ZipDirectory
-                SourceDirectory="$(PublishDir)../"
-                DestinationFile="$(OutputPath)../$(AssemblyName).zip"
-                Overwrite="true" />
-    </Target>
 
     <ItemGroup>
         <VersionFileLines Include="namespace $(AssemblyName).Generated {&#x0D;&#x0A;%09internal static class BuildInfo {&#x0D;&#x0A;%09%09internal const string Version = %22$(PluginVersion)%22%3B&#x0D;&#x0A;%09}&#x0D;&#x0A;}" />

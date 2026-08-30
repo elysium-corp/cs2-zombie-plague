@@ -6,7 +6,6 @@
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
-        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 
         <PublishDir>$(OutputPath)publish/CustomKnife</PublishDir>
 
@@ -27,8 +26,6 @@
 
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.3" />
 
-        <PackageReference Include="System.Reflection"
-                          Version="4.3.0" />
     </ItemGroup>
 
     <!-- Обычная сборка плагина -->
@@ -106,16 +103,5 @@
     <ItemGroup>
       <Folder Include="src\Database\Migrations\" />
     </ItemGroup>
-
-    <Target Name="CreateZip" AfterTargets="Publish">
-        <ItemGroup>
-            <PublishFiles Include="$(PublishDir)**\*.*"/>
-        </ItemGroup>
-
-        <ZipDirectory
-                SourceDirectory="$(PublishDir)../"
-                DestinationFile="$(OutputPath)../$(AssemblyName).zip"
-                Overwrite="true"/>
-    </Target>
 
 </Project>

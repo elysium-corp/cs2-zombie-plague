@@ -6,7 +6,6 @@
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
-        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
         <PublishDir>$(OutputPath)publish/InfoNotify.Core</PublishDir>
         <PackageId>InfoNotify.Core</PackageId>
     </PropertyGroup>
@@ -35,13 +34,5 @@
     <ItemGroup>
       <ProjectReference Include="..\Common.Di\Common.Di.csproj" />
     </ItemGroup>
-
-    <Target Name="CreateZip" AfterTargets="Publish">
-        <ItemGroup>
-            <PublishFiles Include="$(PublishDir)**\*.*"/>
-        </ItemGroup>
-
-        <ZipDirectory SourceDirectory="$(PublishDir)../" DestinationFile="$(OutputPath)../$(AssemblyName).zip" Overwrite="true"/>
-    </Target>
 
 </Project> 

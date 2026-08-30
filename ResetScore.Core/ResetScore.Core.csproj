@@ -6,7 +6,6 @@
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
-        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
         <PublishDir>$(OutputPath)publish/ResetScore</PublishDir>
         <PackageId>ResetScore.Core</PackageId>
         <RootNamespace>ResetScore</RootNamespace>
@@ -36,13 +35,5 @@
     <ItemGroup>
       <ProjectReference Include="..\Common.Di\Common.Di.csproj" />
     </ItemGroup>
-
-    <Target Name="CreateZip" AfterTargets="Publish">
-        <ItemGroup>
-            <PublishFiles Include="$(PublishDir)**\*.*"/>
-        </ItemGroup>
-
-        <ZipDirectory SourceDirectory="$(PublishDir)../" DestinationFile="$(OutputPath)../$(AssemblyName).zip" Overwrite="true"/>
-    </Target>
 
 </Project> 

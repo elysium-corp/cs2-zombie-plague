@@ -6,7 +6,6 @@
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
         <AssemblyName>CS2ZombiePlague</AssemblyName>
         <OutputPath>$(MSBuildThisFileDirectory)build/</OutputPath>
         <PublishDir>$(OutputPath)publish/CS2ZombiePlague</PublishDir>
@@ -42,13 +41,5 @@
         <Compile Remove="src\Data\Weapons\Shotguns\Omega.cs"/>
         <Compile Remove="src\Data\Weapons\Shotguns\ReactorLeak.cs"/>
     </ItemGroup>
-
-    <Target Name="CreateZip" AfterTargets="Publish">
-        <ItemGroup>
-            <PublishFiles Include="$(PublishDir)**\*.*"/>
-        </ItemGroup>
-
-        <ZipDirectory SourceDirectory="$(PublishDir)../" DestinationFile="$(OutputPath)../$(AssemblyName).zip" Overwrite="true"/>
-    </Target>
 
 </Project> 

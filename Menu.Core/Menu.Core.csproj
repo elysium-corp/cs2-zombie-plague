@@ -9,7 +9,6 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
 
-        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 
         <AssemblyName>Menu.Core</AssemblyName>
     </PropertyGroup>
@@ -75,18 +74,6 @@
     <ItemGroup>
         <ProjectReference Include="..\Common.Di\Common.Di.csproj" />
         <ProjectReference Include="..\Menu.Api\Menu.Api.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <None Remove="build\runtimes\win\lib\net10.0\System.Diagnostics.EventLog.dll" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="build\resources\templates\" />
-      <Folder Include="build\runtimes\osx-x64\native\" />
-      <Folder Include="build\runtimes\win-x64\native\" />
-      <Folder Include="build\runtimes\win-x86\native\" />
-      <Folder Include="build\runtimes\win\lib\net10.0\" />
     </ItemGroup>
 
 </Project>

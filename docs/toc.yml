@@ -2,5 +2,7 @@
   href: index.md
 - name: Каталог событий
   href: events.md
+- name: Сборка и развёртывание
+  href: build-and-deployment.md
 - name: API reference
   href: api/index.md

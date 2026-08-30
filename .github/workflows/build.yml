@@ -41,15 +41,9 @@ jobs:
       - name: Show .NET information
         run: dotnet --info
 
-      - name: Restore dependencies
-        run: |
-          dotnet restore CS2ZombiePlague.sln
-
-      - name: Build solution
-        run: |
-          dotnet build CS2ZombiePlague.sln \
-            --configuration Release \
-            --no-restore
+      - name: Build and package server runtime
+        shell: pwsh
+        run: ./scripts/build-package.ps1 -Configuration Release
 
       - name: Run tests
         run: |
@@ -63,6 +57,8 @@ jobs:
           dotnet run \
             --project tools/EventDocsGenerator/EventDocsGenerator.csproj \
             --configuration Release \
+            --no-build \
+            --no-restore \
             -- check
 
       - name: Restore documentation tools
@@ -81,6 +77,8 @@ jobs:
           dotnet run \
             --project tools/EventDocsGenerator/EventDocsGenerator.csproj \
             --configuration Release \
+            --no-build \
+            --no-restore \
             -- package \
             --output artifacts/documentation.json \
             --repository "$GITHUB_REPOSITORY" \
@@ -96,45 +94,33 @@ jobs:
       - name: Inspect generated artifacts
         shell: bash
         run: |
-          echo "=== artifacts/bin ==="
-
-          if [[ -d artifacts/bin ]]; then
-            find artifacts/bin -type f -print | sort
-          else
-            echo "::error::artifacts/bin does not exist"
+          if [[ ! -f dist/Release/runtime-manifest.json ]]; then
+            echo "::error::dist/Release/runtime-manifest.json does not exist"
             exit 1
           fi
 
-          echo
-          echo "=== artifacts/package ==="
-
-          if [[ -d artifacts/package ]]; then
-            find artifacts/package -type f -print | sort
-          else
-            echo "::notice::artifacts/package does not exist"
+          if [[ ! -f dist/Release/packages/Elysium.Runtime.Release.zip ]]; then
+            echo "::error::full runtime archive does not exist"
+            exit 1
           fi
 
-          echo
-          echo "=== artifacts/publish ==="
+          jq -e '
+            .schemaVersion == 1 and
+            .configuration == "Release" and
+            .pluginCount > 0 and
+            .fileCount > 0 and
+            .totalBytes > 0
+          ' dist/Release/runtime-manifest.json >/dev/null
 
-          if [[ -d artifacts/publish ]]; then
-            find artifacts/publish -type f -print | sort
-          else
-            echo "::notice::artifacts/publish does not exist"
-          fi
-
-          echo
-          echo "=== documentation.json ==="
+          plugin_count="$(jq -r '.pluginCount' dist/Release/runtime-manifest.json)"
+          file_count="$(jq -r '.fileCount' dist/Release/runtime-manifest.json)"
+          total_bytes="$(jq -r '.totalBytes' dist/Release/runtime-manifest.json)"
+          total_mib="$(awk -v bytes="$total_bytes" 'BEGIN { printf "%.2f", bytes / 1048576 }')"
 
           if [[ ! -f artifacts/documentation.json ]]; then
             echo "::error::artifacts/documentation.json was not generated"
             exit 1
           fi
-
-          ls -lh artifacts/documentation.json
-
-          echo
-          echo "=== DocFX site ==="
 
           if [[ ! -d docs/_site ]]; then
             echo "::error::docs/_site does not exist"
@@ -148,19 +134,25 @@ jobs:
             exit 1
           fi
 
-          echo "DocFX files: $docfx_file_count"
+          {
+            echo "## Release runtime"
+            echo
+            echo "- Plugins: $plugin_count"
+            echo "- Files: $file_count"
+            echo "- Size: $total_mib MiB"
+            echo "- DocFX files: $docfx_file_count"
+          } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Upload build artifacts
+      - name: Upload runtime artifacts
         uses: actions/upload-artifact@v7
         with:
           name: cs2-zombie-plague-${{ github.sha }}
           path: |
-            artifacts/bin/**
-            artifacts/package/**
-            artifacts/publish/**
+            dist/Release/packages/**
+            dist/Release/runtime-manifest.json
           if-no-files-found: error
           retention-days: 14
-          compression-level: 6
+          compression-level: 0
           overwrite: false
           include-hidden-files: false
 
