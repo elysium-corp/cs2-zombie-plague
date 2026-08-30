@@ -45,13 +45,13 @@ internal sealed class LocalizationDbContext(DbContextOptions<LocalizationDbConte
             .WithMany(entity => entity.Translations)
             .HasPrincipalKey(entity => entity.Code)
             .HasForeignKey(entity => entity.LanguageCode)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
 
         var preference = modelBuilder.Entity<PlayerLanguagePreferenceEntity>();
         preference.HasOne<LocalizationLanguageEntity>()
             .WithMany()
             .HasPrincipalKey(entity => entity.Code)
             .HasForeignKey(entity => entity.LanguageCode)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

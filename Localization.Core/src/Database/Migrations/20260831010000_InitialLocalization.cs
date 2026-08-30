@@ -65,7 +65,7 @@ internal sealed class InitialLocalization : Migration
             CREATE TABLE IF NOT EXISTS localization.translations (
                 entry_id BIGINT NOT NULL REFERENCES localization.entries(id) ON DELETE CASCADE,
                 language_code VARCHAR(16) NOT NULL
-                    REFERENCES localization.languages(code) ON DELETE RESTRICT ON UPDATE CASCADE,
+                    REFERENCES localization.languages(code) ON DELETE CASCADE ON UPDATE CASCADE,
                 text TEXT NOT NULL,
                 created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
                 updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -79,7 +79,7 @@ internal sealed class InitialLocalization : Migration
             CREATE TABLE IF NOT EXISTS localization.player_preferences (
                 steam_id BIGINT PRIMARY KEY,
                 language_code VARCHAR(16) NOT NULL
-                    REFERENCES localization.languages(code) ON DELETE RESTRICT ON UPDATE CASCADE,
+                    REFERENCES localization.languages(code) ON DELETE CASCADE ON UPDATE CASCADE,
                 created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
                 updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
             );
