@@ -1,9 +1,7 @@
 ﻿using Common.Database.Storages;
 using Common.Hooks.Abstractions;
 using Economy.Api.Events;
-using Economy.Core.Data.Configs;
 using Economy.Core.Data.Store;
-using Microsoft.Extensions.Options;
 using MSApi.Exceptions;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
@@ -11,7 +9,7 @@ using SwiftlyS2.Shared.SchemaDefinitions;
 namespace Economy.Core.Services;
 
 internal sealed class EconomyService(
-    IOptions<EconomyConfig> config,
+    EconomyPlayerRuleResolver playerRuleResolver,
     PlayerSessionStore<PlayerAccountState> sessions,
     IHookPublisher hooks
 ) : IEconomyService
@@ -104,11 +102,18 @@ internal sealed class EconomyService(
         var changed = session.TryUpdate(data =>
         {
             previousBalance = data.Balance;
+            var maximumBalance = playerRuleResolver.Resolve(preparedPlayer).MaxMoney;
+
+            if (data.Balance >= maximumBalance)
+            {
+                newBalance = data.Balance;
+                return false;
+            }
 
             var balance = Math.Clamp(
                 (long)data.Balance + preparedAmount,
                 0L,
-                config.Value.MaxMoney
+                maximumBalance
             );
 
             newBalance = (int)balance;

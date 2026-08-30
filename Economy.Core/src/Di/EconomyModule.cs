@@ -21,14 +21,14 @@ internal sealed class EconomyModule(ISwiftlyCore core) : BaseModule(core)
     public override (ServiceProvider, ServiceCollection) GetProvider()
     {
         var service = new ServiceCollection();
-        
+
         BuildConfigs(service);
-        
+
         service.AddSwiftly(core);
-        
+
         BuildSingletons(service);
         AddDatabase(service);
-        
+
         return (service.BuildServiceProvider(), service);
     }
 
@@ -51,11 +51,18 @@ internal sealed class EconomyModule(ISwiftlyCore core) : BaseModule(core)
         AddSingleton<IEconomyEvents, EconomyEvents>(service);
 
         AddSingleton<IAccountPersistenceService, AccountPersistenceService>(service);
+        AddSingleton<EconomyRulesRepository>(service);
+        AddSingleton<IEconomyRulesProvider, EconomyRulesProvider>(service);
+        AddSingleton<EconomyExternalApis>(service);
+        AddSingleton<EconomyPlayerRuleResolver>(service);
+        AddSingleton<EconomyRewardService>(service);
+        AddSingleton<CustomWeaponHitTracker>(service);
         AddSingleton<IEconomyService, EconomyService>(service);
         AddSingleton<PlayerSessionStore<PlayerAccountState>>(service);
         AddSingleton<PlayerAccountService>(service);
+        AddSingleton<EconomyRuntimeCoordinator>(service);
     }
-    
+
     private void AddDatabase(ServiceCollection service)
     {
         var options = new DatabaseOptions

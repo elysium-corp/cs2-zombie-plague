@@ -3,9 +3,8 @@ using Common.Database.Storages;
 using Common.Database.Tasks;
 using Common.Hooks.Abstractions;
 using Economy.Api.Events;
-using Economy.Core.Data.Configs;
 using Economy.Core.Data.Store;
-using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
 using MSApi.Exceptions;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Players;
@@ -14,7 +13,8 @@ namespace Economy.Core.Services;
 
 internal sealed class PlayerAccountService(
     ISwiftlyCore core,
-    IOptions<EconomyConfig> config,
+    IEconomyRulesProvider rulesProvider,
+    EconomyPlayerRuleResolver playerRuleResolver,
     PlayerSessionStore<PlayerAccountState> sessions,
     IAccountPersistenceService persistenceService,
     DatabaseTaskTracker databaseTasks,
@@ -30,7 +30,16 @@ internal sealed class PlayerAccountService(
         }
 
         var steamId = player.SteamID;
-        var startBalance = config.Value.StartMoney;
+
+        if (sessions.Get(steamId) is not null)
+        {
+            return;
+        }
+
+        var startBalance = Math.Min(
+            rulesProvider.Current.StartMoney,
+            playerRuleResolver.Resolve(player).MaxMoney
+        );
 
         var session = sessions.Create(
             steamId,
@@ -51,7 +60,7 @@ internal sealed class PlayerAccountService(
         );
     }
 
-    public void Remove(IPlayer player)
+    public void Remove(IPlayer player, bool save)
     {
         var steamId = player.SteamID;
 
@@ -62,14 +71,24 @@ internal sealed class PlayerAccountService(
 
         DispatchRemoved(steamId, session);
 
-        databaseTasks.Run(
-            () => SaveAsync(steamId, session),
-            $"Save economy account {steamId}"
-        );
+        if (save)
+        {
+            QueueSave(steamId, session);
+        }
     }
 
-    public void SaveAllAndWait()
+    public void SaveAll()
     {
+        foreach (var (steamId, session) in sessions.GetAll())
+        {
+            QueueSave(steamId, session);
+        }
+    }
+
+    public void Shutdown(bool save)
+    {
+        var removedSessions = new List<KeyValuePair<ulong, PersistentSession<PlayerAccountState>>>();
+
         foreach (var (steamId, _) in sessions.GetAll())
         {
             if (!sessions.TryRemove(steamId, out var session) || session is null)
@@ -78,11 +97,15 @@ internal sealed class PlayerAccountService(
             }
 
             DispatchRemoved(steamId, session);
+            removedSessions.Add(new KeyValuePair<ulong, PersistentSession<PlayerAccountState>>(
+                steamId,
+                session
+            ));
+        }
 
-            databaseTasks.Run(
-                () => SaveAsync(steamId, session),
-                $"Save economy account {steamId}"
-            );
+        if (save && removedSessions.Count > 0)
+        {
+            SaveBeforeShutdown(removedSessions);
         }
 
         databaseTasks.StopAndWait();
@@ -98,6 +121,58 @@ internal sealed class PlayerAccountService(
         }
 
         var balance = session.Read(data => data.Balance);
+
+        ApplyBalanceToGame(player, balance);
+    }
+
+    public void ReconcileAll()
+    {
+        foreach (var player in core.PlayerManager.GetAllValidPlayers())
+        {
+            if (player.IsFakeClient || !player.IsAuthorized)
+            {
+                continue;
+            }
+
+            ReconcileLimit(player);
+        }
+    }
+
+    public void ReconcileLimit(IPlayer player)
+    {
+        var session = sessions.Get(player.SteamID);
+
+        if (session is null)
+        {
+            return;
+        }
+
+        var snapshot = session.CreateSnapshot(data => data.Balance);
+
+        if (!snapshot.IsLoaded)
+        {
+            return;
+        }
+
+        var maximum = playerRuleResolver.Resolve(player).MaxMoney;
+        var balance = 0;
+        var changed = session.TryUpdate(data =>
+        {
+            balance = Math.Clamp(data.Balance, 0, maximum);
+
+            if (balance == data.Balance)
+            {
+                return false;
+            }
+
+            data.Balance = balance;
+            return true;
+        });
+
+        if (!changed)
+        {
+            balance = session.Read(data => data.Balance);
+        }
 
         ApplyBalanceToGame(player, balance);
     }
@@ -127,7 +202,7 @@ internal sealed class PlayerAccountService(
                             return false;
                         }
 
-                        var maxBalance = config.Value.MaxMoney;
+                        var maxBalance = rulesProvider.Current.AbsoluteMaxMoney;
 
                         session.CompleteLoadMerged(
                             current =>
@@ -190,9 +265,7 @@ internal sealed class PlayerAccountService(
             return;
         }
 
-        var balance = session.Read(data => data.Balance);
-
-        ApplyBalanceToGame(player, balance);
+        ReconcileLimit(player);
     }
 
     private async Task SaveAsync(
@@ -251,6 +324,41 @@ internal sealed class PlayerAccountService(
             hooks.Dispatch(ref context);
 
             throw;
+        }
+    }
+
+    private void QueueSave(ulong steamId, PersistentSession<PlayerAccountState> session)
+    {
+        databaseTasks.Run(
+            cancellationToken => SaveAsync(steamId, session, cancellationToken),
+            $"Save economy account {steamId}"
+        );
+    }
+
+    private void SaveBeforeShutdown(
+        IReadOnlyCollection<KeyValuePair<ulong, PersistentSession<PlayerAccountState>>> removedSessions)
+    {
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+        var tasks = removedSessions
+            .Select(pair => SaveAsync(pair.Key, pair.Value, timeout.Token))
+            .ToArray();
+
+        try
+        {
+            Task.WhenAll(tasks).GetAwaiter().GetResult();
+        }
+        catch (OperationCanceledException)
+        {
+            core.Logger.LogWarning(
+                "Economy balance persistence exceeded the unload deadline."
+            );
+        }
+        catch (Exception exception)
+        {
+            core.Logger.LogError(
+                exception,
+                "One or more economy balances could not be persisted during unload."
+            );
         }
     }
 
