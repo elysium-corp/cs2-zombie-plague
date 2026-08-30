@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using Menu.Api.Enums;
 using Menu.Core.Runtime;
+using Menu.Core.Validation;
 
 namespace Menu.Core.Tests;
 
@@ -164,7 +165,7 @@ public sealed class MenuSnapshotStoreTests
 
     private static MenuSnapshotStore CreateStore()
     {
-        return new MenuSnapshotStore(new Menu.Core.Validation.MenuReleaseValidator(), new MenuSnapshotCompiler());
+        return new MenuSnapshotStore(new MenuReleaseValidator(), new MenuSnapshotCompiler());
     }
 
     private static void Inspect(

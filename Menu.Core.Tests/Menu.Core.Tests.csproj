@@ -11,6 +11,7 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.9.0" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.3" />
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
         <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.0" />
         <PackageReference Include="SwiftlyS2.CS2" Version="1.4.6-beta.8" PrivateAssets="all" />
