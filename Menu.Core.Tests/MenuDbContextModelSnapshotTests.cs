@@ -15,11 +15,12 @@ public sealed class MenuDbContextModelSnapshotTests
         using var context = new MenuDbContextDesignTimeFactory().CreateDbContext([]);
         var migrationsAssembly = context.GetService<IMigrationsAssembly>();
         var snapshot = Assert.IsType<MenuDbContextModelSnapshot>(migrationsAssembly.ModelSnapshot);
+        var snapshotModel = context.GetService<IModelRuntimeInitializer>().Initialize(snapshot.Model);
         var currentModel = context.GetService<IDesignTimeModel>().Model;
         var modelDiffer = context.GetService<IMigrationsModelDiffer>();
 
         var operations = modelDiffer.GetDifferences(
-            snapshot.Model.GetRelationalModel(),
+            snapshotModel.GetRelationalModel(),
             currentModel.GetRelationalModel());
 
         Assert.Empty(operations);

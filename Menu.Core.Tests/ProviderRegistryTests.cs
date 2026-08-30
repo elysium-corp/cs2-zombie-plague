@@ -205,7 +205,7 @@ public sealed class ProviderRegistryTests
     }
 
     [Fact]
-    public void Unload_WaitsForHandlerAlreadyInFlight()
+    public async Task Unload_WaitsForHandlerAlreadyInFlight()
     {
         var registry = CreateRegistry(new RecordingProviderStateSink());
         using var entered = new ManualResetEventSlim();
@@ -233,15 +233,16 @@ public sealed class ProviderRegistryTests
 
         try
         {
-            Assert.False(unload.Wait(TimeSpan.FromMilliseconds(100)));
+            var completed = await Task.WhenAny(unload, Task.Delay(TimeSpan.FromMilliseconds(100)));
+            Assert.NotSame(unload, completed);
         }
         finally
         {
             release.Set();
         }
 
-        Assert.True(invocation.GetAwaiter().GetResult().IsSuccess);
-        Assert.True(unload.GetAwaiter().GetResult().IsSuccess);
+        Assert.True((await invocation).IsSuccess);
+        Assert.True((await unload).IsSuccess);
     }
 
     [Fact]
@@ -299,7 +300,7 @@ public sealed class ProviderRegistryTests
     }
 
     [Fact]
-    public void Stop_DoesNotHoldLifecycleLockWhileWaitingForProviderCallback()
+    public async Task Stop_DoesNotHoldLifecycleLockWhileWaitingForProviderCallback()
     {
         var registry = CreateRegistry(new RecordingProviderStateSink());
         using var entered = new ManualResetEventSlim();
@@ -326,14 +327,14 @@ public sealed class ProviderRegistryTests
         try
         {
             continueCallback.Set();
-            Assert.True(stopping.Wait(TimeSpan.FromSeconds(2)));
+            await stopping.WaitAsync(TimeSpan.FromSeconds(2));
         }
         finally
         {
             continueCallback.Set();
         }
 
-        Assert.True(invocation.GetAwaiter().GetResult().IsSuccess);
+        Assert.True((await invocation).IsSuccess);
     }
 
     [Fact]
