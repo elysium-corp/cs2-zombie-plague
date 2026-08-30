@@ -11,7 +11,7 @@
         <PublishDir>$(OutputPath)publish/Economy.Core</PublishDir>
         <PackageId>MS</PackageId>
         <RootNamespace>Economy.Core</RootNamespace>
-        <PluginVersion>0.1.0</PluginVersion>
+        <PluginVersion>0.2.0</PluginVersion>
     </PropertyGroup>
 
     <ItemGroup>
@@ -55,6 +55,14 @@
         </ProjectReference>
         <ProjectReference Include="..\Common.Hooks\Common.Hooks.csproj" />
 
+        <ProjectReference Include="..\Admin.Api\Admin.Api.csproj">
+            <Private Condition="'$(Configuration)' == 'Migrations'">true</Private>
+        </ProjectReference>
+
+        <ProjectReference Include="..\CustomEquipment.Api\CustomEquipment.Api.csproj">
+            <Private Condition="'$(Configuration)' == 'Migrations'">true</Private>
+        </ProjectReference>
+
         <ProjectReference Include="..\Economy.Api\Economy.Api.csproj">
             <Private Condition="'$(Configuration)' == 'Migrations'">true</Private>
         </ProjectReference>
@@ -91,4 +99,4 @@
         </ItemGroup>
     </Target>
 
-</Project> 
+</Project>

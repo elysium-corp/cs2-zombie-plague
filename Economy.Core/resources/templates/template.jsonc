@@ -1,0 +1,24 @@
+{
+  "EconomyConfig": {
+    "SchemaVersion": 2,
+    "SettingsRefreshIntervalSeconds": 30,
+    "Rules": {
+      "AbsoluteMaxMoney": 99999,
+      "DefaultMaxMoney": 99999,
+      "StartMoney": 5000,
+      "MoneyPerDamage": 0.5,
+      "MoneyForInfection": 500,
+      "MoneyForZombieKill": 0,
+      "MoneyForHumanKill": 0,
+      "Persistence": {
+        "SaveOnRoundEnd": false,
+        "SaveOnDisconnect": true,
+        "SaveOnUnload": true,
+        "PeriodicSaveEnabled": false,
+        "PeriodicSaveIntervalSeconds": 300
+      },
+      "RoleRules": [],
+      "WeaponRules": []
+    }
+  }
+}

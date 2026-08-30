@@ -55,6 +55,171 @@ namespace Economy.Core.src.Database.Migrations
 
                     b.ToTable("accounts", "economy");
                 });
+
+            modelBuilder.Entity("Economy.Core.Database.Entities.EconomyRoleRuleEntity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<bool>("Enabled")
+                        .HasColumnType("boolean")
+                        .HasColumnName("enabled");
+
+                    b.Property<int>("MaxMoney")
+                        .HasColumnType("integer")
+                        .HasColumnName("max_money");
+
+                    b.Property<string>("PrivilegeKey")
+                        .IsRequired()
+                        .HasMaxLength(129)
+                        .HasColumnType("character varying(129)")
+                        .HasColumnName("privilege_key");
+
+                    b.Property<decimal>("RewardBonusPercent")
+                        .HasColumnType("numeric(8,2)")
+                        .HasColumnName("reward_bonus_percent");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex(new[] { "PrivilegeKey" }, "ux_economy_role_rules_privilege_key")
+                        .IsUnique();
+
+                    b.ToTable("role_rules", "economy", t =>
+                        {
+                            t.HasCheckConstraint("ck_economy_role_rules_values", "max_money >= 0 AND reward_bonus_percent BETWEEN 0 AND 10000");
+                        });
+                });
+
+            modelBuilder.Entity("Economy.Core.Database.Entities.EconomySettingsEntity", b =>
+                {
+                    b.Property<short>("Id")
+                        .HasColumnType("smallint")
+                        .HasColumnName("id");
+
+                    b.Property<int>("AbsoluteMaxMoney")
+                        .HasColumnType("integer")
+                        .HasColumnName("absolute_max_money");
+
+                    b.Property<int>("DefaultMaxMoney")
+                        .HasColumnType("integer")
+                        .HasColumnName("default_max_money");
+
+                    b.Property<int>("MoneyForHumanKill")
+                        .HasColumnType("integer")
+                        .HasColumnName("money_for_human_kill");
+
+                    b.Property<int>("MoneyForInfection")
+                        .HasColumnType("integer")
+                        .HasColumnName("money_for_infection");
+
+                    b.Property<int>("MoneyForZombieKill")
+                        .HasColumnType("integer")
+                        .HasColumnName("money_for_zombie_kill");
+
+                    b.Property<decimal>("MoneyPerDamage")
+                        .HasColumnType("numeric(12,4)")
+                        .HasColumnName("money_per_damage");
+
+                    b.Property<int>("PeriodicSaveIntervalSeconds")
+                        .HasColumnType("integer")
+                        .HasColumnName("periodic_save_interval_seconds");
+
+                    b.Property<bool>("PeriodicSaveEnabled")
+                        .HasColumnType("boolean")
+                        .HasColumnName("periodic_save_enabled");
+
+                    b.Property<long>("Revision")
+                        .HasColumnType("bigint")
+                        .HasColumnName("revision");
+
+                    b.Property<bool>("SaveOnDisconnect")
+                        .HasColumnType("boolean")
+                        .HasColumnName("save_on_disconnect");
+
+                    b.Property<bool>("SaveOnRoundEnd")
+                        .HasColumnType("boolean")
+                        .HasColumnName("save_on_round_end");
+
+                    b.Property<bool>("SaveOnUnload")
+                        .HasColumnType("boolean")
+                        .HasColumnName("save_on_unload");
+
+                    b.Property<int>("SettingsRefreshIntervalSeconds")
+                        .HasColumnType("integer")
+                        .HasColumnName("settings_refresh_interval_seconds");
+
+                    b.Property<int>("StartMoney")
+                        .HasColumnType("integer")
+                        .HasColumnName("start_money");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("settings", "economy", t =>
+                        {
+                            t.HasCheckConstraint("ck_economy_settings_intervals", "periodic_save_interval_seconds BETWEEN 10 AND 86400 AND settings_refresh_interval_seconds BETWEEN 10 AND 3600");
+                            t.HasCheckConstraint("ck_economy_settings_limits", "absolute_max_money >= 0 AND default_max_money BETWEEN 0 AND absolute_max_money AND start_money BETWEEN 0 AND default_max_money");
+                            t.HasCheckConstraint("ck_economy_settings_rewards", "money_per_damage >= 0 AND money_for_infection >= 0 AND money_for_zombie_kill >= 0 AND money_for_human_kill >= 0");
+                            t.HasCheckConstraint("ck_economy_settings_singleton", "id = 1");
+                        });
+                });
+
+            modelBuilder.Entity("Economy.Core.Database.Entities.EconomyWeaponRuleEntity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<decimal>("DamageBonusPercent")
+                        .HasColumnType("numeric(8,2)")
+                        .HasColumnName("damage_bonus_percent");
+
+                    b.Property<bool>("Enabled")
+                        .HasColumnType("boolean")
+                        .HasColumnName("enabled");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("WeaponKey")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("weapon_key");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex(new[] { "WeaponKey" }, "ux_economy_weapon_reward_rules_weapon_key")
+                        .IsUnique();
+
+                    b.ToTable("weapon_reward_rules", "economy", t =>
+                        {
+                            t.HasCheckConstraint("ck_economy_weapon_reward_rules_values", "damage_bonus_percent BETWEEN 0 AND 10000");
+                        });
+                });
 #pragma warning restore 612, 618
         }
     }
