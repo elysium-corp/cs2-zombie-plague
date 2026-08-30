@@ -1,5 +1,6 @@
 using Menu.Core.Database;
 using Menu.Core.Database.Migrations;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
