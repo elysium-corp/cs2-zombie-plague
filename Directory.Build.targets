@@ -10,7 +10,7 @@
             package.ps1 читает эти метаданные напрямую и больше не запускает
             отдельный процесс MSBuild для каждого проекта и свойства.
         -->
-        <ElysiumBuildMetadataDirectory>$(ArtifactsPath)metadata/$(Configuration)</ElysiumBuildMetadataDirectory>
+        <ElysiumBuildMetadataDirectory>$(ArtifactsPath)/metadata/$(Configuration)</ElysiumBuildMetadataDirectory>
         <ElysiumBuildMetadataFile>$(ElysiumBuildMetadataDirectory)/$(MSBuildProjectName).txt</ElysiumBuildMetadataFile>
     </PropertyGroup>
 
