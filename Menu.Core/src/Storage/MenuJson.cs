@@ -172,7 +172,9 @@ internal static class MenuJson
 
         if (element.TryGetDecimal(out var decimalValue))
         {
-            writer.WriteRawValue(decimalValue.ToString("G29", CultureInfo.InvariantCulture));
+            writer.WriteRawValue(decimalValue.ToString(
+                "0.############################",
+                CultureInfo.InvariantCulture));
             return;
         }
 

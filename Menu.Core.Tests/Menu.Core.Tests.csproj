@@ -23,6 +23,9 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\Menu.Api\Menu.Api.csproj">
+            <Private>true</Private>
+        </ProjectReference>
         <ProjectReference Include="..\Menu.Core\Menu.Core.csproj">
             <Private>true</Private>
         </ProjectReference>
