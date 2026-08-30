@@ -6,7 +6,6 @@
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
-        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
         <PublishDir>$(OutputPath)publish/RoundRatingNotify</PublishDir>
         <PackageId>RoundRatingNotify.Core</PackageId>
         <RootNamespace>RoundRatingNotify</RootNamespace>
@@ -38,12 +37,4 @@
       <ProjectReference Include="..\ZombiePlague.Api\ZombiePlague.Api.csproj" />
     </ItemGroup>
 
-    <Target Name="CreateZip" AfterTargets="Publish">
-        <ItemGroup>
-            <PublishFiles Include="$(PublishDir)**\*.*"/>
-        </ItemGroup>
-
-        <ZipDirectory SourceDirectory="$(PublishDir)../" DestinationFile="$(OutputPath)../$(AssemblyName).zip" Overwrite="true"/>
-    </Target>
-
-</Project> 
+</Project>

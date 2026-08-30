@@ -5,7 +5,6 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
-        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
         <AssemblyName>Advertisement.Core</AssemblyName>
         <RootNamespace>Advertisement.Core</RootNamespace>
     </PropertyGroup>

@@ -11,12 +11,14 @@ contracts and shared infrastructure.
 Run these commands from the repository root:
 
 ```bash
-dotnet restore CS2ZombiePlague.sln
-dotnet build CS2ZombiePlague.sln --configuration Release --no-restore
+pwsh ./scripts/build-package.ps1 -Configuration Release
+dotnet test CS2ZombiePlague.sln --configuration Release --no-build --no-restore
 ```
 
-Core plugin outputs are written to `output/<Module.Core>/`. Do not commit files
-from `bin/`, `obj/` or `output/`.
+Server-ready plugin folders are written to `dist/Release/plugins/`; archives and
+the complete runtime ZIP are written to `dist/Release/packages/`. Treat
+`artifacts/` as compiler output only. Do not commit files from `bin/`, `obj/`,
+`artifacts/`, `dist/` or the legacy `output/` directory.
 
 ## Architecture conventions
 

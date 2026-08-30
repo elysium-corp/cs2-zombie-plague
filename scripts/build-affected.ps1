@@ -355,7 +355,8 @@ function Test-IsGlobalBuildFile {
         "scripts/package.ps1",
         "scripts/build-package.ps1",
         "scripts/build-affected.ps1",
-        "scripts/clean.ps1"
+        "scripts/clean.ps1",
+        "eng/runtime-package-policy.json"
     )
 
     if ($globalFiles -contains $path) {
@@ -699,21 +700,15 @@ try {
     Write-Host "Собираю affected-плагины..." -ForegroundColor Cyan
     Write-Host ""
 
-    foreach ($project in $affectedProjectsSorted) {
-        $name = Get-ProjectName $project
+    Write-Host "Restore solution..." -ForegroundColor Yellow
 
-        Write-Host "Build: $name" -ForegroundColor Yellow
+    & dotnet restore $solutionPath
 
-        & dotnet build `
-            $project `
-            --configuration $Configuration
-
-        if ($LASTEXITCODE -ne 0) {
-            throw "Build завершился с ошибкой: $name"
-        }
-
-        Write-Host ""
+    if ($LASTEXITCODE -ne 0) {
+        throw "Restore solution завершился с ошибкой."
     }
+
+    Write-Host ""
 
     $affectedPluginNames = @(
         $affectedProjectsSorted |
@@ -725,6 +720,37 @@ try {
     $allAffected =
         $affectedPluginNames.Count -eq
         $runtimePluginProjects.Count
+
+    if ($allAffected) {
+        Write-Host "Build solution..." -ForegroundColor Yellow
+
+        & dotnet build `
+            $solutionPath `
+            --configuration $Configuration `
+            --no-restore
+
+        if ($LASTEXITCODE -ne 0) {
+            throw "Build solution завершился с ошибкой."
+        }
+    }
+    else {
+        foreach ($project in $affectedProjectsSorted) {
+            $name = Get-ProjectName $project
+
+            Write-Host "Build: $name" -ForegroundColor Yellow
+
+            & dotnet build `
+                $project `
+                --configuration $Configuration `
+                --no-restore
+
+            if ($LASTEXITCODE -ne 0) {
+                throw "Build завершился с ошибкой: $name"
+            }
+
+            Write-Host ""
+        }
+    }
 
     Write-Host "Формирую runtime..." -ForegroundColor Cyan
     Write-Host ""

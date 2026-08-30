@@ -7,8 +7,6 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
         <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
-        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-
         <AssemblyName>MovementUnlocker</AssemblyName>
     </PropertyGroup>
 

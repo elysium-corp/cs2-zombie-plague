@@ -32,9 +32,30 @@ $packagesRoot = Join-Path `
     $configurationRoot `
     "packages"
 
+$buildMetadataRoot = Join-Path `
+    (Join-Path (Join-Path $root "artifacts") "metadata") `
+    $Configuration
+
+$runtimePolicyPath = Join-Path `
+    (Join-Path $root "eng") `
+    "runtime-package-policy.json"
+
+$runtimeManifestPath = Join-Path `
+    $configurationRoot `
+    "runtime-manifest.json"
+
 if (-not (Test-Path -LiteralPath $solutionPath)) {
     throw "Solution не найдена: $solutionPath"
 }
+
+if (-not (Test-Path -LiteralPath $runtimePolicyPath)) {
+    throw "Runtime policy не найдена: $runtimePolicyPath"
+}
+
+$runtimePolicy = Get-Content `
+    -LiteralPath $runtimePolicyPath `
+    -Raw |
+    ConvertFrom-Json
 
 # ============================================================
 # Runtime architecture
@@ -78,7 +99,7 @@ $apiHostOverrides = @{
     "Metrics.Api" = "ZombiePlague.Core"
 }
 
-$targetPathCache = @{}
+$projectBuildMetadataCache = @{}
 $assemblyNameCache = @{}
 $projectXmlCache = @{}
 
@@ -410,37 +431,39 @@ function Get-ReferencedProjectClosure {
     )
 }
 
-function Get-MSBuildProperty {
+function Get-ProjectBuildMetadata {
     param(
         [Parameter(Mandatory = $true)]
-        [string]$ProjectPath,
-
-        [Parameter(Mandatory = $true)]
-        [string]$PropertyName
+        [string]$ProjectPath
     )
 
-    $output = @(
-        & dotnet msbuild `
-            $ProjectPath `
-            -nologo `
-            "-property:Configuration=$Configuration" `
-            "-getProperty:$PropertyName"
-    )
+    $key = Get-ProjectKey $ProjectPath
 
-    if ($LASTEXITCODE -ne 0) {
+    if ($projectBuildMetadataCache.ContainsKey($key)) {
+        return $projectBuildMetadataCache[$key]
+    }
+
+    $projectName = Get-ProjectName $ProjectPath
+    $metadataPath = Join-Path `
+        $buildMetadataRoot `
+        "$projectName.txt"
+
+    if (-not (Test-Path -LiteralPath $metadataPath)) {
         throw @"
-Не удалось получить MSBuild property.
+Не найдены build-метаданные проекта.
 
 Project:
 $ProjectPath
 
-Property:
-$PropertyName
+Ожидались:
+$metadataPath
+
+Сначала выполните dotnet build для конфигурации $Configuration.
 "@
     }
 
     $lines = @(
-        $output |
+        Get-Content -LiteralPath $metadataPath |
         ForEach-Object {
             $_.ToString().Trim()
         } |
@@ -449,51 +472,40 @@ $PropertyName
         }
     )
 
-    $result = $null
-
-    foreach ($line in $lines) {
-        if (
-            $line -match
-            "^$([Regex]::Escape($PropertyName))\s*=\s*(.+)$"
-        ) {
-            $result = $Matches[1].Trim()
-            break
-        }
-
-        if (
-            $line -match
-            "`"$([Regex]::Escape($PropertyName))`"\s*:\s*`"([^`"]+)`""
-        ) {
-            $result = $Matches[1].Trim()
-            break
-        }
-    }
-
-    if (
-        [string]::IsNullOrWhiteSpace($result) -and
-        $lines.Count -eq 1
-    ) {
-        $result = $lines[0].Trim(
-            '"',
-            "'",
-            ',',
-            ' '
-        )
-    }
-
-    if ([string]::IsNullOrWhiteSpace($result)) {
+    if ($lines.Count -lt 2) {
         throw @"
-MSBuild не вернул property.
+Некорректные build-метаданные проекта.
 
 Project:
 $ProjectPath
 
-Property:
-$PropertyName
+File:
+$metadataPath
 "@
     }
 
-    return $result
+    $assemblyName = $lines[0]
+    $candidateTargetPath = Convert-ToPlatformPath $lines[1]
+
+    if ([System.IO.Path]::IsPathRooted($candidateTargetPath)) {
+        $targetPath = [System.IO.Path]::GetFullPath(
+            $candidateTargetPath
+        )
+    }
+    else {
+        $targetPath = [System.IO.Path]::GetFullPath(
+            (Join-Path $root $candidateTargetPath)
+        )
+    }
+
+    $metadata = [PSCustomObject]@{
+        AssemblyName = $assemblyName
+        TargetPath = $targetPath
+    }
+
+    $projectBuildMetadataCache[$key] = $metadata
+
+    return $metadata
 }
 
 function Get-ProjectAssemblyName {
@@ -508,12 +520,33 @@ function Get-ProjectAssemblyName {
         return $assemblyNameCache[$key]
     }
 
-    $assemblyName = Get-MSBuildProperty `
-        -ProjectPath $ProjectPath `
-        -PropertyName "AssemblyName"
+    $projectName = Get-ProjectName $ProjectPath
+    $metadataPath = Join-Path `
+        $buildMetadataRoot `
+        "$projectName.txt"
 
-    if ([string]::IsNullOrWhiteSpace($assemblyName)) {
-        $assemblyName = Get-ProjectName $ProjectPath
+    if (Test-Path -LiteralPath $metadataPath) {
+        $assemblyName = (
+            Get-ProjectBuildMetadata $ProjectPath
+        ).AssemblyName
+    }
+    else {
+        $xml = Get-ProjectXml $ProjectPath
+        $assemblyNameNode = $xml.SelectSingleNode(
+            "//AssemblyName"
+        )
+
+        $assemblyName = if (
+            $null -ne $assemblyNameNode -and
+            -not [string]::IsNullOrWhiteSpace(
+                $assemblyNameNode.InnerText
+            )
+        ) {
+            $assemblyNameNode.InnerText.Trim()
+        }
+        else {
+            $projectName
+        }
     }
 
     $assemblyNameCache[$key] = $assemblyName
@@ -529,46 +562,9 @@ function Get-ProjectTargetPath {
         [switch]$RequireExists
     )
 
-    $cacheKey = (
-        Get-ProjectKey $ProjectPath
-    ) + "|" + $Configuration
-
-    if ($targetPathCache.ContainsKey($cacheKey)) {
-        $cached = $targetPathCache[$cacheKey]
-
-        if (
-            $RequireExists -and
-            -not (Test-Path -LiteralPath $cached)
-        ) {
-            throw "Проект ещё не собран: $ProjectPath"
-        }
-
-        return $cached
-    }
-
-    $candidate = Get-MSBuildProperty `
-        -ProjectPath $ProjectPath `
-        -PropertyName "TargetPath"
-
-    $candidate = Convert-ToPlatformPath `
-        $candidate
-
-    if ([System.IO.Path]::IsPathRooted($candidate)) {
-        $targetPath = [System.IO.Path]::GetFullPath(
-            $candidate
-        )
-    }
-    else {
-        $targetPath = [System.IO.Path]::GetFullPath(
-            (
-                Join-Path `
-                    (Split-Path -Parent $ProjectPath) `
-                    $candidate
-            )
-        )
-    }
-
-    $targetPathCache[$cacheKey] = $targetPath
+    $targetPath = (
+        Get-ProjectBuildMetadata $ProjectPath
+    ).TargetPath
 
     if (
         $RequireExists -and
@@ -788,6 +784,201 @@ function New-PluginZip {
         $zip.Name,
         $sizeMb
     )
+}
+
+function Get-RelativeRuntimePath {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$BasePath,
+
+        [Parameter(Mandatory = $true)]
+        [string]$Path
+    )
+
+    return [System.IO.Path]::GetRelativePath(
+        $BasePath,
+        $Path
+    ) -replace '\\', '/'
+}
+
+function Test-IsForbiddenRuntimeFile {
+    param(
+        [Parameter(Mandatory = $true)]
+        [System.IO.FileInfo]$File
+    )
+
+    foreach ($forbiddenName in @($runtimePolicy.forbiddenFileNames)) {
+        if (
+            $File.Name.Equals(
+                $forbiddenName,
+                [System.StringComparison]::OrdinalIgnoreCase
+            )
+        ) {
+            return $true
+        }
+    }
+
+    foreach ($forbiddenPrefix in @($runtimePolicy.forbiddenFilePrefixes)) {
+        if (
+            $File.Name.StartsWith(
+                $forbiddenPrefix,
+                [System.StringComparison]::OrdinalIgnoreCase
+            )
+        ) {
+            return $true
+        }
+    }
+
+    $relativePath = "/" + (
+        Get-RelativeRuntimePath `
+            -BasePath $pluginsRoot `
+            -Path $File.FullName
+    ).ToLowerInvariant()
+
+    foreach (
+        $forbiddenFragment in
+        @($runtimePolicy.forbiddenPathFragments)
+    ) {
+        if (
+            $relativePath.Contains(
+                $forbiddenFragment.ToLowerInvariant(),
+                [System.StringComparison]::Ordinal
+            )
+        ) {
+            return $true
+        }
+    }
+
+    return $false
+}
+
+function New-RuntimeManifest {
+    $pluginEntries = @()
+    [long]$totalBytes = 0
+    [int]$totalFileCount = 0
+
+    foreach (
+        $pluginDirectory in @(
+            Get-ChildItem `
+                -LiteralPath $pluginsRoot `
+                -Directory |
+            Sort-Object Name
+        )
+    ) {
+        $entryAssembly = Join-Path `
+            $pluginDirectory.FullName `
+            "$($pluginDirectory.Name).dll"
+
+        if (-not (Test-Path -LiteralPath $entryAssembly)) {
+            throw @"
+В runtime-папке отсутствует entry assembly.
+
+Plugin:
+$($pluginDirectory.Name)
+
+Ожидалась:
+$entryAssembly
+"@
+        }
+
+        $fileEntries = @()
+        [long]$pluginBytes = 0
+
+        foreach (
+            $file in @(
+                Get-ChildItem `
+                    -LiteralPath $pluginDirectory.FullName `
+                    -Recurse `
+                    -File |
+                Sort-Object FullName
+            )
+        ) {
+            $relativePath = Get-RelativeRuntimePath `
+                -BasePath $pluginDirectory.FullName `
+                -Path $file.FullName
+
+            $hash = (
+                Get-FileHash `
+                    -LiteralPath $file.FullName `
+                    -Algorithm SHA256
+            ).Hash.ToLowerInvariant()
+
+            $fileEntries += [ordered]@{
+                path = $relativePath
+                sizeBytes = [long]$file.Length
+                sha256 = $hash
+            }
+
+            $pluginBytes += [long]$file.Length
+        }
+
+        $pluginEntries += [ordered]@{
+            name = $pluginDirectory.Name
+            entryAssembly = "$($pluginDirectory.Name).dll"
+            fileCount = $fileEntries.Count
+            totalBytes = $pluginBytes
+            files = $fileEntries
+        }
+
+        $totalBytes += $pluginBytes
+        $totalFileCount += $fileEntries.Count
+    }
+
+    $commit = $null
+    $gitOutput = @(
+        & git `
+            -C $root `
+            rev-parse HEAD `
+            2> $null
+    )
+
+    if ($LASTEXITCODE -eq 0 -and $gitOutput.Count -gt 0) {
+        $commit = $gitOutput[0].Trim()
+    }
+
+    $manifest = [ordered]@{
+        schemaVersion = 1
+        generatedAt = [DateTimeOffset]::UtcNow.ToString("O")
+        configuration = $Configuration
+        targetRuntime = $runtimePolicy.targetRuntime
+        commit = $commit
+        pluginCount = $pluginEntries.Count
+        fileCount = $totalFileCount
+        totalBytes = $totalBytes
+        plugins = $pluginEntries
+    }
+
+    $manifest |
+        ConvertTo-Json -Depth 8 |
+        Set-Content `
+            -LiteralPath $runtimeManifestPath `
+            -Encoding utf8
+
+    return $manifest
+}
+
+function New-FullRuntimeZip {
+    $zipPath = Join-Path `
+        $packagesRoot `
+        "Elysium.Runtime.$Configuration.zip"
+
+    if (Test-Path -LiteralPath $zipPath) {
+        Remove-Item `
+            -LiteralPath $zipPath `
+            -Force
+    }
+
+    $sources = @(
+        $pluginsRoot,
+        $runtimeManifestPath
+    )
+
+    Compress-Archive `
+        -Path $sources `
+        -DestinationPath $zipPath `
+        -CompressionLevel Optimal
+
+    return Get-Item -LiteralPath $zipPath
 }
 
 Write-Host ""
@@ -1807,20 +1998,96 @@ if ($Configuration -eq "Release") {
     }
 }
 
+# ------------------------------------------------------------
+# Runtime package policy
+# ------------------------------------------------------------
+
+$allRuntimeFiles = @(
+    Get-ChildItem `
+        -LiteralPath $pluginsRoot `
+        -Recurse `
+        -File
+)
+
+$forbiddenRuntimeFiles = @(
+    $allRuntimeFiles |
+    Where-Object {
+        Test-IsForbiddenRuntimeFile $_
+    }
+)
+
+if ($forbiddenRuntimeFiles.Count -gt 0) {
+    Write-Host ""
+    Write-Host (
+        "В runtime обнаружены build-only или host-provided файлы:"
+    ) -ForegroundColor Red
+
+    foreach ($file in $forbiddenRuntimeFiles) {
+        Write-Host (
+            "  " + (
+                Get-RelativeRuntimePath `
+                    -BasePath $pluginsRoot `
+                    -Path $file.FullName
+            )
+        ) -ForegroundColor Red
+    }
+
+    throw @"
+Runtime package policy failed.
+
+Проверьте PackageReference metadata:
+PrivateAssets / ExcludeAssets и runtime dependency graph.
+"@
+}
+
+$runtimeManifest = New-RuntimeManifest
+
+if (
+    $Configuration -eq "Release" -and
+    [long]$runtimeManifest.totalBytes -gt
+    [long]$runtimePolicy.maxTotalBytes
+) {
+    throw @"
+Runtime превышает допустимый размер.
+
+Фактически:
+$($runtimeManifest.totalBytes) bytes
+
+Лимит:
+$($runtimePolicy.maxTotalBytes) bytes
+"@
+}
+
+if (
+    $Configuration -eq "Release" -and
+    [int]$runtimeManifest.fileCount -gt
+    [int]$runtimePolicy.maxFileCount
+) {
+    throw @"
+Runtime содержит слишком много файлов.
+
+Фактически:
+$($runtimeManifest.fileCount)
+
+Лимит:
+$($runtimePolicy.maxFileCount)
+"@
+}
+
 Write-Host ""
 Write-Host (
     "Runtime validation: OK"
 ) -ForegroundColor Green
 
+Write-Host (
+    "Runtime: {0} plugins, {1} files, {2:N2} MB" -f
+    $runtimeManifest.pluginCount,
+    $runtimeManifest.fileCount,
+    ([double]$runtimeManifest.totalBytes / 1MB)
+) -ForegroundColor Green
+
 # ============================================================
-# ZIP
-# ============================================================
-#
-# Пока сохраняем старое поведение.
-#
-# После того как подтвердим корректный запуск сервера,
-# отдельно изменим Package Affected, чтобы он возвращал
-# только папки плагинов и не создавал ZIP.
+# ZIP: отдельные плагины и полный атомарный runtime
 # ============================================================
 
 Write-Host ""
@@ -1880,6 +2147,14 @@ foreach (
     New-PluginZip `
         -PluginName $pluginName
 }
+
+$fullRuntimeZip = New-FullRuntimeZip
+
+Write-Host (
+    "  {0,-45} {1,8:N2} MB" -f
+    $fullRuntimeZip.Name,
+    ([double]$fullRuntimeZip.Length / 1MB)
+)
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Green

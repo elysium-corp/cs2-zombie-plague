@@ -232,25 +232,34 @@ dotnet run --project tools/EventDocsGenerator/EventDocsGenerator.csproj -- check
 
 ### Локальная сборка
 
-```bash
+Полная Release-сборка с тестируемым серверным runtime:
+
+```powershell
 git clone https://github.com/elysium-corp/cs2-zombie-plague.git
 cd cs2-zombie-plague
 git checkout develop
 
-dotnet restore
-dotnet build CS2ZombiePlague.sln -c Release
+pwsh ./scripts/build-package.ps1 -Configuration Release
 ```
 
-### Публикация модуля
+Результат создаётся в одной предсказуемой структуре:
 
-```bash
-dotnet publish ZombiePlague.Core/ZombiePlague.Core.csproj -c Release
-dotnet publish Menu.Core/Menu.Core.csproj -c Release
-dotnet publish Metrics.Core/Metrics.Core.csproj -c Release
-dotnet publish MoneySystem.Core/MoneySystem.Core.csproj -c Release
+```text
+dist/Release/
+├── plugins/                 # готовые папки для (swRoot)/plugins
+├── packages/                # ZIP каждого плагина и полного runtime
+└── runtime-manifest.json    # размеры и SHA-256 всех серверных файлов
 ```
 
-Для `*.Core` сборка складывается в `output/<ProjectName>/`. После `publish` MSBuild также формирует ZIP-архив модуля. Каталоги `resources/gamedata`, `resources/templates` и `resources/translations` копируются автоматически.
+`artifacts/` содержит только промежуточные результаты компиляции и на сервер не устанавливается. Упаковщик исключает SDK хоста SwiftlyS2, EF Design, Roslyn, платформы Windows/macOS и другие build-only зависимости, проверяет уникальность API/export DLL и ограничивает общий размер и число файлов.
+
+Для быстрой сборки только затронутых модулей поверх уже созданного полного runtime:
+
+```powershell
+pwsh ./scripts/build-affected.ps1 -Configuration Debug -BaseRef origin/develop
+```
+
+Подробная схема установки и отката: [сборка и развёртывание](docs/build-and-deployment.md).
 
 > `*.Api` — библиотеки контрактов. Их не следует устанавливать как самостоятельные игровые плагины.
 

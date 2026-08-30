@@ -16,6 +16,8 @@
         -->
         <UseArtifactsOutput>true</UseArtifactsOutput>
         <ArtifactsPath>$(MSBuildThisFileDirectory)artifacts</ArtifactsPath>
+        <RestoreUseStaticGraphEvaluation>true</RestoreUseStaticGraphEvaluation>
+        <Deterministic>true</Deterministic>
 
         <!--
             По умолчанию ProjectReference не копируется рядом с проектом.
@@ -28,10 +30,7 @@
         <GenerateDependencyFile>true</GenerateDependencyFile>
         <GenerateDocumentationFile>false</GenerateDocumentationFile>
 
-        <!--
-            PDB полезны при локальной разработке.
-            В release ZIP они не попадут — package.ps1 их удаляет.
-        -->
+        <!-- PDB остаются в build output, но не попадают в Release runtime. -->
         <DebugSymbols>true</DebugSymbols>
         <DebugType>portable</DebugType>
     </PropertyGroup>

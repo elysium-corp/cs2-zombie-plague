@@ -30,15 +30,14 @@
 ## Сборка и установка
 
 ```bash
-dotnet restore CS2ZombiePlague.sln
-dotnet build CS2ZombiePlague.sln -c Release --no-restore
+pwsh ./scripts/build-package.ps1 -Configuration Release
 ```
 
 Скопируйте на сервер SwiftlyS2 результаты сборки обоих модулей:
 
 ```text
-output/Metrics.Core/       -> (swRoot)/plugins/Metrics.Core/
-output/ZombiePlague.Core/  -> (swRoot)/plugins/ZombiePlague.Core/
+dist/Release/plugins/Metrics.Core/       -> (swRoot)/plugins/Metrics.Core/
+dist/Release/plugins/ZombiePlague.Core/  -> (swRoot)/plugins/ZombiePlague.Core/
 ```
 
 Перед перезапуском сервера установите обе папки. Так общий интерфейс

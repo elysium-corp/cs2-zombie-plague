@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "targetRuntime": "linux-x64",
+  "maxTotalBytes": 188743680,
+  "maxFileCount": 500,
+  "forbiddenFileNames": [
+    "SwiftlyS2.CS2.dll",
+    "Microsoft.EntityFrameworkCore.Design.dll",
+    "Microsoft.Build.Locator.dll",
+    "Mono.TextTemplating.dll",
+    "Humanizer.dll",
+    "System.CodeDom.dll",
+    "Dapper.dll",
+    "MySqlConnector.dll",
+    "System.Data.SQLite.dll",
+    "Spectre.Console.dll",
+    "Tomlyn.dll",
+    "Tomlyn.Extensions.Configuration.dll",
+    "McMaster.NETCore.Plugins.dll",
+    "Microsoft.Diagnostics.NETCore.Client.dll",
+    "Semver.dll"
+  ],
+  "forbiddenFilePrefixes": [
+    "Microsoft.CodeAnalysis.",
+    "System.Composition."
+  ],
+  "forbiddenPathFragments": [
+    "/runtimes/win-",
+    "/runtimes/win/",
+    "/runtimes/osx-",
+    "/runtimes/browser-",
+    "/runtimes/linux-arm",
+    "/runtimes/linux-musl"
+  ]
+}

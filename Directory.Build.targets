@@ -5,7 +5,39 @@
 
         <!-- Специальная конфигурация для EF migrations -->
         <IsMigrationsBuild Condition="'$(Configuration)' == 'Migrations'">True</IsMigrationsBuild>
+
+        <!--
+            package.ps1 читает эти метаданные напрямую и больше не запускает
+            отдельный процесс MSBuild для каждого проекта и свойства.
+        -->
+        <ElysiumBuildMetadataDirectory>$(ArtifactsPath)/metadata/$(Configuration)</ElysiumBuildMetadataDirectory>
+        <ElysiumBuildMetadataFile>$(ElysiumBuildMetadataDirectory)/$(MSBuildProjectName).txt</ElysiumBuildMetadataFile>
     </PropertyGroup>
+
+    <!--
+        SwiftlyS2 уже загружен хостом игрового сервера. Его runtime-граф
+        (драйверы БД, CLI, TOML, Spectre.Console и native assets) не должен
+        копироваться в каждый плагин.
+
+        EF Design нужен для dotnet ef, но не для запуска плагинов. В обычной
+        сборке оставляем compile/build assets и запрещаем runtime assets,
+        которые притягивают Roslyn и локализованные satellite assemblies.
+    -->
+    <ItemGroup Condition="'$(IsTestProject)' != 'true' and '$(IsMigrationsBuild)' != 'True'">
+        <PackageReference
+                Update="SwiftlyS2.CS2"
+                PrivateAssets="all"
+                ExcludeAssets="runtime;native" />
+
+        <PackageReference
+                Update="Microsoft.EntityFrameworkCore.Design"
+                PrivateAssets="all"
+                ExcludeAssets="runtime" />
+
+        <PackageReference
+                Update="Microsoft.Extensions.DependencyInjection;Microsoft.Extensions.DependencyInjection.Abstractions;Microsoft.Extensions.Configuration;Microsoft.Extensions.Configuration.Abstractions;Microsoft.Extensions.Configuration.Binder;Microsoft.Extensions.Configuration.Json;Microsoft.Extensions.Logging;Microsoft.Extensions.Logging.Abstractions"
+                ExcludeAssets="runtime" />
+    </ItemGroup>
 
     <!--
         Автоматически переносим resources/** в output проекта.
@@ -53,5 +85,25 @@
                 SkipUnchangedFiles="true"
                 Condition="'@(MigrationProjectReferenceAssemblies)' != ''" />
 
+    </Target>
+
+    <!--
+        Формирует два стабильных значения для упаковщика:
+        1) фактическое имя assembly;
+        2) абсолютный TargetPath текущей конфигурации.
+    -->
+    <Target Name="WriteElysiumBuildMetadata" AfterTargets="Build">
+        <MakeDir Directories="$(ElysiumBuildMetadataDirectory)" />
+
+        <ItemGroup>
+            <_ElysiumBuildMetadataLine Include="$(AssemblyName)" />
+            <_ElysiumBuildMetadataLine Include="$(TargetPath)" />
+        </ItemGroup>
+
+        <WriteLinesToFile
+                File="$(ElysiumBuildMetadataFile)"
+                Lines="@(_ElysiumBuildMetadataLine)"
+                Overwrite="true"
+                WriteOnlyWhenDifferent="true" />
     </Target>
 </Project>

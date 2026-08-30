@@ -7,7 +7,6 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
         <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
-        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
         <PublishDir>$(OutputPath)publish/Economy.Core</PublishDir>
         <PackageId>MS</PackageId>
         <RootNamespace>Economy.Core</RootNamespace>
@@ -71,14 +70,6 @@
             <Private Condition="'$(Configuration)' == 'Migrations'">true</Private>
         </ProjectReference>
     </ItemGroup>
-
-    <Target Name="CreateZip" AfterTargets="Publish">
-        <ItemGroup>
-            <PublishFiles Include="$(PublishDir)**\*.*"/>
-        </ItemGroup>
-
-        <ZipDirectory SourceDirectory="$(PublishDir)../" DestinationFile="$(OutputPath)../$(AssemblyName).zip" Overwrite="true"/>
-    </Target>
 
     <ItemGroup>
         <VersionFileLines Include="namespace $(AssemblyName).Generated {&#x0D;&#x0A;%09internal static class BuildInfo {&#x0D;&#x0A;%09%09internal const string Version = %22$(PluginVersion)%22%3B&#x0D;&#x0A;%09}&#x0D;&#x0A;}"/>
