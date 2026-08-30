@@ -36,7 +36,6 @@
 
         <PackageReference
                 Update="Microsoft.Extensions.DependencyInjection;Microsoft.Extensions.DependencyInjection.Abstractions;Microsoft.Extensions.Configuration;Microsoft.Extensions.Configuration.Abstractions;Microsoft.Extensions.Configuration.Binder;Microsoft.Extensions.Configuration.Json;Microsoft.Extensions.Logging;Microsoft.Extensions.Logging.Abstractions"
-                PrivateAssets="all"
                 ExcludeAssets="runtime" />
     </ItemGroup>
 
