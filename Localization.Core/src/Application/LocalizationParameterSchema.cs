@@ -231,7 +231,7 @@ internal static partial class LocalizationParameterSchema
                 return false;
             }
 
-            formatted = parsed.ToString("G17", CultureInfo.InvariantCulture);
+            formatted = parsed.ToString("G", CultureInfo.InvariantCulture);
             return true;
         }
 
@@ -243,13 +243,13 @@ internal static partial class LocalizationParameterSchema
 
         if (value is float single && float.IsFinite(single))
         {
-            formatted = single.ToString("G9", CultureInfo.InvariantCulture);
+            formatted = single.ToString("G", CultureInfo.InvariantCulture);
             return true;
         }
 
         if (value is double doubleValue && double.IsFinite(doubleValue))
         {
-            formatted = doubleValue.ToString("G17", CultureInfo.InvariantCulture);
+            formatted = doubleValue.ToString("G", CultureInfo.InvariantCulture);
             return true;
         }
 
