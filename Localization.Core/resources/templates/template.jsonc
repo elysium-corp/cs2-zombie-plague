@@ -1,8 +1,8 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "version": 1,
   "generatedAt": "2026-08-31T00:00:00Z",
-  "checksum": "sha256:eddac5a67d8f5f72d5e1f93af301b24be92e70dda0d6b4c0a88dbd7e0aa1eb83",
+  "checksum": "sha256:c62f481929af56cfb33dd139d095329641ec15242c4a7e859bc54158d67cae4a",
   "serverFallbackLanguage": "ru",
   "languages": [
     "ru",
@@ -13,6 +13,14 @@
   "refreshIntervalSeconds": 30,
   "localCacheEnabled": true,
   "logMissingKeys": true,
+  "colorTags": {
+    "default": "default",
+    "accent": "lightblue",
+    "warning": "red",
+    "success": "green",
+    "important": "orange",
+    "muted": "gray"
+  },
   "parameters": {},
   "entries": {
     "localization.menu.title": {

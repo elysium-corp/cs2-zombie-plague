@@ -38,7 +38,7 @@ public sealed class LocalizationRuntimeTests
             "test.reward",
             new Dictionary<string, string> { ["points"] = "15" });
 
-        Assert.Equal("{success}+15{/success}", text);
+        Assert.Equal("[green]+15[default][/]", text);
     }
 
     [Fact]
@@ -55,6 +55,10 @@ public sealed class LocalizationRuntimeTests
             "en",
             "test.reward",
             new Dictionary<string, object?> { ["points"] = 15 });
+        var validString = runtime.FormatForLanguage(
+            "en",
+            "test.reward",
+            new Dictionary<string, object?> { ["points"] = "15" });
         var invalid = runtime.FormatForLanguage(
             "en",
             "test.reward",
@@ -64,7 +68,8 @@ public sealed class LocalizationRuntimeTests
             "test.reward",
             new Dictionary<string, object?>());
 
-        Assert.Equal("{success}+15{/success}", valid);
+        Assert.Equal("[green]+15[default][/]", valid);
+        Assert.Equal("[green]+15[default][/]", validString);
         Assert.Null(invalid);
         Assert.Null(missing);
         Assert.Equal(LocalizationParameterType.Integer, runtime.GetParameterDefinitions("test.reward")[0].Type);
@@ -72,6 +77,42 @@ public sealed class LocalizationRuntimeTests
             LocalizationParameterType.String,
             15,
             out _));
+    }
+
+    [Fact]
+    public void CustomColorTag_IsRenderedWithConfiguredSwiftlyColor()
+    {
+        var cache = new LocalizationCache();
+        cache.Replace(CreateSnapshot());
+        var runtime = new LocalizationRuntime(
+            cache,
+            new LanguageResolver(cache, new PlayerLanguageCache()),
+            new RateLimitedLocalizationLogger(NullLogger.Instance));
+
+        var text = runtime.GetForLanguage("ru", "test.vip", null);
+
+        Assert.Equal("[gold]VIP игрок[default][/]", text);
+    }
+
+    [Fact]
+    public void ParameterValue_CannotInjectSwiftlyOrSemanticColorMarkup()
+    {
+        var cache = new LocalizationCache();
+        cache.Replace(CreateSnapshot());
+        var runtime = new LocalizationRuntime(
+            cache,
+            new LanguageResolver(cache, new PlayerLanguageCache()),
+            new RateLimitedLocalizationLogger(NullLogger.Instance));
+
+        var text = runtime.FormatForLanguage(
+            "en",
+            "test.player",
+            new Dictionary<string, object?>
+            {
+                ["nickname"] = "[red]{warning}fdrinv{/warning}[/]",
+            });
+
+        Assert.Equal("Player: fdrinv", text);
     }
 
     private static LocalizationSnapshot CreateSnapshot()
@@ -106,10 +147,42 @@ public sealed class LocalizationRuntimeTests
                     true,
                     "Количество очков",
                     "15")]),
+            CreateEntry(
+                3,
+                "test.vip",
+                new Dictionary<string, string>
+                {
+                    ["ru"] = "{vip}VIP игрок{/vip}",
+                    ["en"] = "{vip}VIP player{/vip}",
+                }),
+            CreateEntry(
+                4,
+                "test.player",
+                new Dictionary<string, string>
+                {
+                    ["ru"] = "Игрок: {nickname}",
+                    ["en"] = "Player: {nickname}",
+                },
+                [new LocalizationParameterDefinition(
+                    "nickname",
+                    LocalizationParameterType.String,
+                    true,
+                    "Ник игрока",
+                    "fdrinv")]),
         }.ToFrozenDictionary(entry => entry.Key, StringComparer.OrdinalIgnoreCase);
 
+        var colorTags = LocalizationColorSchema.Defaults
+            .ToDictionary(item => item.Key, item => item.Value, StringComparer.OrdinalIgnoreCase);
+        colorTags["vip"] = "gold";
+
         return new LocalizationSnapshot(
-            new LocalizationSettings("ru", 30, true, true, 1),
+            new LocalizationSettings(
+                "ru",
+                30,
+                true,
+                true,
+                1,
+                colorTags.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase)),
             languages,
             entries,
             DateTimeOffset.UtcNow,

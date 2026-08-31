@@ -15,7 +15,8 @@ internal sealed record LocalizationSettings(
     int RefreshIntervalSeconds,
     bool LocalCacheEnabled,
     bool LogMissingKeys,
-    long ConfigurationVersion);
+    long ConfigurationVersion,
+    FrozenDictionary<string, string> ColorTags);
 
 internal sealed record LocalizationLanguageState(
     long Id,

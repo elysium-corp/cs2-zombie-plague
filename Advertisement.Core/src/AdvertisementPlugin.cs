@@ -18,7 +18,7 @@ namespace Advertisement.Core;
 
 [PluginMetadata(
     Id = "Advertisement.Core",
-    Version = "2.0.0",
+    Version = "2.2.0",
     Name = "Elysium Advertisements",
     Author = "Elysium",
     Description = "Реклама Elysium с общей локализацией через Localization.Core.")]
@@ -77,7 +77,7 @@ internal sealed class AdvertisementPlugin(ISwiftlyCore core) : Plugin<Advertisem
         _scheduler.Value.TryStartFromCurrentMap();
         _currentMapName = _scheduler.Value.CurrentMapName;
         _schedulerTimer = Core.Scheduler.RepeatBySeconds(1f, _scheduler.Value.Tick);
-        Core.Logger.LogInformation("[Advertisement] Advertisement.Core 2.0.0 загружен.");
+        Core.Logger.LogInformation("[Advertisement] Advertisement.Core 2.2.0 загружен.");
     }
 
     protected override void OnUnload()
@@ -157,7 +157,7 @@ internal sealed class AdvertisementPlugin(ISwiftlyCore core) : Plugin<Advertisem
         var snapshot = _cache.Value.Current;
         if (snapshot is null)
         {
-            context.Reply("Advertisement.Core 2.0.0\nSnapshot: загружается");
+            context.Reply("Advertisement.Core 2.2.0\nSnapshot: загружается");
             return;
         }
 
@@ -165,7 +165,7 @@ internal sealed class AdvertisementPlugin(ISwiftlyCore core) : Plugin<Advertisem
         var bots = players.Count(player => player.IsFakeClient);
         var count = snapshot.Settings.ExcludeBotsFromPlayers ? players.Length - bots : players.Length;
         context.Reply(
-            $"Advertisement.Core 2.0.0\nSource: {snapshot.Source}\nMessages: {snapshot.Messages.Count}" +
+            $"Advertisement.Core 2.2.0\nSource: {snapshot.Source}\nMessages: {snapshot.Messages.Count}" +
             $"\nActive: {snapshot.ActiveMessageCount(DateTimeOffset.UtcNow, count)}" +
             $"\nLocalization: Localization.Core\nVersion: {snapshot.Settings.ConfigurationVersion}");
     }

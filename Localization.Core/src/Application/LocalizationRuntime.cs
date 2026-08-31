@@ -89,17 +89,20 @@ internal sealed partial class LocalizationRuntime(
 
         if (!validateSchema)
         {
-            return parameters is null || parameters.Count == 0
-                ? text
-                : PlaceholderRegex().Replace(text, match =>
+            var renderedText = LocalizationMarkupRenderer.Render(text, snapshot.Settings.ColorTags);
+            var legacyResult = parameters is null || parameters.Count == 0
+                ? renderedText
+                : PlaceholderRegex().Replace(renderedText, match =>
                     TryGetValue(parameters, match.Groups["name"].Value, out var value)
-                        ? Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty
+                        ? SanitizeParameterValue(
+                            Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty)
                         : match.Value);
+            return legacyResult;
         }
 
         if (entry.Parameters.Count == 0)
         {
-            return text;
+            return LocalizationMarkupRenderer.Render(text, snapshot.Settings.ColorTags);
         }
 
         var formatted = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -123,10 +126,11 @@ internal sealed partial class LocalizationRuntime(
                 return null;
             }
 
-            formatted[definition.Name] = result;
+            formatted[definition.Name] = SanitizeParameterValue(result);
         }
 
-        return PlaceholderRegex().Replace(text, match =>
+        var rendered = LocalizationMarkupRenderer.Render(text, snapshot.Settings.ColorTags);
+        return PlaceholderRegex().Replace(rendered, match =>
             formatted.TryGetValue(match.Groups["name"].Value, out var value)
                 ? value
                 : match.Value);
@@ -173,6 +177,13 @@ internal sealed partial class LocalizationRuntime(
         return false;
     }
 
+    private static string SanitizeParameterValue(string value)
+    {
+        return SemanticMarkupRegex().Replace(
+            RawColorRegex().Replace(value, string.Empty),
+            string.Empty);
+    }
+
     private void LogInvalidParameter(
         LocalizationSnapshot snapshot,
         string key,
@@ -210,6 +221,16 @@ internal sealed partial class LocalizationRuntime(
 
     [GeneratedRegex(@"\{(?<name>[a-z][a-z0-9_]*)\}", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex PlaceholderRegex();
+
+    [GeneratedRegex(
+        @"\[(?:/?|default|white|darkred|lightpurple|green|olive|lime|red|gr[ae]y|lightyellow|yellow|silver|bluegrey|lightblue|blue|darkblue|purple|magenta|lightred|gold|orange)\]",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex RawColorRegex();
+
+    [GeneratedRegex(
+        @"\{/?[a-z][a-z0-9_]*(?::[a-z]+)?\}",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex SemanticMarkupRegex();
 }
 
 internal sealed class PlayerLanguageSelectionService(

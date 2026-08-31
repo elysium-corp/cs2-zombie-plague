@@ -28,9 +28,16 @@ internal sealed class LocalizationDbContext(DbContextOptions<LocalizationDbConte
         settings.Property(entity => entity.RefreshIntervalSeconds).HasDefaultValue(30);
         settings.Property(entity => entity.LocalCacheEnabled).HasDefaultValue(true);
         settings.Property(entity => entity.LogMissingKeys).HasDefaultValue(true);
+        settings.Property(entity => entity.ColorTagsJson)
+            .HasColumnType("jsonb")
+            .HasDefaultValueSql(
+                "'{\"default\":\"default\",\"accent\":\"lightblue\",\"warning\":\"red\",\"success\":\"green\",\"important\":\"orange\",\"muted\":\"gray\"}'::jsonb");
         settings.Property(entity => entity.ConfigurationVersion).HasDefaultValue(1L);
         settings.ToTable("settings", SchemaName, table =>
-            table.HasCheckConstraint("settings_singleton", "id = 1"));
+        {
+            table.HasCheckConstraint("settings_singleton", "id = 1");
+            table.HasCheckConstraint("settings_color_tags_object", "jsonb_typeof(color_tags) = 'object'");
+        });
 
         var entry = modelBuilder.Entity<LocalizationEntryEntity>();
         entry.Property(entity => entity.IsCritical).HasDefaultValue(false);

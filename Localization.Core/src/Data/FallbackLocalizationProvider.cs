@@ -31,7 +31,12 @@ internal sealed class FallbackLocalizationProvider(IOptionsMonitor<LocalizationF
             && config.RefreshIntervalSeconds == 30
             && config.LocalCacheEnabled
             && config.LogMissingKeys
-            && config.Entries.Count == 0;
+            && config.Entries.Count == 0
+            && config.Parameters.Count == 0
+            && config.ColorTags.Count == LocalizationColorSchema.Defaults.Count
+            && config.ColorTags.All(item =>
+                LocalizationColorSchema.Defaults.TryGetValue(item.Key, out var color)
+                && string.Equals(color, item.Value, StringComparison.OrdinalIgnoreCase));
     }
 
     internal static LocalizationSnapshot Build(
@@ -44,6 +49,8 @@ internal sealed class FallbackLocalizationProvider(IOptionsMonitor<LocalizationF
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();
         var languageCodes = LocalizationValidation.NormalizeLanguages(orderedLanguageCodes);
+        var colorTags = LocalizationColorSchema.FromConfig(
+            config.SchemaVersion >= 3 ? config.ColorTags : null);
         var languages = orderedLanguageCodes
             .Select((code, index) => LanguageNames.Create(-(index + 1L), code, index))
             .ToFrozenDictionary(language => language.Code, StringComparer.OrdinalIgnoreCase);
@@ -83,7 +90,8 @@ internal sealed class FallbackLocalizationProvider(IOptionsMonitor<LocalizationF
                 Math.Max(5, config.RefreshIntervalSeconds),
                 config.LocalCacheEnabled,
                 config.LogMissingKeys,
-                config.Version),
+                config.Version,
+                colorTags),
             languages,
             entries,
             DateTimeOffset.UtcNow,

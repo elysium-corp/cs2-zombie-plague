@@ -10,6 +10,13 @@
 
 PostgreSQL читается один раз при запуске плагина, при фактической смене карты и по ручной команде `ads_reload`. Периодический polling отсутствует; отправка сообщений всегда работает с текущим snapshot в памяти. Поле `refresh_interval_seconds` пока сохраняется в схеме для обратной совместимости, но runtime его больше не использует.
 
+Текст и его цветовая разметка полностью поступают из `Localization.Core`.
+Палитра `advertisement.settings.colors` сохраняется только для совместимости со
+старыми конфигами и больше не обрабатывает сообщения повторно. Динамические
+значения (`player_name`, `server_name` и другие) передаются в типизированные
+`FormatForPlayer` / `FormatForLanguage`: обязательность и тип проверяет
+`Localization.Core`, там же значения очищаются от цветовых тегов.
+
 Connection string и пароль не хранятся в `advertisement.json`. Для design-time генерации миграций можно временно задать `ADVERTISEMENT_DB_CONNECTION`.
 
 Первая миграция создаёт схемы/таблицы `advertisement.settings`, `advertisement.tags`, `advertisement.tag_translations`, `advertisement.messages`, `advertisement.message_translations` и поле локали в `core.player_preferences`.

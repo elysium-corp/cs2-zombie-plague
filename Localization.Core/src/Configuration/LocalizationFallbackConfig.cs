@@ -2,7 +2,7 @@ namespace Localization.Core.Configuration;
 
 internal sealed class LocalizationFallbackConfig
 {
-    public int SchemaVersion { get; set; } = 2;
+    public int SchemaVersion { get; set; } = 3;
     public long Version { get; set; }
     public DateTimeOffset GeneratedAt { get; set; } = DateTimeOffset.UnixEpoch;
     public string Checksum { get; set; } = string.Empty;
@@ -11,6 +11,15 @@ internal sealed class LocalizationFallbackConfig
     public int RefreshIntervalSeconds { get; set; } = 30;
     public bool LocalCacheEnabled { get; set; } = true;
     public bool LogMissingKeys { get; set; } = true;
+    public Dictionary<string, string> ColorTags { get; set; } = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["default"] = "default",
+        ["accent"] = "lightblue",
+        ["warning"] = "red",
+        ["success"] = "green",
+        ["important"] = "orange",
+        ["muted"] = "gray",
+    };
     public Dictionary<string, Dictionary<string, string>> Entries { get; set; } =
         new(StringComparer.OrdinalIgnoreCase);
     public Dictionary<string, List<LocalizationFallbackParameterConfig>> Parameters { get; set; } =
