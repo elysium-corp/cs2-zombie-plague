@@ -16,6 +16,27 @@ public sealed class FallbackConfigTests
     }
 
     [Fact]
+    public void MissingOrLegacyEmptyConfig_UsesEmergencySnapshot()
+    {
+        var snapshot = FallbackLocalizationProvider.Load(new LocalizationFallbackConfig());
+
+        Assert.Equal(LocalizationSource.Emergency, snapshot.Source);
+        Assert.Equal(1, snapshot.Settings.ConfigurationVersion);
+        Assert.Contains("localization.menu.title", snapshot.Entries.Keys);
+    }
+
+    [Fact]
+    public void PartiallyEditedEmptyConfig_IsStillRejected()
+    {
+        var config = new LocalizationFallbackConfig
+        {
+            RefreshIntervalSeconds = 60,
+        };
+
+        Assert.Throws<InvalidDataException>(() => FallbackLocalizationProvider.Load(config));
+    }
+
+    [Fact]
     public void FallbackLanguageMissingFromLanguages_IsRejected()
     {
         var config = CreateConfig();

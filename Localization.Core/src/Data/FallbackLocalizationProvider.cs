@@ -6,11 +6,31 @@ namespace Localization.Core.Data;
 
 internal sealed class FallbackLocalizationProvider(IOptionsMonitor<LocalizationFallbackConfig> options)
 {
-    public LocalizationSnapshot Load()
+    public LocalizationSnapshot Load() => Load(options.CurrentValue);
+
+    internal static LocalizationSnapshot Load(LocalizationFallbackConfig config)
     {
-        var config = options.CurrentValue;
+        if (IsUnconfiguredDefault(config))
+        {
+            return EmergencyLocalizationSnapshot.Create();
+        }
+
         LocalizationValidation.ValidateFallback(config);
         return Build(config, LocalizationSource.Config);
+    }
+
+    private static bool IsUnconfiguredDefault(LocalizationFallbackConfig config)
+    {
+        return config.SchemaVersion == LocalizationValidation.SupportedSchemaVersion
+            && config.Version == 0
+            && config.GeneratedAt == DateTimeOffset.UnixEpoch
+            && string.IsNullOrWhiteSpace(config.Checksum)
+            && string.Equals(config.ServerFallbackLanguage, "ru", StringComparison.OrdinalIgnoreCase)
+            && config.Languages.SequenceEqual(["ru", "en", "de", "pl"], StringComparer.OrdinalIgnoreCase)
+            && config.RefreshIntervalSeconds == 30
+            && config.LocalCacheEnabled
+            && config.LogMissingKeys
+            && config.Entries.Count == 0;
     }
 
     internal static LocalizationSnapshot Build(

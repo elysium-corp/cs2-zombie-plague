@@ -23,6 +23,12 @@ internal sealed class LocalizationCoordinator(
         try
         {
             _fallback = fallbackProvider.Load();
+            if (_fallback.Source == LocalizationSource.Emergency)
+            {
+                logger.LogWarning(
+                    "[Localization] localization.json отсутствует или содержит пустой шаблон. " +
+                    "До загрузки PostgreSQL используется встроенный snapshot.");
+            }
         }
         catch (Exception exception)
         {
