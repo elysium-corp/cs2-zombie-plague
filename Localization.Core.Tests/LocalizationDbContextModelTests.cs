@@ -20,6 +20,7 @@ public sealed class LocalizationDbContextModelTests
             .FindProperty(nameof(LocalizationSettingsEntity.Id))!;
 
         Assert.Equal(ValueGenerated.Never, property.ValueGenerated);
-        Assert.Null(property.GetDefaultValue());
+        Assert.Null(property.FindAnnotation(RelationalAnnotationNames.DefaultValue));
+        Assert.Null(property.GetDefaultValueSql());
     }
 }
