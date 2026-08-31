@@ -34,6 +34,11 @@ internal sealed class LocalizationDbContext(DbContextOptions<LocalizationDbConte
 
         var entry = modelBuilder.Entity<LocalizationEntryEntity>();
         entry.Property(entity => entity.IsCritical).HasDefaultValue(false);
+        entry.Property(entity => entity.ParametersJson)
+            .HasColumnType("jsonb")
+            .HasDefaultValueSql("'[]'::jsonb");
+        entry.ToTable("entries", SchemaName, table =>
+            table.HasCheckConstraint("entries_parameters_array", "jsonb_typeof(parameters) = 'array'"));
 
         var translation = modelBuilder.Entity<LocalizationTranslationEntity>();
         translation.HasKey(entity => new { entity.EntryId, entity.LanguageCode });

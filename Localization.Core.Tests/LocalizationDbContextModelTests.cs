@@ -23,4 +23,20 @@ public sealed class LocalizationDbContextModelTests
         Assert.Null(property.FindAnnotation(RelationalAnnotationNames.DefaultValue));
         Assert.Null(property.GetDefaultValueSql());
     }
+
+    [Fact]
+    public void EntryParameters_AreStoredAsJsonArray()
+    {
+        var options = new DbContextOptionsBuilder<LocalizationDbContext>()
+            .UseNpgsql("Host=localhost;Database=metadata;Username=metadata;Password=metadata")
+            .Options;
+        using var context = new LocalizationDbContext(options);
+
+        var property = context.Model
+            .FindEntityType(typeof(LocalizationEntryEntity))!
+            .FindProperty(nameof(LocalizationEntryEntity.ParametersJson))!;
+
+        Assert.Equal("jsonb", property.GetColumnType());
+        Assert.Equal("'[]'::jsonb", property.GetDefaultValueSql());
+    }
 }

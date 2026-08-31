@@ -32,7 +32,8 @@ internal sealed record LocalizationEntry(
     long Id,
     string Key,
     bool IsCritical,
-    FrozenDictionary<string, string> Translations);
+    FrozenDictionary<string, string> Translations,
+    FrozenDictionary<string, LocalizationParameterDefinition> Parameters);
 
 internal sealed record LocalizationSnapshot(
     LocalizationSettings Settings,

@@ -26,6 +26,21 @@ internal sealed class LocalizationApi(
         IReadOnlyDictionary<string, string>? placeholders = null) =>
         runtime.GetForLanguage(languageCode, key, placeholders);
 
+    public string? FormatForPlayer(
+        IPlayer player,
+        string key,
+        IReadOnlyDictionary<string, object?> parameters) =>
+        runtime.FormatForPlayer(player, key, parameters);
+
+    public string? FormatForLanguage(
+        string languageCode,
+        string key,
+        IReadOnlyDictionary<string, object?> parameters) =>
+        runtime.FormatForLanguage(languageCode, key, parameters);
+
+    public IReadOnlyList<LocalizationParameterDefinition> GetParameterDefinitions(string key) =>
+        runtime.GetParameterDefinitions(key);
+
     public IReadOnlyList<LocalizationLanguage> GetEnabledLanguages()
     {
         var languages = cache.Current?.Languages.Values.AsEnumerable()

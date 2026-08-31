@@ -8,7 +8,8 @@ namespace Localization.Core.Application;
 
 internal static partial class LocalizationValidation
 {
-    public const int SupportedSchemaVersion = 1;
+    public const int SupportedSchemaVersion = 2;
+    public const int MinimumSchemaVersion = 1;
 
     public static readonly FrozenSet<string> CriticalKeys = new[]
     {
@@ -58,7 +59,7 @@ internal static partial class LocalizationValidation
     {
         ArgumentNullException.ThrowIfNull(config);
 
-        if (config.SchemaVersion != SupportedSchemaVersion)
+        if (config.SchemaVersion is < MinimumSchemaVersion or > SupportedSchemaVersion)
         {
             throw new InvalidDataException(
                 $"Неподдерживаемая schemaVersion локализации: {config.SchemaVersion}.");
@@ -98,7 +99,22 @@ internal static partial class LocalizationValidation
                     $"Для критического ключа '{key}' отсутствует перевод fallback-языка '{fallback}'.");
             }
 
+            var parameters = LocalizationParameterSchema.FromConfig(
+                config.SchemaVersion >= 2 && config.Parameters.TryGetValue(key, out var configured)
+                    ? configured
+                    : null,
+                normalized);
             ValidateTranslations(key, normalized, fallback);
+            _ = parameters;
+        }
+
+        foreach (var key in config.Parameters.Keys)
+        {
+            if (!config.Entries.ContainsKey(key))
+            {
+                throw new InvalidDataException(
+                    $"Схема параметров ссылается на отсутствующий ключ '{key}'.");
+            }
         }
 
         foreach (var criticalKey in CriticalKeys)
@@ -141,6 +157,11 @@ internal static partial class LocalizationValidation
             }
 
             ValidateTranslations(entry.Key, entry.Translations, fallback, enabledLanguages);
+            _ = LocalizationParameterSchema.Normalize(
+                entry.Parameters.Values,
+                entry.Translations
+                    .Where(item => enabledLanguages.Contains(item.Key))
+                    .ToFrozenDictionary(StringComparer.OrdinalIgnoreCase));
         }
 
         foreach (var criticalKey in CriticalKeys)
@@ -243,7 +264,7 @@ internal static partial class LocalizationValidation
         }
     }
 
-    private static FrozenSet<string> ExtractPlaceholders(string text)
+    internal static FrozenSet<string> ExtractPlaceholders(string text)
     {
         return PlaceholderRegex().Matches(text)
             .Select(match => match.Groups["name"].Value)
@@ -327,6 +348,28 @@ internal static class FallbackConfigChecksum
                 Append(builder, "entry", entry.Key);
                 Append(builder, "translation", translation.Key);
                 Append(builder, "text", translation.Value);
+            }
+        }
+
+        if (config.SchemaVersion >= 2)
+        {
+            foreach (var entry in config.Entries.OrderBy(item => item.Key, StringComparer.Ordinal))
+            {
+                var translations = LocalizationValidation.NormalizeTranslations(entry.Value);
+                var parameters = LocalizationParameterSchema.FromConfig(
+                    config.Parameters.TryGetValue(entry.Key, out var configured) ? configured : null,
+                    translations);
+                foreach (var parameter in parameters.Values.OrderBy(
+                             item => item.Name,
+                             StringComparer.Ordinal))
+                {
+                    Append(builder, "parameterEntry", entry.Key);
+                    Append(builder, "parameterName", parameter.Name);
+                    Append(builder, "parameterType", LocalizationParameterSchema.ToWireType(parameter.Type));
+                    Append(builder, "parameterRequired", parameter.IsRequired ? "1" : "0");
+                    Append(builder, "parameterDescription", parameter.Description ?? string.Empty);
+                    Append(builder, "parameterExample", parameter.Example.Replace("\r\n", "\n", StringComparison.Ordinal));
+                }
             }
         }
 

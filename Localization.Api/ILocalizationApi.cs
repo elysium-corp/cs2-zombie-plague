@@ -35,6 +35,37 @@ public interface ILocalizationApi : ILanguageResolver
         IReadOnlyDictionary<string, string>? placeholders = null);
 
     /// <summary>
+    /// Форматирует строку для эффективного языка игрока с проверкой схемы параметров ключа.
+    /// </summary>
+    /// <param name="player">Получатель локализованной строки.</param>
+    /// <param name="key">Уникальный ключ локализации.</param>
+    /// <param name="parameters">Типизированные значения параметров без фигурных скобок.</param>
+    /// <returns>Готовая строка либо <c>null</c>, если ключ, перевод или обязательный параметр отсутствует.</returns>
+    string? FormatForPlayer(
+        IPlayer player,
+        string key,
+        IReadOnlyDictionary<string, object?> parameters);
+
+    /// <summary>
+    /// Форматирует строку для указанного языка с проверкой схемы параметров ключа.
+    /// </summary>
+    /// <param name="languageCode">Запрошенный код языка.</param>
+    /// <param name="key">Уникальный ключ локализации.</param>
+    /// <param name="parameters">Типизированные значения параметров без фигурных скобок.</param>
+    /// <returns>Готовая строка либо <c>null</c>, если ключ, перевод или обязательный параметр отсутствует.</returns>
+    string? FormatForLanguage(
+        string languageCode,
+        string key,
+        IReadOnlyDictionary<string, object?> parameters);
+
+    /// <summary>
+    /// Возвращает схему параметров указанного ключа.
+    /// </summary>
+    /// <param name="key">Уникальный ключ локализации.</param>
+    /// <returns>Неизменяемый список параметров или пустой список для неизвестного ключа.</returns>
+    IReadOnlyList<LocalizationParameterDefinition> GetParameterDefinitions(string key);
+
+    /// <summary>
     /// Возвращает включённые языки в порядке, заданном администратором.
     /// </summary>
     /// <returns>Неизменяемый снимок доступных языков.</returns>
