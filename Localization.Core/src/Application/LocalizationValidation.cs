@@ -28,6 +28,32 @@ internal static partial class LocalizationValidation
         "color",
     }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
+    private static readonly FrozenSet<string> MarkupColors = new[]
+    {
+        "default",
+        "white",
+        "darkred",
+        "lightpurple",
+        "green",
+        "olive",
+        "lime",
+        "red",
+        "gray",
+        "grey",
+        "lightyellow",
+        "yellow",
+        "silver",
+        "bluegrey",
+        "lightblue",
+        "blue",
+        "darkblue",
+        "purple",
+        "magenta",
+        "lightred",
+        "gold",
+        "orange",
+    }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+
     public static void ValidateFallback(LocalizationFallbackConfig config)
     {
         ArgumentNullException.ThrowIfNull(config);
@@ -231,15 +257,24 @@ internal static partial class LocalizationValidation
         foreach (Match match in MarkupRegex().Matches(text))
         {
             var name = match.Groups["name"].Value.ToLowerInvariant();
+            var argument = match.Groups["argument"].Value;
             if (match.Groups["close"].Success)
             {
-                if (stack.Count == 0 || !string.Equals(stack.Pop(), name, StringComparison.OrdinalIgnoreCase))
+                if (argument.Length > 0
+                    || stack.Count == 0
+                    || !string.Equals(stack.Pop(), name, StringComparison.OrdinalIgnoreCase))
                 {
                     return false;
                 }
             }
             else
             {
+                if ((name == "color" && !MarkupColors.Contains(argument))
+                    || (name != "color" && argument.Length > 0))
+                {
+                    return false;
+                }
+
                 stack.Push(name);
             }
         }
@@ -254,7 +289,7 @@ internal static partial class LocalizationValidation
     private static partial Regex PlaceholderRegex();
 
     [GeneratedRegex(
-        @"\{(?<close>/)?(?<name>accent|warning|success|important|muted|color)(?::[a-z]+)?\}",
+        @"\{(?<close>/)?(?<name>accent|warning|success|important|muted|color)(?::(?<argument>[a-z]+))?\}",
         RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex MarkupRegex();
 }
