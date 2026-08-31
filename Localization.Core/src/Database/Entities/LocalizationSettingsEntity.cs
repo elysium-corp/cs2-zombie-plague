@@ -1,0 +1,34 @@
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace Localization.Core.Database.Entities;
+
+[Table("settings", Schema = LocalizationDbContext.SchemaName)]
+internal sealed class LocalizationSettingsEntity
+{
+    [Key]
+    [Column("id")]
+    public short Id { get; set; } = 1;
+
+    [MaxLength(16)]
+    [Column("server_fallback_language")]
+    public string ServerFallbackLanguage { get; set; } = "ru";
+
+    [Column("refresh_interval_seconds")]
+    public int RefreshIntervalSeconds { get; set; } = 30;
+
+    [Column("local_cache_enabled")]
+    public bool LocalCacheEnabled { get; set; } = true;
+
+    [Column("log_missing_keys")]
+    public bool LogMissingKeys { get; set; } = true;
+
+    [Column("configuration_version")]
+    public long ConfigurationVersion { get; set; } = 1;
+
+    [Column("created_at")]
+    public DateTimeOffset CreatedAt { get; set; }
+
+    [Column("updated_at")]
+    public DateTimeOffset UpdatedAt { get; set; }
+}

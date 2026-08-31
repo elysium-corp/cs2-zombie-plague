@@ -4,6 +4,7 @@ using CustomKnife.Data.Services.Contracts;
 using Menu.Api.Data;
 using Menu.Api.Data.Contracts;
 using Menu.Api.Extensions;
+using Localization.Api;
 using SwiftlyS2.Core.Menus.OptionsBase;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Menus;
@@ -16,7 +17,8 @@ internal sealed class KnifeMenu(
     ISwiftlyCore core, 
     IMenuExtensionDispatcher extensionDispatcher,
     IKnivesRegistry knivesRegistry,
-    IKnifeService knifeService
+    IKnifeService knifeService,
+    ILocalizationApi localization
 ) : DynamicOptionsMenu(core, extensionDispatcher)
 {
     public override string Id => ZombiePlagueMenuIds.Knife;
@@ -37,10 +39,8 @@ internal sealed class KnifeMenu(
     
     protected override IMenuBuilderAPI ConfigureDesign(IPlayer player, IMenuDesignAPI design)
     {
-        var localizer = Core.Translation.GetPlayerLocalizer(player);
-
         return design
-            .SetMenuTitle(localizer[KnifeMenuTitle])
+            .SetMenuTitle(localization.GetForPlayer(player, KnifeMenuTitle) ?? "Knives")
             .Design.SetMenuFooterVisible(false)
             .Design.EnableAutoAdjustVisibleItems();
     }
@@ -53,11 +53,11 @@ internal sealed class KnifeMenu(
 
         foreach (var knife in knives)
         {
-            options.Add(BuildKnifeOption(currentKnife, knife));
+            options.Add(BuildKnifeOption(player, currentKnife, knife));
         }
     }
     
-    private ButtonMenuOption BuildKnifeOption(IKnife currentKnife, IKnife knife)
+    private ButtonMenuOption BuildKnifeOption(IPlayer player, IKnife currentKnife, IKnife knife)
     {
         var isSelected = knife.InternalName == currentKnife.InternalName;
 
@@ -66,7 +66,11 @@ internal sealed class KnifeMenu(
             Enabled = !isSelected,
 
             Text = isSelected
-                ? $"{knife.DisplayName} [выбран]"
+                ? localization.GetForPlayer(
+                      player,
+                      "Menu.Knife.Selected",
+                      new Dictionary<string, string> { ["knife"] = knife.DisplayName })
+                  ?? $"{knife.DisplayName} [selected]"
                 : knife.DisplayName,
 
             Comment = knife.Description
@@ -78,7 +82,12 @@ internal sealed class KnifeMenu(
 
             knifeService.SelectKnife(player, knife);
 
-            await player.SendChatAsync($"Вы успешно выбрали нож: {knife.DisplayName}");
+            var message = localization.GetForPlayer(
+                              player,
+                              "Menu.Knife.SelectionSuccess",
+                              new Dictionary<string, string> { ["knife"] = knife.DisplayName })
+                          ?? $"Knife selected: {knife.DisplayName}";
+            await player.SendChatAsync(message);
 
             core.MenusAPI.CloseActiveMenu(player);
         };

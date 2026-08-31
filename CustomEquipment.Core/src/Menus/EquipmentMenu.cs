@@ -8,13 +8,13 @@ using CustomEquipment.Menus.Utils;
 using CustomEquipment.Services;
 using CustomEquipment.Utils;
 using Economy.Api;
+using Localization.Api;
 using Menu.Api.Data;
 using Menu.Api.Data.Contracts;
 using SwiftlyS2.Core.Menus.OptionsBase;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Menus;
 using SwiftlyS2.Shared.Players;
-using SwiftlyS2.Shared.Translation;
 
 namespace CustomEquipment.Menus;
 
@@ -23,7 +23,8 @@ internal sealed class EquipmentMenu(
     IEquipmentService equipmentService,
     IEquipmentShopCatalog shopCatalog,
     IEconomyApi economyApi,
-    IHookPublisher hooks
+    IHookPublisher hooks,
+    ILocalizationApi localization
 ) : MenuBase(core)
 {
     public override string Id => "equipment.menu.select-equipment";
@@ -51,31 +52,27 @@ internal sealed class EquipmentMenu(
     protected override IMenuAPI Build(IPlayer player)
     {
         var builder = CreateBuilder(player);
-        var localizer = Core.Translation.GetPlayerLocalizer(player);
-
-        BuildCategories(builder, localizer, player);
+        BuildCategories(builder, player);
 
         return builder.Build();
     }
 
     protected override IMenuBuilderAPI ConfigureDesign(IPlayer player, IMenuDesignAPI design)
     {
-        var localizer = Core.Translation.GetPlayerLocalizer(player);
-
-        return design.SetMenuTitle(localizer[EquipmentMenuTitle])
+        return design.SetMenuTitle(localization.GetForPlayer(player, EquipmentMenuTitle) ?? "Equipment")
             .Design.SetMenuFooterVisible(false)
             .Design.EnableAutoAdjustVisibleItems();
     }
 
-    private void BuildCategories(IMenuBuilderAPI builder, ILocalizer localizer, IPlayer player)
+    private void BuildCategories(IMenuBuilderAPI builder, IPlayer player)
     {
         foreach (var category in Categories.OrderBy(category => category.Order))
         {
-            BuildCategory(builder, localizer, player, category);
+            BuildCategory(builder, player, category);
         }
     }
 
-    private void BuildCategory(IMenuBuilderAPI builder, ILocalizer localizer, IPlayer player, Category category)
+    private void BuildCategory(IMenuBuilderAPI builder, IPlayer player, Category category)
     {
         var items = shopCatalog
             .GetByWeaponType(category.WeaponType)
@@ -87,23 +84,23 @@ internal sealed class EquipmentMenu(
             return;
         }
 
-        var text = localizer[category.NameLocalizationKey];
+        var text = localization.GetForPlayer(player, category.NameLocalizationKey)
+                   ?? category.WeaponType.ToString();
         var submenuCategory = new SubmenuMenuOption(
             text,
-            BuildCategoryMenu(localizer, player, category, items)
+            BuildCategoryMenu(player, category, items)
         );
 
         builder.AddOption(submenuCategory);
     }
 
     private IMenuAPI BuildCategoryMenu(
-        ILocalizer localizer,
         IPlayer player,
         Category category,
         IReadOnlyCollection<IShopItem> items
     )
     {
-        var title = WeaponTypeToTitle(category.WeaponType, localizer);
+        var title = WeaponTypeToTitle(player, category.WeaponType);
         var menu = core.MenusAPI.CreateBuilder().Design.SetMenuTitle(title);
 
         foreach (var item in items)
@@ -159,7 +156,9 @@ internal sealed class EquipmentMenu(
 
         if (!equipmentService.CanUseItem(preparedPlayer, preparedItem.InternalName))
         {
-            preparedPlayer.SendChat("Невозможно купить для текущей роли!");
+            preparedPlayer.SendChat(
+                localization.GetForPlayer(preparedPlayer, "Equipment.Errors.RoleUnavailable")
+                ?? "This item is unavailable for your current role!");
             DispatchPurchaseRejected(preparedPlayer, preparedItem, ItemPurchaseRejectionReason.CannotUse);
             return;
         }
@@ -168,7 +167,9 @@ internal sealed class EquipmentMenu(
 
         if (!economyApi.TrySpendMoney(preparedPlayer, price))
         {
-            preparedPlayer.SendChat("Недостаточно денег!");
+            preparedPlayer.SendChat(
+                localization.GetForPlayer(preparedPlayer, "Equipment.Errors.NotEnoughMoney")
+                ?? "Not enough money!");
             DispatchPurchaseRejected(preparedPlayer, preparedItem, ItemPurchaseRejectionReason.PaymentRejected);
             return;
         }
@@ -210,19 +211,10 @@ internal sealed class EquipmentMenu(
         );
     }
 
-    private string WeaponTypeToTitle(WeaponType weaponType, ILocalizer localizer)
+    private string WeaponTypeToTitle(IPlayer player, WeaponType weaponType)
     {
-        return weaponType switch
-        {
-            WeaponType.Pistol => localizer[$"{BaseCategoryMenuPath}.{weaponType}"],
-            WeaponType.SubmachineGun => localizer[$"{BaseCategoryMenuPath}.{weaponType}"],
-            WeaponType.Rifle => localizer[$"{BaseCategoryMenuPath}.{weaponType}"],
-            WeaponType.Shotgun => localizer[$"{BaseCategoryMenuPath}.{weaponType}"],
-            WeaponType.SniperRifle => localizer[$"{BaseCategoryMenuPath}.{weaponType}"],
-            WeaponType.MachineGun => localizer[$"{BaseCategoryMenuPath}.{weaponType}"],
-            WeaponType.Grenade => localizer[$"{BaseCategoryMenuPath}.{weaponType}"],
-            WeaponType.Equipment => localizer[$"{BaseCategoryMenuPath}.{weaponType}"]
-        };
+        return localization.GetForPlayer(player, $"{BaseCategoryMenuPath}.{weaponType}")
+               ?? weaponType.ToString();
     }
 
     private string BuildTextItem(IShopItem item)

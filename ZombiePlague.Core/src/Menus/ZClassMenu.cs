@@ -1,6 +1,7 @@
 ﻿using Menu.Api.Data;
 using Menu.Api.Data.Contracts;
 using Menu.Api.Extensions;
+using Localization.Api;
 using Metrics.Api;
 using SwiftlyS2.Core.Menus.OptionsBase;
 using SwiftlyS2.Shared;
@@ -18,7 +19,8 @@ internal sealed class ZClassMenu(
     IMenuExtensionDispatcher extensionDispatcher,
     IZClassRegistrator zClassRegistrator,
     IPlayerRepository playerRepository,
-    IMetricsService metrics
+    IMetricsService metrics,
+    Func<ILocalizationApi> localization
 ) : DynamicOptionsMenu(core, extensionDispatcher)
 {
     public override string Id => ZombiePlagueMenuIds.ZClass;
@@ -34,13 +36,13 @@ internal sealed class ZClassMenu(
     ];
 
     private const string ZClassMenuTitle = "Menu.ZClass.Title";
+    private const string ZClassSelected = "Menu.ZClass.Selected";
+    private const string ZClassSelectionSuccess = "Menu.ZClass.SelectionSuccess";
 
     protected override IMenuBuilderAPI ConfigureDesign(IPlayer player, IMenuDesignAPI design)
     {
-        var locale = Core.Translation.GetPlayerLocalizer(player);
-
         return design
-            .SetMenuTitle(locale[ZClassMenuTitle])
+            .SetMenuTitle(localization().GetForPlayer(player, ZClassMenuTitle) ?? ZClassMenuTitle)
             .Design.SetMenuFooterVisible(false)
             .Design.SetMenuTitleItemCountVisible()
             .Design.SetMaxVisibleItems()
@@ -57,22 +59,25 @@ internal sealed class ZClassMenu(
 
         foreach (var zClass in zClasses)
         {
-            options.Add(BuildZClassOption(currentZClass, zClass));
+            options.Add(BuildZClassOption(player, currentZClass, zClass));
         }
     }
 
-    private ButtonMenuOption BuildZClassOption(string currentZClass, IZClassConfig zClass)
+    private ButtonMenuOption BuildZClassOption(IPlayer player, string currentZClass, IZClassConfig zClass)
     {
         var isSelected = zClass.InternalName == currentZClass;
+        var displayName = isSelected
+            ? localization().GetForPlayer(
+                  player,
+                  ZClassSelected,
+                  new Dictionary<string, string> { ["class"] = zClass.DisplayName })
+              ?? zClass.DisplayName
+            : zClass.DisplayName;
 
         var option = new ButtonMenuOption
         {
             Enabled = !isSelected,
-
-            Text = isSelected
-                ? $"{zClass.DisplayName} [выбран]"
-                : zClass.DisplayName,
-
+            Text = displayName,
             Comment = zClass.Description
         };
 
@@ -96,7 +101,15 @@ internal sealed class ZClassMenu(
                 );
             }
 
-            player.SendChatAsync($"Вы успешно выбрали класс зомби: {zClass.DisplayName}");
+            var message = localization().GetForPlayer(
+                player,
+                ZClassSelectionSuccess,
+                new Dictionary<string, string> { ["class"] = zClass.DisplayName });
+
+            if (message is not null)
+            {
+                player.SendChatAsync(message);
+            }
 
             core.MenusAPI.CloseActiveMenu(player);
 

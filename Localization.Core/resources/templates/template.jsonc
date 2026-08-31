@@ -1,0 +1,178 @@
+{
+  "schemaVersion": 1,
+  "version": 1,
+  "generatedAt": "2026-08-31T00:00:00Z",
+  "checksum": "sha256:d06d3436a7394e47c8311291b20ab0eba00355b45f24f987ce612ea3adf5a191",
+  "serverFallbackLanguage": "ru",
+  "languages": [
+    "ru",
+    "en",
+    "de",
+    "pl"
+  ],
+  "refreshIntervalSeconds": 30,
+  "localCacheEnabled": true,
+  "logMissingKeys": true,
+  "entries": {
+    "localization.menu.title": {
+      "ru": "Язык / Language",
+      "en": "Language",
+      "de": "Sprache",
+      "pl": "Język"
+    },
+    "localization.menu.changed": {
+      "ru": "Язык изменён на {language}",
+      "en": "Language changed to {language}",
+      "de": "Sprache geändert zu {language}",
+      "pl": "Zmieniono język na {language}"
+    },
+    "localization.menu.loading": {
+      "ru": "Локализация ещё загружается",
+      "en": "Localization is still loading",
+      "de": "Die Lokalisierung wird noch geladen",
+      "pl": "Lokalizacja wciąż się ładuje"
+    },
+    "localization.menu.unavailable": {
+      "ru": "Не удалось изменить язык. Попробуйте позже",
+      "en": "Unable to change language. Try again later",
+      "de": "Die Sprache konnte nicht geändert werden. Versuche es später erneut",
+      "pl": "Nie udało się zmienić języka. Spróbuj ponownie później"
+    },
+    "advertisement.tags.elysium": {
+      "ru": "Elysium",
+      "en": "Elysium"
+    },
+    "advertisement.messages.discord": {
+      "ru": "Наш Discord: {accent}discord.gg/elysium{/accent}",
+      "en": "Our Discord: {accent}discord.gg/elysium{/accent}"
+    },
+    "ResetScore.ResetMessage": {
+      "ru": "Ваш счёт обнулён!",
+      "en": "Your score has been reset!"
+    },
+    "DamageNotify.HitMessage": {
+      "ru": "Вы попали в",
+      "en": "You hit"
+    },
+    "Statistics.PointsGained": {
+      "ru": "За прошлый раунд вы получили +{points} очков.",
+      "en": "You gained +{points} points last round."
+    },
+    "Statistics.PointsLost": {
+      "ru": "За прошлый раунд вы потеряли {points} очков.",
+      "en": "You lost {points} points last round."
+    },
+    "Statistics.PointsUnchanged": {
+      "ru": "За прошлый раунд ваши очки не изменились.",
+      "en": "Your points did not change last round."
+    },
+    "Menu.Main.Title": {
+      "ru": "Меню сервера",
+      "en": "Server menu"
+    },
+    "Menu.Main.Item.ZClass.Title": {
+      "ru": "Выбрать класс зомби",
+      "en": "Select zombie class"
+    },
+    "Menu.ZClass.Title": {
+      "ru": "Классы зомби",
+      "en": "Zombie classes"
+    },
+    "Menu.ZClass.Selected": {
+      "ru": "{class} [выбран]",
+      "en": "{class} [selected]"
+    },
+    "Menu.ZClass.SelectionSuccess": {
+      "ru": "Вы успешно выбрали класс зомби: {class}",
+      "en": "Zombie class selected: {class}"
+    },
+    "Menu.Main.Item.Knife.Title": {
+      "ru": "Выбрать нож",
+      "en": "Select knife"
+    },
+    "Menu.Knife.Title": {
+      "ru": "Ножи",
+      "en": "Knives"
+    },
+    "Menu.Knife.Selected": {
+      "ru": "{knife} [выбран]",
+      "en": "{knife} [selected]"
+    },
+    "Menu.Knife.SelectionSuccess": {
+      "ru": "Вы выбрали нож: {knife}",
+      "en": "Knife selected: {knife}"
+    },
+    "CustomKnife.Monarch.Name": {
+      "ru": "Монарх",
+      "en": "Monarch"
+    },
+    "Menu.Main.Item.Equipment.Title": {
+      "ru": "Магазин снаряжения",
+      "en": "Equipment Shop"
+    },
+    "Menu.Equipment.Title": {
+      "ru": "Снаряжение",
+      "en": "Equipment"
+    },
+    "Menu.Equipment.Category.Pistol": {
+      "ru": "Пистолеты",
+      "en": "Pistols"
+    },
+    "Menu.Equipment.Category.SubmachineGun": {
+      "ru": "Пистолеты-пулемёты",
+      "en": "Submachine Guns"
+    },
+    "Menu.Equipment.Category.Rifle": {
+      "ru": "Штурмовые винтовки",
+      "en": "Rifles"
+    },
+    "Menu.Equipment.Category.Shotgun": {
+      "ru": "Дробовики",
+      "en": "Shotguns"
+    },
+    "Menu.Equipment.Category.SniperRifle": {
+      "ru": "Снайперские винтовки",
+      "en": "Sniper Rifles"
+    },
+    "Menu.Equipment.Category.MachineGun": {
+      "ru": "Пулемёты",
+      "en": "Machine Guns"
+    },
+    "Menu.Equipment.Category.Grenade": {
+      "ru": "Гранаты",
+      "en": "Grenades"
+    },
+    "Menu.Equipment.Category.Equipment": {
+      "ru": "Экипировка",
+      "en": "Equipment"
+    },
+    "Equipment.Errors.RoleUnavailable": {
+      "ru": "Этот предмет недоступен для текущей роли!",
+      "en": "This item is unavailable for your current role!"
+    },
+    "Equipment.Errors.NotEnoughMoney": {
+      "ru": "Недостаточно денег!",
+      "en": "Not enough money!"
+    },
+    "Ammo.Warning.NotEnoughMoney": {
+      "ru": "Не хватает денег",
+      "en": "You don't have enough money"
+    },
+    "Ammo.Warning.EnoughAmmo": {
+      "ru": "Боезапас заполнен",
+      "en": "Ammo full"
+    },
+    "RoundRatingNotify.prefix": {
+      "ru": "[[green]Elysium[default]]",
+      "en": "[[green]Elysium[default]]"
+    },
+    "RoundRatingNotify.HumanTop": {
+      "ru": "Лучший игрок за людей: {player} — нанёс {value} урона.",
+      "en": "Best human player: {player} — dealt {value} damage."
+    },
+    "RoundRatingNotify.ZombieTop": {
+      "ru": "Лучший игрок за зомби: {player} — заразил {value} игроков.",
+      "en": "Best zombie player: {player} — infected {value} players."
+    }
+  }
+}

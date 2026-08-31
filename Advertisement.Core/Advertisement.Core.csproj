@@ -23,6 +23,7 @@
     <ItemGroup>
         <ProjectReference Include="..\Admin.Api\Admin.Api.csproj" />
         <ProjectReference Include="..\Advertisement.Api\Advertisement.Api.csproj" />
+        <ProjectReference Include="..\Localization.Api\Localization.Api.csproj" />
         <ProjectReference Include="..\Common.Database\Common.Database.csproj">
             <Private>true</Private>
         </ProjectReference>

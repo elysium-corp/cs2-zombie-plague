@@ -3,6 +3,7 @@ using CustomKnife.Data.Services.Contracts;
 using CustomKnife.Data.Utils.Extensions;
 using CustomKnife.Initializer;
 using Menu.Api.Extensions;
+using Localization.Api;
 using SwiftlyS2.Core.Menus.OptionsBase;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Commands;
@@ -21,7 +22,8 @@ internal sealed class CustomKnifeCoordinator(
     IPlayerKnifeService playerKnifeService,
     KnifeRegistryInitializer knifeRegistryInitializer,
     KnifeMenu knifeMenu,
-    MenuApiBridge menuApiBridge
+    MenuApiBridge menuApiBridge,
+    ILocalizationApi localization
 )
 {
     private Guid _playerEquipHook = Guid.Empty;
@@ -94,9 +96,9 @@ internal sealed class CustomKnifeCoordinator(
 
     private void ExtendMainMenu(MenuExtensionContext context)
     {
-        var localizer = core.Translation.GetPlayerLocalizer(context.Player);
-
-        var knifeButton = new ButtonMenuOption(localizer[SelectKnifeItemTitle]);
+        var title = localization.GetForPlayer(context.Player, SelectKnifeItemTitle)
+                    ?? "Select knife";
+        var knifeButton = new ButtonMenuOption(title);
 
         knifeButton.Click += (_, args) =>
         {

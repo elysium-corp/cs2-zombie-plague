@@ -3,9 +3,11 @@ using Common.Database;
 using Common.Database.Storages;
 using Common.Database.Utils;
 using Common.Di;
+using Common.Di.Utils;
 using Common.Hooks;
 using Common.Hooks.Abstractions;
 using Menu.Api.Extensions;
+using Localization.Api;
 using Metrics.Api;
 using Microsoft.Extensions.DependencyInjection;
 using SwiftlyS2.Shared;
@@ -52,6 +54,7 @@ public sealed class ZombiePlagueModule(ISwiftlyCore core) : BaseModule(core)
         var service = new ServiceCollection();
 
         service.AddSwiftly(core);
+        service.AddSharedInterface<ILocalizationApi>();
 
         BuildConfigs(service);
         BuildSingletons(service);

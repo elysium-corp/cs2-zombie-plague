@@ -30,6 +30,7 @@
         <ProjectReference Include="..\Common.Hooks\Common.Hooks.csproj">
             <Private Condition="'$(Configuration)' == 'Migrations'">true</Private>
         </ProjectReference>
+        <ProjectReference Include="..\Localization.Api\Localization.Api.csproj" />
         <ProjectReference Include="..\ZombiePlague.Api\ZombiePlague.Api.csproj">
             <Private Condition="'$(Configuration)' == 'Migrations'">true</Private>
         </ProjectReference>

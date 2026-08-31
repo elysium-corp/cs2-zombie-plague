@@ -1,11 +1,12 @@
 using Common.Di;
+using System.Globalization;
+using Localization.Api;
 using RoundRatingNotify.Di;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Players;
 using ZombiePlague.Api;
-using ZombiePlague.Core.Utils.Extensions;
 using ZombiePlague.Api.Events.Contexts;
 using ZombiePlague.Api.Events.Contexts.Player;
 
@@ -27,10 +28,12 @@ internal sealed partial class RoundRatingNotify(ISwiftlyCore core) : Plugin<Roun
     private Guid _guidOnEvEventPlayerHurtPost = Guid.Empty;
 
     private IZombiePlagueApi _zombiePlagueApi = null!;
+    private ILocalizationApi _localization = null!;
 
     protected override void OnUseSharedInterfaces(IInterfaceManager interfaceManager)
     {
         _zombiePlagueApi = interfaceManager.GetSharedInterface<IZombiePlagueApi>(IZombiePlagueApi.SharedApiKey);
+        _localization = interfaceManager.GetSharedInterface<ILocalizationApi>(ILocalizationApi.SharedApiKey);
     }
 
     protected override void OnReady()
@@ -102,16 +105,43 @@ internal sealed partial class RoundRatingNotify(ISwiftlyCore core) : Plugin<Roun
         var humanTopPlayer = GetTopPlayerAndResultInRound(Team.CT);
         var zombieTopPlayer = GetTopPlayerAndResultInRound(Team.T);
         
-        if (humanTopPlayer.Key.IsNotNullOrEmpty())
+        foreach (var player in core.PlayerManager.GetAllPlayers()
+                     .Where(value => value is { IsAuthorized: true, IsFakeClient: false }))
         {
-            core.PlayerManager.SendChat(
-                $"{core.Localizer["RoundRatingNotify.prefix"]} [blue]Лучший игрок за людей: {humanTopPlayer.Key} — нанес {humanTopPlayer.Value} [blue]урона.");
-        }
-        
-        if (zombieTopPlayer.Key.IsNotNullOrEmpty())
-        {
-            core.PlayerManager.SendChat(
-                $"{core.Localizer["RoundRatingNotify.prefix"]} [red]Лучший игрок за зомби: {zombieTopPlayer.Key} — заразил {zombieTopPlayer.Value} [red]игроков.");
+            var prefix = _localization.GetForPlayer(player, "RoundRatingNotify.prefix")
+                         ?? "[[green]Elysium[default]]";
+
+            if (!string.IsNullOrEmpty(humanTopPlayer.Key))
+            {
+                var message = _localization.GetForPlayer(
+                    player,
+                    "RoundRatingNotify.HumanTop",
+                    new Dictionary<string, string>
+                    {
+                        ["player"] = humanTopPlayer.Key,
+                        ["value"] = humanTopPlayer.Value.ToString(CultureInfo.InvariantCulture),
+                    });
+                if (message is not null)
+                {
+                    player.SendChat($"{prefix} [blue]{message}");
+                }
+            }
+
+            if (!string.IsNullOrEmpty(zombieTopPlayer.Key))
+            {
+                var message = _localization.GetForPlayer(
+                    player,
+                    "RoundRatingNotify.ZombieTop",
+                    new Dictionary<string, string>
+                    {
+                        ["player"] = zombieTopPlayer.Key,
+                        ["value"] = zombieTopPlayer.Value.ToString(CultureInfo.InvariantCulture),
+                    });
+                if (message is not null)
+                {
+                    player.SendChat($"{prefix} [red]{message}");
+                }
+            }
         }
     }
 

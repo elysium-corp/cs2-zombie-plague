@@ -34,6 +34,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Common.Di\Common.Di.csproj" />
+      <ProjectReference Include="..\Localization.Api\Localization.Api.csproj" />
     </ItemGroup>
 
 </Project> 

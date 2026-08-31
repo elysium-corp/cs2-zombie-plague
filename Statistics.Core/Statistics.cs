@@ -1,5 +1,6 @@
 using Common.Database.Migrator;
 using Common.Di;
+using Localization.Api;
 using Microsoft.Extensions.Logging;
 using Statistics.Core.Database;
 using Statistics.Core.Di;
@@ -41,8 +42,11 @@ internal sealed partial class Statistics(ISwiftlyCore core) : Plugin<StatisticsM
         var zombiePlagueApi = interfaceManager.GetSharedInterface<IZombiePlagueApi>(
             IZombiePlagueApi.SharedApiKey
         );
+        var localization = interfaceManager.GetSharedInterface<ILocalizationApi>(
+            ILocalizationApi.SharedApiKey
+        );
 
-        _statisticsCollector.Value.Initialize(zombiePlagueApi);
+        _statisticsCollector.Value.Initialize(zombiePlagueApi, localization);
     }
 
     protected override void OnReady()

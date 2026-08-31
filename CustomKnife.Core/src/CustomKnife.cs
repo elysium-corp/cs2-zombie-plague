@@ -5,6 +5,7 @@ using CustomKnife.Data.Menus;
 using CustomKnife.Database;
 using CustomKnife.Di;
 using Menu.Api;
+using Localization.Api;
 using SwiftlyS2.Shared;
 using ZombiePlague.Api;
 
@@ -27,6 +28,7 @@ internal sealed partial class CustomKnife(ISwiftlyCore core) : Plugin<CustomKnif
     protected override void OnUseSharedInterfaces(IInterfaceManager interfaceManager)
     {
         BindSharedInterface<IZombiePlagueApi>(interfaceManager, IZombiePlagueApi.SharedApiKey);
+        BindSharedInterface<ILocalizationApi>(interfaceManager, ILocalizationApi.SharedApiKey);
     }
 
     protected override void OnSharedInterfacesInjected(IInterfaceManager interfaceManager)

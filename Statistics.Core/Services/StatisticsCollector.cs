@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using Common.Hooks;
+using Localization.Api;
 using Microsoft.Extensions.Logging;
 using Statistics.Core.Data;
 using Statistics.Core.Points;
@@ -32,6 +33,7 @@ internal sealed class StatisticsCollector(
     private readonly Dictionary<ulong, long> _pendingPointsNotifications = [];
 
     private IZombiePlagueApi? _zombiePlagueApi;
+    private ILocalizationApi? _localization;
 
     private PointsFormula? _roundFormula;
 
@@ -49,9 +51,10 @@ internal sealed class StatisticsCollector(
     private Guid _roundEndHook = Guid.Empty;
     private Guid _gameRestartHook = Guid.Empty;
 
-    public void Initialize(IZombiePlagueApi zombiePlagueApi)
+    public void Initialize(IZombiePlagueApi zombiePlagueApi, ILocalizationApi localization)
     {
         ArgumentNullException.ThrowIfNull(zombiePlagueApi);
+        ArgumentNullException.ThrowIfNull(localization);
 
         if (_zombiePlagueApi is not null)
         {
@@ -59,6 +62,7 @@ internal sealed class StatisticsCollector(
         }
 
         _zombiePlagueApi = zombiePlagueApi;
+        _localization = localization;
     }
 
     public void Start()
@@ -375,7 +379,6 @@ internal sealed class StatisticsCollector(
                 continue;
             }
 
-            var localizer = core.Translation.GetPlayerLocalizer(player);
             var translationKey = pointsDelta switch
             {
                 > 0 => "Statistics.PointsGained",
@@ -383,7 +386,14 @@ internal sealed class StatisticsCollector(
                 _ => "Statistics.PointsUnchanged"
             };
             var points = Math.Abs(pointsDelta).ToString(CultureInfo.InvariantCulture);
-            var message = localizer[translationKey].Replace("{points}", points);
+            var message = GetLocalization().GetForPlayer(
+                player,
+                translationKey,
+                new Dictionary<string, string> { ["points"] = points });
+            if (message is null)
+            {
+                continue;
+            }
             var color = pointsDelta switch
             {
                 > 0 => "green",
@@ -507,6 +517,12 @@ internal sealed class StatisticsCollector(
     {
         return _zombiePlagueApi
                ?? throw new InvalidOperationException("Zombie Plague API is not initialized!");
+    }
+
+    private ILocalizationApi GetLocalization()
+    {
+        return _localization
+               ?? throw new InvalidOperationException("Localization API is not initialized!");
     }
 
     private static bool CanTrack([NotNullWhen(true)] IPlayer? player)

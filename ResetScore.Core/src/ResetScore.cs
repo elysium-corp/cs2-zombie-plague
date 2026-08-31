@@ -1,4 +1,5 @@
 using Common.Di;
+using Localization.Api;
 using ResetScore.Di;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Commands;
@@ -17,6 +18,14 @@ namespace ResetScore;
 internal sealed partial class ResetScore(ISwiftlyCore core) : Plugin<ResetScoreModule>(core)
 {
     private Guid _command;
+    private ILocalizationApi _localization = null!;
+
+    protected override void OnUseSharedInterfaces(IInterfaceManager interfaceManager)
+    {
+        _localization = interfaceManager.GetSharedInterface<ILocalizationApi>(
+            ILocalizationApi.SharedApiKey);
+    }
+
     protected override void OnReady()
     {
         _command = core.Command.RegisterCommand(
@@ -74,8 +83,8 @@ internal sealed partial class ResetScore(ISwiftlyCore core) : Plugin<ResetScoreM
 
     private void NotifyPlayer(IPlayer player)
     {
-        var localizer = core.Translation.GetPlayerLocalizer(player);
-        var message = localizer["ResetScore.ResetMessage"];
+        var message = _localization.GetForPlayer(player, "ResetScore.ResetMessage")
+                      ?? "Your score has been reset!";
         
         switch (player.Controller.Team)
         {

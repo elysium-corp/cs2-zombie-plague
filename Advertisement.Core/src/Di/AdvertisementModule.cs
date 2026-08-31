@@ -6,6 +6,8 @@ using Advertisement.Core.Database;
 using Common.Database;
 using Common.Database.Utils;
 using Common.Di;
+using Common.Di.Utils;
+using Localization.Api;
 using Microsoft.Extensions.DependencyInjection;
 using SwiftlyS2.Shared;
 
@@ -18,10 +20,9 @@ internal sealed class AdvertisementModule(ISwiftlyCore core) : BaseModule(core)
         var services = new ServiceCollection();
         AddConfig<AdvertisementConfig>(services, "advertisement.json", "AdvertisementConfig");
         services.AddSwiftly(Core);
+        services.AddSharedInterface<ILocalizationApi>();
 
         AddSingleton<AdvertisementCache>(services);
-        AddSingleton<PlayerLocaleStore>(services);
-        AddSingleton<PlayerLocaleResolver>(services);
         AddSingleton<AdminAudienceResolver>(services);
         AddSingleton<MarkupRenderer>(services);
         AddSingleton<PlaceholderResolver>(services);
@@ -30,7 +31,6 @@ internal sealed class AdvertisementModule(ISwiftlyCore core) : BaseModule(core)
         AddSingleton<AdvertisementApi>(services);
         AddSingleton<ConfigAdvertisementProvider>(services);
         AddSingleton<DatabaseAdvertisementProvider>(services);
-        AddSingleton<PlayerPreferenceRepository>(services);
         AddSingleton<RateLimitedLogger>(services, _ => new RateLimitedLogger(Core.Logger));
         AddSingleton<AdvertisementCoordinator>(services, provider => new AdvertisementCoordinator(
             provider.GetRequiredService<AdvertisementCache>(),

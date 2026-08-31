@@ -15,8 +15,6 @@ internal enum AdvertisementAudienceType { All, AdminGroup }
 
 internal sealed record AdvertisementSettings(
     bool Enabled,
-    string DefaultLocale,
-    FrozenSet<string> AllowedLocales,
     int IntervalSeconds,
     int RefreshIntervalSeconds,
     int InitialDelaySeconds,
@@ -30,8 +28,10 @@ internal sealed record AdvertisementTag(
     string Key,
     string Color,
     bool Enabled,
-    int SortOrder,
-    FrozenDictionary<string, string> Translations);
+    int SortOrder)
+{
+    public string LocalizationKey => $"advertisement.tags.{Key}";
+}
 
 internal sealed record AdvertisementMessage(
     long Id,
@@ -53,9 +53,10 @@ internal sealed record AdvertisementMessage(
     int? MinPlayers,
     int? MaxPlayers,
     DateTimeOffset? StartsAt,
-    DateTimeOffset? EndsAt,
-    FrozenDictionary<string, string> Translations)
+    DateTimeOffset? EndsAt)
 {
+    public string LocalizationKey => $"advertisement.messages.{Key}";
+
     public bool IsActive(DateTimeOffset now, int playerCount)
     {
         var localTime = TimeOnly.FromDateTime(now.LocalDateTime);
@@ -123,28 +124,6 @@ internal sealed class AdvertisementCache
     }
 }
 
-internal static class LocaleNormalizer
-{
-    public static string Normalize(string? locale)
-    {
-        if (string.IsNullOrWhiteSpace(locale)) return string.Empty;
-        var value = locale.Trim().Replace('_', '-');
-        return value.ToLowerInvariant() switch
-        {
-            "russian" or "ru-ru" => "ru",
-            "english" or "en-us" or "en-gb" => "en",
-            "ukrainian" or "uk-ua" => "uk",
-            "polish" or "pl-pl" => "pl",
-            "german" or "de-de" => "de",
-            "pt-br" => "pt-BR",
-            "zh-cn" => "zh-CN",
-            "zh-tw" => "zh-TW",
-            _ when value.Length > 2 && value[2] == '-' => value[..2].ToLowerInvariant(),
-            _ => value.ToLowerInvariant(),
-        };
-    }
-}
-
 internal static class DeliveryRuleParser
 {
     public static AdvertisementDispatchMode ParseDispatchMode(string? value) => value?.ToLowerInvariant() switch
@@ -185,10 +164,6 @@ internal sealed class ConfigAdvertisementProvider(IOptionsMonitor<AdvertisementC
     public AdvertisementSnapshot Load()
     {
         var config = options.CurrentValue;
-        var fallbackLocale = LocaleNormalizer.Normalize(config.DefaultLocale);
-        var allowed = config.AllowedLocales.Select(LocaleNormalizer.Normalize)
-            .Where(x => !string.IsNullOrWhiteSpace(x)).Append(fallbackLocale)
-            .ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
         var tags = new Dictionary<long, AdvertisementTag>();
         var tagIds = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
@@ -197,7 +172,7 @@ internal sealed class ConfigAdvertisementProvider(IOptionsMonitor<AdvertisementC
         {
             var id = tagId--;
             tagIds[tag.Key] = id;
-            tags[id] = new AdvertisementTag(id, tag.Key, tag.Color, true, tags.Count, Normalize(tag.Translations));
+            tags[id] = new AdvertisementTag(id, tag.Key, tag.Color, true, tags.Count);
         }
 
         var messages = new Dictionary<long, AdvertisementMessage>();
@@ -218,11 +193,11 @@ internal sealed class ConfigAdvertisementProvider(IOptionsMonitor<AdvertisementC
                 DeliveryRuleParser.ParseAudienceType(message.AudienceType),
                 string.IsNullOrWhiteSpace(message.AudienceGroup) ? null : message.AudienceGroup.Trim(),
                 message.MinPlayers, message.MaxPlayers,
-                message.StartsAt, message.EndsAt, Normalize(message.Translations));
+                message.StartsAt, message.EndsAt);
         }
 
         var settings = new AdvertisementSettings(
-            config.Enabled, fallbackLocale, allowed, Math.Max(10, config.IntervalSeconds),
+            config.Enabled, Math.Max(10, config.IntervalSeconds),
             Math.Max(5, config.RefreshIntervalSeconds), Math.Max(0, config.InitialDelaySeconds),
             ParseOrder(config.OrderMode), config.ExcludeBotsFromPlayers,
             config.Colors.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase), 0);
@@ -238,10 +213,6 @@ internal sealed class ConfigAdvertisementProvider(IOptionsMonitor<AdvertisementC
         _ => AdvertisementOrderMode.Sequential,
     };
 
-    private static FrozenDictionary<string, string> Normalize(Dictionary<string, string> values) =>
-        values.Where(x => !string.IsNullOrWhiteSpace(x.Value))
-            .GroupBy(x => LocaleNormalizer.Normalize(x.Key), StringComparer.OrdinalIgnoreCase)
-            .ToFrozenDictionary(x => x.Key, x => x.Last().Value, StringComparer.OrdinalIgnoreCase);
 }
 
 internal sealed class DatabaseAdvertisementProvider(
@@ -256,18 +227,16 @@ internal sealed class DatabaseAdvertisementProvider(
             .SingleOrDefaultAsync(cancellationToken)
             ?? throw new InvalidOperationException("В advertisement.settings отсутствует настройка.");
 
-        var tags = await context.Tags.AsNoTracking().Include(x => x.Translations)
+        var tags = await context.Tags.AsNoTracking()
             .OrderBy(x => x.SortOrder).ThenBy(x => x.Id).ToListAsync(cancellationToken);
-        var messages = await context.Messages.AsNoTracking().Include(x => x.Translations)
+        var messages = await context.Messages.AsNoTracking()
             .OrderByDescending(x => x.Priority).ThenBy(x => x.SortOrder).ThenBy(x => x.Id)
             .ToListAsync(cancellationToken);
 
-        var allowed = JsonSerializer.Deserialize<string[]>(settingsEntity.AllowedLocalesJson, JsonOptions) ?? ["ru"];
         var colors = JsonSerializer.Deserialize<Dictionary<string, string>>(settingsEntity.ColorsJson, JsonOptions) ?? [];
         var settings = new AdvertisementSettings(
-            settingsEntity.Enabled, LocaleNormalizer.Normalize(settingsEntity.DefaultLocale),
-            allowed.Select(LocaleNormalizer.Normalize).ToFrozenSet(StringComparer.OrdinalIgnoreCase),
-            settingsEntity.IntervalSeconds, settingsEntity.RefreshIntervalSeconds, settingsEntity.InitialDelaySeconds,
+            settingsEntity.Enabled, settingsEntity.IntervalSeconds,
+            settingsEntity.RefreshIntervalSeconds, settingsEntity.InitialDelaySeconds,
             ConfigAdvertisementProvider.ParseOrder(settingsEntity.OrderMode), settingsEntity.ExcludeBotsFromPlayers,
             colors.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase), settingsEntity.ConfigurationVersion);
 
@@ -280,8 +249,7 @@ internal sealed class DatabaseAdvertisementProvider(
     }
 
     private static AdvertisementTag MapTag(AdvertisementTagEntity entity) => new(
-        entity.Id, entity.Key, entity.Color, entity.Enabled, entity.SortOrder,
-        Normalize(entity.Translations.Select(x => (x.Locale, x.Text))));
+        entity.Id, entity.Key, entity.Color, entity.Enabled, entity.SortOrder);
 
     private static AdvertisementMessage MapMessage(AdvertisementMessageEntity entity) => new(
         entity.Id, entity.Key, entity.Name, entity.TagId, entity.Type, entity.Enabled,
@@ -291,46 +259,5 @@ internal sealed class DatabaseAdvertisementProvider(
         entity.DailyStartTime, entity.DailyEndTime,
         DeliveryRuleParser.ParseAudienceType(entity.AudienceType),
         string.IsNullOrWhiteSpace(entity.AudienceGroup) ? null : entity.AudienceGroup.Trim(),
-        entity.MinPlayers, entity.MaxPlayers, entity.StartsAt, entity.EndsAt,
-        Normalize(entity.Translations.Select(x => (x.Locale, x.Text))));
-
-    private static FrozenDictionary<string, string> Normalize(IEnumerable<(string Locale, string Text)> values) =>
-        values.Where(x => !string.IsNullOrWhiteSpace(x.Text))
-            .GroupBy(x => LocaleNormalizer.Normalize(x.Locale), StringComparer.OrdinalIgnoreCase)
-            .ToFrozenDictionary(x => x.Key, x => x.Last().Text, StringComparer.OrdinalIgnoreCase);
-}
-
-internal sealed class PlayerPreferenceRepository(IDbContextFactory<AdvertisementDbContext> contextFactory)
-{
-    public async Task<string?> LoadLocaleAsync(ulong steamId, CancellationToken cancellationToken)
-    {
-        var id = checked((long)steamId);
-        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
-        var locale = await context.PlayerPreferences.AsNoTracking()
-            .Where(x => x.SteamId == id).Select(x => x.Locale).SingleOrDefaultAsync(cancellationToken);
-        return locale is null ? null : LocaleNormalizer.Normalize(locale);
-    }
-
-    public async Task SaveLocaleAsync(ulong steamId, string? locale, CancellationToken cancellationToken)
-    {
-        var id = checked((long)steamId);
-        var normalized = string.IsNullOrWhiteSpace(locale) ? null : LocaleNormalizer.Normalize(locale);
-        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
-        var preference = await context.PlayerPreferences.SingleOrDefaultAsync(x => x.SteamId == id, cancellationToken);
-        if (preference is null)
-        {
-            context.PlayerPreferences.Add(new PlayerPreferenceEntity
-            {
-                SteamId = id,
-                Locale = normalized,
-                UpdatedAt = DateTimeOffset.UtcNow,
-            });
-        }
-        else
-        {
-            preference.Locale = normalized;
-            preference.UpdatedAt = DateTimeOffset.UtcNow;
-        }
-        await context.SaveChangesAsync(cancellationToken);
-    }
+        entity.MinPlayers, entity.MaxPlayers, entity.StartsAt, entity.EndsAt);
 }
