@@ -29,4 +29,10 @@
         </ProjectReference>
     </ItemGroup>
 
+    <ItemGroup>
+        <Content Include="..\Localization.Core\resources\templates\template.jsonc"
+                 Link="Fixtures\template.jsonc"
+                 CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+
 </Project>

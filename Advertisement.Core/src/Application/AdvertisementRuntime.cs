@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
+using System.Globalization;
 using System.Text;
-using System.Text.RegularExpressions;
 using Admin.Api;
 using Advertisement.Core.Data;
 using Localization.Api;
@@ -68,7 +68,7 @@ internal sealed class RateLimitedLogger(ILogger logger)
     }
 }
 
-internal sealed partial class MarkupRenderer
+internal sealed class MarkupRenderer
 {
     private static readonly HashSet<string> SupportedColors = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -77,67 +77,12 @@ internal sealed partial class MarkupRenderer
         "lightred","gold","orange",
     };
 
-    public string Render(string text, IReadOnlyDictionary<string, string> colors)
-    {
-        text = RawColorRegex().Replace(text, string.Empty);
-        var output = new StringBuilder(text.Length + 32);
-        var stack = new List<(string Name, string Color)> { ("root", ResolveColor("default", colors)) };
-        var position = 0;
-        foreach (Match match in MarkupRegex().Matches(text))
-        {
-            output.Append(text, position, match.Index - position);
-            position = match.Index + match.Length;
-            var name = match.Groups["name"].Value.ToLowerInvariant();
-            if (match.Groups["close"].Success)
-            {
-                for (var i = stack.Count - 1; i > 0; i--)
-                {
-                    if (!string.Equals(stack[i].Name, name, StringComparison.OrdinalIgnoreCase)) continue;
-                    stack.RemoveRange(i, stack.Count - i);
-                    output.Append('[').Append(stack[^1].Color).Append(']');
-                    break;
-                }
-                continue;
-            }
-            var color = name == "color" ? NormalizeColor(match.Groups["color"].Value) : ResolveColor(name, colors);
-            stack.Add((name, color));
-            output.Append('[').Append(color).Append(']');
-        }
-        output.Append(text, position, text.Length - position).Append("[/]");
-        return output.ToString();
-    }
-
     public string NormalizeColor(string? value) =>
         !string.IsNullOrWhiteSpace(value) && SupportedColors.Contains(value) ? value.ToLowerInvariant() : "default";
-    private string ResolveColor(string name, IReadOnlyDictionary<string, string> colors) =>
-        colors.TryGetValue(name, out var color) ? NormalizeColor(color) : "default";
-
-    [GeneratedRegex(@"\{(?<close>/)?(?<name>accent|warning|success|important|muted|color)(?::(?<color>[a-z]+))?\}", RegexOptions.IgnoreCase)]
-    private static partial Regex MarkupRegex();
-    [GeneratedRegex(@"\[(?:/?|default|white|darkred|lightpurple|green|olive|lime|red|gr[ae]y|lightyellow|yellow|silver|bluegrey|lightblue|blue|darkblue|purple|magenta|lightred|gold|orange)\]", RegexOptions.IgnoreCase)]
-    private static partial Regex RawColorRegex();
-}
-
-internal sealed partial class PlaceholderResolver
-{
-    public string Resolve(string template, IPlayer player, string serverName, string mapName, int players, int bots, int maxPlayers, string nextMap, DateTimeOffset now)
-    {
-        var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-        {
-            ["server_name"] = serverName, ["map"] = mapName, ["players"] = players.ToString(),
-            ["bots"] = bots.ToString(), ["total_players"] = (players + bots).ToString(),
-            ["max_players"] = maxPlayers.ToString(), ["time"] = now.ToLocalTime().ToString("HH:mm"),
-            ["next_map"] = nextMap, ["player_name"] = player.Name, ["steam_id"] = player.SteamID.ToString(),
-        };
-        return PlaceholderRegex().Replace(template, m => values.TryGetValue(m.Groups[1].Value, out var value) ? RawColorRegex().Replace(value, string.Empty) : m.Value);
-    }
-    [GeneratedRegex(@"\{([a-z_]+)\}", RegexOptions.IgnoreCase)] private static partial Regex PlaceholderRegex();
-    [GeneratedRegex(@"\[(?:/?|default|white|darkred|lightpurple|green|olive|lime|red|gr[ae]y|lightyellow|yellow|silver|bluegrey|lightblue|blue|darkblue|purple|magenta|lightred|gold|orange)\]", RegexOptions.IgnoreCase)] private static partial Regex RawColorRegex();
 }
 
 internal sealed class AdvertisementSender(
     Func<ILocalizationApi> localization,
-    PlaceholderResolver placeholderResolver,
     MarkupRenderer markupRenderer)
 {
     public void Send(AdvertisementSnapshot snapshot, AdvertisementMessage message, IEnumerable<IPlayer> targets,
@@ -147,14 +92,21 @@ internal sealed class AdvertisementSender(
         foreach (var player in targets)
         {
             if (player.IsFakeClient || !player.IsAuthorized) continue;
+            var parameters = CreateParameters(
+                player,
+                serverName,
+                mapName,
+                snapshot.Settings.ExcludeBotsFromPlayers ? humans : humans + bots,
+                bots,
+                maxPlayers,
+                nextMap,
+                now);
             var text = localeOverride is null
-                ? localization().GetForPlayer(player, message.LocalizationKey)
-                : localization().GetForLanguage(localeOverride, message.LocalizationKey);
+                ? localization().FormatForPlayer(player, message.LocalizationKey, parameters)
+                : localization().FormatForLanguage(localeOverride, message.LocalizationKey, parameters);
             if (text is null) continue;
 
-            var resolved = placeholderResolver.Resolve(text, player, serverName, mapName,
-                snapshot.Settings.ExcludeBotsFromPlayers ? humans : humans + bots, bots, maxPlayers, nextMap, now);
-            var output = new StringBuilder(resolved.Length + 48);
+            var output = new StringBuilder(text.Length + 48);
             if (tag is { Enabled: true })
             {
                 var tagText = localeOverride is null
@@ -163,11 +115,35 @@ internal sealed class AdvertisementSender(
                 if (!string.IsNullOrWhiteSpace(tagText))
                     output.Append('[').Append(markupRenderer.NormalizeColor(tag.Color)).Append("][").Append(tagText).Append("][/] ");
             }
-            output.Append(markupRenderer.Render(resolved, snapshot.Settings.Colors));
+            output.Append(text).Append("[/]");
             player.SendMessage(MessageType.Chat, output.ToString().Colored());
         }
     }
 
+    private static IReadOnlyDictionary<string, object?> CreateParameters(
+        IPlayer player,
+        string serverName,
+        string mapName,
+        int players,
+        int bots,
+        int maxPlayers,
+        string nextMap,
+        DateTimeOffset now)
+    {
+        return new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["server_name"] = serverName,
+            ["map"] = mapName,
+            ["players"] = players.ToString(CultureInfo.InvariantCulture),
+            ["bots"] = bots.ToString(CultureInfo.InvariantCulture),
+            ["total_players"] = (players + bots).ToString(CultureInfo.InvariantCulture),
+            ["max_players"] = maxPlayers.ToString(CultureInfo.InvariantCulture),
+            ["time"] = now.ToLocalTime().ToString("HH:mm", CultureInfo.InvariantCulture),
+            ["next_map"] = nextMap,
+            ["player_name"] = player.Name,
+            ["steam_id"] = player.SteamID.ToString(CultureInfo.InvariantCulture),
+        };
+    }
 }
 
 internal sealed class AdvertisementScheduler(

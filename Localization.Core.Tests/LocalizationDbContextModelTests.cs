@@ -39,4 +39,20 @@ public sealed class LocalizationDbContextModelTests
         Assert.Equal("jsonb", property.GetColumnType());
         Assert.Equal("'[]'::jsonb", property.GetDefaultValueSql());
     }
+
+    [Fact]
+    public void SettingsColorTags_AreStoredAsJsonObject()
+    {
+        var options = new DbContextOptionsBuilder<LocalizationDbContext>()
+            .UseNpgsql("Host=localhost;Database=metadata;Username=metadata;Password=metadata")
+            .Options;
+        using var context = new LocalizationDbContext(options);
+
+        var property = context.Model
+            .FindEntityType(typeof(LocalizationSettingsEntity))!
+            .FindProperty(nameof(LocalizationSettingsEntity.ColorTagsJson))!;
+
+        Assert.Equal("jsonb", property.GetColumnType());
+        Assert.Contains("\"success\":\"green\"", property.GetDefaultValueSql() ?? string.Empty);
+    }
 }

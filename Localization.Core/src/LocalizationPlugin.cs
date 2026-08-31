@@ -18,7 +18,7 @@ namespace Localization.Core;
 
 [PluginMetadata(
     Id = "Localization.Core",
-    Version = "1.0.0",
+    Version = "1.2.0",
     Name = "Elysium Localization",
     Author = "Elysium",
     Description = "Единая локализация Elysium с языком игрока, PostgreSQL и fallback-конфигурацией.")]
@@ -73,7 +73,7 @@ internal sealed class LocalizationPlugin(ISwiftlyCore core) : Plugin<Localizatio
             BindAndLoad(player.PlayerID, player.SteamID);
         }
 
-        Core.Logger.LogInformation("[Localization] Localization.Core 1.0.0 загружен.");
+        Core.Logger.LogInformation("[Localization] Localization.Core 1.2.0 загружен.");
     }
 
     protected override void OnUnload()
@@ -335,12 +335,12 @@ internal sealed class LocalizationPlugin(ISwiftlyCore core) : Plugin<Localizatio
         var snapshot = _cache.Value.Current;
         if (snapshot is null)
         {
-            context.Reply("Localization.Core 1.0.0\nSnapshot: загружается");
+            context.Reply("Localization.Core 1.2.0\nSnapshot: загружается");
             return;
         }
 
         context.Reply(
-            $"Localization.Core 1.0.0\nSource: {snapshot.Source}\nKeys: {snapshot.Entries.Count}" +
+            $"Localization.Core 1.2.0\nSource: {snapshot.Source}\nKeys: {snapshot.Entries.Count}" +
             $"\nLanguages: {snapshot.Languages.Values.Count(language => language.Enabled)}" +
             $"\nServer fallback: {snapshot.Settings.ServerFallbackLanguage}" +
             $"\nVersion: {snapshot.Settings.ConfigurationVersion}");

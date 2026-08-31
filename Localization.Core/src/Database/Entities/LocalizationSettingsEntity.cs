@@ -23,6 +23,10 @@ internal sealed class LocalizationSettingsEntity
     [Column("log_missing_keys")]
     public bool LogMissingKeys { get; set; } = true;
 
+    [Column("color_tags")]
+    public string ColorTagsJson { get; set; } =
+        "{\"default\":\"default\",\"accent\":\"lightblue\",\"warning\":\"red\",\"success\":\"green\",\"important\":\"orange\",\"muted\":\"gray\"}";
+
     [Column("configuration_version")]
     public long ConfigurationVersion { get; set; } = 1;
 

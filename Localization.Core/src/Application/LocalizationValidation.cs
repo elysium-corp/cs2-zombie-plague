@@ -8,7 +8,7 @@ namespace Localization.Core.Application;
 
 internal static partial class LocalizationValidation
 {
-    public const int SupportedSchemaVersion = 2;
+    public const int SupportedSchemaVersion = 3;
     public const int MinimumSchemaVersion = 1;
 
     public static readonly FrozenSet<string> CriticalKeys = new[]
@@ -22,37 +22,12 @@ internal static partial class LocalizationValidation
     private static readonly FrozenSet<string> MarkupTags = new[]
     {
         "accent",
+        "default",
         "warning",
         "success",
         "important",
         "muted",
         "color",
-    }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
-
-    private static readonly FrozenSet<string> MarkupColors = new[]
-    {
-        "default",
-        "white",
-        "darkred",
-        "lightpurple",
-        "green",
-        "olive",
-        "lime",
-        "red",
-        "gray",
-        "grey",
-        "lightyellow",
-        "yellow",
-        "silver",
-        "bluegrey",
-        "lightblue",
-        "blue",
-        "darkblue",
-        "purple",
-        "magenta",
-        "lightred",
-        "gold",
-        "orange",
     }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
     public static void ValidateFallback(LocalizationFallbackConfig config)
@@ -76,6 +51,8 @@ internal static partial class LocalizationValidation
         }
 
         var languages = NormalizeLanguages(config.Languages);
+        var colorTags = LocalizationColorSchema.FromConfig(
+            config.SchemaVersion >= 3 ? config.ColorTags : null);
         var fallback = LocaleNormalizer.Normalize(config.ServerFallbackLanguage);
         if (fallback.Length == 0 || !languages.Contains(fallback))
         {
@@ -104,7 +81,7 @@ internal static partial class LocalizationValidation
                     ? configured
                     : null,
                 normalized);
-            ValidateTranslations(key, normalized, fallback);
+            ValidateTranslations(key, normalized, fallback, colorTags);
             _ = parameters;
         }
 
@@ -156,7 +133,12 @@ internal static partial class LocalizationValidation
                     $"Для критического ключа '{entry.Key}' отсутствует fallback-перевод '{fallback}'.");
             }
 
-            ValidateTranslations(entry.Key, entry.Translations, fallback, enabledLanguages);
+            ValidateTranslations(
+                entry.Key,
+                entry.Translations,
+                fallback,
+                snapshot.Settings.ColorTags,
+                enabledLanguages);
             _ = LocalizationParameterSchema.Normalize(
                 entry.Parameters.Values,
                 entry.Translations
@@ -226,6 +208,7 @@ internal static partial class LocalizationValidation
         string key,
         IReadOnlyDictionary<string, string> translations,
         string fallback,
+        IReadOnlyDictionary<string, string> colorTags,
         IReadOnlySet<string>? enabledLanguages = null)
     {
         foreach (var (language, text) in translations)
@@ -235,7 +218,7 @@ internal static partial class LocalizationValidation
                 continue;
             }
 
-            if (!HasValidMarkup(text))
+            if (!HasValidMarkup(text, colorTags))
             {
                 throw new InvalidDataException(
                     $"Markup ключа '{key}' для языка '{language}' содержит незакрытые или вложенные неверно теги.");
@@ -266,19 +249,36 @@ internal static partial class LocalizationValidation
 
     internal static FrozenSet<string> ExtractPlaceholders(string text)
     {
+        var pairedTags = ClosingMarkupRegex().Matches(text)
+            .Select(match => match.Groups["name"].Value)
+            .ToFrozenSet(StringComparer.OrdinalIgnoreCase);
         return PlaceholderRegex().Matches(text)
             .Select(match => match.Groups["name"].Value)
-            .Where(name => !MarkupTags.Contains(name))
+            .Where(name => !MarkupTags.Contains(name) && !pairedTags.Contains(name))
             .ToFrozenSet(StringComparer.OrdinalIgnoreCase);
     }
 
-    private static bool HasValidMarkup(string text)
+    private static bool HasValidMarkup(
+        string text,
+        IReadOnlyDictionary<string, string> colorTags)
     {
         var stack = new Stack<string>();
         foreach (Match match in MarkupRegex().Matches(text))
         {
             var name = match.Groups["name"].Value.ToLowerInvariant();
             var argument = match.Groups["argument"].Value;
+            var recognized = string.Equals(name, "color", StringComparison.OrdinalIgnoreCase)
+                             || colorTags.ContainsKey(name);
+            if (!recognized)
+            {
+                if (match.Groups["close"].Success)
+                {
+                    return false;
+                }
+
+                continue;
+            }
+
             if (match.Groups["close"].Success)
             {
                 if (argument.Length > 0
@@ -290,7 +290,7 @@ internal static partial class LocalizationValidation
             }
             else
             {
-                if ((name == "color" && !MarkupColors.Contains(argument))
+                if ((name == "color" && !LocalizationColorSchema.SupportedColors.Contains(argument))
                     || (name != "color" && argument.Length > 0))
                 {
                     return false;
@@ -310,9 +310,14 @@ internal static partial class LocalizationValidation
     private static partial Regex PlaceholderRegex();
 
     [GeneratedRegex(
-        @"\{(?<close>/)?(?<name>accent|warning|success|important|muted|color)(?::(?<argument>[a-z]+))?\}",
+        @"\{(?<close>/)?(?<name>[a-z][a-z0-9_]*)(?::(?<argument>[a-z]+))?\}",
         RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex MarkupRegex();
+
+    [GeneratedRegex(
+        @"\{/(?<name>[a-z][a-z0-9_]*)\}",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex ClosingMarkupRegex();
 }
 
 internal static class FallbackConfigChecksum
@@ -370,6 +375,16 @@ internal static class FallbackConfigChecksum
                     Append(builder, "parameterDescription", parameter.Description ?? string.Empty);
                     Append(builder, "parameterExample", parameter.Example.Replace("\r\n", "\n", StringComparison.Ordinal));
                 }
+            }
+        }
+
+        if (config.SchemaVersion >= 3)
+        {
+            var colorTags = LocalizationColorSchema.FromConfig(config.ColorTags);
+            foreach (var colorTag in colorTags.OrderBy(item => item.Key, StringComparer.Ordinal))
+            {
+                Append(builder, "colorTagName", colorTag.Key);
+                Append(builder, "colorTagColor", colorTag.Value);
             }
         }
 

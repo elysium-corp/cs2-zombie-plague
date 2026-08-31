@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Localization.Core.Application;
 using Localization.Core.Configuration;
 using Localization.Core.Data;
@@ -12,6 +13,19 @@ public sealed class FallbackConfigTests
         var config = CreateConfig();
         config.Checksum = FallbackConfigChecksum.Compute(config);
 
+        LocalizationValidation.ValidateFallback(config);
+    }
+
+    [Fact]
+    public void DistributedTemplate_HasAValidSchemaAndChecksum()
+    {
+        var path = Path.Combine(AppContext.BaseDirectory, "Fixtures", "template.jsonc");
+        var config = JsonSerializer.Deserialize<LocalizationFallbackConfig>(
+            File.ReadAllText(path),
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+        Assert.NotNull(config);
+        Assert.Equal(LocalizationValidation.SupportedSchemaVersion, config.SchemaVersion);
         LocalizationValidation.ValidateFallback(config);
     }
 
@@ -133,6 +147,34 @@ public sealed class FallbackConfigTests
         var parameter = snapshot.Entries["Statistics.PointsGained"].Parameters["points"];
         Assert.Equal(Localization.Api.LocalizationParameterType.Integer, parameter.Type);
         Assert.Equal("15", parameter.Example);
+    }
+
+    [Fact]
+    public void VersionThree_PreservesAndValidatesCustomColorTags()
+    {
+        var config = CreateConfig();
+        config.SchemaVersion = 3;
+        config.ColorTags["vip"] = "gold";
+        config.Entries["optional.vip"] = new Dictionary<string, string>
+        {
+            ["ru"] = "{vip}VIP игрок{/vip}",
+        };
+        config.Checksum = FallbackConfigChecksum.Compute(config);
+
+        LocalizationValidation.ValidateFallback(config);
+        var snapshot = FallbackLocalizationProvider.Build(config, LocalizationSource.Config);
+
+        Assert.Equal("gold", snapshot.Settings.ColorTags["vip"]);
+    }
+
+    [Fact]
+    public void VersionThree_RejectsUnsupportedCustomColor()
+    {
+        var config = CreateConfig();
+        config.SchemaVersion = 3;
+        config.ColorTags["vip"] = "rainbow";
+
+        Assert.Throws<InvalidDataException>(() => FallbackConfigChecksum.Compute(config));
     }
 
     [Fact]

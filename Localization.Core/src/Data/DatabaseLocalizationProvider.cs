@@ -59,6 +59,7 @@ internal sealed class DatabaseLocalizationProvider(
         }
 
         var entries = mutableEntries.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
+        var colorTags = LocalizationColorSchema.FromJson(settingsEntity.ColorTagsJson);
 
         var snapshot = new LocalizationSnapshot(
             new LocalizationSettings(
@@ -66,7 +67,8 @@ internal sealed class DatabaseLocalizationProvider(
                 settingsEntity.RefreshIntervalSeconds,
                 settingsEntity.LocalCacheEnabled,
                 settingsEntity.LogMissingKeys,
-                settingsEntity.ConfigurationVersion),
+                settingsEntity.ConfigurationVersion,
+                colorTags),
             languages,
             entries,
             DateTimeOffset.UtcNow,
