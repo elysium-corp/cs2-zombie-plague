@@ -23,6 +23,9 @@ internal sealed class LocalizationEntryEntity
     [Column("is_critical")]
     public bool IsCritical { get; set; }
 
+    [Column("parameters", TypeName = "jsonb")]
+    public string ParametersJson { get; set; } = "[]";
+
     [Column("created_at")]
     public DateTimeOffset CreatedAt { get; set; }
 

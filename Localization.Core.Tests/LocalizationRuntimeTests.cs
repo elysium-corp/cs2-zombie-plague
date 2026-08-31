@@ -1,5 +1,6 @@
 using Localization.Core.Application;
 using Localization.Core.Data;
+using Localization.Api;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Localization.Core.Tests;
@@ -40,6 +41,39 @@ public sealed class LocalizationRuntimeTests
         Assert.Equal("{success}+15{/success}", text);
     }
 
+    [Fact]
+    public void TypedParameters_AreValidatedAndFormattedInvariantly()
+    {
+        var cache = new LocalizationCache();
+        cache.Replace(CreateSnapshot());
+        var runtime = new LocalizationRuntime(
+            cache,
+            new LanguageResolver(cache, new PlayerLanguageCache()),
+            new RateLimitedLocalizationLogger(NullLogger.Instance));
+
+        var valid = runtime.FormatForLanguage(
+            "en",
+            "test.reward",
+            new Dictionary<string, object?> { ["points"] = 15 });
+        var invalid = runtime.FormatForLanguage(
+            "en",
+            "test.reward",
+            new Dictionary<string, object?> { ["points"] = "fifteen" });
+        var missing = runtime.FormatForLanguage(
+            "en",
+            "test.reward",
+            new Dictionary<string, object?>());
+
+        Assert.Equal("{success}+15{/success}", valid);
+        Assert.Null(invalid);
+        Assert.Null(missing);
+        Assert.Equal(LocalizationParameterType.Integer, runtime.GetParameterDefinitions("test.reward")[0].Type);
+        Assert.False(LocalizationParameterSchema.TryFormatValue(
+            LocalizationParameterType.String,
+            15,
+            out _));
+    }
+
     private static LocalizationSnapshot CreateSnapshot()
     {
         var languages = new[]
@@ -50,24 +84,28 @@ public sealed class LocalizationRuntimeTests
         }.ToFrozenDictionary(language => language.Code, StringComparer.OrdinalIgnoreCase);
         var entries = new[]
         {
-            new LocalizationEntry(
+            CreateEntry(
                 1,
                 "economy.errors.insufficient_money",
-                false,
                 new Dictionary<string, string>
                 {
                     ["ru"] = "Недостаточно средств",
                     ["en"] = "Not enough money",
-                }.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase)),
-            new LocalizationEntry(
+                }),
+            CreateEntry(
                 2,
                 "test.reward",
-                false,
                 new Dictionary<string, string>
                 {
                     ["ru"] = "{success}+{points}{/success}",
                     ["en"] = "{success}+{points}{/success}",
-                }.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase)),
+                },
+                [new LocalizationParameterDefinition(
+                    "points",
+                    LocalizationParameterType.Integer,
+                    true,
+                    "Количество очков",
+                    "15")]),
         }.ToFrozenDictionary(entry => entry.Key, StringComparer.OrdinalIgnoreCase);
 
         return new LocalizationSnapshot(
@@ -76,5 +114,20 @@ public sealed class LocalizationRuntimeTests
             entries,
             DateTimeOffset.UtcNow,
             LocalizationSource.Database);
+    }
+
+    private static LocalizationEntry CreateEntry(
+        long id,
+        string key,
+        Dictionary<string, string> values,
+        IReadOnlyList<LocalizationParameterDefinition>? parameters = null)
+    {
+        var translations = values.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
+        return new LocalizationEntry(
+            id,
+            key,
+            false,
+            translations,
+            LocalizationParameterSchema.Normalize(parameters, translations));
     }
 }

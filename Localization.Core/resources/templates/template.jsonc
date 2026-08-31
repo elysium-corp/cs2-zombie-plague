@@ -1,8 +1,8 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "version": 1,
   "generatedAt": "2026-08-31T00:00:00Z",
-  "checksum": "sha256:d06d3436a7394e47c8311291b20ab0eba00355b45f24f987ce612ea3adf5a191",
+  "checksum": "sha256:eddac5a67d8f5f72d5e1f93af301b24be92e70dda0d6b4c0a88dbd7e0aa1eb83",
   "serverFallbackLanguage": "ru",
   "languages": [
     "ru",
@@ -13,6 +13,7 @@
   "refreshIntervalSeconds": 30,
   "localCacheEnabled": true,
   "logMissingKeys": true,
+  "parameters": {},
   "entries": {
     "localization.menu.title": {
       "ru": "Язык / Language",

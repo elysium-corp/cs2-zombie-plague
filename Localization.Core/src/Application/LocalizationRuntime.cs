@@ -1,4 +1,6 @@
+using System.Globalization;
 using System.Text.RegularExpressions;
+using Localization.Api;
 using Localization.Core.Data;
 using Localization.Core.Database;
 using Microsoft.Extensions.Logging;
@@ -23,6 +25,41 @@ internal sealed partial class LocalizationRuntime(
         string languageCode,
         string key,
         IReadOnlyDictionary<string, string>? placeholders)
+    {
+        Dictionary<string, object?>? values = null;
+        if (placeholders is not null)
+        {
+            values = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
+            foreach (var (name, value) in placeholders)
+            {
+                values[name] = value;
+            }
+        }
+
+        return FormatForLanguage(languageCode, key, values, validateSchema: false);
+    }
+
+    public string? FormatForPlayer(
+        IPlayer player,
+        string key,
+        IReadOnlyDictionary<string, object?> parameters)
+    {
+        return FormatForLanguage(languageResolver.Resolve(player), key, parameters);
+    }
+
+    public string? FormatForLanguage(
+        string languageCode,
+        string key,
+        IReadOnlyDictionary<string, object?>? parameters)
+    {
+        return FormatForLanguage(languageCode, key, parameters, validateSchema: true);
+    }
+
+    private string? FormatForLanguage(
+        string languageCode,
+        string key,
+        IReadOnlyDictionary<string, object?>? parameters,
+        bool validateSchema)
     {
         var snapshot = cache.Current;
         if (snapshot is null || string.IsNullOrWhiteSpace(key))
@@ -50,12 +87,110 @@ internal sealed partial class LocalizationRuntime(
             return null;
         }
 
-        return placeholders is null || placeholders.Count == 0
-            ? text
-            : PlaceholderRegex().Replace(text, match =>
-                placeholders.TryGetValue(match.Groups["name"].Value, out var value)
-                    ? value
-                    : match.Value);
+        if (!validateSchema)
+        {
+            return parameters is null || parameters.Count == 0
+                ? text
+                : PlaceholderRegex().Replace(text, match =>
+                    TryGetValue(parameters, match.Groups["name"].Value, out var value)
+                        ? Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty
+                        : match.Value);
+        }
+
+        if (entry.Parameters.Count == 0)
+        {
+            return text;
+        }
+
+        var formatted = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var definition in entry.Parameters.Values)
+        {
+            if (!TryGetValue(parameters, definition.Name, out var value) || value is null)
+            {
+                if (definition.IsRequired)
+                {
+                    LogInvalidParameter(snapshot, normalizedKey, definition.Name, "required");
+                    return null;
+                }
+
+                formatted[definition.Name] = string.Empty;
+                continue;
+            }
+
+            if (!LocalizationParameterSchema.TryFormatValue(definition.Type, value, out var result))
+            {
+                LogInvalidParameter(snapshot, normalizedKey, definition.Name, "type");
+                return null;
+            }
+
+            formatted[definition.Name] = result;
+        }
+
+        return PlaceholderRegex().Replace(text, match =>
+            formatted.TryGetValue(match.Groups["name"].Value, out var value)
+                ? value
+                : match.Value);
+    }
+
+    public IReadOnlyList<LocalizationParameterDefinition> GetParameterDefinitions(string key)
+    {
+        var snapshot = cache.Current;
+        if (string.IsNullOrWhiteSpace(key)
+            || snapshot is null
+            || !snapshot.Entries.TryGetValue(key.Trim(), out var entry))
+        {
+            return [];
+        }
+
+        return entry.Parameters.Values
+            .OrderBy(parameter => parameter.Name, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+    }
+
+    private static bool TryGetValue(
+        IReadOnlyDictionary<string, object?>? parameters,
+        string name,
+        out object? value)
+    {
+        if (parameters is not null)
+        {
+            if (parameters.TryGetValue(name, out value))
+            {
+                return true;
+            }
+
+            foreach (var parameter in parameters)
+            {
+                if (string.Equals(parameter.Key, name, StringComparison.OrdinalIgnoreCase))
+                {
+                    value = parameter.Value;
+                    return true;
+                }
+            }
+        }
+
+        value = null;
+        return false;
+    }
+
+    private void LogInvalidParameter(
+        LocalizationSnapshot snapshot,
+        string key,
+        string parameter,
+        string reason)
+    {
+        if (!snapshot.Settings.LogMissingKeys)
+        {
+            return;
+        }
+
+        logger.Warning(
+            $"invalid-parameter:{reason}:{key}:{parameter}",
+            TimeSpan.FromMinutes(5),
+            "[Localization] Параметр {Parameter} ключа {Key} не прошёл проверку {Reason}.",
+            parameter,
+            key,
+            reason);
     }
 
     private void LogMissing(LocalizationSnapshot snapshot, string key, string kind)

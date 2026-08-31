@@ -21,7 +21,8 @@ internal sealed class FallbackLocalizationProvider(IOptionsMonitor<LocalizationF
 
     private static bool IsUnconfiguredDefault(LocalizationFallbackConfig config)
     {
-        return config.SchemaVersion == LocalizationValidation.SupportedSchemaVersion
+        return config.SchemaVersion >= LocalizationValidation.MinimumSchemaVersion
+            && config.SchemaVersion <= LocalizationValidation.SupportedSchemaVersion
             && config.Version == 0
             && config.GeneratedAt == DateTimeOffset.UnixEpoch
             && string.IsNullOrWhiteSpace(config.Checksum)
@@ -58,11 +59,22 @@ internal sealed class FallbackLocalizationProvider(IOptionsMonitor<LocalizationF
             .OrderBy(item => item.Key, StringComparer.OrdinalIgnoreCase)
             .ToFrozenDictionary(
                 item => item.Key,
-                item => new LocalizationEntry(
-                    entryId--,
-                    item.Key,
-                    LocalizationValidation.CriticalKeys.Contains(item.Key),
-                    LocalizationValidation.NormalizeTranslations(item.Value, languageCodes)),
+                item =>
+                {
+                    var translations = LocalizationValidation.NormalizeTranslations(item.Value, languageCodes);
+                    var parameters = LocalizationParameterSchema.FromConfig(
+                        config.SchemaVersion >= 2
+                        && config.Parameters.TryGetValue(item.Key, out var configured)
+                            ? configured
+                            : null,
+                        translations);
+                    return new LocalizationEntry(
+                        entryId--,
+                        item.Key,
+                        LocalizationValidation.CriticalKeys.Contains(item.Key),
+                        translations,
+                        parameters);
+                },
                 StringComparer.OrdinalIgnoreCase);
 
         var snapshot = new LocalizationSnapshot(

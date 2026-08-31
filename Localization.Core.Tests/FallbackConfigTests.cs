@@ -26,6 +26,17 @@ public sealed class FallbackConfigTests
     }
 
     [Fact]
+    public void EmptyVersionOneConfig_UsesEmergencySnapshot()
+    {
+        var snapshot = FallbackLocalizationProvider.Load(new LocalizationFallbackConfig
+        {
+            SchemaVersion = 1,
+        });
+
+        Assert.Equal(LocalizationSource.Emergency, snapshot.Source);
+    }
+
+    [Fact]
     public void PartiallyEditedEmptyConfig_IsStillRejected()
     {
         var config = new LocalizationFallbackConfig
@@ -50,8 +61,8 @@ public sealed class FallbackConfigTests
     public void DifferentPlaceholders_AreRejected()
     {
         var config = CreateConfig();
-        config.Entries["localization.menu.changed"]["en"] = "Language changed to {locale}";
         config.Checksum = FallbackConfigChecksum.Compute(config);
+        config.Entries["localization.menu.changed"]["en"] = "Language changed to {locale}";
 
         Assert.Throws<InvalidDataException>(() => LocalizationValidation.ValidateFallback(config));
     }
@@ -64,6 +75,64 @@ public sealed class FallbackConfigTests
         config.Checksum = FallbackConfigChecksum.Compute(config);
 
         Assert.Throws<InvalidDataException>(() => LocalizationValidation.ValidateFallback(config));
+    }
+
+    [Fact]
+    public void ParameterExampleWithWrongType_IsRejected()
+    {
+        var config = CreateConfig();
+        config.Parameters["Statistics.PointsGained"] =
+        [
+            new LocalizationFallbackParameterConfig
+            {
+                Name = "points",
+                Type = "integer",
+                Required = true,
+                Example = "много",
+            },
+        ];
+
+        Assert.Throws<InvalidDataException>(() => FallbackConfigChecksum.Compute(config));
+    }
+
+    [Fact]
+    public void LegacySchemaWithoutParameterMetadata_RemainsSupported()
+    {
+        var config = CreateConfig();
+        config.SchemaVersion = 1;
+        config.Checksum = FallbackConfigChecksum.Compute(config);
+
+        LocalizationValidation.ValidateFallback(config);
+        var snapshot = FallbackLocalizationProvider.Build(config, LocalizationSource.Config);
+
+        Assert.Equal(
+            Localization.Api.LocalizationParameterType.String,
+            snapshot.Entries["Statistics.PointsGained"].Parameters["points"].Type);
+    }
+
+    [Fact]
+    public void VersionTwo_PreservesTypedParameterMetadata()
+    {
+        var config = CreateConfig();
+        config.Parameters["Statistics.PointsGained"] =
+        [
+            new LocalizationFallbackParameterConfig
+            {
+                Name = "points",
+                Type = "integer",
+                Required = true,
+                Description = "Количество очков",
+                Example = "15",
+            },
+        ];
+        config.Checksum = FallbackConfigChecksum.Compute(config);
+
+        LocalizationValidation.ValidateFallback(config);
+        var snapshot = FallbackLocalizationProvider.Build(config, LocalizationSource.Config);
+
+        var parameter = snapshot.Entries["Statistics.PointsGained"].Parameters["points"];
+        Assert.Equal(Localization.Api.LocalizationParameterType.Integer, parameter.Type);
+        Assert.Equal("15", parameter.Example);
     }
 
     [Fact]
@@ -121,7 +190,7 @@ public sealed class FallbackConfigTests
     {
         return new LocalizationFallbackConfig
         {
-            SchemaVersion = 1,
+            SchemaVersion = 2,
             Version = 1,
             GeneratedAt = new DateTimeOffset(2026, 8, 31, 0, 0, 0, TimeSpan.Zero),
             ServerFallbackLanguage = "ru",

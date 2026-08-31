@@ -32,8 +32,12 @@ internal sealed class DatabaseLocalizationProvider(
                 group => group.Last(),
                 StringComparer.OrdinalIgnoreCase);
         var languageCodes = languages.Keys.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+        var enabledLanguageCodes = languages.Values
+            .Where(language => language.Enabled)
+            .Select(language => language.Code)
+            .ToFrozenSet(StringComparer.OrdinalIgnoreCase);
         var mutableEntries = entryEntities
-            .Select(entity => MapEntry(entity, languageCodes))
+            .Select(entity => MapEntry(entity, languageCodes, enabledLanguageCodes))
             .ToDictionary(entry => entry.Key, StringComparer.OrdinalIgnoreCase);
 
         long builtInId = -1;
@@ -48,7 +52,10 @@ internal sealed class DatabaseLocalizationProvider(
                 builtInId--,
                 key,
                 LocalizationValidation.CriticalKeys.Contains(key),
-                LocalizationValidation.NormalizeTranslations(translations, languageCodes));
+                LocalizationValidation.NormalizeTranslations(translations, languageCodes),
+                LocalizationParameterSchema.Normalize(
+                    null,
+                    LocalizationValidation.NormalizeTranslations(translations, languageCodes)));
         }
 
         var entries = mutableEntries.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
@@ -79,14 +86,24 @@ internal sealed class DatabaseLocalizationProvider(
 
     private static LocalizationEntry MapEntry(
         LocalizationEntryEntity entity,
-        IReadOnlySet<string> languages) => new(
-        entity.Id,
-        entity.Key,
-        entity.IsCritical,
-        LocalizationValidation.NormalizeTranslations(
+        IReadOnlySet<string> languages,
+        IReadOnlySet<string> enabledLanguages)
+    {
+        var translations = LocalizationValidation.NormalizeTranslations(
             entity.Translations.Select(translation =>
                 new KeyValuePair<string, string>(translation.LanguageCode, translation.Text)),
-            languages));
+            languages);
+        return new LocalizationEntry(
+            entity.Id,
+            entity.Key,
+            entity.IsCritical,
+            translations,
+            LocalizationParameterSchema.FromJson(
+                entity.ParametersJson,
+                translations
+                    .Where(item => enabledLanguages.Contains(item.Key))
+                    .ToFrozenDictionary(StringComparer.OrdinalIgnoreCase)));
+    }
 }
 
 internal sealed class PlayerLanguagePreferenceRepository(
