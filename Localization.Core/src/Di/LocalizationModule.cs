@@ -7,6 +7,7 @@ using Localization.Core.Application;
 using Localization.Core.Configuration;
 using Localization.Core.Data;
 using Localization.Core.Database;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SwiftlyS2.Shared;
 
@@ -17,7 +18,11 @@ internal sealed class LocalizationModule(ISwiftlyCore core) : BaseModule(core)
     public override (ServiceProvider, ServiceCollection) GetProvider()
     {
         var services = new ServiceCollection();
-        AddConfig<LocalizationFallbackConfig>(services, "localization.json", string.Empty);
+        Core.Configuration.Configure(builder =>
+            builder.AddJsonFile("localization.json", optional: true, reloadOnChange: true));
+        services
+            .AddOptionsWithValidateOnStart<LocalizationFallbackConfig>()
+            .BindConfiguration(string.Empty);
         services.AddSwiftly(Core);
 
         AddSingleton<LocalizationCache>(services);
