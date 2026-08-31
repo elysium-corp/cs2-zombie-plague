@@ -36,6 +36,16 @@ public sealed class FallbackConfigTests
     }
 
     [Fact]
+    public void UnsupportedMarkupArgument_IsRejected()
+    {
+        var config = CreateConfig();
+        config.Entries["localization.menu.title"]["ru"] = "{accent:red}Язык{/accent}";
+        config.Checksum = FallbackConfigChecksum.Compute(config);
+
+        Assert.Throws<InvalidDataException>(() => LocalizationValidation.ValidateFallback(config));
+    }
+
+    [Fact]
     public void NonCriticalEntryWithoutFallbackTranslation_IsAllowed()
     {
         var config = CreateConfig();
