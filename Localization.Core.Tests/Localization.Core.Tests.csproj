@@ -20,6 +20,9 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\Localization.Api\Localization.Api.csproj">
+            <Private>true</Private>
+        </ProjectReference>
         <ProjectReference Include="..\Localization.Core\Localization.Core.csproj">
             <Private>true</Private>
         </ProjectReference>
