@@ -79,5 +79,5 @@ public interface ILocalizationApi : ILanguageResolver
     /// <summary>
     /// Ключ Shared Interface.
     /// </summary>
-    public static readonly string SharedApiKey = "Localization.Api.ILocalizationApi";
+    public new static readonly string SharedApiKey = "Localization.Api.ILocalizationApi";
 }

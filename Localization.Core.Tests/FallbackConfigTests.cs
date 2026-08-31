@@ -61,8 +61,8 @@ public sealed class FallbackConfigTests
     public void DifferentPlaceholders_AreRejected()
     {
         var config = CreateConfig();
-        config.Entries["localization.menu.changed"]["en"] = "Language changed to {locale}";
         config.Checksum = FallbackConfigChecksum.Compute(config);
+        config.Entries["localization.menu.changed"]["en"] = "Language changed to {locale}";
 
         Assert.Throws<InvalidDataException>(() => LocalizationValidation.ValidateFallback(config));
     }
