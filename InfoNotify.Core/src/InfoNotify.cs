@@ -2,10 +2,12 @@ using Common.Di;
 using Common.Di.Utils;
 using InfoNotify.Core.Data.Configs;
 using InfoNotify.Core.Di;
+using Localization.Api;
 using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Misc;
+using SwiftlyS2.Shared.Players;
 
 namespace InfoNotify.Core;
 
@@ -19,12 +21,18 @@ namespace InfoNotify.Core;
 internal sealed partial class InfoNotify(ISwiftlyCore core) : Plugin<InfoNotifyModule>(core)
 {
     private readonly Lazy<IOptions<InfoNotifyConfig>> _config = GetRequiredServiceLazy<IOptions<InfoNotifyConfig>>();
+    private readonly Lazy<Func<ILocalizationApi>> _localization = GetRequiredServiceLazy<Func<ILocalizationApi>>();
     
     private Guid _guidOnPlayerConnectFullPost = Guid.Empty;
     private Guid _guidOnRoundStartPost = Guid.Empty;
     private Guid _guidOnRoundEndPost = Guid.Empty;
     
     private CancellationTokenSource? _eventMessagesHandler;
+
+    protected override void OnUseSharedInterfaces(IInterfaceManager interfaceManager)
+    {
+        BindSharedInterface<ILocalizationApi>(interfaceManager, ILocalizationApi.SharedApiKey);
+    }
 
     protected override void OnReady()
     {
@@ -58,10 +66,7 @@ internal sealed partial class InfoNotify(ISwiftlyCore core) : Plugin<InfoNotifyM
             return HookResult.Continue;
         }
         
-        foreach (var message in playerConnectMessages)
-        {
-            player.SendChat(message);
-        }
+        SendKeysToPlayer(player, playerConnectMessages);
         
         return HookResult.Continue;
     }
@@ -78,10 +83,7 @@ internal sealed partial class InfoNotify(ISwiftlyCore core) : Plugin<InfoNotifyM
             return HookResult.Continue;
         }
         
-        foreach (var message in roundStartMessages)
-        {
-            core.PlayerManager.SendChat(message);
-        }
+        SendKeysToAll(roundStartMessages);
         
         return HookResult.Continue;
     }
@@ -97,10 +99,7 @@ internal sealed partial class InfoNotify(ISwiftlyCore core) : Plugin<InfoNotifyM
             return HookResult.Continue;
         }
         
-        foreach (var message in roundEndMessages)
-        {
-            core.PlayerManager.SendChat(message);
-        }
+        SendKeysToAll(roundEndMessages);
         
         return HookResult.Continue;
     }
@@ -143,10 +142,7 @@ internal sealed partial class InfoNotify(ISwiftlyCore core) : Plugin<InfoNotifyM
     
     private void SendChatEventMessages(List<string> messages)
     {
-        foreach (var message in messages)
-        {
-            core.PlayerManager.SendChat(message);
-        }
+        SendKeysToAll(messages);
     }
     
     private void SendChatRandomEventMessages(List<string> messages)
@@ -157,7 +153,37 @@ internal sealed partial class InfoNotify(ISwiftlyCore core) : Plugin<InfoNotifyM
         
         for (short index = 0; index < countRandomEventMessages; index++)
         {
-            core.PlayerManager.SendChat(randomMessages[index]);
+            SendKeyToAll(randomMessages[index]);
+        }
+    }
+
+    private void SendKeysToAll(IEnumerable<string> keys)
+    {
+        foreach (var key in keys)
+        {
+            SendKeyToAll(key);
+        }
+    }
+
+    private void SendKeyToAll(string key)
+    {
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            return;
+        }
+
+        foreach (var player in core.PlayerManager.GetAllPlayers()
+                     .Where(value => value is { IsAuthorized: true, IsFakeClient: false }))
+        {
+            player.SendChat(_localization.Value().GetForPlayerOrKey(player, key));
+        }
+    }
+
+    private void SendKeysToPlayer(IPlayer player, IEnumerable<string> keys)
+    {
+        foreach (var key in keys.Where(value => !string.IsNullOrWhiteSpace(value)))
+        {
+            player.SendChat(_localization.Value().GetForPlayerOrKey(player, key));
         }
     }
 }

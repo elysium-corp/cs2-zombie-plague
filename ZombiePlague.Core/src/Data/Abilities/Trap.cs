@@ -1,5 +1,6 @@
 ﻿using Common.Effects;
 using Common.Effects.Effects;
+using Localization.Api;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.Natives;
@@ -13,7 +14,8 @@ using ZombiePlague.Core.Utils.Extensions;
 
 namespace ZombiePlague.Core.Data.Abilities;
 
-internal sealed class Trap(ISwiftlyCore core, TrapConfig config) : BaseActiveAbility(core, config)
+internal sealed class Trap(ISwiftlyCore core, TrapConfig config, Func<ILocalizationApi> localization)
+    : BaseActiveAbility(core, config, localization)
 {
     public override KeyKind? Key => KeyKind.E;
 

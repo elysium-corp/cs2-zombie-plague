@@ -1,4 +1,5 @@
-﻿using SwiftlyS2.Shared;
+﻿using Localization.Api;
+using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.GameHooks;
 using ZombiePlague.Core.Config.Ability;
@@ -7,7 +8,8 @@ using ZombiePlague.Core.Utils;
 
 namespace ZombiePlague.Core.Data.Abilities;
 
-internal class Leap(ISwiftlyCore core, LeapConfig config) : BaseActiveAbility(core, config)
+internal class Leap(ISwiftlyCore core, LeapConfig config, Func<ILocalizationApi> localization)
+    : BaseActiveAbility(core, config, localization)
 {
     public override KeyKind? Key => null;
     public override float Cooldown => config.CooldownTime;

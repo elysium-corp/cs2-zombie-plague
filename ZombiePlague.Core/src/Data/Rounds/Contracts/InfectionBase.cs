@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Localization.Api;
+using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.GameHooks;
@@ -14,8 +15,9 @@ namespace ZombiePlague.Core.Data.Rounds.Contracts;
 internal abstract class InfectionBase(
     ISwiftlyCore core, 
     IPlayerManager playerManager,
-    IOptions<ZombiePlagueCoreConfig> coreConfig
-) : RoundBase(core, playerManager)
+    IOptions<ZombiePlagueCoreConfig> coreConfig,
+    Func<ILocalizationApi> localization
+) : RoundBase(core, playerManager, localization)
 {
     protected override void OnTakeDamage(ref TakeDamageEntityPreContext context)
     {

@@ -66,19 +66,21 @@ internal sealed class ZClassMenu(
     private ButtonMenuOption BuildZClassOption(IPlayer player, string currentZClass, IZClassConfig zClass)
     {
         var isSelected = zClass.InternalName == currentZClass;
+        var className = LocalizeClassField(player, zClass, "Name", zClass.DisplayName);
+        var classDescription = LocalizeClassField(player, zClass, "Description", zClass.Description);
         var displayName = isSelected
             ? localization().GetForPlayer(
                   player,
                   ZClassSelected,
-                  new Dictionary<string, string> { ["class"] = zClass.DisplayName })
-              ?? zClass.DisplayName
-            : zClass.DisplayName;
+                  new Dictionary<string, string> { ["class"] = className })
+              ?? className
+            : className;
 
         var option = new ButtonMenuOption
         {
             Enabled = !isSelected,
             Text = displayName,
-            Comment = zClass.Description
+            Comment = classDescription
         };
 
         option.Click += (_, args) =>
@@ -95,7 +97,7 @@ internal sealed class ZClassMenu(
                     new
                     {
                         class_id = zClass.InternalName,
-                        class_name = zClass.DisplayName,
+                        class_name = zClass.InternalName,
                         class_type = "zombie"
                     }
                 );
@@ -104,7 +106,7 @@ internal sealed class ZClassMenu(
             var message = localization().GetForPlayer(
                 player,
                 ZClassSelectionSuccess,
-                new Dictionary<string, string> { ["class"] = zClass.DisplayName });
+                new Dictionary<string, string> { ["class"] = className });
 
             if (message is not null)
             {
@@ -117,5 +119,17 @@ internal sealed class ZClassMenu(
         };
 
         return option;
+    }
+
+    private string LocalizeClassField(
+        IPlayer player,
+        IZClassConfig zClass,
+        string field,
+        string fallback)
+    {
+        return localization().GetForPlayer(
+                   player,
+                   $"ZombiePlague.ZClass.{zClass.InternalName}.{field}")
+               ?? fallback;
     }
 }

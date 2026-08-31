@@ -1,5 +1,6 @@
 ﻿using Admin.Api.Permissions;
 using Admin.Core.Services;
+using Localization.Api;
 using Menu.Api.Data;
 using Menu.Api.Data.Contracts;
 using SwiftlyS2.Core.Menus.OptionsBase;
@@ -13,7 +14,10 @@ namespace Admin.Core.Menus;
 /// <summary>
 /// Меню управления текущим раундом и разминкой.
 /// </summary>
-internal sealed class RoundMenu(ISwiftlyCore core, IPrivilegeService privilegeService) : MenuBase(core)
+internal sealed class RoundMenu(
+    ISwiftlyCore core,
+    IPrivilegeService privilegeService,
+    ILocalizationApi localization) : MenuBase(core)
 {
     public override string Id => "admin.round";
 
@@ -27,23 +31,23 @@ internal sealed class RoundMenu(ISwiftlyCore core, IPrivilegeService privilegeSe
     protected override IMenuAPI Build(IPlayer player)
     {
         return CreateBuilder(player)
-            .AddOption(BuildEndWarmupOption())
-            .AddOption(BuildEndRoundOption())
-            .AddOption(BuildRestartGameOption())
+            .AddOption(BuildEndWarmupOption(player))
+            .AddOption(BuildEndRoundOption(player))
+            .AddOption(BuildRestartGameOption(player))
             .Build();
     }
 
     protected override IMenuBuilderAPI ConfigureDesign(IPlayer player, IMenuDesignAPI design)
     {
         return design
-            .SetMenuTitle("Управление раундом")
+            .SetMenuTitle(localization.GetForPlayerOrKey(player, "Admin.Round.Title"))
             .Design.SetMenuFooterVisible(false)
             .Design.EnableAutoAdjustVisibleItems();
     }
 
-    private ButtonMenuOption BuildEndWarmupOption()
+    private ButtonMenuOption BuildEndWarmupOption(IPlayer player)
     {
-        var option = new ButtonMenuOption("Завершить разминку")
+        var option = new ButtonMenuOption(localization.GetForPlayerOrKey(player, "Admin.Round.EndWarmup"))
         {
             Enabled = IsWarmupActive()
         };
@@ -56,9 +60,9 @@ internal sealed class RoundMenu(ISwiftlyCore core, IPrivilegeService privilegeSe
         return option;
     }
 
-    private ButtonMenuOption BuildEndRoundOption()
+    private ButtonMenuOption BuildEndRoundOption(IPlayer player)
     {
-        var option = new ButtonMenuOption("Завершить раунд");
+        var option = new ButtonMenuOption(localization.GetForPlayerOrKey(player, "Admin.Round.EndRound"));
 
         option.Click += async (_, args) =>
         {
@@ -68,9 +72,9 @@ internal sealed class RoundMenu(ISwiftlyCore core, IPrivilegeService privilegeSe
         return option;
     }
     
-    private ButtonMenuOption BuildRestartGameOption()
+    private ButtonMenuOption BuildRestartGameOption(IPlayer player)
     {
-        var option = new ButtonMenuOption("Перезапустить игру");
+        var option = new ButtonMenuOption(localization.GetForPlayerOrKey(player, "Admin.Round.Restart"));
 
         option.Click += async (_, args) =>
         {

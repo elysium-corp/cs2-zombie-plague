@@ -1,6 +1,7 @@
 ﻿using Admin.Api.Menus;
 using Admin.Api.Permissions;
 using Admin.Core.Services;
+using Localization.Api;
 using Menu.Api.Data;
 using Menu.Api.Data.Contracts;
 using Menu.Api.Extensions;
@@ -25,7 +26,8 @@ internal sealed class AdminMenu(
     BanMenu banMenu,
     KillMenu killMenu,
     RespawnMenu respawnMenu,
-    RoundMenu roundMenu
+    RoundMenu roundMenu,
+    ILocalizationApi localization
 ) : DynamicOptionsMenu(core, extensionDispatcher)
 {
     public override string Id => AdminMenuIds.Main;
@@ -50,7 +52,7 @@ internal sealed class AdminMenu(
     protected override IMenuBuilderAPI ConfigureDesign(IPlayer player, IMenuDesignAPI design)
     {
         return design
-            .SetMenuTitle("Админ меню")
+            .SetMenuTitle(localization.GetForPlayerOrKey(player, "Admin.Menu.Title"))
             .Design.SetMenuFooterVisible(false)
             .Design.EnableAutoAdjustVisibleItems();
     }
@@ -59,33 +61,33 @@ internal sealed class AdminMenu(
     {
         if (privilegeService.HasPermission(player.SteamID, AdminPermissions.Kick))
         {
-            options.Add(BuildKickOption(), 1);
+            options.Add(BuildKickOption(player), 1);
         }
         
         if (privilegeService.HasPermission(player.SteamID, AdminPermissions.Ban))
         {
-            options.Add(BuildBanOption(), 2);
+            options.Add(BuildBanOption(player), 2);
         }
         
         if (privilegeService.HasPermission(player.SteamID, AdminPermissions.Kill))
         {
-            options.Add(BuildKillOption(), 3);
+            options.Add(BuildKillOption(player), 3);
         }
         
         if (privilegeService.HasPermission(player.SteamID, AdminPermissions.Respawn))
         {
-            options.Add(BuildRespawnOption(), 4);
+            options.Add(BuildRespawnOption(player), 4);
         }
         
         if (privilegeService.HasPermission(player.SteamID, AdminPermissions.Round))
         {
-            options.Add(BuildRoundOption(), 5);
+            options.Add(BuildRoundOption(player), 5);
         }
     }
     
-    private ButtonMenuOption BuildKickOption()
+    private ButtonMenuOption BuildKickOption(IPlayer player)
     {
-        var option = new ButtonMenuOption("Кикнуть");
+        var option = new ButtonMenuOption(localization.GetForPlayerOrKey(player, "Admin.Menu.Kick"));
 
         option.Click += (_, args) =>
         {
@@ -97,9 +99,9 @@ internal sealed class AdminMenu(
         return option;
     }
     
-    private ButtonMenuOption BuildBanOption()
+    private ButtonMenuOption BuildBanOption(IPlayer player)
     {
-        var option = new ButtonMenuOption("Забанить");
+        var option = new ButtonMenuOption(localization.GetForPlayerOrKey(player, "Admin.Menu.Ban"));
 
         option.Click += (_, args) =>
         {
@@ -111,9 +113,9 @@ internal sealed class AdminMenu(
         return option;
     }
     
-    private ButtonMenuOption BuildKillOption()
+    private ButtonMenuOption BuildKillOption(IPlayer player)
     {
-        var option = new ButtonMenuOption("Убить");
+        var option = new ButtonMenuOption(localization.GetForPlayerOrKey(player, "Admin.Menu.Kill"));
 
         option.Click += (_, args) =>
         {
@@ -125,9 +127,9 @@ internal sealed class AdminMenu(
         return option;
     }
     
-    private ButtonMenuOption BuildRespawnOption()
+    private ButtonMenuOption BuildRespawnOption(IPlayer player)
     {
-        var option = new ButtonMenuOption("Возродить");
+        var option = new ButtonMenuOption(localization.GetForPlayerOrKey(player, "Admin.Menu.Respawn"));
 
         option.Click += (_, args) =>
         {
@@ -139,9 +141,9 @@ internal sealed class AdminMenu(
         return option;
     }
     
-    private ButtonMenuOption BuildRoundOption()
+    private ButtonMenuOption BuildRoundOption(IPlayer player)
     {
-        var option = new ButtonMenuOption("Управление раундом");
+        var option = new ButtonMenuOption(localization.GetForPlayerOrKey(player, "Admin.Menu.Round"));
 
         option.Click += (_, args) =>
         {

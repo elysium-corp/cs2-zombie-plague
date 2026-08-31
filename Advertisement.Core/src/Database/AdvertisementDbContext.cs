@@ -149,6 +149,9 @@ internal sealed class AdvertisementDbContext(DbContextOptions<AdvertisementDbCon
             .HasDatabaseName("messages_key_unique")
             .IsUnique();
 
+        entity.HasIndex(x => x.LocalizationKey)
+            .HasDatabaseName("messages_localization_key_idx");
+
         entity.HasIndex(x => new { x.Enabled, x.Priority, x.SortOrder, x.Id })
             .HasDatabaseName("messages_active_idx")
             .IsDescending(false, true, false, false);

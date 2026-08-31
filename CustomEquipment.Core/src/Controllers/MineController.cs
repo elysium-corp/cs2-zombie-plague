@@ -6,6 +6,7 @@ using CustomEquipment.Api.Events.Contexts.Mines;
 using CustomEquipment.Data.Equipments.Weapons.Equipments;
 using CustomEquipment.Services;
 using CustomEquipment.Utils;
+using Localization.Api;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.GameHooks;
@@ -22,7 +23,8 @@ internal sealed class MineController(
     ICustomEquipmentEvents events,
     IEquipmentService equipmentService,
     ILaserMineInstallerService laserMineInstallerService,
-    Func<IZombiePlagueApi> zombiePlagueApi)
+    Func<IZombiePlagueApi> zombiePlagueApi,
+    ILocalizationApi localization)
     : IMineController, IDisposable
 {
     private readonly Dictionary<CBaseModelEntity, (IPlayer Owner, LaserMineEntityBase Mine)> _mines = [];
@@ -74,7 +76,7 @@ internal sealed class MineController(
             return;
         }
 
-        player.SendAlert("У вас уже есть лазерная мина");
+        player.SendAlert(localization.GetForPlayerOrKey(player, "Equipment.LaserMine.AlreadyOwned"));
         context.Cancel();
     }
 
@@ -85,7 +87,8 @@ internal sealed class MineController(
             return;
         }
 
-        context.Player.SendAlert("У вас уже есть лазерная мина");
+        context.Player.SendAlert(
+            localization.GetForPlayerOrKey(context.Player, "Equipment.LaserMine.AlreadyOwned"));
         context.Cancel();
     }
 
@@ -96,7 +99,8 @@ internal sealed class MineController(
             return;
         }
 
-        context.Player.SendAlert("Лазерная мина выдана. Возьмите её в руки и нажмите ПКМ");
+        context.Player.SendAlert(
+            localization.GetForPlayerOrKey(context.Player, "Equipment.LaserMine.Granted"));
     }
 
     private void OnMinePlaced(ref MinePlacedContext context)
@@ -140,7 +144,7 @@ internal sealed class MineController(
 
         if (!laserMineInstallerService.TrySetup(player, laserMine))
         {
-            player.SendAlert("Наведитесь на подходящую поверхность для установки мины");
+            player.SendAlert(localization.GetForPlayerOrKey(player, "Equipment.LaserMine.InvalidSurface"));
         }
     }
 

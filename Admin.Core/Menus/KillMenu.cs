@@ -1,5 +1,6 @@
 ﻿using Admin.Api.Permissions;
 using Admin.Core.Services;
+using Localization.Api;
 using Menu.Api.Data;
 using Menu.Api.Data.Contracts;
 using SwiftlyS2.Core.Menus.OptionsBase;
@@ -10,7 +11,10 @@ using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace Admin.Core.Menus;
 
-internal sealed class KillMenu(ISwiftlyCore core, IPrivilegeService privilegeService) : MenuBase(core)
+internal sealed class KillMenu(
+    ISwiftlyCore core,
+    IPrivilegeService privilegeService,
+    ILocalizationApi localization) : MenuBase(core)
 {
     public override string Id => "admin.kill";
 
@@ -46,7 +50,7 @@ internal sealed class KillMenu(ISwiftlyCore core, IPrivilegeService privilegeSer
     protected override IMenuBuilderAPI ConfigureDesign(IPlayer player, IMenuDesignAPI design)
     {
         return design
-            .SetMenuTitle("Убить игрока")
+            .SetMenuTitle(localization.GetForPlayerOrKey(player, "Admin.Kill.Title"))
             .Design.SetMenuFooterVisible(false)
             .Design.EnableAutoAdjustVisibleItems();
     }

@@ -111,7 +111,7 @@ internal sealed class EquipmentMenu(
 
             var option = new ButtonMenuOption
             {
-                Text = BuildTextItem(item),
+                Text = BuildTextItem(player, item),
                 Enabled = canUse && hasMoney
             };
 
@@ -217,10 +217,13 @@ internal sealed class EquipmentMenu(
                ?? weaponType.ToString();
     }
 
-    private string BuildTextItem(IShopItem item)
+    private string BuildTextItem(IPlayer player, IShopItem item)
     {
         var weaponColor = item.Rarity.ToColor();
-        var weaponText = HtmlHelper.TextWithColor(item.DisplayName, weaponColor);
+        var itemKey = item.InternalName.Replace(':', '.');
+        var displayName = localization.GetForPlayer(player, $"Equipment.Item.{itemKey}.Name")
+                          ?? item.DisplayName;
+        var weaponText = HtmlHelper.TextWithColor(displayName, weaponColor);
         var price = $"{item.Price.Item}$";
         var priceText = $"{HtmlHelper.TextWithColor(price, "#E0C216")}";
 

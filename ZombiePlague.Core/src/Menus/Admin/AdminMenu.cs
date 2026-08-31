@@ -1,4 +1,5 @@
 ﻿using Admin.Api;
+using Localization.Api;
 using Menu.Api.Data;
 using Menu.Api.Data.Contracts;
 using SwiftlyS2.Core.Menus.OptionsBase;
@@ -15,7 +16,8 @@ internal sealed class AdminMenu(
     IAdminApi adminApi,
     InfectMenu infectMenu,
     DisinfectMenu disinfectMenu,
-    RoundMenu roundMenu
+    RoundMenu roundMenu,
+    Func<ILocalizationApi> localization
 ) : MenuBase(core)
 {
     public override string Id => "zombie_plague.admin";
@@ -29,20 +31,20 @@ internal sealed class AdminMenu(
         if (adminApi.HasPermission(player, ZombiePlagueAdminPermissions.Infect))
         {
             builder.AddOption(
-                BuildInfectOption()
+                BuildInfectOption(player)
             );
         }
 
         if (adminApi.HasPermission(player, ZombiePlagueAdminPermissions.Disinfect))
         {
             builder.AddOption(
-                BuildDisinfectOption()
+                BuildDisinfectOption(player)
             );
         }
         
         if (adminApi.HasPermission(player, ZombiePlagueAdminPermissions.Round))
         {
-            builder.AddOption(BuildRoundOption());
+            builder.AddOption(BuildRoundOption(player));
         }
 
         return builder.Build();
@@ -56,14 +58,14 @@ internal sealed class AdminMenu(
     protected override IMenuBuilderAPI ConfigureDesign(IPlayer player, IMenuDesignAPI design)
     {
         return design
-            .SetMenuTitle("Админка Zombie Mode")
+            .SetMenuTitle(localization().GetForPlayerOrKey(player, "ZombiePlague.Admin.Title"))
             .Design.SetMenuFooterVisible(false)
             .Design.EnableAutoAdjustVisibleItems();
     }
     
-    private ButtonMenuOption BuildInfectOption()
+    private ButtonMenuOption BuildInfectOption(IPlayer player)
     {
-        var option = new ButtonMenuOption("Заразить игрока");
+        var option = new ButtonMenuOption(localization().GetForPlayerOrKey(player, "ZombiePlague.Admin.Infect"));
 
         option.Click += (_, args) =>
         {
@@ -77,9 +79,9 @@ internal sealed class AdminMenu(
         return option;
     }
     
-    private ButtonMenuOption BuildDisinfectOption()
+    private ButtonMenuOption BuildDisinfectOption(IPlayer player)
     {
-        var option = new ButtonMenuOption("Вылечить игрока");
+        var option = new ButtonMenuOption(localization().GetForPlayerOrKey(player, "ZombiePlague.Admin.Disinfect"));
 
         option.Click += (_, args) =>
         {
@@ -93,9 +95,9 @@ internal sealed class AdminMenu(
         return option;
     }
     
-    private ButtonMenuOption BuildRoundOption()
+    private ButtonMenuOption BuildRoundOption(IPlayer player)
     {
-        var option = new ButtonMenuOption("Управление раундами");
+        var option = new ButtonMenuOption(localization().GetForPlayerOrKey(player, "ZombiePlague.Admin.Rounds"));
 
         option.Click += (_, args) =>
         {

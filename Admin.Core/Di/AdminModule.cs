@@ -7,6 +7,8 @@ using Admin.Core.Store;
 using Common.Database;
 using Common.Database.Utils;
 using Common.Di;
+using Common.Di.Utils;
+using Localization.Api;
 using Menu.Api.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using SwiftlyS2.Shared;
@@ -20,6 +22,7 @@ internal sealed class AdminModule(ISwiftlyCore core) : BaseModule(core)
         var service = new ServiceCollection();
         
         service.AddSwiftly(Core);
+        service.AddSharedInterface<ILocalizationApi>();
         
         BuildSingletons(service);
         AddDatabase(service);

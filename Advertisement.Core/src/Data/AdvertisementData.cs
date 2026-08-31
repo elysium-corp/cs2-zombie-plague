@@ -37,6 +37,7 @@ internal sealed record AdvertisementMessage(
     long Id,
     string Key,
     string Name,
+    string LocalizationKey,
     long? TagId,
     string Type,
     bool Enabled,
@@ -55,8 +56,6 @@ internal sealed record AdvertisementMessage(
     DateTimeOffset? StartsAt,
     DateTimeOffset? EndsAt)
 {
-    public string LocalizationKey => $"advertisement.messages.{Key}";
-
     public bool IsActive(DateTimeOffset now, int playerCount)
     {
         var localTime = TimeOnly.FromDateTime(now.LocalDateTime);
@@ -184,6 +183,9 @@ internal sealed class ConfigAdvertisementProvider(IOptionsMonitor<AdvertisementC
             messages[id] = new AdvertisementMessage(
                 id, message.Key,
                 string.IsNullOrWhiteSpace(message.Name) ? message.Key : message.Name,
+                string.IsNullOrWhiteSpace(message.LocalizationKey)
+                    ? $"advertisement.messages.{message.Key}"
+                    : message.LocalizationKey.Trim(),
                 resolvedTag, message.Type, message.Enabled, message.Priority, Math.Max(0, message.Weight),
                 message.SortOrder, message.IntervalSeconds,
                 DeliveryRuleParser.ParseDispatchMode(message.DispatchMode),
@@ -252,7 +254,7 @@ internal sealed class DatabaseAdvertisementProvider(
         entity.Id, entity.Key, entity.Color, entity.Enabled, entity.SortOrder);
 
     private static AdvertisementMessage MapMessage(AdvertisementMessageEntity entity) => new(
-        entity.Id, entity.Key, entity.Name, entity.TagId, entity.Type, entity.Enabled,
+        entity.Id, entity.Key, entity.Name, entity.LocalizationKey, entity.TagId, entity.Type, entity.Enabled,
         entity.Priority, entity.Weight, entity.SortOrder, entity.IntervalSeconds,
         DeliveryRuleParser.ParseDispatchMode(entity.DispatchMode),
         DeliveryRuleParser.ParseDailyTimesJson(entity.DailyTimesJson),

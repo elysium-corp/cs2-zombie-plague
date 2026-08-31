@@ -18,6 +18,10 @@ internal sealed class AdvertisementMessageEntity
     [Column("name")]
     public string Name { get; set; } = string.Empty;
 
+    [MaxLength(191)]
+    [Column("localization_key")]
+    public string LocalizationKey { get; set; } = string.Empty;
+
     [Column("tag_id")]
     public long? TagId { get; set; }
 

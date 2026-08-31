@@ -1,4 +1,5 @@
-﻿using SwiftlyS2.Shared;
+﻿using Localization.Api;
+using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
@@ -12,7 +13,8 @@ using ZombiePlague.Core.Utils.Extensions;
 
 namespace ZombiePlague.Core.Data.Abilities;
 
-internal sealed class Catch(ISwiftlyCore core, CatchConfig config) : BaseActiveAbility(core, config)
+internal sealed class Catch(ISwiftlyCore core, CatchConfig config, Func<ILocalizationApi> localization)
+    : BaseActiveAbility(core, config, localization)
 {
     public override KeyKind? Key => KeyKind.E;
 

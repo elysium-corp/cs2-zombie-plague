@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Localization.Api;
+using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Misc;
@@ -17,8 +18,9 @@ internal sealed class Infection(
     ISwiftlyCore core,
     IPlayerManager playerManager,
     InfectionConfig config,
-    IOptions<ZombiePlagueCoreConfig> coreConfig
-) : InfectionBase(core, playerManager, coreConfig)
+    IOptions<ZombiePlagueCoreConfig> coreConfig,
+    Func<ILocalizationApi> localization
+) : InfectionBase(core, playerManager, coreConfig, localization)
 {
     private readonly Dictionary<int, CancellationTokenSource> _respawnTimers = [];
     
@@ -148,7 +150,9 @@ internal sealed class Infection(
 
         SoundExt.PlayAt(player, config.MusicSoundName, 1.5f);
 
-        Core.PlayerManager.SendCenter($"Первый заражённый => {player.Name}");
+        BroadcastLocalized(
+            "ZombiePlague.Round.Infection.FirstInfected",
+            new Dictionary<string, string> { ["player"] = player.Name });
 
         return true;
     }

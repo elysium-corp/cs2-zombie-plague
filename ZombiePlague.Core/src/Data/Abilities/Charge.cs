@@ -1,4 +1,5 @@
-﻿using SwiftlyS2.Shared;
+﻿using Localization.Api;
+using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.Sounds;
 using ZombiePlague.Core.Config.Ability;
@@ -7,7 +8,8 @@ using ZombiePlague.Core.Utils.Extensions;
 
 namespace ZombiePlague.Core.Data.Abilities;
 
-internal sealed class Charge(ISwiftlyCore core, ChargeConfig config) : BaseActiveAbility(core, config)
+internal sealed class Charge(ISwiftlyCore core, ChargeConfig config, Func<ILocalizationApi> localization)
+    : BaseActiveAbility(core, config, localization)
 {
     public override KeyKind? Key => KeyKind.E;
 
