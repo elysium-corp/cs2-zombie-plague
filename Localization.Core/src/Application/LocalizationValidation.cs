@@ -99,6 +99,11 @@ internal static partial class LocalizationValidation
             throw new InvalidDataException("Fallback-язык сервера отсутствует или отключён.");
         }
 
+        var enabledLanguages = snapshot.Languages.Values
+            .Where(language => language.Enabled)
+            .Select(language => language.Code)
+            .ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+
         foreach (var entry in snapshot.Entries.Values)
         {
             ValidateKey(entry.Key);
@@ -109,7 +114,7 @@ internal static partial class LocalizationValidation
                     $"Для критического ключа '{entry.Key}' отсутствует fallback-перевод '{fallback}'.");
             }
 
-            ValidateTranslations(entry.Key, entry.Translations, fallback);
+            ValidateTranslations(entry.Key, entry.Translations, fallback, enabledLanguages);
         }
 
         foreach (var criticalKey in CriticalKeys)
@@ -173,10 +178,16 @@ internal static partial class LocalizationValidation
     private static void ValidateTranslations(
         string key,
         IReadOnlyDictionary<string, string> translations,
-        string fallback)
+        string fallback,
+        IReadOnlySet<string>? enabledLanguages = null)
     {
         foreach (var (language, text) in translations)
         {
+            if (enabledLanguages is not null && !enabledLanguages.Contains(language))
+            {
+                continue;
+            }
+
             if (!HasValidMarkup(text))
             {
                 throw new InvalidDataException(
@@ -192,6 +203,11 @@ internal static partial class LocalizationValidation
         var expectedPlaceholders = ExtractPlaceholders(fallbackText);
         foreach (var (language, text) in translations)
         {
+            if (enabledLanguages is not null && !enabledLanguages.Contains(language))
+            {
+                continue;
+            }
+
             if (!ExtractPlaceholders(text).SetEquals(expectedPlaceholders))
             {
                 throw new InvalidDataException(
