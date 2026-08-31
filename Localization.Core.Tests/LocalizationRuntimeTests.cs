@@ -68,6 +68,10 @@ public sealed class LocalizationRuntimeTests
         Assert.Null(invalid);
         Assert.Null(missing);
         Assert.Equal(LocalizationParameterType.Integer, runtime.GetParameterDefinitions("test.reward")[0].Type);
+        Assert.False(LocalizationParameterSchema.TryFormatValue(
+            LocalizationParameterType.String,
+            15,
+            out _));
     }
 
     private static LocalizationSnapshot CreateSnapshot()

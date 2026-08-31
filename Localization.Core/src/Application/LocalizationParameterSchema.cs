@@ -138,7 +138,12 @@ internal static partial class LocalizationParameterSchema
         switch (type)
         {
             case LocalizationParameterType.String:
-                formatted = Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty;
+                if (value is not string text)
+                {
+                    return false;
+                }
+
+                formatted = text;
                 return true;
             case LocalizationParameterType.Integer:
                 return TryFormatInteger(value, out formatted);
