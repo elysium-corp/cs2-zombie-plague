@@ -8,6 +8,7 @@ using Admin.Core.Registry;
 using Admin.Core.Services;
 using Common.Database.Migrator;
 using Common.Di;
+using Localization.Api;
 using Menu.Api;
 using Microsoft.Extensions.Logging;
 using SwiftlyS2.Shared;
@@ -49,6 +50,11 @@ internal sealed partial class Admin(ISwiftlyCore core) : Plugin<AdminModule>(cor
         }
 
         TryLoadPrivilegeCatalog();
+    }
+
+    protected override void OnUseSharedInterfaces(IInterfaceManager interfaceManager)
+    {
+        BindSharedInterface<ILocalizationApi>(interfaceManager, ILocalizationApi.SharedApiKey);
     }
     
     protected override void OnReady()

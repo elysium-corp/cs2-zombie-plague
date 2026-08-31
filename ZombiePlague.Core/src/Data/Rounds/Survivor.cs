@@ -1,4 +1,5 @@
 ﻿using Common.Hooks.Abstractions;
+using Localization.Api;
 using SwiftlyS2.Shared;
 using ZombiePlague.Api.Data.Rounds;
 using ZombiePlague.Core.Config.Round;
@@ -11,8 +12,9 @@ namespace ZombiePlague.Core.Data.Rounds;
 internal sealed class Survivor(
     ISwiftlyCore core,
     IPlayerManager playerManager,
-    SurvivorConfig config
-) : RoundBase(core, playerManager)
+    SurvivorConfig config,
+    Func<ILocalizationApi> localization
+) : RoundBase(core, playerManager, localization)
 {
     public override string Id => RoundIds.Survivor;
     
@@ -57,7 +59,9 @@ internal sealed class Survivor(
             SoundExt.PlayGlobal(config.MusicSoundName);
         }
 
-        Core.PlayerManager.SendCenter($"Выживший => {selectedHuman.Name}");
+        BroadcastLocalized(
+            "ZombiePlague.Round.Survivor.Selected",
+            new Dictionary<string, string> { ["player"] = selectedHuman.Name });
 
         return true;
     }

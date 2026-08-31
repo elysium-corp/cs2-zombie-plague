@@ -1,4 +1,5 @@
 ﻿using Common.Hooks.Abstractions;
+using Localization.Api;
 using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
@@ -25,7 +26,8 @@ internal sealed class RoundManager(
     IPlayerManager playerManager,
     IRoundRegistrator roundRegistrator,
     IRoundFactory roundFactory,
-    IHookPublisher hooks
+    IHookPublisher hooks,
+    Func<ILocalizationApi> localization
 ) : IRoundManager
 {
     public RoundBase? CurrentRound { get; private set; }
@@ -305,7 +307,20 @@ internal sealed class RoundManager(
             return;
         }
 
-        core.PlayerManager.SendCenterAsync($"До заражения {_remainingPreparationTime} секунд");
+        foreach (var player in core.PlayerManager.GetAllPlayers()
+                     .Where(value => value is { IsAuthorized: true, IsFakeClient: false }))
+        {
+            player.SendMessage(
+                MessageType.Alert,
+                localization().GetForPlayerOrKey(
+                    player,
+                    "ZombiePlague.Round.Preparing",
+                    new Dictionary<string, string>
+                    {
+                        ["seconds"] = _remainingPreparationTime.ToString()
+                    }),
+                1100);
+        }
     }
 
     private RoundBase? TakeNextRound()

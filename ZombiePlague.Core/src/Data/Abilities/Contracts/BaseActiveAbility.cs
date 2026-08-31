@@ -1,4 +1,5 @@
-﻿using SwiftlyS2.Shared;
+﻿using Localization.Api;
+using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.GameHooks;
 using SwiftlyS2.Shared.Players;
@@ -7,7 +8,10 @@ using ZombiePlague.Core.Config.Ability;
 
 namespace ZombiePlague.Core.Data.Abilities.Contracts;
 
-internal abstract class BaseActiveAbility(ISwiftlyCore core, IAbilityConfig config)
+internal abstract class BaseActiveAbility(
+    ISwiftlyCore core,
+    IAbilityConfig config,
+    Func<ILocalizationApi> localization)
     : IActiveAbility, ICooldownRestricted, IParticleRestricted, ISoundPlayable
 {
     protected IPlayer Caster { get; private set; } = null!;
@@ -143,8 +147,16 @@ internal abstract class BaseActiveAbility(ISwiftlyCore core, IAbilityConfig conf
         {
             if (IsCooldownNotify)
             {
-                Caster.SendMessage(MessageType.Alert,
-                    $"Способность восстановится через {Cooldown - _cooldownElapsedTime} секунд", CooldownMessageTime);
+                Caster.SendMessage(
+                    MessageType.Alert,
+                    localization().GetForPlayerOrKey(
+                        Caster,
+                        "ZombiePlague.Ability.Cooldown",
+                        new Dictionary<string, string>
+                        {
+                            ["seconds"] = Math.Ceiling(Cooldown - _cooldownElapsedTime).ToString()
+                        }),
+                    CooldownMessageTime);
             }
 
             return;

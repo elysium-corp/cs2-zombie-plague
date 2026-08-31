@@ -1,6 +1,8 @@
 using Common.Di;
 using Common.Hooks;
 using Common.Hooks.Abstractions;
+using Common.Di.Utils;
+using Localization.Api;
 using Microsoft.Extensions.DependencyInjection;
 using SupplyBox.Api.Events;
 using SupplyBox.Data.Configs;
@@ -17,6 +19,7 @@ internal sealed class SupplyBoxModule(ISwiftlyCore core) : BaseModule(core)
         var service = new ServiceCollection();
 
         service.AddSwiftly(core);
+        service.AddSharedInterface<ILocalizationApi>();
 
         BuildConfigs(service);
         BuildSingletons(service);

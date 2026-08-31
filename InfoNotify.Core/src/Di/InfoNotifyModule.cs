@@ -1,5 +1,7 @@
 ﻿using Common.Di;
+using Common.Di.Utils;
 using InfoNotify.Core.Data.Configs;
+using Localization.Api;
 using Microsoft.Extensions.DependencyInjection;
 using SwiftlyS2.Shared;
 
@@ -14,6 +16,7 @@ internal sealed class InfoNotifyModule(ISwiftlyCore core) : BaseModule(core)
         var service = new ServiceCollection();
         
         service.AddSwiftly(_core);
+        service.AddSharedInterface<ILocalizationApi>();
 
         BuildConfigs(service);
         

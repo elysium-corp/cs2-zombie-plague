@@ -31,9 +31,27 @@ internal sealed class DatabaseLocalizationProvider(
                 group => group.Key,
                 group => group.Last(),
                 StringComparer.OrdinalIgnoreCase);
-        var entries = entryEntities
-            .Select(entity => MapEntry(entity, languages.Keys.ToFrozenSet(StringComparer.OrdinalIgnoreCase)))
-            .ToFrozenDictionary(entry => entry.Key, StringComparer.OrdinalIgnoreCase);
+        var languageCodes = languages.Keys.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+        var mutableEntries = entryEntities
+            .Select(entity => MapEntry(entity, languageCodes))
+            .ToDictionary(entry => entry.Key, StringComparer.OrdinalIgnoreCase);
+
+        long builtInId = -1;
+        foreach (var (key, translations) in BuiltInLocalizationEntries.Create())
+        {
+            if (mutableEntries.ContainsKey(key))
+            {
+                continue;
+            }
+
+            mutableEntries[key] = new LocalizationEntry(
+                builtInId--,
+                key,
+                LocalizationValidation.CriticalKeys.Contains(key),
+                LocalizationValidation.NormalizeTranslations(translations, languageCodes));
+        }
+
+        var entries = mutableEntries.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
         var snapshot = new LocalizationSnapshot(
             new LocalizationSettings(

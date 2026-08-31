@@ -4,14 +4,14 @@ public sealed class InfoNotifyConfig
 {
     // Включить вывод информации в чат.
     public bool Enable { get; set; }
-    // Список сообщений, который будет выведен в конце раунда.
-    public List<string> RoundEndMessages { get; set; } = [""];
-    // Список сообщений, который будет выведен в начале раунда.
-    public List<string> RoundStartMessages { get; set; } = [""];
-    // Список сообщений, который будет выводиться периодически, каждые n секунд.
-    public List<string> RoundEventMessages { get; set; } = [""];
-    // Список сообщений, который будет выведен, когда игрок подключится к серверу.
-    public List<string> PlayerConnectMessages { get; set; } = [""];
+    // Ключи ElysiumLocalization, выводимые в конце раунда.
+    public List<string> RoundEndMessages { get; set; } = [];
+    // Ключи ElysiumLocalization, выводимые в начале раунда.
+    public List<string> RoundStartMessages { get; set; } = [];
+    // Ключи ElysiumLocalization, выводимые периодически, каждые n секунд.
+    public List<string> RoundEventMessages { get; set; } = [];
+    // Ключи ElysiumLocalization, выводимые при подключении игрока.
+    public List<string> PlayerConnectMessages { get; set; } = [];
     // Время между RoundEventMessages.
     public float TimeBetweenEventMessagesPerSeconds { get; set; } = 60.0f;
     // Время перед первым RoundEventMessages.

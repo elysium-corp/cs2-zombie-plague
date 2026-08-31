@@ -15,7 +15,6 @@ internal sealed class LocalizationCoordinator(
     private readonly object _taskSync = new();
     private readonly HashSet<Task> _tasks = [];
     private LocalizationSnapshot _fallback = EmergencyLocalizationSnapshot.Create();
-    private long _nextReloadUnixMilliseconds;
     private int _stopped;
 
     public void Start()
@@ -38,33 +37,27 @@ internal sealed class LocalizationCoordinator(
         }
 
         cache.Replace(_fallback);
-        ScheduleNext(_fallback.Settings.RefreshIntervalSeconds);
-        Track(ReloadDatabaseAsync("запуск плагина", _lifetime.Token));
+        Track(ReloadDatabaseAsync(_lifetime.Token));
     }
 
-    public void Tick()
+    public void OnMapLoaded()
     {
-        if (Volatile.Read(ref _stopped) != 0
-            || DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() < Interlocked.Read(ref _nextReloadUnixMilliseconds)
-            || _reloadLock.CurrentCount == 0)
+        if (Volatile.Read(ref _stopped) != 0)
         {
             return;
         }
 
-        ScheduleNext(cache.Current?.Settings.RefreshIntervalSeconds ?? 30);
-        Track(ReloadDatabaseAsync("периодическая проверка", _lifetime.Token));
+        Track(ReloadDatabaseAsync(_lifetime.Token));
     }
 
     public Task<(bool Success, string Message)> ReloadNowAsync()
     {
-        var task = ReloadDatabaseAsync("команда localization_reload", _lifetime.Token);
+        var task = ReloadDatabaseAsync(_lifetime.Token);
         Track(task);
         return task;
     }
 
-    private async Task<(bool Success, string Message)> ReloadDatabaseAsync(
-        string reason,
-        CancellationToken cancellationToken)
+    private async Task<(bool Success, string Message)> ReloadDatabaseAsync(CancellationToken cancellationToken)
     {
         try
         {
@@ -79,12 +72,6 @@ internal sealed class LocalizationCoordinator(
         {
             var snapshot = await databaseProvider.LoadAsync(cancellationToken);
             cache.Replace(snapshot);
-            ScheduleNext(snapshot.Settings.RefreshIntervalSeconds);
-            logger.LogInformation(
-                "[Localization] Загружено {Entries} ключей и {Languages} языков из PostgreSQL. Причина: {Reason}.",
-                snapshot.Entries.Count,
-                snapshot.Languages.Count,
-                reason);
             return (true, $"Snapshot обновлён: {snapshot.Entries.Count} ключей.");
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -106,7 +93,6 @@ internal sealed class LocalizationCoordinator(
                 cache.Replace(_fallback);
             }
 
-            ScheduleNext(cache.Current?.Settings.RefreshIntervalSeconds ?? 30);
             rateLimitedLogger.Warning(
                 "database:unavailable",
                 TimeSpan.FromMinutes(2),
@@ -138,13 +124,6 @@ internal sealed class LocalizationCoordinator(
             CancellationToken.None,
             TaskContinuationOptions.ExecuteSynchronously,
             TaskScheduler.Default);
-    }
-
-    private void ScheduleNext(int seconds)
-    {
-        Interlocked.Exchange(
-            ref _nextReloadUnixMilliseconds,
-            DateTimeOffset.UtcNow.AddSeconds(Math.Max(5, seconds)).ToUnixTimeMilliseconds());
     }
 
     public void Dispose()

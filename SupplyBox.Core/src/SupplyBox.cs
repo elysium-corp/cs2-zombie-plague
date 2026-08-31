@@ -2,6 +2,7 @@ using Common.Di;
 using Common.Di.Utils;
 using Common.Hooks;
 using Common.Hooks.Abstractions;
+using Localization.Api;
 using Microsoft.Extensions.Options;
 using SupplyBox.Api;
 using SupplyBox.Api.Events;
@@ -60,6 +61,7 @@ internal sealed partial class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxMod
     protected override void OnUseSharedInterfaces(IInterfaceManager interfaceManager)
     {
         ZombiePlagueApi = interfaceManager.GetSharedInterface<IZombiePlagueApi>(IZombiePlagueApi.SharedApiKey);
+        BindSharedInterface<ILocalizationApi>(interfaceManager, ILocalizationApi.SharedApiKey);
     }
 
     protected override void OnReady()

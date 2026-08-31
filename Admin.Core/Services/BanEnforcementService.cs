@@ -1,5 +1,6 @@
 ﻿using Admin.Core.Data;
 using Common.Database.Tasks;
+using Localization.Api;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.ProtobufDefinitions;
@@ -13,7 +14,8 @@ namespace Admin.Core.Services;
 internal sealed class BanEnforcementService(
     ISwiftlyCore core, 
     IBanService banService, 
-    DatabaseTaskTracker databaseTasks) : IBanEnforcementService
+    DatabaseTaskTracker databaseTasks,
+    ILocalizationApi localization) : IBanEnforcementService
 {
     /// <inheritdoc />
     public void Check(IPlayer player)
@@ -49,15 +51,22 @@ internal sealed class BanEnforcementService(
         }
 
         await player.KickAsync(
-            BuildKickReason(ban),
+            BuildKickReason(player, ban),
             ENetworkDisconnectionReason.NETWORK_DISCONNECT_REJECT_BANNED
         ).ConfigureAwait(false);
     }
 
-    private static string BuildKickReason(ActiveBan ban)
+    private string BuildKickReason(IPlayer player, ActiveBan ban)
     {
-        return ban.ExpiresAtUtc is null
-            ? $"Вы заблокированы навсегда. Причина: {ban.Reason}"
-            : $"Вы заблокированы до {ban.ExpiresAtUtc:dd.MM.yyyy HH:mm}. Причина: {ban.Reason}";
+        var placeholders = new Dictionary<string, string>
+        {
+            ["reason"] = ban.Reason,
+            ["expires_at"] = ban.ExpiresAtUtc?.ToString("dd.MM.yyyy HH:mm") ?? string.Empty,
+        };
+
+        return localization.GetForPlayerOrKey(
+            player,
+            ban.ExpiresAtUtc is null ? "Admin.Ban.KickPermanent" : "Admin.Ban.KickTemporary",
+            placeholders);
     }
 }

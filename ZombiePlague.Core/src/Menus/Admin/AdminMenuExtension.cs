@@ -1,5 +1,6 @@
 ﻿using Admin.Api;
 using Admin.Api.Menus;
+using Localization.Api;
 using Menu.Api;
 using Menu.Api.Extensions;
 using SwiftlyS2.Core.Menus.OptionsBase;
@@ -12,7 +13,8 @@ namespace ZombiePlague.Core.Menus.Admin;
 internal sealed class AdminMenuExtension(
     ISwiftlyCore core,
     IAdminApi adminApi,
-    AdminMenu adminMenu
+    AdminMenu adminMenu,
+    Func<ILocalizationApi> localization
 )
 {
     private IDisposable? _subscription;
@@ -40,7 +42,9 @@ internal sealed class AdminMenuExtension(
             return;
         }
 
-        var option = new ButtonMenuOption("[Zombie Mode] Админ меню");
+        var option = new ButtonMenuOption(
+            localization().GetForPlayerOrKey(context.Player, "ZombiePlague.Admin.RootItem")
+        );
 
         option.Click += (_, args) =>
         {

@@ -60,6 +60,8 @@ internal sealed class KnifeMenu(
     private ButtonMenuOption BuildKnifeOption(IPlayer player, IKnife currentKnife, IKnife knife)
     {
         var isSelected = knife.InternalName == currentKnife.InternalName;
+        var knifeName = LocalizeKnifeField(player, knife, "Name", knife.DisplayName);
+        var knifeDescription = LocalizeKnifeField(player, knife, "Description", knife.Description);
 
         var option = new ButtonMenuOption
         {
@@ -69,11 +71,11 @@ internal sealed class KnifeMenu(
                 ? localization.GetForPlayer(
                       player,
                       "Menu.Knife.Selected",
-                      new Dictionary<string, string> { ["knife"] = knife.DisplayName })
-                  ?? $"{knife.DisplayName} [selected]"
-                : knife.DisplayName,
+                      new Dictionary<string, string> { ["knife"] = knifeName })
+                  ?? knifeName
+                : knifeName,
 
-            Comment = knife.Description
+            Comment = knifeDescription
         };
 
         option.Click += async (_, args) =>
@@ -83,15 +85,20 @@ internal sealed class KnifeMenu(
             knifeService.SelectKnife(player, knife);
 
             var message = localization.GetForPlayer(
-                              player,
-                              "Menu.Knife.SelectionSuccess",
-                              new Dictionary<string, string> { ["knife"] = knife.DisplayName })
-                          ?? $"Knife selected: {knife.DisplayName}";
+                player,
+                "Menu.Knife.SelectionSuccess",
+                new Dictionary<string, string> { ["knife"] = knifeName })
+                          ?? knifeName;
             await player.SendChatAsync(message);
 
             core.MenusAPI.CloseActiveMenu(player);
         };
 
         return option;
+    }
+
+    private string LocalizeKnifeField(IPlayer player, IKnife knife, string field, string fallback)
+    {
+        return localization.GetForPlayer(player, $"CustomKnife.{knife.InternalName}.{field}") ?? fallback;
     }
 }

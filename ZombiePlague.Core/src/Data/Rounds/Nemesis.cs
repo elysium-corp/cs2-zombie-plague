@@ -1,4 +1,5 @@
 ﻿using Common.Hooks.Abstractions;
+using Localization.Api;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameHooks;
 using ZombiePlague.Api.Data.Rounds;
@@ -13,8 +14,9 @@ namespace ZombiePlague.Core.Data.Rounds;
 internal sealed class Nemesis(
     ISwiftlyCore core,
     IPlayerManager playerManager,
-    NemesisConfig config
-) : RoundBase(core, playerManager)
+    NemesisConfig config,
+    Func<ILocalizationApi> localization
+) : RoundBase(core, playerManager, localization)
 {
     public override string Name => config.Name;
     
@@ -60,7 +62,9 @@ internal sealed class Nemesis(
             leap?.UnHook();
         }
 
-        Core.PlayerManager.SendCenter($"Немезида => {selectedPlayer.Name}");
+        BroadcastLocalized(
+            "ZombiePlague.Round.Nemesis.Selected",
+            new Dictionary<string, string> { ["player"] = selectedPlayer.Name });
 
         return true;
     }

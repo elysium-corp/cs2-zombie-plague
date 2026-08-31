@@ -1,4 +1,5 @@
 ﻿using Admin.Api;
+using Localization.Api;
 using Menu.Api.Data;
 using Menu.Api.Data.Contracts;
 using SwiftlyS2.Core.Menus.OptionsBase;
@@ -16,7 +17,8 @@ internal sealed class RoundMenu(
     ISwiftlyCore core,
     IAdminApi adminApi,
     IRoundManager roundManager,
-    RoundSelectionMenu roundSelectionMenu
+    RoundSelectionMenu roundSelectionMenu,
+    Func<ILocalizationApi> localization
 ) : MenuBase(core)
 {
     private const string AccentColor = "#7DD3FC";
@@ -38,10 +40,10 @@ internal sealed class RoundMenu(
     {
         var builder = CreateBuilder(player);
 
-        builder.AddOption(BuildCurrentRoundOption());
-        builder.AddOption(BuildNextRoundOption());
-        builder.AddOption(BuildStartImmediatelyOption());
-        builder.AddOption(BuildSelectRoundOption());
+        builder.AddOption(BuildCurrentRoundOption(player));
+        builder.AddOption(BuildNextRoundOption(player));
+        builder.AddOption(BuildStartImmediatelyOption(player));
+        builder.AddOption(BuildSelectRoundOption(player));
 
         return builder.Build();
     }
@@ -49,15 +51,18 @@ internal sealed class RoundMenu(
     protected override IMenuBuilderAPI ConfigureDesign(IPlayer player, IMenuDesignAPI design)
     {
         return design
-            .SetMenuTitle("Управление раундами")
+            .SetMenuTitle(L(player, "ZombiePlague.Admin.Round.Title"))
             .Design.SetMenuFooterVisible(false)
             .Design.EnableAutoAdjustVisibleItems();
     }
 
-    private TextMenuOption BuildCurrentRoundOption()
+    private TextMenuOption BuildCurrentRoundOption(IPlayer player)
     {
-        var roundName = roundManager.CurrentRound?.Name ??
-                        (roundManager.IsPreparing ? "Подготовка" : "Нет");
+        var roundName = roundManager.CurrentRound is { } currentRound
+            ? RoundName(player, currentRound)
+            : L(player, roundManager.IsPreparing
+                ? "ZombiePlague.Admin.Round.State.Preparing"
+                : "ZombiePlague.Admin.Round.State.None");
 
         var color = roundManager.CurrentRound is not null
             ? SuccessColor
@@ -65,27 +70,29 @@ internal sealed class RoundMenu(
 
         return new TextMenuOption
         {
-            Text = $"{HtmlHelper.TextWithColor("Текущий:", TextColor)} {HtmlHelper.TextWithColor(roundName, color)}",
+            Text = $"{HtmlHelper.TextWithColor(L(player, "ZombiePlague.Admin.Round.Current"), TextColor)} {HtmlHelper.TextWithColor(roundName, color)}",
             MaxWidth = 34f,
             TextSize = MenuOptionTextSize.SmallMedium
         };
     }
 
-    private TextMenuOption BuildNextRoundOption()
+    private TextMenuOption BuildNextRoundOption(IPlayer player)
     {
-        var roundName = roundManager.NextRound?.Name ?? "Автоматически";
+        var roundName = roundManager.NextRound is { } nextRound
+            ? RoundName(player, nextRound)
+            : L(player, "ZombiePlague.Admin.Round.Automatic");
 
         return new TextMenuOption
         {
-            Text = $"{HtmlHelper.TextWithColor("Следующий:", TextColor)} {HtmlHelper.TextWithColor(roundName, AccentColor)}"
+            Text = $"{HtmlHelper.TextWithColor(L(player, "ZombiePlague.Admin.Round.Next"), TextColor)} {HtmlHelper.TextWithColor(roundName, AccentColor)}"
         };
     }
 
-    private ButtonMenuOption BuildStartImmediatelyOption()
+    private ButtonMenuOption BuildStartImmediatelyOption(IPlayer player)
     {
         var option = new ButtonMenuOption
         {
-            Text = HtmlHelper.TextWithColor("⚡ Запустить немедленно", DangerColor),
+            Text = HtmlHelper.TextWithColor(L(player, "ZombiePlague.Admin.Round.StartNow"), DangerColor),
             Enabled = roundManager.IsPreparing
         };
 
@@ -99,10 +106,10 @@ internal sealed class RoundMenu(
         return option;
     }
 
-    private ButtonMenuOption BuildSelectRoundOption()
+    private ButtonMenuOption BuildSelectRoundOption(IPlayer player)
     {
         var option = new ButtonMenuOption(
-            HtmlHelper.TextWithColor("Выбрать следующий раунд", AccentColor)
+            HtmlHelper.TextWithColor(L(player, "ZombiePlague.Admin.Round.SelectNext"), AccentColor)
         );
 
         option.Click += async (_, args) =>
@@ -131,20 +138,34 @@ internal sealed class RoundMenu(
         switch (result)
         {
             case RoundStartResult.Started:
-                _ = player.SendChatAsync($"Запущен раунд: {roundManager.CurrentRound?.Name ?? "Неизвестно"}");
+                _ = player.SendChatAsync(L(player, "ZombiePlague.Admin.Round.Started", new Dictionary<string, string>
+                {
+                    ["round"] = roundManager.CurrentRound is { } round
+                        ? RoundName(player, round)
+                        : L(player, "ZombiePlague.Admin.Round.State.Unknown")
+                }));
                 break;
 
             case RoundStartResult.NotPreparing:
-                _ = player.SendChatAsync("Невозможно запустить раунд: подготовка уже завершена");
+                _ = player.SendChatAsync(L(player, "ZombiePlague.Admin.Round.NotPreparing"));
                 break;
 
             case RoundStartResult.CannotStart:
-                _ = player.SendChatAsync("Не удалось подобрать раунд для запуска");
+                _ = player.SendChatAsync(L(player, "ZombiePlague.Admin.Round.CannotStart"));
                 break;
 
             case RoundStartResult.Cancelled:
-                _ = player.SendChatAsync("Запуск раунда был отменён");
+                _ = player.SendChatAsync(L(player, "ZombiePlague.Admin.Round.Cancelled"));
                 break;
         }
     }
+
+    private string RoundName(IPlayer player, RoundBase round) =>
+        L(player, $"ZombiePlague.Round.{round.Id}.Name");
+
+    private string L(
+        IPlayer player,
+        string key,
+        IReadOnlyDictionary<string, string>? placeholders = null) =>
+        localization().GetForPlayerOrKey(player, key, placeholders);
 }

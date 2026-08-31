@@ -1,6 +1,7 @@
 ﻿using Admin.Api.Permissions;
 using Admin.Core.Services;
 using Common.Database.Tasks;
+using Localization.Api;
 using Menu.Api.Data;
 using Menu.Api.Data.Contracts;
 using SwiftlyS2.Core.Menus.OptionsBase;
@@ -12,18 +13,19 @@ namespace Admin.Core.Menus;
 
 internal sealed class BanMenu(
     ISwiftlyCore core, IPrivilegeService privilegeService, IBanService banService,
-    IBanEnforcementService banEnforcementService, DatabaseTaskTracker databaseTasks
+    IBanEnforcementService banEnforcementService, DatabaseTaskTracker databaseTasks,
+    ILocalizationApi localization
 ) : MenuBase(core)
 {
-    private static readonly string[] PredefinedReasons =
+    private static readonly string[] PredefinedReasonKeys =
     [
-        "Использование читов",
-        "Оскорбления / токсичное поведение",
-        "Спам / флуд",
-        "Помеха игровому процессу",
-        "Обход блокировки",
-        "Реклама",
-        "Нарушение правил сервера"
+        "Admin.Ban.Reason.Cheating",
+        "Admin.Ban.Reason.Toxicity",
+        "Admin.Ban.Reason.Spam",
+        "Admin.Ban.Reason.GameplayInterference",
+        "Admin.Ban.Reason.Evasion",
+        "Admin.Ban.Reason.Advertising",
+        "Admin.Ban.Reason.RulesViolation"
     ];
 
     public override string Id => "admin.ban";
@@ -61,7 +63,7 @@ internal sealed class BanMenu(
     protected override IMenuBuilderAPI ConfigureDesign(IPlayer player, IMenuDesignAPI design)
     {
         return design
-            .SetMenuTitle("Забанить игрока")
+            .SetMenuTitle(localization.GetForPlayerOrKey(player, "Admin.Ban.Title"))
             .Design.SetMenuFooterVisible(false)
             .Design.EnableAutoAdjustVisibleItems();
     }
@@ -88,24 +90,32 @@ internal sealed class BanMenu(
         }
 
         var builder = Core.MenusAPI.CreateBuilder()
-            .Design.SetMenuTitle($"Срок бана: {target.Name}")
+            .Design.SetMenuTitle(localization.GetForPlayerOrKey(
+                player,
+                "Admin.Ban.DurationTitle",
+                new Dictionary<string, string> { ["player"] = target.Name }))
             .Design.SetMenuFooterVisible(false)
             .Design.EnableAutoAdjustVisibleItems();
 
-        AddDurationOption(builder, target, "30 минут", TimeSpan.FromMinutes(30));
-        AddDurationOption(builder, target, "1 час", TimeSpan.FromHours(1));
-        AddDurationOption(builder, target, "6 часов", TimeSpan.FromHours(6));
-        AddDurationOption(builder, target, "1 день", TimeSpan.FromDays(1));
-        AddDurationOption(builder, target, "7 дней", TimeSpan.FromDays(7));
-        AddDurationOption(builder, target, "30 дней", TimeSpan.FromDays(30));
-        AddDurationOption(builder, target, "Навсегда", null);
+        AddDurationOption(builder, player, target, "Admin.Ban.Duration.30Minutes", TimeSpan.FromMinutes(30));
+        AddDurationOption(builder, player, target, "Admin.Ban.Duration.1Hour", TimeSpan.FromHours(1));
+        AddDurationOption(builder, player, target, "Admin.Ban.Duration.6Hours", TimeSpan.FromHours(6));
+        AddDurationOption(builder, player, target, "Admin.Ban.Duration.1Day", TimeSpan.FromDays(1));
+        AddDurationOption(builder, player, target, "Admin.Ban.Duration.7Days", TimeSpan.FromDays(7));
+        AddDurationOption(builder, player, target, "Admin.Ban.Duration.30Days", TimeSpan.FromDays(30));
+        AddDurationOption(builder, player, target, "Admin.Ban.Duration.Permanent", null);
 
         Core.MenusAPI.OpenMenuForPlayer(player, builder.Build());
     }
 
-    private void AddDurationOption(IMenuBuilderAPI builder, BanTarget target, string title, TimeSpan? duration)
+    private void AddDurationOption(
+        IMenuBuilderAPI builder,
+        IPlayer player,
+        BanTarget target,
+        string titleKey,
+        TimeSpan? duration)
     {
-        var option = new ButtonMenuOption(title);
+        var option = new ButtonMenuOption(localization.GetForPlayerOrKey(player, titleKey));
 
         option.Click += (_, args) =>
         {
@@ -125,11 +135,12 @@ internal sealed class BanMenu(
         }
 
         var builder = Core.MenusAPI.CreateBuilder()
-            .Design.SetMenuTitle($"Причина: {target.Name}")
+            .Design.SetMenuTitle(ReasonTitle(player, target))
             .Design.SetMenuFooterVisible(false)
             .Design.EnableAutoAdjustVisibleItems();
 
-        var predefinedOption = new ButtonMenuOption("Выбрать готовую причину");
+        var predefinedOption = new ButtonMenuOption(
+            localization.GetForPlayerOrKey(player, "Admin.Ban.ChoosePredefinedReason"));
 
         predefinedOption.Click += (_, args) =>
         {
@@ -138,7 +149,8 @@ internal sealed class BanMenu(
             return ValueTask.CompletedTask;
         };
 
-        var customOption = new ButtonMenuOption("Ввести причину вручную");
+        var customOption = new ButtonMenuOption(
+            localization.GetForPlayerOrKey(player, "Admin.Ban.EnterCustomReason"));
 
         customOption.Click += (_, args) =>
         {
@@ -161,12 +173,13 @@ internal sealed class BanMenu(
         }
 
         var builder = Core.MenusAPI.CreateBuilder()
-            .Design.SetMenuTitle($"Причина: {target.Name}")
+            .Design.SetMenuTitle(ReasonTitle(player, target))
             .Design.SetMenuFooterVisible(false)
             .Design.EnableAutoAdjustVisibleItems();
 
-        foreach (var reason in PredefinedReasons)
+        foreach (var reasonKey in PredefinedReasonKeys)
         {
+            var reason = localization.GetForPlayerOrKey(player, reasonKey);
             var option = new ButtonMenuOption(reason);
 
             option.Click += async (_, args) =>
@@ -191,23 +204,31 @@ internal sealed class BanMenu(
         }
 
         var input = new InputMenuOption(
-            text: "Введите причину",
+            text: localization.GetForPlayerOrKey(player, "Admin.Ban.CustomReasonInput"),
             maxLength: 256,
             validator: value => !string.IsNullOrWhiteSpace(value),
             defaultValue: string.Empty,
-            hintMessage: "Напишите причину в чат"
+            hintMessage: localization.GetForPlayerOrKey(player, "Admin.Ban.CustomReasonHint")
         );
 
         input.ValueChanged += (_, args) => ApplyBan(args.Player, target, duration, args.NewValue);
 
         var menu = Core.MenusAPI.CreateBuilder()
-            .Design.SetMenuTitle($"Причина: {target.Name}")
+            .Design.SetMenuTitle(ReasonTitle(player, target))
             .Design.SetMenuFooterVisible(false)
             .Design.EnableAutoAdjustVisibleItems()
             .AddOption(input)
             .Build();
 
         Core.MenusAPI.OpenMenuForPlayer(player, menu);
+    }
+
+    private string ReasonTitle(IPlayer player, BanTarget target)
+    {
+        return localization.GetForPlayerOrKey(
+            player,
+            "Admin.Ban.ReasonTitle",
+            new Dictionary<string, string> { ["player"] = target.Name });
     }
 
     private void ApplyBan(IPlayer player, BanTarget target, TimeSpan? duration, string reason)

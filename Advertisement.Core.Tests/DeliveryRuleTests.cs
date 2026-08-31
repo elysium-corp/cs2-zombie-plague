@@ -55,6 +55,7 @@ public sealed class DeliveryRuleTests
             1,
             "test",
             "Test",
+            "advertisement.messages.test",
             null,
             "information",
             true,

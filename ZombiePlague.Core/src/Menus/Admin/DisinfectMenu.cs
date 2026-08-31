@@ -1,4 +1,5 @@
 ﻿using Admin.Api;
+using Localization.Api;
 using Menu.Api.Data;
 using Menu.Api.Data.Contracts;
 using SwiftlyS2.Core.Menus.OptionsBase;
@@ -13,7 +14,8 @@ namespace ZombiePlague.Core.Menus.Admin;
 internal sealed class DisinfectMenu(
     ISwiftlyCore core,
     IAdminApi adminApi,
-    IPlayerManager playerManager
+    IPlayerManager playerManager,
+    Func<ILocalizationApi> localization
 ) : MenuBase(core)
 {
     public override string Id => "zombie_plague.admin.disinfect";
@@ -55,7 +57,7 @@ internal sealed class DisinfectMenu(
     protected override IMenuBuilderAPI ConfigureDesign(IPlayer player, IMenuDesignAPI design)
     {
         return design
-            .SetMenuTitle("Сделать человеком")
+            .SetMenuTitle(localization().GetForPlayerOrKey(player, "ZombiePlague.Admin.Disinfect.Title"))
             .Design.SetMenuFooterVisible(false)
             .Design.EnableAutoAdjustVisibleItems();
     }

@@ -1,4 +1,5 @@
-﻿using SwiftlyS2.Shared;
+﻿using Localization.Api;
+using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.GameHooks;
 using SwiftlyS2.Shared.Misc;
@@ -9,7 +10,10 @@ using ZombiePlague.Core.Data.Managers.Contracts;
 
 namespace ZombiePlague.Core.Data.Rounds.Contracts;
 
-internal abstract class RoundBase(ISwiftlyCore core, IPlayerManager playerManager) : IRound
+internal abstract class RoundBase(
+    ISwiftlyCore core,
+    IPlayerManager playerManager,
+    Func<ILocalizationApi> localization) : IRound
 {
     public abstract string Id { get; }
     
@@ -18,6 +22,20 @@ internal abstract class RoundBase(ISwiftlyCore core, IPlayerManager playerManage
     protected IPlayerManager PlayerManager { get; } = playerManager;
 
     protected ISwiftlyCore Core { get; } = core;
+
+    protected void BroadcastLocalized(
+        string key,
+        IReadOnlyDictionary<string, string>? placeholders = null)
+    {
+        foreach (var player in Core.PlayerManager.GetAllPlayers()
+                     .Where(value => value is { IsAuthorized: true, IsFakeClient: false }))
+        {
+            player.SendMessage(
+                MessageType.Alert,
+                localization().GetForPlayerOrKey(player, key, placeholders),
+                300);
+        }
+    }
 
     private bool _isRoundEnded;
     private bool _cleanupCompleted = true;

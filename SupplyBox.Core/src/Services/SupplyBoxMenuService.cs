@@ -1,4 +1,5 @@
 ﻿using Common.Di;
+using Localization.Api;
 using SupplyBox.Data.Entity;
 using SwiftlyS2.Core.Menus.OptionsBase;
 using SwiftlyS2.Shared;
@@ -8,23 +9,27 @@ using SwiftlyS2.Shared.Players;
 
 namespace SupplyBox.Services;
 
-internal sealed class SupplyBoxMenuService(ISwiftlyCore core, SupplyBoxMapConfigService mapConfigService, SupplyBoxEditService supplyBoxEditService)
+internal sealed class SupplyBoxMenuService(
+    ISwiftlyCore core,
+    SupplyBoxMapConfigService mapConfigService,
+    SupplyBoxEditService supplyBoxEditService,
+    ILocalizationApi localization)
 {
     private const int RotationDegree = 10;
     
     public void ShowMainMenu(IPlayer player)
     {
-        var menu = GetMainMenu();
+        var menu = GetMainMenu(player);
         
         core.MenusAPI.OpenMenuForPlayer(player, menu);
     }
 
-    private IMenuAPI GetMainMenu()
+    private IMenuAPI GetMainMenu(IPlayer player)
     {
         var builder = core.MenusAPI.CreateBuilder()
-            .Design.SetMenuTitle("Меню контейнеров")
-            .AddOption(AddSupplyBoxOption())
-            .AddOption(RemoveSupplyBoxOption())
+            .Design.SetMenuTitle(localization.GetForPlayerOrKey(player, "SupplyBox.Editor.Title"))
+            .AddOption(AddSupplyBoxOption(player))
+            .AddOption(RemoveSupplyBoxOption(player))
             .EnableSound();
 
         return builder.Build();
@@ -35,19 +40,19 @@ internal sealed class SupplyBoxMenuService(ISwiftlyCore core, SupplyBoxMapConfig
         var container = DependencyResolver.GetRequiredService<SupplyBoxEntityTemplate>();
         core.Scheduler.NextWorldUpdateAsync(() => container.Spawn(player));
         
-        var button1 = new ButtonMenuOption("Повернуть вправо на 10°");
+        var button1 = new ButtonMenuOption(localization.GetForPlayerOrKey(player, "SupplyBox.Editor.RotateRight"));
         button1.Click += async (sender, args) =>
         {
             container.Rotation += new Vector(0,-RotationDegree,0);
         };
         
-        var button2 = new ButtonMenuOption("Повернуть влево на 10°");
+        var button2 = new ButtonMenuOption(localization.GetForPlayerOrKey(player, "SupplyBox.Editor.RotateLeft"));
         button2.Click += async (sender, args) =>
         {
             container.Rotation += new Vector(0,RotationDegree,0);
         };
         
-        var button3 = new ButtonMenuOption("<font color='#FF0000'>Отменить</font>");
+        var button3 = new ButtonMenuOption(localization.GetForPlayerOrKey(player, "SupplyBox.Editor.Cancel"));
         button3.Click += async (sender, args) =>
         {
             await core.Scheduler.NextWorldUpdateAsync(() =>
@@ -57,7 +62,7 @@ internal sealed class SupplyBoxMenuService(ISwiftlyCore core, SupplyBoxMapConfig
             core.MenusAPI.CloseActiveMenu(args.Player);
         };
         
-        var button4 = new ButtonMenuOption("<font color='#008000'>Установить</font>");
+        var button4 = new ButtonMenuOption(localization.GetForPlayerOrKey(player, "SupplyBox.Editor.Install"));
         button4.Click += async (sender, args) =>
         {
             supplyBoxEditService.AddSupplyBoxEntity(container);
@@ -69,7 +74,7 @@ internal sealed class SupplyBoxMenuService(ISwiftlyCore core, SupplyBoxMapConfig
         };
         
         var menu = core.MenusAPI.CreateBuilder()
-            .Design.SetMenuTitle("Добавления контейнера")
+            .Design.SetMenuTitle(localization.GetForPlayerOrKey(player, "SupplyBox.Editor.AddTitle"))
             .EnableSound()
             .AddOption(button1)
             .AddOption(button2)
@@ -85,7 +90,7 @@ internal sealed class SupplyBoxMenuService(ISwiftlyCore core, SupplyBoxMapConfig
     private IMenuAPI GetRemoveSupplyBoxMenu(IPlayer player)
     {
         var menu = core.MenusAPI.CreateBuilder()
-            .Design.SetMenuTitle("Удаление контейнеров")
+            .Design.SetMenuTitle(localization.GetForPlayerOrKey(player, "SupplyBox.Editor.RemoveTitle"))
             .EnableSound();
 
         var supplyBoxesList = mapConfigService.GetSnapshot();
@@ -96,7 +101,10 @@ internal sealed class SupplyBoxMenuService(ISwiftlyCore core, SupplyBoxMapConfig
         
         foreach (var supplyBox in supplyBoxesList)
         {
-            var button = new ButtonMenuOption($"Удалить контейнер {supplyBox.Index}");
+            var button = new ButtonMenuOption(localization.GetForPlayerOrKey(
+                player,
+                "SupplyBox.Editor.RemoveItem",
+                new Dictionary<string, string> { ["index"] = supplyBox.Index.ToString() }));
             button.Click += async (sender, args) =>
             {
                 supplyBoxEditService.RemoveSupplyBoxEntity(supplyBox);
@@ -109,11 +117,11 @@ internal sealed class SupplyBoxMenuService(ISwiftlyCore core, SupplyBoxMapConfig
         return menu.Build();
     }
     
-    private IMenuOption AddSupplyBoxOption()
+    private IMenuOption AddSupplyBoxOption(IPlayer player)
     {
         var button = new ButtonMenuOption();
         
-        button.Text = "Создать контейнер";
+        button.Text = localization.GetForPlayerOrKey(player, "SupplyBox.Editor.Create");
 
         button.Click += async (_, args) =>
         {
@@ -129,11 +137,11 @@ internal sealed class SupplyBoxMenuService(ISwiftlyCore core, SupplyBoxMapConfig
         return button;
     }
     
-    private IMenuOption RemoveSupplyBoxOption()
+    private IMenuOption RemoveSupplyBoxOption(IPlayer player)
     {
         var button = new ButtonMenuOption();
         
-        button.Text = "Удалить контейнеры";
+        button.Text = localization.GetForPlayerOrKey(player, "SupplyBox.Editor.Remove");
 
         button.Click += async (_, args) =>
         {

@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Common.Hooks.Abstractions;
+using Localization.Api;
 using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;
 using ZombiePlague.Api.Data.Rounds;
@@ -14,17 +15,18 @@ internal class RoundFactory(
     IOptions<RoundConfig> config,
     IOptions<ZombiePlagueCoreConfig> coreConfig,
     IPlayerManager playerManager,
-    IHookPublisher hooks
+    IHookPublisher hooks,
+    Func<ILocalizationApi> localization
 ) : IRoundFactory
 {
     public RoundBase Create<TRound>() where TRound : RoundBase
     {
         return typeof(TRound) switch
         {
-            var type when type == typeof(Infection) => new Infection(core, playerManager, config.Value.Infection, coreConfig),
-            var type when type == typeof(Plague) => new Plague(core, playerManager, config.Value.Plague, coreConfig),
-            var type when type == typeof(Nemesis) => new Nemesis(core, playerManager, config.Value.Nemesis),
-            var type when type == typeof(Survivor) => new Survivor(core, playerManager, config.Value.Survivor),
+            var type when type == typeof(Infection) => new Infection(core, playerManager, config.Value.Infection, coreConfig, localization),
+            var type when type == typeof(Plague) => new Plague(core, playerManager, config.Value.Plague, coreConfig, localization),
+            var type when type == typeof(Nemesis) => new Nemesis(core, playerManager, config.Value.Nemesis, localization),
+            var type when type == typeof(Survivor) => new Survivor(core, playerManager, config.Value.Survivor, localization),
             
             _ => throw new NotSupportedException($"RoundFactory: type '{typeof(TRound)}' is not supported!")
         };
@@ -34,10 +36,10 @@ internal class RoundFactory(
     {
         return roundConfig switch
         {
-            InfectionConfig value => new Infection(core, playerManager, value, coreConfig),
-            PlagueConfig value => new Plague(core, playerManager, value, coreConfig),
-            NemesisConfig value => new Nemesis(core, playerManager, value),
-            SurvivorConfig value => new Survivor(core, playerManager, value),
+            InfectionConfig value => new Infection(core, playerManager, value, coreConfig, localization),
+            PlagueConfig value => new Plague(core, playerManager, value, coreConfig, localization),
+            NemesisConfig value => new Nemesis(core, playerManager, value, localization),
+            SurvivorConfig value => new Survivor(core, playerManager, value, localization),
             
             _ => throw new NotSupportedException($"RoundFactory: config '{roundConfig.GetType().Name}' is not supported!")
         };

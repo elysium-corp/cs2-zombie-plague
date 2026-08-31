@@ -44,7 +44,6 @@ internal sealed class LocalizationPlugin(ISwiftlyCore core) : Plugin<Localizatio
     private readonly Lazy<DatabaseMigrator<LocalizationDbContext>> _databaseMigrator =
         GetRequiredServiceLazy<DatabaseMigrator<LocalizationDbContext>>();
 
-    private CancellationTokenSource? _refreshTimer;
     private Guid? _chatHook;
 
     protected override void OnConfigureSharedInterfaces(IInterfaceManager interfaceManager)
@@ -62,13 +61,13 @@ internal sealed class LocalizationPlugin(ISwiftlyCore core) : Plugin<Localizatio
         TryMigrateDatabase();
         Core.Event.OnClientSteamAuthorize += OnClientSteamAuthorize;
         Core.Event.OnClientDisconnected += OnClientDisconnected;
+        Core.Event.OnMapLoad += OnMapLoad;
         RegisterCommands();
         _coordinator.Value.Start();
     }
 
     protected override void OnReady()
     {
-        _refreshTimer = Core.Scheduler.RepeatBySeconds(1f, _coordinator.Value.Tick);
         foreach (var player in Core.PlayerManager.GetAllPlayers().Where(player => player.IsAuthorized))
         {
             BindAndLoad(player.PlayerID, player.SteamID);
@@ -79,9 +78,6 @@ internal sealed class LocalizationPlugin(ISwiftlyCore core) : Plugin<Localizatio
 
     protected override void OnUnload()
     {
-        _refreshTimer?.Cancel();
-        _refreshTimer = null;
-
         if (_chatHook is { } chatHook)
         {
             Core.Command.UnhookClientChat(chatHook);
@@ -96,6 +92,7 @@ internal sealed class LocalizationPlugin(ISwiftlyCore core) : Plugin<Localizatio
 
         Core.Event.OnClientSteamAuthorize -= OnClientSteamAuthorize;
         Core.Event.OnClientDisconnected -= OnClientDisconnected;
+        Core.Event.OnMapLoad -= OnMapLoad;
 
         _lifetime.Cancel();
         _coordinator.Value.Dispose();
@@ -161,6 +158,11 @@ internal sealed class LocalizationPlugin(ISwiftlyCore core) : Plugin<Localizatio
         {
             _playerLanguages.Value.Remove(steamId);
         }
+    }
+
+    private void OnMapLoad(IOnMapLoadEvent _)
+    {
+        _coordinator.Value.OnMapLoaded();
     }
 
     private HookResult OnClientChat(int playerId, string text, bool teamOnly)

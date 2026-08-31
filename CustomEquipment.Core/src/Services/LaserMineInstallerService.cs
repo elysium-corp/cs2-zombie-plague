@@ -6,6 +6,7 @@ using CustomEquipment.Api.Events.Contexts.Mines;
 using CustomEquipment.Data.Equipments.Weapons.Equipments;
 using CustomEquipment.Data.Equipments.Weapons.Equipments.Entities;
 using CustomEquipment.Utils.Helpers;
+using Localization.Api;
 using SwiftlyS2.Core.Menus.OptionsBase;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Menus;
@@ -15,7 +16,8 @@ namespace CustomEquipment.Services;
 
 public sealed class LaserMineInstallerService(
     ISwiftlyCore core,
-    IHookPublisher hooks) : ILaserMineInstallerService, IDisposable
+    IHookPublisher hooks,
+    ILocalizationApi localization) : ILaserMineInstallerService, IDisposable
 {
     private const float MaxDistanceToAttach = 100f;
     private const float SetupDuration = 1.0f;
@@ -75,7 +77,7 @@ public sealed class LaserMineInstallerService(
         try
         {
             var progress = 0f;
-            var window = CreateSetupWindow(() => progress);
+            var window = CreateSetupWindow(player, () => progress);
 
             core.MenusAPI.OpenMenuForPlayer(player, window);
 
@@ -109,10 +111,10 @@ public sealed class LaserMineInstallerService(
         }
     }
 
-    private IMenuAPI CreateSetupWindow(Func<float> getProgress)
+    private IMenuAPI CreateSetupWindow(IPlayer player, Func<float> getProgress)
     {
         var progressBar = new ProgressBarMenuOption(
-            "Установка...",
+            localization.GetForPlayerOrKey(player, "Equipment.LaserMine.Installing"),
             getProgress,
             multiLine: false,
             showPercentage: true,

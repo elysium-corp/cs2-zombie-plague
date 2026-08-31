@@ -35,6 +35,7 @@
     <ItemGroup>
       <ProjectReference Include="..\Common.Di\Common.Di.csproj" />
       <ProjectReference Include="..\Common.Hooks\Common.Hooks.csproj" />
+      <ProjectReference Include="..\Localization.Api\Localization.Api.csproj" />
       <ProjectReference Include="..\SupplyBox.Api\SupplyBox.Api.csproj" />
       <ProjectReference Include="..\ZombiePlague.Api\ZombiePlague.Api.csproj" />
     </ItemGroup>

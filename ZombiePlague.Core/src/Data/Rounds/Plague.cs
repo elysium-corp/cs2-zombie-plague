@@ -1,4 +1,5 @@
 ﻿using Common.Hooks.Abstractions;
+using Localization.Api;
 using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
@@ -17,8 +18,9 @@ internal sealed class Plague(
     ISwiftlyCore core,
     IPlayerManager playerManager,
     PlagueConfig config,
-    IOptions<ZombiePlagueCoreConfig> coreConfig
-) : InfectionBase(core, playerManager, coreConfig)
+    IOptions<ZombiePlagueCoreConfig> coreConfig,
+    Func<ILocalizationApi> localization
+) : InfectionBase(core, playerManager, coreConfig, localization)
 {
     private readonly Dictionary<int, CancellationTokenSource> _respawnTimers = [];
     
@@ -79,7 +81,7 @@ internal sealed class Plague(
             SoundExt.PlayGlobal(config.MusicSoundName);
         }
 
-        Core.PlayerManager.SendCenter("Массовое заражение!");
+        BroadcastLocalized("ZombiePlague.Round.Plague.Started");
 
         return true;
     }

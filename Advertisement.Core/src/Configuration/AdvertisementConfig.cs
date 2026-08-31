@@ -34,6 +34,7 @@ internal sealed class AdvertisementConfig
         {
             Key = "discord",
             Name = "Discord",
+            LocalizationKey = "advertisement.messages.discord",
             Tag = "elysium",
         },
     ];
@@ -49,6 +50,7 @@ internal sealed class FallbackMessageConfig
 {
     public string Key { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
+    public string LocalizationKey { get; set; } = string.Empty;
     public string? Tag { get; set; }
     public string Type { get; set; } = "information";
     public bool Enabled { get; set; } = true;

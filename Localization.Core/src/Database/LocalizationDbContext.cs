@@ -23,7 +23,7 @@ internal sealed class LocalizationDbContext(DbContextOptions<LocalizationDbConte
         language.Property(entity => entity.SortOrder).HasDefaultValue(0);
 
         var settings = modelBuilder.Entity<LocalizationSettingsEntity>();
-        settings.Property(entity => entity.Id).HasDefaultValue((short)1);
+        settings.Property(entity => entity.Id).ValueGeneratedNever();
         settings.Property(entity => entity.ServerFallbackLanguage).HasDefaultValue("ru");
         settings.Property(entity => entity.RefreshIntervalSeconds).HasDefaultValue(30);
         settings.Property(entity => entity.LocalCacheEnabled).HasDefaultValue(true);
