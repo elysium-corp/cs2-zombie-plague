@@ -63,6 +63,29 @@ public sealed class FallbackConfigTests
         Assert.Equal(config.Languages, languages);
     }
 
+    [Fact]
+    public void SnapshotValidation_IgnoresStaleTranslationOfDisabledLanguage()
+    {
+        var snapshot = FallbackLocalizationProvider.Build(CreateConfig(), LocalizationSource.Config);
+        var languages = snapshot.Languages.Values
+            .Select(language => language.Code == "de" ? language with { Enabled = false } : language)
+            .ToFrozenDictionary(language => language.Code, StringComparer.OrdinalIgnoreCase);
+        var translations = snapshot.Entries["localization.menu.changed"].Translations
+            .ToDictionary(item => item.Key, item => item.Value, StringComparer.OrdinalIgnoreCase);
+        translations["de"] = "Sprache geändert zu {locale}";
+        var changedEntry = snapshot.Entries["localization.menu.changed"] with
+        {
+            Translations = translations.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase),
+        };
+        var entries = snapshot.Entries.Values
+            .Select(entry => entry.Key == changedEntry.Key ? changedEntry : entry)
+            .ToFrozenDictionary(entry => entry.Key, StringComparer.OrdinalIgnoreCase);
+
+        Assert.Throws<InvalidDataException>(() =>
+            LocalizationValidation.ValidateSnapshot(snapshot with { Entries = entries }));
+        LocalizationValidation.ValidateSnapshot(snapshot with { Languages = languages, Entries = entries });
+    }
+
     private static LocalizationFallbackConfig CreateConfig()
     {
         return new LocalizationFallbackConfig
