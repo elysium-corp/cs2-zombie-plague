@@ -215,7 +215,11 @@ internal sealed class LocalizationPlugin(ISwiftlyCore core) : Plugin<Localizatio
             var button = new ButtonMenuOption(language.NativeName) { CloseAfterClick = true };
             var playerId = player.PlayerID;
             var steamId = player.SteamID;
-            button.Click += (_, _) => Track(SaveLanguageAsync(playerId, steamId, language));
+            button.Click += (_, _) =>
+            {
+                Track(SaveLanguageAsync(playerId, steamId, language));
+                return ValueTask.CompletedTask;
+            };
             builder.AddOption(button);
         }
 
