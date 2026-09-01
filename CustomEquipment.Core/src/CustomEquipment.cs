@@ -216,8 +216,9 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
         context.Reply("CustomEquipment reload failed; the previous database snapshot is still active.");
     }
 
-    private void OnMapLoad(IOnMapLoadEvent _)
+    private void OnMapLoad(IOnMapLoadEvent mapLoadEvent)
     {
+        _ = mapLoadEvent;
         Core.Scheduler.NextWorldUpdate(() =>
         {
             if (_isReady)

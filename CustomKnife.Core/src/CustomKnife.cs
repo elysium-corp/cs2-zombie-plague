@@ -125,8 +125,9 @@ internal sealed partial class CustomKnife(ISwiftlyCore core) : Plugin<CustomKnif
         context.Reply("CustomKnife reload failed; the previous snapshot is still active.");
     }
 
-    private void OnMapLoad(IOnMapLoadEvent _)
+    private void OnMapLoad(IOnMapLoadEvent mapLoadEvent)
     {
+        _ = mapLoadEvent;
         Core.Scheduler.NextWorldUpdate(() =>
         {
             if (_isReady)
