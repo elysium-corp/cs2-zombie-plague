@@ -5,6 +5,7 @@ using Common.Database.Utils;
 using Common.Di;
 using Common.Di.Utils;
 using CustomKnife.Data.Configs;
+using CustomKnife.Data.Knives;
 using CustomKnife.Data.Menus;
 using CustomKnife.Data.Models;
 using CustomKnife.Data.Registrator;
