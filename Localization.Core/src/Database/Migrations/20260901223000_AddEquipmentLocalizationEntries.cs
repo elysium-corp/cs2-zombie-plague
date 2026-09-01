@@ -73,35 +73,49 @@ internal sealed class AddEquipmentLocalizationEntries : Migration
                 );
             }
 
+            if (!translations.TryGetValue("ru", out var russianText) ||
+                !translations.TryGetValue("en", out var englishText))
+            {
+                throw new InvalidOperationException(
+                    $"Встроенный ключ локализации '{key}' должен содержать переводы ru и en."
+                );
+            }
+
             var escapedKey = Escape(key);
             var module = Escape(key.Split('.', 2)[0]);
+            var escapedRussianText = Escape(russianText);
+            var escapedEnglishText = Escape(englishText);
 
             migrationBuilder.Sql(
                 $"""
-                INSERT INTO localization.entries (key, description, is_critical)
-                VALUES (
-                    '{escapedKey}',
-                    'Системный ключ модуля {module}',
-                    FALSE
+                WITH inserted_entry AS (
+                    INSERT INTO localization.entries (key, description, is_critical)
+                    SELECT
+                        '{escapedKey}',
+                        'Системный ключ модуля {module}',
+                        FALSE
+                    WHERE NOT EXISTS (
+                        SELECT 1
+                        FROM localization.entries AS existing
+                        WHERE LOWER(existing.key) = LOWER('{escapedKey}')
+                    )
+                    ON CONFLICT (key) DO NOTHING
+                    RETURNING id
+                ),
+                translation_seed (language_code, text) AS (
+                    VALUES
+                        ('ru', '{escapedRussianText}'),
+                        ('en', '{escapedEnglishText}')
                 )
-                ON CONFLICT (key) DO NOTHING;
+                INSERT INTO localization.translations (entry_id, language_code, text)
+                SELECT inserted.id, language.code, seed.text
+                FROM inserted_entry AS inserted
+                CROSS JOIN translation_seed AS seed
+                JOIN localization.languages AS language
+                  ON language.code = seed.language_code
+                ON CONFLICT (entry_id, language_code) DO NOTHING;
                 """
             );
-
-            foreach (var (language, text) in translations)
-            {
-                migrationBuilder.Sql(
-                    $"""
-                    INSERT INTO localization.translations (entry_id, language_code, text)
-                    SELECT entry.id, language.code, '{Escape(text)}'
-                    FROM localization.entries AS entry
-                    JOIN localization.languages AS language
-                      ON language.code = '{Escape(language)}'
-                    WHERE entry.key = '{escapedKey}'
-                    ON CONFLICT (entry_id, language_code) DO NOTHING;
-                    """
-                );
-            }
         }
 
         migrationBuilder.Sql(

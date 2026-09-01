@@ -20,7 +20,13 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\Common.Database\Common.Database.csproj">
+            <Private>true</Private>
+        </ProjectReference>
         <ProjectReference Include="..\CustomKnife.Core\CustomKnife.Core.csproj">
+            <Private>true</Private>
+        </ProjectReference>
+        <ProjectReference Include="..\ZombiePlague.Api\ZombiePlague.Api.csproj">
             <Private>true</Private>
         </ProjectReference>
     </ItemGroup>

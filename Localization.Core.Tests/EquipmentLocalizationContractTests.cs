@@ -77,15 +77,27 @@ public sealed class EquipmentLocalizationContractTests
     }
 
     [Fact]
-    public void UpgradeScript_AddsMissingTranslationsWithoutOverwritingAdminText()
+    public void UpgradeScript_InsertsOnlyAbsentLogicalKeysWithoutChangingAdminEntries()
     {
         var script = GenerateScript(PreviousMigration, FeatureMigration);
 
         foreach (var key in RequiredKeys)
         {
             Assert.Contains($"'{key}'", script);
+            Assert.Contains(
+                $"WHERE LOWER(existing.key) = LOWER('{key}')",
+                script
+            );
         }
 
+        Assert.Equal(
+            RequiredKeys.Length,
+            CountOccurrences(script, "WITH inserted_entry AS")
+        );
+        Assert.Equal(
+            RequiredKeys.Length,
+            CountOccurrences(script, "FROM inserted_entry AS inserted")
+        );
         Assert.Contains("ON CONFLICT (key) DO NOTHING", script);
         Assert.Contains("ON CONFLICT (entry_id, language_code) DO NOTHING", script);
         Assert.DoesNotContain("DO UPDATE SET", script, StringComparison.OrdinalIgnoreCase);
@@ -118,5 +130,19 @@ public sealed class EquipmentLocalizationContractTests
             .Options;
         using var context = new LocalizationDbContext(options);
         return context.GetService<IMigrator>().GenerateScript(fromMigration, toMigration);
+    }
+
+    private static int CountOccurrences(string text, string value)
+    {
+        var count = 0;
+        var offset = 0;
+
+        while ((offset = text.IndexOf(value, offset, StringComparison.Ordinal)) >= 0)
+        {
+            count++;
+            offset += value.Length;
+        }
+
+        return count;
     }
 }
