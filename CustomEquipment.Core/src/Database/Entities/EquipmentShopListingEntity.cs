@@ -25,6 +25,9 @@ internal sealed class EquipmentShopListingEntity
     [Required, MaxLength(1024), Column("description")]
     public string Description { get; set; } = string.Empty;
 
+    [MaxLength(191), Column("description_key")]
+    public string? DescriptionKey { get; set; }
+
     [Column("price")]
     public int Price { get; set; }
 

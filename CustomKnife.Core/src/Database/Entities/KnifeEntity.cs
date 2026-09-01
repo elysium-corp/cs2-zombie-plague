@@ -19,11 +19,20 @@ internal sealed class KnifeEntity
     [Required, MaxLength(128), Column("display_name")]
     public string DisplayName { get; set; } = string.Empty;
 
+    [Required, MaxLength(191), Column("display_name_key")]
+    public string DisplayNameKey { get; set; } = string.Empty;
+
     [Required, MaxLength(512), Column("description")]
     public string Description { get; set; } = string.Empty;
 
+    [Required, MaxLength(191), Column("description_key")]
+    public string DescriptionKey { get; set; } = string.Empty;
+
     [Required, MaxLength(512), Column("model")]
     public string Model { get; set; } = string.Empty;
+
+    [MaxLength(2048), Column("image_url")]
+    public string? ImageUrl { get; set; }
 
     [Column("speed")]
     public float Speed { get; set; }

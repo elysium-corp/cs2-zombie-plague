@@ -42,11 +42,22 @@ internal sealed class CustomEquipmentDbContextModelSnapshot : ModelSnapshot
                 .HasColumnType("character varying(512)")
                 .HasColumnName("description");
 
+            b.Property<string>("DescriptionKey")
+                .HasMaxLength(191)
+                .HasColumnType("character varying(191)")
+                .HasColumnName("description_key");
+
             b.Property<string>("DisplayName")
                 .IsRequired()
                 .HasMaxLength(128)
                 .HasColumnType("character varying(128)")
                 .HasColumnName("display_name");
+
+            b.Property<string>("DisplayNameKey")
+                .IsRequired()
+                .HasMaxLength(191)
+                .HasColumnType("character varying(191)")
+                .HasColumnName("display_name_key");
 
             b.Property<bool>("Enabled")
                 .ValueGeneratedOnAdd()
@@ -84,6 +95,7 @@ internal sealed class CustomEquipmentDbContextModelSnapshot : ModelSnapshot
 
             b.ToTable("shop_categories", "custom_equipment", t =>
             {
+                t.HasCheckConstraint("CK_shop_categories_localization_keys", "display_name_key ~ '^[A-Za-z0-9][A-Za-z0-9_.-]{1,190}$' AND (description_key IS NULL OR description_key ~ '^[A-Za-z0-9][A-Za-z0-9_.-]{1,190}$')");
                 t.HasCheckConstraint("CK_shop_categories_type", "shop_type IN ('human', 'zombie')");
             });
         });
@@ -113,6 +125,11 @@ internal sealed class CustomEquipmentDbContextModelSnapshot : ModelSnapshot
                 .HasColumnType("character varying(1024)")
                 .HasColumnName("description")
                 .HasDefaultValue("");
+
+            b.Property<string>("DescriptionKey")
+                .HasMaxLength(191)
+                .HasColumnType("character varying(191)")
+                .HasColumnName("description_key");
 
             b.Property<bool>("Enabled")
                 .ValueGeneratedOnAdd()
@@ -174,6 +191,7 @@ internal sealed class CustomEquipmentDbContextModelSnapshot : ModelSnapshot
 
             b.ToTable("shop_listings", "custom_equipment", t =>
             {
+                t.HasCheckConstraint("CK_shop_listings_description_key", "description_key IS NULL OR description_key ~ '^[A-Za-z0-9][A-Za-z0-9_.-]{1,190}$'");
                 t.HasCheckConstraint("CK_shop_listings_limits", "price >= 0 AND max_purchases_per_round >= 0 AND max_purchases_per_map >= 0");
                 t.HasCheckConstraint("CK_shop_listings_settings_object", "jsonb_typeof(settings) = 'object'");
                 t.HasCheckConstraint("CK_shop_listings_type", "shop_type IN ('human', 'zombie')");
@@ -198,6 +216,12 @@ internal sealed class CustomEquipmentDbContextModelSnapshot : ModelSnapshot
                 .HasMaxLength(128)
                 .HasColumnType("character varying(128)")
                 .HasColumnName("display_name");
+
+            b.Property<string>("DisplayNameKey")
+                .IsRequired()
+                .HasMaxLength(191)
+                .HasColumnType("character varying(191)")
+                .HasColumnName("display_name_key");
 
             b.Property<bool>("Enabled")
                 .ValueGeneratedOnAdd()
@@ -226,7 +250,12 @@ internal sealed class CustomEquipmentDbContextModelSnapshot : ModelSnapshot
             b.HasKey("ImplementationKey");
             b.HasIndex("InternalName").IsUnique();
 
-            b.ToTable("shop_products", "custom_equipment");
+            b.ToTable("shop_products", "custom_equipment", t =>
+            {
+                t.HasCheckConstraint("CK_shop_products_display_name_key", "display_name_key ~ '^[A-Za-z0-9][A-Za-z0-9_.-]{1,190}
+        });
+");
+            });
         });
 
         modelBuilder.Entity("CustomEquipment.Database.Entities.EquipmentShopRoleLimitEntity", b =>
@@ -311,6 +340,12 @@ internal sealed class CustomEquipmentDbContextModelSnapshot : ModelSnapshot
                 .HasColumnType("character varying(128)")
                 .HasColumnName("display_name");
 
+            b.Property<string>("DisplayNameKey")
+                .IsRequired()
+                .HasMaxLength(191)
+                .HasColumnType("character varying(191)")
+                .HasColumnName("display_name_key");
+
             b.Property<bool>("Enabled")
                 .ValueGeneratedOnAdd()
                 .HasColumnType("boolean")
@@ -339,6 +374,7 @@ internal sealed class CustomEquipmentDbContextModelSnapshot : ModelSnapshot
 
             b.ToTable("shop_settings", "custom_equipment", t =>
             {
+                t.HasCheckConstraint("CK_shop_settings_display_name_key", "display_name_key ~ '^[A-Za-z0-9][A-Za-z0-9_.-]{1,190}$'");
                 t.HasCheckConstraint("CK_shop_settings_limits", "max_purchases_per_round >= 0 AND max_purchases_per_map >= 0");
                 t.HasCheckConstraint("CK_shop_settings_type", "shop_type IN ('human', 'zombie')");
             });
@@ -370,6 +406,12 @@ internal sealed class CustomEquipmentDbContextModelSnapshot : ModelSnapshot
                 .HasColumnType("character varying(128)")
                 .HasColumnName("display_name");
 
+            b.Property<string>("DisplayNameKey")
+                .IsRequired()
+                .HasMaxLength(191)
+                .HasColumnType("character varying(191)")
+                .HasColumnName("display_name_key");
+
             b.Property<bool>("Enabled")
                 .ValueGeneratedOnAdd()
                 .HasColumnType("boolean")
@@ -393,6 +435,11 @@ internal sealed class CustomEquipmentDbContextModelSnapshot : ModelSnapshot
                 .HasMaxLength(128)
                 .HasColumnType("character varying(128)")
                 .HasColumnName("internal_name");
+
+            b.Property<string>("ImageUrl")
+                .HasMaxLength(2048)
+                .HasColumnType("character varying(2048)")
+                .HasColumnName("image_url");
 
             b.Property<int>("ItemPrice")
                 .HasColumnType("integer")
@@ -437,6 +484,8 @@ internal sealed class CustomEquipmentDbContextModelSnapshot : ModelSnapshot
             b.ToTable("gameplay_items", "custom_equipment", t =>
             {
                 t.HasCheckConstraint("CK_gameplay_items_access_flags", "access_flags >= 0 AND access_flags <= 3");
+                t.HasCheckConstraint("CK_gameplay_items_display_name_key", "display_name_key ~ '^[A-Za-z0-9][A-Za-z0-9_.-]{1,190}$'");
+                            t.HasCheckConstraint("CK_gameplay_items_image_url", "image_url IS NULL OR image_url ~ '^https://[^[:space:]]+$' OR image_url ~ '^assets/uploads/elysium-equipments/items/[a-f0-9]{40}\\.(jpg|jpeg|png|webp|avif)$'");
                 t.HasCheckConstraint("CK_gameplay_items_item_price", "item_price >= 0");
                 t.HasCheckConstraint("CK_gameplay_items_settings_object", "jsonb_typeof(settings) = 'object'");
             });
@@ -483,6 +532,12 @@ internal sealed class CustomEquipmentDbContextModelSnapshot : ModelSnapshot
                 .HasColumnType("character varying(128)")
                 .HasColumnName("display_name");
 
+            b.Property<string>("DisplayNameKey")
+                .IsRequired()
+                .HasMaxLength(191)
+                .HasColumnType("character varying(191)")
+                .HasColumnName("display_name_key");
+
             b.Property<float?>("EffectiveRange").HasColumnType("real").HasColumnName("effective_range");
 
             b.Property<bool>("Enabled")
@@ -490,6 +545,11 @@ internal sealed class CustomEquipmentDbContextModelSnapshot : ModelSnapshot
                 .HasColumnType("boolean")
                 .HasColumnName("enabled")
                 .HasDefaultValue(true);
+
+            b.Property<string>("ImageUrl")
+                .HasMaxLength(2048)
+                .HasColumnType("character varying(2048)")
+                .HasColumnName("image_url");
 
             b.Property<string>("InheritorName")
                 .IsRequired()
@@ -569,6 +629,8 @@ internal sealed class CustomEquipmentDbContextModelSnapshot : ModelSnapshot
                 t.HasCheckConstraint("CK_weapons_ammunition", "(clip_size IS NULL OR clip_size >= 0) AND (reserve_ammo IS NULL OR reserve_ammo >= 0)");
                 t.HasCheckConstraint("CK_weapons_ballistics", "(num_bullets IS NULL OR num_bullets >= 1) AND (penetration IS NULL OR penetration >= 0) AND (effective_range IS NULL OR effective_range >= 0) AND (range_modifier IS NULL OR range_modifier >= 0)");
                 t.HasCheckConstraint("CK_weapons_damage", "(damage_head IS NULL OR damage_head >= 0) AND (damage_chest IS NULL OR damage_chest >= 0) AND (damage_stomach IS NULL OR damage_stomach >= 0) AND (damage_left_arm IS NULL OR damage_left_arm >= 0) AND (damage_right_arm IS NULL OR damage_right_arm >= 0) AND (damage_left_leg IS NULL OR damage_left_leg >= 0) AND (damage_right_leg IS NULL OR damage_right_leg >= 0) AND (damage_neck IS NULL OR damage_neck >= 0)");
+                t.HasCheckConstraint("CK_weapons_display_name_key", "display_name_key ~ '^[A-Za-z0-9][A-Za-z0-9_.-]{1,190}$'");
+                            t.HasCheckConstraint("CK_weapons_image_url", "image_url IS NULL OR image_url ~ '^https://[^[:space:]]+$' OR image_url ~ '^assets/uploads/elysium-equipments/items/[a-f0-9]{40}\\.(jpg|jpeg|png|webp|avif)$'");
                 t.HasCheckConstraint("CK_weapons_item_price", "item_price >= 0");
                 t.HasCheckConstraint("CK_weapons_timing", "(cycle_time_primary IS NULL OR cycle_time_primary > 0) AND (cycle_time_secondary IS NULL OR (cycle_time_secondary > 0 AND cycle_time_primary IS NOT NULL)) AND (deploy_duration IS NULL OR deploy_duration >= 0)");
             });
