@@ -6,13 +6,16 @@ using CustomEquipment.Data.Equipments.Models;
 
 namespace CustomEquipment.Data.DatabaseWeapons;
 
-internal sealed class DatabaseWeaponItem(DatabaseWeaponDefinition definition) : WeaponItemBase, IShopItem
+internal sealed class DatabaseWeaponItem(DatabaseWeaponDefinition definition)
+    : WeaponItemBase, IShopItem, ILocalizedShopItem
 {
     public override string InheritorName => definition.InheritorName;
 
     public override AccessFlags AccessFlags => definition.AccessFlags;
 
     public override string DisplayName => definition.DisplayName;
+
+    public string DisplayNameKey => definition.DisplayNameKey;
 
     public override string InternalName => definition.InternalName;
 
@@ -45,6 +48,7 @@ internal sealed record DatabaseWeaponDefinition(
     string InheritorName,
     AccessFlags AccessFlags,
     string DisplayName,
+    string DisplayNameKey,
     string InternalName,
     string SubclassName,
     Slot Slot,

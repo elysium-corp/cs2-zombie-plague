@@ -62,6 +62,7 @@ internal sealed record GameplayItemDefinition(
     string ImplementationKey,
     string InternalName,
     string DisplayName,
+    string DisplayNameKey,
     string InheritorName,
     AccessFlags AccessFlags,
     ItemRarity Rarity,

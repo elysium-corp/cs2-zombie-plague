@@ -110,8 +110,8 @@ internal sealed class EquipmentMenu(
 
             var option = new ButtonMenuOption
             {
-                Text = category.DisplayName,
-                Comment = category.Description
+                Text = Localize(player, category.DisplayNameKey, category.DisplayName),
+                Comment = Localize(player, category.DescriptionKey, category.Description)
             };
 
             option.Click += (_, args) =>
@@ -132,7 +132,7 @@ internal sealed class EquipmentMenu(
         var settings = shopCatalog.GetSettings(shopType);
 
         return design
-            .SetMenuTitle(settings.DisplayName)
+            .SetMenuTitle(Localize(player, settings.DisplayNameKey, settings.DisplayName))
             .Design.SetCommentVisible()
             .Design.SetMenuFooterVisible(false)
             .Design.EnableAutoAdjustVisibleItems();
@@ -166,7 +166,7 @@ internal sealed class EquipmentMenu(
         var entries = GetEntries(player, shopType, category.Id);
         var builder = core.MenusAPI
             .CreateBuilder()
-            .Design.SetMenuTitle(category.DisplayName)
+            .Design.SetMenuTitle(Localize(player, category.DisplayNameKey, category.DisplayName))
             .Design.SetCommentVisible()
             .Design.SetMenuFooterVisible(false)
             .Design.EnableAutoAdjustVisibleItems();
@@ -223,7 +223,7 @@ internal sealed class EquipmentMenu(
         var option = new ButtonMenuOption
         {
             Text = BuildTextItem(player, entry.Item, entry.Listing.Price),
-            Comment = BuildItemComment(player, entry.Listing.Description, availability),
+            Comment = BuildItemComment(player, entry.Listing, availability),
             Enabled = canUse && hasMoney && availability.Allowed
         };
 
@@ -458,10 +458,12 @@ internal sealed class EquipmentMenu(
 
     private string BuildItemComment(
         IPlayer player,
-        string description,
+        EquipmentShopListingDefinition listing,
         EquipmentShopPurchaseAvailability availability
     )
     {
+        var description = Localize(player, listing.DescriptionKey, listing.Description);
+
         if (availability.Allowed)
         {
             return description;
@@ -527,13 +529,22 @@ internal sealed class EquipmentMenu(
     private string BuildTextItem(IPlayer player, IShopItem item, int price)
     {
         var weaponColor = item.Rarity.ToColor();
-        var itemKey = item.InternalName.Replace(':', '.');
-        var displayName = localization.GetForPlayer(player, $"Equipment.Item.{itemKey}.Name")
+        var displayNameKey = item is ILocalizedShopItem localizedItem
+            ? localizedItem.DisplayNameKey
+            : $"Equipment.Item.{item.InternalName.Replace(':', '.')}.Name";
+        var displayName = localization.GetForPlayer(player, displayNameKey)
                           ?? item.DisplayName;
         var weaponText = HtmlHelper.TextWithColor(displayName, weaponColor);
         var priceText = HtmlHelper.TextWithColor($"{price}$", "#E0C216");
 
         return $"{weaponText} [{priceText}]";
+    }
+
+    private string Localize(IPlayer player, string? key, string fallback)
+    {
+        return string.IsNullOrWhiteSpace(key)
+            ? fallback
+            : localization.GetForPlayer(player, key) ?? fallback;
     }
 
     private sealed record ShopEntry(

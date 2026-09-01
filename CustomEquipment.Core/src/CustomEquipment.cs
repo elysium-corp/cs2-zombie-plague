@@ -187,14 +187,15 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
         }
 
         var shopType = _shopRoleResolver.Value.GetShopType(context.Player);
+        var settings = _shopCatalog.Value.GetSettings(shopType);
 
-        if (!_shopCatalog.Value.GetSettings(shopType).Enabled)
+        if (!settings.Enabled)
         {
             return;
         }
 
-        var title = _localization.Value.GetForPlayer(context.Player, "Menu.Main.Item.Equipment.Title")
-                    ?? _shopCatalog.Value.GetSettings(shopType).DisplayName;
+        var title = _localization.Value.GetForPlayer(context.Player, settings.DisplayNameKey)
+                    ?? settings.DisplayName;
         var option = new ButtonMenuOption(title);
 
         option.Click += (_, args) =>

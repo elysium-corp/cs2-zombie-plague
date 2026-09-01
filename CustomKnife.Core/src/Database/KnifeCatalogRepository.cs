@@ -28,8 +28,10 @@ internal sealed class KnifeCatalogRepository(
     {
         var internalName = Required(entity.InternalName, nameof(entity.InternalName), 64);
         var displayName = Required(entity.DisplayName, nameof(entity.DisplayName), 128);
+        var displayNameKey = LocalizationKey(entity.DisplayNameKey, nameof(entity.DisplayNameKey));
         var model = Required(entity.Model, nameof(entity.Model), 512);
         var description = Required(entity.Description, nameof(entity.Description), 512);
+        var descriptionKey = LocalizationKey(entity.DescriptionKey, nameof(entity.DescriptionKey));
         var requiredPermission = OptionalPermission(entity.RequiredPermission);
 
         if (!IsInternalName(internalName))
@@ -52,17 +54,37 @@ internal sealed class KnifeCatalogRepository(
         }
 
         return new KnifeDefinition(
-            entity.Enabled,
-            internalName,
-            displayName,
-            model,
-            description,
-            entity.Speed,
-            new KnockbackData(entity.KnockbackRecoil, entity.KnockbackPickDistance),
-            entity.Gravity,
-            entity.DamageMultiplier,
-            requiredPermission
+            Enabled: entity.Enabled,
+            InternalName: internalName,
+            DisplayName: displayName,
+            DisplayNameKey: displayNameKey,
+            Model: model,
+            Description: description,
+            DescriptionKey: descriptionKey,
+            Speed: entity.Speed,
+            KnockbackData: new KnockbackData(
+                entity.KnockbackRecoil,
+                entity.KnockbackPickDistance
+            ),
+            Gravity: entity.Gravity,
+            DamageMultiplier: entity.DamageMultiplier,
+            RequiredPermission: requiredPermission
         );
+    }
+
+    private static string LocalizationKey(string? value, string field)
+    {
+        var key = Required(value, field, 191);
+
+        if (!char.IsAsciiLetterOrDigit(key[0]) ||
+            key.Skip(1).Any(character =>
+                !char.IsAsciiLetterOrDigit(character) &&
+                character is not '_' and not '.' and not '-'))
+        {
+            throw new InvalidOperationException($"{field} is not a valid localization key.");
+        }
+
+        return key;
     }
 
     private static string? OptionalPermission(string? value)
