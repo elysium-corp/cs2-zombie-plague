@@ -71,6 +71,8 @@ public sealed class CreateGameplayItemCatalog : Migration
 
         var timestamp = new DateTime(2026, 9, 1, 9, 30, 0, DateTimeKind.Utc);
 
+        // This hand-written migration has no generated target model, so seed column types
+        // must be explicit for runtime SQL generation.
         migrationBuilder.InsertData(
             schema: CustomEquipmentDbContext.SchemaName,
             table: "gameplay_items",
@@ -79,6 +81,13 @@ public sealed class CreateGameplayItemCatalog : Migration
                 "implementation_key", "internal_name", "display_name", "inheritor_name",
                 "access_flags", "rarity", "model", "item_price", "enabled", "sort_order",
                 "settings", "created_at", "updated_at"
+            ],
+            columnTypes:
+            [
+                "character varying(64)", "character varying(128)", "character varying(128)",
+                "character varying(64)", "smallint", "character varying(32)",
+                "character varying(512)", "integer", "boolean", "integer", "jsonb",
+                "timestamp with time zone", "timestamp with time zone"
             ],
             values: new object[,]
             {

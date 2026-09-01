@@ -60,6 +60,8 @@ public sealed class CreateKnifeCatalog : Migration
 
         var timestamp = new DateTime(2026, 9, 1, 9, 0, 0, DateTimeKind.Utc);
 
+        // This hand-written migration has no generated target model, so seed column types
+        // must be explicit for runtime SQL generation.
         migrationBuilder.InsertData(
             schema: CustomKnifeDbContext.SchemaName,
             table: "knives",
@@ -68,6 +70,13 @@ public sealed class CreateKnifeCatalog : Migration
                 "internal_name", "display_name", "description", "model", "speed",
                 "knockback_recoil", "knockback_pick_distance", "gravity", "damage_multiplier",
                 "required_permission", "enabled", "sort_order", "created_at", "updated_at"
+            ],
+            columnTypes:
+            [
+                "character varying(64)", "character varying(128)", "character varying(512)",
+                "character varying(512)", "real", "real", "real", "integer", "real",
+                "character varying(128)", "boolean", "integer", "timestamp with time zone",
+                "timestamp with time zone"
             ],
             values: new object[,]
             {
