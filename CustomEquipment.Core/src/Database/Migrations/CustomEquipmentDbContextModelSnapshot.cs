@@ -22,6 +22,328 @@ internal sealed class CustomEquipmentDbContextModelSnapshot : ModelSnapshot
 
         NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+        modelBuilder.Entity("CustomEquipment.Database.Entities.EquipmentShopCategoryEntity", b =>
+        {
+            b.Property<long>("Id")
+                .ValueGeneratedOnAdd()
+                .HasColumnType("bigint")
+                .HasColumnName("id");
+            NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+            b.Property<DateTime>("CreatedAtUtc")
+                .ValueGeneratedOnAdd()
+                .HasColumnType("timestamp with time zone")
+                .HasColumnName("created_at")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            b.Property<string>("Description")
+                .IsRequired()
+                .HasMaxLength(512)
+                .HasColumnType("character varying(512)")
+                .HasColumnName("description");
+
+            b.Property<string>("DisplayName")
+                .IsRequired()
+                .HasMaxLength(128)
+                .HasColumnType("character varying(128)")
+                .HasColumnName("display_name");
+
+            b.Property<bool>("Enabled")
+                .ValueGeneratedOnAdd()
+                .HasColumnType("boolean")
+                .HasColumnName("enabled")
+                .HasDefaultValue(true);
+
+            b.Property<string>("Key")
+                .IsRequired()
+                .HasMaxLength(64)
+                .HasColumnType("character varying(64)")
+                .HasColumnName("key");
+
+            b.Property<string>("ShopType")
+                .IsRequired()
+                .HasMaxLength(16)
+                .HasColumnType("character varying(16)")
+                .HasColumnName("shop_type");
+
+            b.Property<int>("SortOrder")
+                .ValueGeneratedOnAdd()
+                .HasColumnType("integer")
+                .HasColumnName("sort_order")
+                .HasDefaultValue(0);
+
+            b.Property<DateTime>("UpdatedAtUtc")
+                .ValueGeneratedOnAdd()
+                .HasColumnType("timestamp with time zone")
+                .HasColumnName("updated_at")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            b.HasKey("Id");
+            b.HasIndex("ShopType", "Enabled", "SortOrder");
+            b.HasIndex("ShopType", "Key").IsUnique();
+
+            b.ToTable("shop_categories", "custom_equipment", t =>
+            {
+                t.HasCheckConstraint("CK_shop_categories_type", "shop_type IN ('human', 'zombie')");
+            });
+        });
+
+        modelBuilder.Entity("CustomEquipment.Database.Entities.EquipmentShopListingEntity", b =>
+        {
+            b.Property<long>("Id")
+                .ValueGeneratedOnAdd()
+                .HasColumnType("bigint")
+                .HasColumnName("id");
+            NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+            b.Property<long>("CategoryId")
+                .HasColumnType("bigint")
+                .HasColumnName("category_id");
+
+            b.Property<DateTime>("CreatedAtUtc")
+                .ValueGeneratedOnAdd()
+                .HasColumnType("timestamp with time zone")
+                .HasColumnName("created_at")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            b.Property<string>("Description")
+                .IsRequired()
+                .ValueGeneratedOnAdd()
+                .HasMaxLength(1024)
+                .HasColumnType("character varying(1024)")
+                .HasColumnName("description")
+                .HasDefaultValue("");
+
+            b.Property<bool>("Enabled")
+                .ValueGeneratedOnAdd()
+                .HasColumnType("boolean")
+                .HasColumnName("enabled")
+                .HasDefaultValue(true);
+
+            b.Property<string>("ItemInternalName")
+                .IsRequired()
+                .HasMaxLength(128)
+                .HasColumnType("character varying(128)")
+                .HasColumnName("item_internal_name");
+
+            b.Property<int>("MaxPurchasesPerMap")
+                .ValueGeneratedOnAdd()
+                .HasColumnType("integer")
+                .HasColumnName("max_purchases_per_map")
+                .HasDefaultValue(0);
+
+            b.Property<int>("MaxPurchasesPerRound")
+                .ValueGeneratedOnAdd()
+                .HasColumnType("integer")
+                .HasColumnName("max_purchases_per_round")
+                .HasDefaultValue(0);
+
+            b.Property<int>("Price")
+                .HasColumnType("integer")
+                .HasColumnName("price");
+
+            b.Property<string>("SettingsJson")
+                .IsRequired()
+                .ValueGeneratedOnAdd()
+                .HasColumnType("jsonb")
+                .HasColumnName("settings")
+                .HasDefaultValueSql("'{}'::jsonb");
+
+            b.Property<string>("ShopType")
+                .IsRequired()
+                .HasMaxLength(16)
+                .HasColumnType("character varying(16)")
+                .HasColumnName("shop_type");
+
+            b.Property<int>("SortOrder")
+                .ValueGeneratedOnAdd()
+                .HasColumnType("integer")
+                .HasColumnName("sort_order")
+                .HasDefaultValue(0);
+
+            b.Property<DateTime>("UpdatedAtUtc")
+                .ValueGeneratedOnAdd()
+                .HasColumnType("timestamp with time zone")
+                .HasColumnName("updated_at")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            b.HasKey("Id");
+            b.HasIndex("CategoryId");
+            b.HasIndex("ShopType", "Enabled", "SortOrder");
+            b.HasIndex("ShopType", "ItemInternalName").IsUnique();
+
+            b.ToTable("shop_listings", "custom_equipment", t =>
+            {
+                t.HasCheckConstraint("CK_shop_listings_limits", "price >= 0 AND max_purchases_per_round >= 0 AND max_purchases_per_map >= 0");
+                t.HasCheckConstraint("CK_shop_listings_settings_object", "jsonb_typeof(settings) = 'object'");
+                t.HasCheckConstraint("CK_shop_listings_type", "shop_type IN ('human', 'zombie')");
+            });
+        });
+
+        modelBuilder.Entity("CustomEquipment.Database.Entities.EquipmentShopProductEntity", b =>
+        {
+            b.Property<string>("ImplementationKey")
+                .HasMaxLength(64)
+                .HasColumnType("character varying(64)")
+                .HasColumnName("implementation_key");
+
+            b.Property<DateTime>("CreatedAtUtc")
+                .ValueGeneratedOnAdd()
+                .HasColumnType("timestamp with time zone")
+                .HasColumnName("created_at")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            b.Property<string>("DisplayName")
+                .IsRequired()
+                .HasMaxLength(128)
+                .HasColumnType("character varying(128)")
+                .HasColumnName("display_name");
+
+            b.Property<bool>("Enabled")
+                .ValueGeneratedOnAdd()
+                .HasColumnType("boolean")
+                .HasColumnName("enabled")
+                .HasDefaultValue(true);
+
+            b.Property<string>("InternalName")
+                .IsRequired()
+                .HasMaxLength(128)
+                .HasColumnType("character varying(128)")
+                .HasColumnName("internal_name");
+
+            b.Property<int>("SortOrder")
+                .ValueGeneratedOnAdd()
+                .HasColumnType("integer")
+                .HasColumnName("sort_order")
+                .HasDefaultValue(0);
+
+            b.Property<DateTime>("UpdatedAtUtc")
+                .ValueGeneratedOnAdd()
+                .HasColumnType("timestamp with time zone")
+                .HasColumnName("updated_at")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            b.HasKey("ImplementationKey");
+            b.HasIndex("InternalName").IsUnique();
+
+            b.ToTable("shop_products", "custom_equipment");
+        });
+
+        modelBuilder.Entity("CustomEquipment.Database.Entities.EquipmentShopRoleLimitEntity", b =>
+        {
+            b.Property<long>("Id")
+                .ValueGeneratedOnAdd()
+                .HasColumnType("bigint")
+                .HasColumnName("id");
+            NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+            b.Property<DateTime>("CreatedAtUtc")
+                .ValueGeneratedOnAdd()
+                .HasColumnType("timestamp with time zone")
+                .HasColumnName("created_at")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            b.Property<bool>("Enabled")
+                .ValueGeneratedOnAdd()
+                .HasColumnType("boolean")
+                .HasColumnName("enabled")
+                .HasDefaultValue(true);
+
+            b.Property<int>("MaxPurchasesPerMap")
+                .HasColumnType("integer")
+                .HasColumnName("max_purchases_per_map");
+
+            b.Property<int>("MaxPurchasesPerRound")
+                .HasColumnType("integer")
+                .HasColumnName("max_purchases_per_round");
+
+            b.Property<string>("PrivilegeKey")
+                .IsRequired()
+                .HasMaxLength(129)
+                .HasColumnType("character varying(129)")
+                .HasColumnName("privilege_key");
+
+            b.Property<string>("ShopType")
+                .IsRequired()
+                .HasMaxLength(16)
+                .HasColumnType("character varying(16)")
+                .HasColumnName("shop_type");
+
+            b.Property<int>("SortOrder")
+                .ValueGeneratedOnAdd()
+                .HasColumnType("integer")
+                .HasColumnName("sort_order")
+                .HasDefaultValue(0);
+
+            b.Property<DateTime>("UpdatedAtUtc")
+                .ValueGeneratedOnAdd()
+                .HasColumnType("timestamp with time zone")
+                .HasColumnName("updated_at")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            b.HasKey("Id");
+            b.HasIndex("ShopType", "Enabled", "SortOrder");
+            b.HasIndex("ShopType", "PrivilegeKey").IsUnique();
+
+            b.ToTable("shop_role_limits", "custom_equipment", t =>
+            {
+                t.HasCheckConstraint("CK_shop_role_limits_type", "shop_type IN ('human', 'zombie')");
+                t.HasCheckConstraint("CK_shop_role_limits_values", "max_purchases_per_round >= 0 AND max_purchases_per_map >= 0");
+            });
+        });
+
+        modelBuilder.Entity("CustomEquipment.Database.Entities.EquipmentShopSettingsEntity", b =>
+        {
+            b.Property<string>("ShopType")
+                .HasMaxLength(16)
+                .HasColumnType("character varying(16)")
+                .HasColumnName("shop_type");
+
+            b.Property<DateTime>("CreatedAtUtc")
+                .ValueGeneratedOnAdd()
+                .HasColumnType("timestamp with time zone")
+                .HasColumnName("created_at")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            b.Property<string>("DisplayName")
+                .IsRequired()
+                .HasMaxLength(128)
+                .HasColumnType("character varying(128)")
+                .HasColumnName("display_name");
+
+            b.Property<bool>("Enabled")
+                .ValueGeneratedOnAdd()
+                .HasColumnType("boolean")
+                .HasColumnName("enabled")
+                .HasDefaultValue(true);
+
+            b.Property<int>("MaxPurchasesPerMap")
+                .ValueGeneratedOnAdd()
+                .HasColumnType("integer")
+                .HasColumnName("max_purchases_per_map")
+                .HasDefaultValue(0);
+
+            b.Property<int>("MaxPurchasesPerRound")
+                .ValueGeneratedOnAdd()
+                .HasColumnType("integer")
+                .HasColumnName("max_purchases_per_round")
+                .HasDefaultValue(0);
+
+            b.Property<DateTime>("UpdatedAtUtc")
+                .ValueGeneratedOnAdd()
+                .HasColumnType("timestamp with time zone")
+                .HasColumnName("updated_at")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            b.HasKey("ShopType");
+
+            b.ToTable("shop_settings", "custom_equipment", t =>
+            {
+                t.HasCheckConstraint("CK_shop_settings_limits", "max_purchases_per_round >= 0 AND max_purchases_per_map >= 0");
+                t.HasCheckConstraint("CK_shop_settings_type", "shop_type IN ('human', 'zombie')");
+            });
+        });
+
         modelBuilder.Entity("CustomEquipment.Database.Entities.GameplayItemEntity", b =>
         {
             b.Property<long>("Id")
@@ -252,6 +574,17 @@ internal sealed class CustomEquipmentDbContextModelSnapshot : ModelSnapshot
             });
         });
 
+        modelBuilder.Entity("CustomEquipment.Database.Entities.EquipmentShopListingEntity", b =>
+        {
+            b.HasOne("CustomEquipment.Database.Entities.EquipmentShopCategoryEntity", "Category")
+                .WithMany("Listings")
+                .HasForeignKey("CategoryId")
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired();
+
+            b.Navigation("Category");
+        });
+
         modelBuilder.Entity("CustomEquipment.Database.Entities.WeaponSoundEntity", b =>
         {
             b.Property<long>("Id")
@@ -407,6 +740,11 @@ internal sealed class CustomEquipmentDbContextModelSnapshot : ModelSnapshot
                 .IsRequired();
 
             b.Navigation("Sound");
+        });
+
+        modelBuilder.Entity("CustomEquipment.Database.Entities.EquipmentShopCategoryEntity", b =>
+        {
+            b.Navigation("Listings");
         });
 
         modelBuilder.Entity("CustomEquipment.Database.Entities.WeaponEntity", b =>

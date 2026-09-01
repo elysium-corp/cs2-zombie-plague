@@ -59,6 +59,7 @@
       <ProjectReference Include="..\Common.Effects\Common.Effects.csproj" />
       <ProjectReference Include="..\Common.Math\Common.Math.csproj" />
       <ProjectReference Include="..\Common.Hooks\Common.Hooks.csproj" />
+      <ProjectReference Include="..\Admin.Api\Admin.Api.csproj" />
       <ProjectReference Include="..\CustomEquipment.Api\CustomEquipment.Api.csproj" />
       <ProjectReference Include="..\Menu.Api\Menu.Api.csproj" />
         <ProjectReference Include="..\Economy.Api\Economy.Api.csproj" />

@@ -8,6 +8,7 @@ using CustomEquipment.Api.Events.Contexts.Items;
 using CustomEquipment.Data.Equipments.Weapons;
 using CustomEquipment.Data.Equipments.Weapons.Equipments;
 using CustomEquipment.Data.GameplayItems;
+using CustomEquipment.Data.Shop;
 using CustomEquipment.Giver;
 using CustomEquipment.Policies;
 using CustomEquipment.Registry;
@@ -111,10 +112,19 @@ internal sealed class EquipmentService(
         return CanUseItemInternal(player, item);
     }
 
-    private void OnItemGiven(IPlayer player, ItemBase item, GiveAction action)
+    private void OnEntityItemGiven(IPlayer player, ItemBase item, GiveAction action)
     {
         AddOrReplace(item);
+        DispatchItemGiven(player, item, action);
 
+        if (!CanUseItemInternal(player, item))
+        {
+            RemoveItem(player, item);
+        }
+    }
+
+    private void DispatchItemGiven(IPlayer player, ItemBase item, GiveAction action)
+    {
         switch (item)
         {
             case WeaponItemBase weapon:
@@ -130,11 +140,6 @@ internal sealed class EquipmentService(
 
         var itemPost = new ItemGivenContext(player, item, action);
         hooks.Dispatch(ref itemPost);
-
-        if (!CanUseItemInternal(player, item))
-        {
-            RemoveItem(player, item);
-        }
     }
 
     public bool TryGiveItem(IPlayer player, string internalName, GiveAction action = GiveAction.Drop)
@@ -270,6 +275,24 @@ internal sealed class EquipmentService(
             }
         }
 
+        if (preparedItem is IInstantEquipmentShopItem instantItem)
+        {
+            if (!instantItem.TryGrant(preparedPlayer))
+            {
+                DispatchGiveRejected(
+                    preparedPlayer,
+                    internalName,
+                    preparedItem,
+                    preparedAction,
+                    ItemGiveRejectionReason.NoEffect
+                );
+                return false;
+            }
+
+            DispatchItemGiven(preparedPlayer, preparedItem, preparedAction);
+            return true;
+        }
+
         int? laserMineGrantPlayerId = null;
 
         if (preparedItem is LaserMine)
@@ -300,7 +323,7 @@ internal sealed class EquipmentService(
                 preparedPlayer,
                 preparedItem,
                 preparedAction,
-                completedItem => OnItemGiven(preparedPlayer, completedItem, preparedAction)
+                completedItem => OnEntityItemGiven(preparedPlayer, completedItem, preparedAction)
             );
         }
         catch (Exception exception)

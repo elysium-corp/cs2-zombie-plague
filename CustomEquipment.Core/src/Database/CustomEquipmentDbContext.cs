@@ -15,6 +15,16 @@ public sealed class CustomEquipmentDbContext(DbContextOptions<CustomEquipmentDbC
 
     internal DbSet<GameplayItemEntity> GameplayItems => Set<GameplayItemEntity>();
 
+    internal DbSet<EquipmentShopSettingsEntity> ShopSettings => Set<EquipmentShopSettingsEntity>();
+
+    internal DbSet<EquipmentShopCategoryEntity> ShopCategories => Set<EquipmentShopCategoryEntity>();
+
+    internal DbSet<EquipmentShopListingEntity> ShopListings => Set<EquipmentShopListingEntity>();
+
+    internal DbSet<EquipmentShopRoleLimitEntity> ShopRoleLimits => Set<EquipmentShopRoleLimitEntity>();
+
+    internal DbSet<EquipmentShopProductEntity> ShopProducts => Set<EquipmentShopProductEntity>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -25,6 +35,7 @@ public sealed class CustomEquipmentDbContext(DbContextOptions<CustomEquipmentDbC
         ConfigureSounds(modelBuilder);
         ConfigureSoundFiles(modelBuilder);
         ConfigureGameplayItems(modelBuilder);
+        ConfigureShop(modelBuilder);
     }
 
     private static void ConfigureWeapons(ModelBuilder modelBuilder)
@@ -137,5 +148,112 @@ public sealed class CustomEquipmentDbContext(DbContextOptions<CustomEquipmentDbC
                 table.HasCheckConstraint("CK_gameplay_items_settings_object", "jsonb_typeof(settings) = 'object'");
             }
         );
+    }
+
+    private static void ConfigureShop(ModelBuilder modelBuilder)
+    {
+        var settings = modelBuilder.Entity<EquipmentShopSettingsEntity>();
+        settings.Property(x => x.Enabled).HasDefaultValue(true);
+        settings.Property(x => x.MaxPurchasesPerRound).HasDefaultValue(0);
+        settings.Property(x => x.MaxPurchasesPerMap).HasDefaultValue(0);
+        settings.Property(x => x.CreatedAtUtc).HasDefaultValueSql("CURRENT_TIMESTAMP");
+        settings.Property(x => x.UpdatedAtUtc).HasDefaultValueSql("CURRENT_TIMESTAMP");
+        settings.ToTable(
+            "shop_settings",
+            SchemaName,
+            table =>
+            {
+                table.HasCheckConstraint(
+                    "CK_shop_settings_type",
+                    "shop_type IN ('human', 'zombie')"
+                );
+                table.HasCheckConstraint(
+                    "CK_shop_settings_limits",
+                    "max_purchases_per_round >= 0 AND max_purchases_per_map >= 0"
+                );
+            }
+        );
+
+        var categories = modelBuilder.Entity<EquipmentShopCategoryEntity>();
+        categories.HasIndex(x => new { x.ShopType, x.Key }).IsUnique();
+        categories.HasIndex(x => new { x.ShopType, x.Enabled, x.SortOrder });
+        categories.Property(x => x.Enabled).HasDefaultValue(true);
+        categories.Property(x => x.SortOrder).HasDefaultValue(0);
+        categories.Property(x => x.CreatedAtUtc).HasDefaultValueSql("CURRENT_TIMESTAMP");
+        categories.Property(x => x.UpdatedAtUtc).HasDefaultValueSql("CURRENT_TIMESTAMP");
+        categories.ToTable(
+            "shop_categories",
+            SchemaName,
+            table => table.HasCheckConstraint(
+                "CK_shop_categories_type",
+                "shop_type IN ('human', 'zombie')"
+            )
+        );
+
+        var listings = modelBuilder.Entity<EquipmentShopListingEntity>();
+        listings.HasIndex(x => new { x.ShopType, x.ItemInternalName }).IsUnique();
+        listings.HasIndex(x => new { x.ShopType, x.Enabled, x.SortOrder });
+        listings.Property(x => x.Description).HasDefaultValue(string.Empty);
+        listings.Property(x => x.MaxPurchasesPerRound).HasDefaultValue(0);
+        listings.Property(x => x.MaxPurchasesPerMap).HasDefaultValue(0);
+        listings.Property(x => x.Enabled).HasDefaultValue(true);
+        listings.Property(x => x.SortOrder).HasDefaultValue(0);
+        listings.Property(x => x.SettingsJson).HasDefaultValueSql("'{}'::jsonb");
+        listings.Property(x => x.CreatedAtUtc).HasDefaultValueSql("CURRENT_TIMESTAMP");
+        listings.Property(x => x.UpdatedAtUtc).HasDefaultValueSql("CURRENT_TIMESTAMP");
+        listings
+            .HasOne(x => x.Category)
+            .WithMany(x => x.Listings)
+            .HasForeignKey(x => x.CategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
+        listings.ToTable(
+            "shop_listings",
+            SchemaName,
+            table =>
+            {
+                table.HasCheckConstraint(
+                    "CK_shop_listings_type",
+                    "shop_type IN ('human', 'zombie')"
+                );
+                table.HasCheckConstraint(
+                    "CK_shop_listings_limits",
+                    "price >= 0 AND max_purchases_per_round >= 0 AND max_purchases_per_map >= 0"
+                );
+                table.HasCheckConstraint(
+                    "CK_shop_listings_settings_object",
+                    "jsonb_typeof(settings) = 'object'"
+                );
+            }
+        );
+
+        var roleLimits = modelBuilder.Entity<EquipmentShopRoleLimitEntity>();
+        roleLimits.HasIndex(x => new { x.ShopType, x.PrivilegeKey }).IsUnique();
+        roleLimits.HasIndex(x => new { x.ShopType, x.Enabled, x.SortOrder });
+        roleLimits.Property(x => x.Enabled).HasDefaultValue(true);
+        roleLimits.Property(x => x.SortOrder).HasDefaultValue(0);
+        roleLimits.Property(x => x.CreatedAtUtc).HasDefaultValueSql("CURRENT_TIMESTAMP");
+        roleLimits.Property(x => x.UpdatedAtUtc).HasDefaultValueSql("CURRENT_TIMESTAMP");
+        roleLimits.ToTable(
+            "shop_role_limits",
+            SchemaName,
+            table =>
+            {
+                table.HasCheckConstraint(
+                    "CK_shop_role_limits_type",
+                    "shop_type IN ('human', 'zombie')"
+                );
+                table.HasCheckConstraint(
+                    "CK_shop_role_limits_values",
+                    "max_purchases_per_round >= 0 AND max_purchases_per_map >= 0"
+                );
+            }
+        );
+
+        var products = modelBuilder.Entity<EquipmentShopProductEntity>();
+        products.HasIndex(x => x.InternalName).IsUnique();
+        products.Property(x => x.Enabled).HasDefaultValue(true);
+        products.Property(x => x.SortOrder).HasDefaultValue(0);
+        products.Property(x => x.CreatedAtUtc).HasDefaultValueSql("CURRENT_TIMESTAMP");
+        products.Property(x => x.UpdatedAtUtc).HasDefaultValueSql("CURRENT_TIMESTAMP");
     }
 }

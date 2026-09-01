@@ -24,7 +24,10 @@ public enum ItemGiveRejectionReason
     TypeSpecificCancelled,
 
     /// <summary>У игрока уже есть предмет, который разрешён только в одном экземпляре.</summary>
-    AlreadyOwned
+    AlreadyOwned,
+
+    /// <summary>Выдача не изменила состояние игрока, например броня уже заполнена.</summary>
+    NoEffect
 }
 
 /// <summary>Контекст ожидаемого отказа выдачи предмета.</summary>
