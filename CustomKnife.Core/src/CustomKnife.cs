@@ -80,7 +80,6 @@ internal sealed partial class CustomKnife(ISwiftlyCore core) : Plugin<CustomKnif
         _isReady = true;
         _knifeRegistryInitializer.Value.Initialize();
         _catalogSynchronizer.Value.TryReload(out _);
-        _catalogSynchronizer.Value.Start();
         Core.Event.OnMapLoad += OnMapLoad;
         _knifeAccessMonitor.Value.Tick();
         _reloadCommand = Core.Command.RegisterCommand(
@@ -103,7 +102,6 @@ internal sealed partial class CustomKnife(ISwiftlyCore core) : Plugin<CustomKnif
         }
 
         Core.Event.OnMapLoad -= OnMapLoad;
-        _catalogSynchronizer.Value.Stop();
         _adminApiProxy.Value.Uninitialize();
         _coordinator.Value.Stop();
         
@@ -133,6 +131,7 @@ internal sealed partial class CustomKnife(ISwiftlyCore core) : Plugin<CustomKnif
         {
             if (_isReady)
             {
+                _catalogSynchronizer.Value.TryReload(out _);
                 _knifeAccessMonitor.Value.Tick();
             }
         });

@@ -10,11 +10,7 @@ internal sealed class KnifeCatalogSynchronizer(
     ILogger<KnifeCatalogSynchronizer> logger
 ) : IDisposable
 {
-    private static readonly TimeSpan RefreshInterval = TimeSpan.FromSeconds(30);
-    private readonly Lock _lifecycleLock = new();
     private readonly SemaphoreSlim _reloadLock = new(1, 1);
-    private CancellationTokenSource? _shutdown;
-    private Task? _refreshTask;
 
     public bool TryReload(out int count)
     {
@@ -43,72 +39,8 @@ internal sealed class KnifeCatalogSynchronizer(
         }
     }
 
-    public void Start()
-    {
-        lock (_lifecycleLock)
-        {
-            if (_refreshTask is not null)
-            {
-                return;
-            }
-
-            _shutdown = new CancellationTokenSource();
-            _refreshTask = Task.Run(() => RefreshLoopAsync(_shutdown.Token));
-        }
-    }
-
-    public void Stop()
-    {
-        Task? refreshTask;
-        CancellationTokenSource? shutdown;
-
-        lock (_lifecycleLock)
-        {
-            refreshTask = _refreshTask;
-            shutdown = _shutdown;
-            _refreshTask = null;
-            _shutdown = null;
-        }
-
-        if (refreshTask is null || shutdown is null)
-        {
-            return;
-        }
-
-        shutdown.Cancel();
-
-        try
-        {
-            refreshTask.GetAwaiter().GetResult();
-        }
-        catch (OperationCanceledException) when (shutdown.IsCancellationRequested)
-        {
-        }
-        finally
-        {
-            shutdown.Dispose();
-        }
-    }
-
     public void Dispose()
     {
-        Stop();
         _reloadLock.Dispose();
-    }
-
-    private async Task RefreshLoopAsync(CancellationToken cancellationToken)
-    {
-        using var timer = new PeriodicTimer(RefreshInterval);
-
-        try
-        {
-            while (await timer.WaitForNextTickAsync(cancellationToken).ConfigureAwait(false))
-            {
-                TryReload(out _);
-            }
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-        }
     }
 }

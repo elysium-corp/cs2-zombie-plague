@@ -19,6 +19,7 @@ using Microsoft.Extensions.Logging;
 using SwiftlyS2.Core.Menus.OptionsBase;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Commands;
+using SwiftlyS2.Shared.Events;
 using ZombiePlague.Api;
 using ZombiePlague.Api.Menus;
 
@@ -48,6 +49,7 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
 
     private readonly List<Guid> _commandHooks = [];
     private IDisposable? _mainMenuSubscription;
+    private bool _isReady;
 
     protected override void OnStart()
     {
@@ -91,9 +93,10 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
 
     protected override void OnReady()
     {
+        _isReady = true;
         _itemRegistry.Value.Initialize();
         _catalogSynchronizer.Value.TryReload(out _, out _);
-        _catalogSynchronizer.Value.Start();
+        Core.Event.OnMapLoad += OnMapLoad;
 
         _equipmentService.Value.Initialize();
         _itemController.Value.Initialize();
@@ -106,7 +109,8 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
 
     protected override void OnUnload()
     {
-        _catalogSynchronizer.Value.Stop();
+        _isReady = false;
+        Core.Event.OnMapLoad -= OnMapLoad;
         EffectService.Release(Core);
         _mainMenuSubscription?.Dispose();
         _mainMenuSubscription = null;
@@ -210,6 +214,17 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
         }
 
         context.Reply("CustomEquipment reload failed; the previous database snapshot is still active.");
+    }
+
+    private void OnMapLoad(IOnMapLoadEvent _)
+    {
+        Core.Scheduler.NextWorldUpdate(() =>
+        {
+            if (_isReady)
+            {
+                _catalogSynchronizer.Value.TryReload(out _, out _);
+            }
+        });
     }
 
 }
