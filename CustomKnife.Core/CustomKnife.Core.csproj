@@ -106,4 +106,8 @@
       <Folder Include="src\Database\Migrations\" />
     </ItemGroup>
 
+    <ItemGroup>
+        <InternalsVisibleTo Include="CustomKnife.Core.Tests" />
+    </ItemGroup>
+
 </Project>

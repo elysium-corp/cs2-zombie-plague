@@ -189,9 +189,15 @@ internal static class BuiltInLocalizationEntries
             ["Menu.Knife.Title"] = RuEn("Ножи", "Knives"),
             ["Menu.Knife.Selected"] = RuEn("{knife} [выбран]", "{knife} [selected]"),
             ["Menu.Knife.SelectionSuccess"] = RuEn("Вы выбрали нож: {knife}", "Knife selected: {knife}"),
+            ["Menu.Knife.PermissionRequired"] = RuEn(
+                "Требуется разрешение: {permission}",
+                "Requires permission: {permission}"),
             ["CustomKnife.Monarch.Name"] = RuEn("Монарх", "Monarch"),
             ["Menu.Main.Item.Equipment.Title"] = RuEn("Магазин снаряжения", "Equipment Shop"),
             ["Menu.Equipment.Title"] = RuEn("Снаряжение", "Equipment"),
+            ["Menu.Equipment.Back"] = RuEn("Назад", "Back"),
+            ["Equipment.Shop.Human.Title"] = RuEn("Магазин людей", "Human Shop"),
+            ["Equipment.Shop.Zombie.Title"] = RuEn("Магазин зомби", "Zombie Shop"),
             ["Menu.Equipment.Category.Pistol"] = RuEn("Пистолеты", "Pistols"),
             ["Menu.Equipment.Category.SubmachineGun"] = RuEn("Пистолеты-пулемёты", "Submachine Guns"),
             ["Menu.Equipment.Category.Rifle"] = RuEn("Штурмовые винтовки", "Rifles"),
@@ -204,6 +210,21 @@ internal static class BuiltInLocalizationEntries
                 "Этот предмет недоступен для текущей роли!",
                 "This item is unavailable for your current role!"),
             ["Equipment.Errors.NotEnoughMoney"] = RuEn("Недостаточно денег!", "Not enough money!"),
+            ["Equipment.Errors.ShopRoundLimit"] = RuEn(
+                "Достигнут лимит покупок за раунд",
+                "The per-round purchase limit has been reached"),
+            ["Equipment.Errors.ShopMapLimit"] = RuEn(
+                "Достигнут лимит покупок за карту",
+                "The per-map purchase limit has been reached"),
+            ["Equipment.Errors.ItemRoundLimit"] = RuEn(
+                "Лимит этого предмета за раунд исчерпан",
+                "This item's per-round limit has been reached"),
+            ["Equipment.Errors.ItemMapLimit"] = RuEn(
+                "Лимит этого предмета за карту исчерпан",
+                "This item's per-map limit has been reached"),
+            ["Equipment.Errors.ShopUnavailable"] = RuEn(
+                "Магазин недоступен",
+                "The shop is unavailable"),
             ["Equipment.LaserMine.AlreadyOwned"] = RuEn("У вас уже есть лазерная мина", "You already have a laser mine"),
             ["Equipment.LaserMine.Granted"] = RuEn("Лазерная мина получена", "Laser mine granted"),
             ["Equipment.LaserMine.Installing"] = RuEn("Установка лазерной мины", "Installing laser mine"),
@@ -214,6 +235,7 @@ internal static class BuiltInLocalizationEntries
             ["Equipment.Item.custom_equipment.barrier_nade.Name"] = RuEn("Барьерная граната", "Barrier Nade"),
             ["Equipment.Item.custom_equipment.frost_nade.Name"] = RuEn("Замораживающая граната", "Frost Nade"),
             ["Equipment.Item.custom_equipment.fire_nade.Name"] = RuEn("Огненная граната", "Fire Nade"),
+            ["Equipment.Item.custom_equipment.armor.Name"] = RuEn("Броня", "Armor"),
             ["Ammo.Warning.NotEnoughMoney"] = RuEn("Не хватает денег", "You don't have enough money"),
             ["Ammo.Warning.EnoughAmmo"] = RuEn("Боезапас заполнен", "Ammo full"),
             ["Admin.Menu.Title"] = RuEn("Админ-меню", "Admin menu"),

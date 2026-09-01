@@ -19,7 +19,7 @@ namespace CustomKnife;
 
 [PluginMetadata(
     Id = "CustomKnife.Core",
-    Version = "0.2.0",
+    Version = "0.3.0",
     Name = "[ZP] CustomKnife",
     Author = "illusion & fdrinv",
     Description = "Database-backed custom knives with Admin.Core permissions"
