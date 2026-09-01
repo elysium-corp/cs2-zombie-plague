@@ -3,6 +3,7 @@ using CustomKnife.Data.Models;
 using CustomKnife.Data.Registrator;
 using CustomKnife.Data.Services.Contracts;
 using CustomKnife.Data.Utils.Extensions;
+using CustomKnife.Services;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.GameHooks;
@@ -16,7 +17,8 @@ internal sealed class KnifeService(
     ISwiftlyCore core, 
     IKnivesRegistry knivesRegistry,
     IPlayerKnifeService playerKnifeService,
-    IZombiePlagueApi zombiePlagueApi
+    IZombiePlagueApi zombiePlagueApi,
+    IKnifeAuthorizationService authorizationService
 ) : IKnifeService
 {
     private const string DefaultKnifeName = "weapon_knife";
@@ -43,14 +45,21 @@ internal sealed class KnifeService(
         ArgumentNullException.ThrowIfNull(player);
         ArgumentNullException.ThrowIfNull(knife);
 
-        if (!knivesRegistry.TryGet(knife.InternalName, out _))
+        if (!knivesRegistry.TryGet(knife.InternalName, out var registeredKnife))
         {
             throw new ArgumentException($"Knife '{knife.InternalName}' is not registered!", nameof(knife));
         }
 
+        if (!authorizationService.CanUse(player, registeredKnife))
+        {
+            throw new UnauthorizedAccessException(
+                $"Player '{player.SteamID}' cannot use knife '{registeredKnife.InternalName}'."
+            );
+        }
+
         playerKnifeService.SetKnifeId(
             player.SteamID,
-            knife.InternalName
+            registeredKnife.InternalName
         );
 
         TryGiveKnife(player);
@@ -112,14 +121,21 @@ internal sealed class KnifeService(
 
         var knifeId = playerKnifeService.GetKnifeId(player.SteamID);
 
-        if (knifeId is not null && knivesRegistry.TryGet(knifeId, out var knife))
+        if (knifeId is not null &&
+            knivesRegistry.TryGet(knifeId, out var knife) &&
+            authorizationService.CanUse(player, knife))
         {
             return knife;
         }
 
+        if (knifeId is not null && knifeId != KnifeDefaults.DefaultKnifeId)
+        {
+            playerKnifeService.SetKnifeId(player.SteamID, KnifeDefaults.DefaultKnifeId);
+        }
+
         if (!knivesRegistry.TryGet(KnifeDefaults.DefaultKnifeId, out var defaultKnife))
         {
-            throw new InvalidOperationException($"Default knife '{KnifeDefaults.DefaultKnifeId}' is not registered!");
+            return KnifeDefaults.Fallback;
         }
 
         return defaultKnife;

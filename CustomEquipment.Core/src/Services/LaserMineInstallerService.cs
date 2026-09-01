@@ -2,9 +2,11 @@
 using Common.Hooks.Abstractions;
 using Common.Math;
 using CustomEquipment.Api.Data;
+using CustomEquipment.Api.Enums;
 using CustomEquipment.Api.Events.Contexts.Mines;
 using CustomEquipment.Data.Equipments.Weapons.Equipments;
 using CustomEquipment.Data.Equipments.Weapons.Equipments.Entities;
+using CustomEquipment.Data.GameplayItems;
 using CustomEquipment.Utils.Helpers;
 using Localization.Api;
 using SwiftlyS2.Core.Menus.OptionsBase;
@@ -19,16 +21,15 @@ public sealed class LaserMineInstallerService(
     IHookPublisher hooks,
     ILocalizationApi localization) : ILaserMineInstallerService, IDisposable
 {
-    private const float MaxDistanceToAttach = 100f;
-    private const float SetupDuration = 1.0f;
-    private const int UpdateIntervalMs = 100;
     private readonly CancellationTokenSource _shutdown = new();
     private readonly Dictionary<int, CancellationTokenSource> _pending = [];
     private readonly Lock _pendingLock = new();
 
     public bool TrySetup(IPlayer player, LaserMine mine)
     {
-        if (_shutdown.IsCancellationRequested || !CanUseMine(player)) return false;
+        if (_shutdown.IsCancellationRequested || !CanUseMine(player, mine)) return false;
+
+        var settings = mine.Settings;
 
         var playerId = player.PlayerID;
 
@@ -40,11 +41,11 @@ public sealed class LaserMineInstallerService(
         var gameRules = core.EntitySystem.GetGameRules();
 
         if (gameRules != null && gameRules.WarmupPeriod) return false;
-        if (!EntityPlacer.CanAttachToGround(pawn, MaxDistanceToAttach)) return false;
+        if (!EntityPlacer.CanAttachToGround(pawn, settings.MaxDistanceToAttach)) return false;
 
         var cancellation = CancellationTokenSource.CreateLinkedTokenSource(_shutdown.Token);
         lock (_pendingLock) _pending[playerId] = cancellation;
-        _ = SetupAsync(player, playerId, mine, cancellation);
+        _ = SetupAsync(player, playerId, mine, settings, cancellation);
         return true;
     }
 
@@ -71,34 +72,39 @@ public sealed class LaserMineInstallerService(
         IPlayer player,
         int playerId,
         LaserMine mine,
+        LaserMineSettings settings,
         CancellationTokenSource cancellation
     )
     {
         try
         {
             var progress = 0f;
-            var window = CreateSetupWindow(player, () => progress);
+            var window = CreateSetupWindow(player, () => progress, settings.UpdateIntervalMs);
 
             core.MenusAPI.OpenMenuForPlayer(player, window);
 
             while (progress < 1f)
             {
-                await Task.Delay(UpdateIntervalMs, cancellation.Token).ConfigureAwait(false);
+                await Task.Delay(settings.UpdateIntervalMs, cancellation.Token).ConfigureAwait(false);
 
-                if (!CanUseMine(player)) return;
+                if (!CanUseMine(player, mine)) return;
 
-                progress = Math.Clamp(progress + UpdateIntervalMs / 1000f / SetupDuration, 0f, 1f);
+                progress = Math.Clamp(
+                    progress + settings.UpdateIntervalMs / 1000f / settings.SetupDuration,
+                    0f,
+                    1f
+                );
             }
 
             await Task.Delay(500, cancellation.Token).ConfigureAwait(false);
 
-            if (!CanUseMine(player) || cancellation.IsCancellationRequested) return;
+            if (!CanUseMine(player, mine) || cancellation.IsCancellationRequested) return;
             var token = cancellation.Token;
             core.Scheduler.NextTick(() =>
             {
-                if (token.IsCancellationRequested || !CanUseMine(player)) return;
+                if (token.IsCancellationRequested || !CanUseMine(player, mine)) return;
                 core.MenusAPI.CloseActiveMenu(player);
-                Spawn(player, mine);
+                Spawn(player, mine, settings);
             });
         }
         catch (OperationCanceledException) when (cancellation.IsCancellationRequested) { }
@@ -111,7 +117,7 @@ public sealed class LaserMineInstallerService(
         }
     }
 
-    private IMenuAPI CreateSetupWindow(IPlayer player, Func<float> getProgress)
+    private IMenuAPI CreateSetupWindow(IPlayer player, Func<float> getProgress, int updateIntervalMs)
     {
         var progressBar = new ProgressBarMenuOption(
             localization.GetForPlayerOrKey(player, "Equipment.LaserMine.Installing"),
@@ -120,7 +126,7 @@ public sealed class LaserMineInstallerService(
             showPercentage: true,
             filledChar: "█",
             emptyChar: "░",
-            updateIntervalMs: UpdateIntervalMs
+            updateIntervalMs: updateIntervalMs
         );
 
         return core.MenusAPI.CreateBuilder()
@@ -134,23 +140,23 @@ public sealed class LaserMineInstallerService(
             .Build();
     }
 
-    private void Spawn(IPlayer player, LaserMine mine)
+    private void Spawn(IPlayer player, LaserMine mine, LaserMineSettings settings)
     {
         var pawn = player.PlayerPawn;
 
-        if (!CanUseMine(player) || pawn == null || !pawn.IsValid)
+        if (!CanUseMine(player, mine) || pawn == null || !pawn.IsValid)
         {
             DispatchPlacementRejected(player, null, MinePlacementRejectionReason.InvalidPlayer);
             return;
         }
 
-        if (!EntityPlacer.CanAttachToGround(pawn, MaxDistanceToAttach))
+        if (!EntityPlacer.CanAttachToGround(pawn, settings.MaxDistanceToAttach))
         {
             DispatchPlacementRejected(player, null, MinePlacementRejectionReason.InvalidSurface);
             return;
         }
 
-        var entity = new LaserMineEntity(core);
+        var entity = new LaserMineEntity(core, settings);
         var preContext = new MinePlacingContext(player, entity);
 
         if (!hooks.DispatchCancellable(ref preContext))
@@ -160,7 +166,7 @@ public sealed class LaserMineInstallerService(
             return;
         }
 
-        if (!CanUseMine(preContext.Player))
+        if (!CanUseMine(preContext.Player, mine))
         {
             entity.Dispose();
             DispatchPlacementRejected(preContext.Player, entity, MinePlacementRejectionReason.InvalidPlayer);
@@ -168,7 +174,7 @@ public sealed class LaserMineInstallerService(
         }
 
         if (preContext.Player.PlayerPawn is not { } preparedPawn ||
-            !EntityPlacer.CanAttachToGround(preparedPawn, MaxDistanceToAttach))
+            !EntityPlacer.CanAttachToGround(preparedPawn, settings.MaxDistanceToAttach))
         {
             entity.Dispose();
             DispatchPlacementRejected(preContext.Player, entity, MinePlacementRejectionReason.InvalidSurface);
@@ -181,16 +187,29 @@ public sealed class LaserMineInstallerService(
         hooks.Dispatch(ref postContext);
     }
 
-    private static bool CanUseMine(IPlayer player)
+    private static bool CanUseMine(IPlayer player, LaserMine mine)
     {
-        if (player is not { IsValid: true, IsAlive: true })
+        if (player is not { IsValid: true, IsAlive: true } ||
+            mine is IManagedGameplayItem { Enabled: false })
         {
             return false;
         }
 
         var pawn = player.PlayerPawn;
 
-        return pawn is { IsValid: true } && pawn.Team == Team.CT;
+        if (pawn is not { IsValid: true })
+        {
+            return false;
+        }
+
+        var playerAccess = pawn.Team switch
+        {
+            Team.CT => AccessFlags.Human,
+            Team.T => AccessFlags.Zombie,
+            _ => AccessFlags.None
+        };
+
+        return (mine.AccessFlags & playerAccess) != 0;
     }
 
     public void Dispose()

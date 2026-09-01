@@ -1,80 +1,79 @@
-﻿using Common.Di;
+using Common.Di;
 using Common.Math;
-using CustomEquipment.Api.Data;
-using CustomEquipment.Api.Data.Contracts;
-using CustomEquipment.Api.Data.Models;
-using CustomEquipment.Api.Enums;
+using CustomEquipment.Data.GameplayItems;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
 
 namespace CustomEquipment.Data.Equipments.Weapons.Grenades;
 
-public sealed class JumpNade : GrenadeItemBase, IShopItem
+/// <summary>
+/// Представляет прыжковую гранату с параметрами из PostgreSQL-каталога.
+/// </summary>
+public sealed class JumpNade : ManagedGrenadeItemBase
 {
-    public override string InheritorName => WeaponName.He; 
-    
-    public override AccessFlags AccessFlags => AccessFlags.Zombie;
+    /// <summary>
+    /// Создаёт гранату со встроенными параметрами по умолчанию.
+    /// </summary>
+    public JumpNade() : this(new GameplayItemCatalog())
+    {
+    }
 
-    public override string DisplayName => "Jump Nade";
+    /// <summary>
+    /// Создаёт гранату с параметрами из указанного runtime-каталога.
+    /// </summary>
+    public JumpNade(GameplayItemCatalog catalog)
+        : base(catalog, GameplayItemKeys.JumpNade)
+    {
+    }
 
-    public override string InternalName => "custom_equipment:jump_nade";
-
-    public override Slot Slot => Slot.Grenade;
-
-    public override WeaponType WeaponType => WeaponType.Grenade;
-
-    public Price Price => new() { Item = 100 };
-
-    public ItemRarity Rarity => ItemRarity.Uncommon;
-
-    public override string Model => "models/throwhead/throwhead2_ag2.vmdl";
-
-    private const int ExplodeRadius = 250;
-
-    private const int ExplodePower = 1050;
+    private JumpNadeSettings Settings => (JumpNadeSettings)Definition.Settings;
 
     public override void OnDetonate(IPlayer thrower, Vector position)
     {
         var core = DependencyResolver.GetRequiredService<ISwiftlyCore>();
-
+        var settings = Settings;
         var alivePlayers = core.PlayerManager.GetAlive();
-        var playersInRadius = Geometry.FindPlayersInSphere(alivePlayers, ExplodeRadius, position);
+        var playersInRadius = Geometry.FindPlayersInSphere(alivePlayers, settings.Radius, position);
 
         foreach (var player in playersInRadius)
         {
             var playerPawn = player.PlayerPawn;
-            
-            if(playerPawn == null || !playerPawn.IsValid) break;
-            
-            var distance = position.Distance(playerPawn.AbsOrigin!.Value);
-            var speed = ExplodePower * (1.0f - distance / ExplodeRadius);
-            var newVelocity = GetSpeedVector(position, playerPawn.AbsOrigin!.Value, speed);
-            
+
+            if (playerPawn == null || !playerPawn.IsValid || playerPawn.AbsOrigin == null)
+            {
+                continue;
+            }
+
+            var distance = position.Distance(playerPawn.AbsOrigin.Value);
+            var speed = settings.Power * (1f - distance / settings.Radius);
+            var newVelocity = GetSpeedVector(position, playerPawn.AbsOrigin.Value, speed);
+
             playerPawn.AbsVelocity += newVelocity;
         }
     }
 
-    private Vector GetSpeedVector(Vector origin1, Vector origin2, float speed)
+    private static Vector GetSpeedVector(Vector origin1, Vector origin2, float speed)
     {
-        Vector direction = (origin2 - origin1).Normalized();
-
-        float lengthSquared =
+        var direction = (origin2 - origin1).Normalized();
+        var lengthSquared =
             direction.X * direction.X +
             direction.Y * direction.Y +
             direction.Z * direction.Z;
 
         if (lengthSquared <= 0.0001f)
+        {
             return Vector.Zero;
+        }
 
-        float scale = speed / MathF.Sqrt(lengthSquared);
-
+        var scale = speed / MathF.Sqrt(lengthSquared);
         var newVelocity = new Vector(
             direction.X * scale,
             direction.Y * scale,
             direction.Z * scale
         );
-        if (direction.Z < 0 && direction.Z >= -3)
+
+        if (direction.Z is < 0 and >= -3)
         {
             newVelocity.Z = scale;
         }

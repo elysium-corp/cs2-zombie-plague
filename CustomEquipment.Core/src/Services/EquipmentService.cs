@@ -7,6 +7,7 @@ using CustomEquipment.Api.Events.Contexts.Grenades;
 using CustomEquipment.Api.Events.Contexts.Items;
 using CustomEquipment.Data.Equipments.Weapons;
 using CustomEquipment.Data.Equipments.Weapons.Equipments;
+using CustomEquipment.Data.GameplayItems;
 using CustomEquipment.Giver;
 using CustomEquipment.Policies;
 using CustomEquipment.Registry;
@@ -629,6 +630,11 @@ internal sealed class EquipmentService(
 
     private bool CanUseItemInternal(IPlayer player, ItemBase item)
     {
+        if (item is IManagedGameplayItem { Enabled: false })
+        {
+            return false;
+        }
+
         var playerFlag = zombiePlagueApi().IsInfected(player)
             ? AccessFlags.Zombie
             : AccessFlags.Human;

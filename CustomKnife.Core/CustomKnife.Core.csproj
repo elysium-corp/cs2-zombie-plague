@@ -92,6 +92,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\Admin.Api\Admin.Api.csproj" />
         <ProjectReference Include="..\Common.Database\Common.Database.csproj">
             <Private>true</Private>
         </ProjectReference>

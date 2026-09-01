@@ -1,10 +1,11 @@
-﻿using System.Reflection;
+﻿using Admin.Api;
 using Common.Database;
 using Common.Database.Storages;
 using Common.Database.Utils;
 using Common.Di;
 using Common.Di.Utils;
 using CustomKnife.Data.Configs;
+using CustomKnife.Data.Knives;
 using CustomKnife.Data.Menus;
 using CustomKnife.Data.Models;
 using CustomKnife.Data.Registrator;
@@ -14,6 +15,7 @@ using CustomKnife.Data.Store;
 using CustomKnife.Database;
 using CustomKnife.Database.Entities;
 using CustomKnife.Initializer;
+using CustomKnife.Services;
 using Menu.Api.Extensions;
 using Localization.Api;
 using Microsoft.EntityFrameworkCore;
@@ -37,7 +39,7 @@ internal sealed class CustomKnifeModule(ISwiftlyCore core) : BaseModule(core)
         BuildConfigs(service);
         BuildKnifeConfigs(service);
         BuildSingletons(service);
-        BuildTransients(service);
+        BuildKnives(service);
 
         return (service.BuildServiceProvider(), service);
     }
@@ -55,12 +57,21 @@ internal sealed class CustomKnifeModule(ISwiftlyCore core) : BaseModule(core)
     {
         service.AddSharedInterface<IZombiePlagueApi>();
         service.AddSharedInterface<ILocalizationApi>();
+
+        AddSingleton<AdminApiProxy>(service);
+        AddSingleton<IAdminApi>(service, provider => provider.GetRequiredService<AdminApiProxy>());
+        AddSingleton<IKnifeAuthorizationService, KnifeAuthorizationService>(service);
+        AddSingleton<KnifeAccessMonitor>(service);
         
         AddSingleton<KnifeMenu>(service);
         AddSingleton<CustomKnifeCoordinator>(service);
         AddSingleton<IKnifeService, KnifeService>(service);
         AddSingleton<IKnivesRegistry, KnivesRegistry>(service);
+        AddSingleton<IWritableKnivesRegistry>(service, provider =>
+            (IWritableKnivesRegistry)provider.GetRequiredService<IKnivesRegistry>()
+        );
         AddSingleton<KnifeRegistryInitializer>(service);
+        AddSingleton<KnifeCatalogSynchronizer>(service);
         AddSingleton<MenuApiBridge>(service);
         AddSingleton<IPlayerKnifePersistenceService, PlayerKnifePersistenceService>(service);
         AddSingleton<PlayerSessionStore<PlayerKnifePreferences>>(service);
@@ -69,20 +80,12 @@ internal sealed class CustomKnifeModule(ISwiftlyCore core) : BaseModule(core)
         AddSingleton<IMenuExtensionDispatcher>(service, provider => provider.GetRequiredService<MenuApiBridge>());
     }
 
-    private void BuildTransients(ServiceCollection service)
+    private void BuildKnives(ServiceCollection service)
     {
-        var baseType = typeof(IKnife);
-
-        var knives = Assembly.GetAssembly(baseType)!
-            .GetTypes()
-            .Where(type => type.IsClass
-                           && !type.IsAbstract
-                           && baseType.IsAssignableFrom(type));
-
-        foreach (var knife in knives)
-        {
-            AddTransient(service, baseType, knife);
-        }
+        AddTransient<IKnife, Spike>(service);
+        AddTransient<IKnife, Piercer>(service);
+        AddTransient<IKnife, Axe>(service);
+        AddTransient<IKnife, Katana>(service);
     }
     
     private static void BuildKnifeConfigs(ServiceCollection service)
@@ -116,5 +119,6 @@ internal sealed class CustomKnifeModule(ISwiftlyCore core) : BaseModule(core)
         
         service.AddPostgreSqlDatabase<CustomKnifeDbContext>(core, options);
         service.AddSteamEntityStore<CustomKnifeDbContext, PlayerKnifeEntity>();
+        AddSingleton<IKnifeCatalogRepository, KnifeCatalogRepository>(service);
     }
 }

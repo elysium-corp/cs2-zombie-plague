@@ -1,5 +1,6 @@
 ﻿using CustomEquipment.Api.Data;
 using CustomEquipment.Utils;
+using CustomEquipment.Data.GameplayItems;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
@@ -8,13 +9,46 @@ using SwiftlyS2.Shared.Trace;
 
 namespace CustomEquipment.Data.Equipments.Weapons.Equipments.Entities;
 
-public sealed class LaserMineEntity(ISwiftlyCore core) : LaserMineEntityBase(core)
+/// <summary>
+/// Представляет установленную лазерную мину и обработку её луча.
+/// </summary>
+public sealed class LaserMineEntity : LaserMineEntityBase
 {
-    public override string LaserMineModel => "models/lasermine.vmdl";
-    public override float TriggerInterval => 0.15f;
+    private readonly ISwiftlyCore _core;
+    private readonly LaserMineSettings _settings;
+
+    /// <summary>
+    /// Создаёт сущность с параметрами лазерной мины по умолчанию.
+    /// </summary>
+    /// <param name="core">Ядро SwiftlyS2.</param>
+    public LaserMineEntity(ISwiftlyCore core)
+        : this(
+            core,
+            (LaserMineSettings)GameplayItemDefaults.Get(GameplayItemKeys.LaserMine).Settings
+        )
+    {
+    }
+
+    internal LaserMineEntity(ISwiftlyCore core, LaserMineSettings settings)
+        : base(core)
+    {
+        _core = core ?? throw new ArgumentNullException(nameof(core));
+        _settings = settings ?? throw new ArgumentNullException(nameof(settings));
+    }
+
+    public override string LaserMineModel => _settings.MineModel;
+    public override float TriggerInterval => _settings.TriggerInterval;
+    public override float TracerDistance => _settings.TracerDistance;
+    public override int MaxHealth => _settings.MaxHealth;
+    public override float BeamWidth => _settings.BeamWidth;
+    public override Color BeamColor => new(
+        _settings.BeamRed,
+        _settings.BeamGreen,
+        _settings.BeamBlue,
+        _settings.BeamAlpha
+    );
 
     private const string DamageParticle = "particles/explosions_fx/bumpmine_detonate_sparks.vpcf";
-    private const float DamagePerTrigger = 35f;
     private const DamageTypes_t DamageType = DamageTypes_t.DMG_POISON;
 
     protected override void Trigger()
@@ -25,7 +59,7 @@ public sealed class LaserMineEntity(ISwiftlyCore core) : LaserMineEntityBase(cor
             return;
         }
 
-        if (Owner == null || Owner.PlayerPawn?.Team == Team.T)
+        if (Owner == null)
         {
             Destroy();
             return;
@@ -58,7 +92,7 @@ public sealed class LaserMineEntity(ISwiftlyCore core) : LaserMineEntityBase(cor
 
         if (end == null) return false;
 
-        var trace = core.Trace.TraceShapeLine(
+        var trace = _core.Trace.TraceShapeLine(
             start.Value,
             end.Value,
             new TraceParams
@@ -86,8 +120,8 @@ public sealed class LaserMineEntity(ISwiftlyCore core) : LaserMineEntityBase(cor
 
     private void ApplyDamage(IPlayer target)
     {
-        if (target.PlayerPawn?.Team == Team.T)
-            target.PlayerPawn?.TakeDamage(DamagePerTrigger, DamageType, LaserMine);
+        if (target.PlayerPawn?.Team != LaserMine?.Team)
+            target.PlayerPawn?.TakeDamage(_settings.DamagePerTrigger, DamageType, LaserMine);
     }
 
     private void UpdateTracer(Vector hitPoint)
@@ -98,7 +132,7 @@ public sealed class LaserMineEntity(ISwiftlyCore core) : LaserMineEntityBase(cor
 
     private void CreateDamageParticle(Vector hitPoint)
     {
-        var particle = core.EntitySystem.CreateEntity<CParticleSystem>();
+        var particle = _core.EntitySystem.CreateEntity<CParticleSystem>();
 
         particle.EffectName = DamageParticle;
         particle.StartActive = true;

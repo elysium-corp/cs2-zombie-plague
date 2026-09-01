@@ -20,6 +20,9 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\CustomEquipment.Api\CustomEquipment.Api.csproj">
+            <Private>true</Private>
+        </ProjectReference>
         <ProjectReference Include="..\CustomEquipment.Core\CustomEquipment.Core.csproj">
             <Private>true</Private>
         </ProjectReference>

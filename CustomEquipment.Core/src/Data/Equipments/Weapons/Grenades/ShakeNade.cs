@@ -1,53 +1,49 @@
-﻿using Common.Di;
+using Common.Di;
 using Common.Effects;
 using Common.Effects.Effects;
 using Common.Effects.Effects.Settings;
 using Common.Math;
-using CustomEquipment.Api.Data;
-using CustomEquipment.Api.Data.Contracts;
-using CustomEquipment.Api.Data.Models;
-using CustomEquipment.Api.Enums;
+using CustomEquipment.Data.GameplayItems;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
 
 namespace CustomEquipment.Data.Equipments.Weapons.Grenades;
 
-public class ShakeNade : GrenadeItemBase, IShopItem
+/// <summary>
+/// Представляет оглушающую гранату с параметрами из PostgreSQL-каталога.
+/// </summary>
+public class ShakeNade : ManagedGrenadeItemBase
 {
-    public override string InheritorName => WeaponName.Smoke;
-    
-    public override AccessFlags AccessFlags => AccessFlags.Zombie;
+    /// <summary>
+    /// Создаёт гранату со встроенными параметрами по умолчанию.
+    /// </summary>
+    public ShakeNade() : this(new GameplayItemCatalog())
+    {
+    }
 
-    public override string DisplayName => "Shake Nade";
-    
-    public override string InternalName => "custom_equipment:shake_nade";
-    
-    public override Slot Slot => Slot.Grenade;
+    /// <summary>
+    /// Создаёт гранату с параметрами из указанного runtime-каталога.
+    /// </summary>
+    public ShakeNade(GameplayItemCatalog catalog)
+        : base(catalog, GameplayItemKeys.ShakeNade)
+    {
+    }
 
-    public override WeaponType WeaponType => WeaponType.Grenade;
+    private ShakeNadeSettings Settings => (ShakeNadeSettings)Definition.Settings;
 
-    public Price Price => new() { Item = 100 };
-
-    public ItemRarity Rarity => ItemRarity.Rare;
-
-    public override string Model => "models/throwhead/throwhead_ag2.vmdl";
-
-    private readonly DisorientSettings _settings = new DisorientSettings(10.0f);
-    
-    private const float ShakeRadius = 250.0f;
-    
     public override void OnDetonate(IPlayer thrower, Vector position)
     {
         var core = DependencyResolver.GetRequiredService<ISwiftlyCore>();
         var effectService = EffectService.Provide(core);
+        var settings = Settings;
         var alivePlayers = core.PlayerManager.GetCTAlive();
+        var players = Geometry.FindPlayersInSphere(alivePlayers, settings.Radius, position);
+        var disorientSettings = new DisorientSettings(settings.Duration);
 
-        var players = Geometry.FindPlayersInSphere(alivePlayers, ShakeRadius, position);
-        
         foreach (var player in players)
         {
-            effectService.ApplyEffect<Disorient>(thrower, player, _settings);
+            effectService.ApplyEffect<Disorient>(thrower, player, disorientSettings);
         }
     }
 }

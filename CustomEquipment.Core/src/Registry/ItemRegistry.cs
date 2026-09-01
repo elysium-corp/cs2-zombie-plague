@@ -3,10 +3,14 @@ using CustomEquipment.Api.Data.Contracts;
 using CustomEquipment.Api.Exceptions;
 using CustomEquipment.Data.DatabaseWeapons;
 using CustomEquipment.Fetcher;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CustomEquipment.Registry;
 
-internal sealed class ItemRegistry(IEquipmentFetcher equipmentFetcher) : IItemRegistry
+internal sealed class ItemRegistry(
+    IEquipmentFetcher equipmentFetcher,
+    IServiceProvider serviceProvider
+) : IItemRegistry
 {
     private readonly object _sync = new();
     private readonly Dictionary<string, Registration> _registrationsById = new(StringComparer.OrdinalIgnoreCase);
@@ -256,9 +260,9 @@ internal sealed class ItemRegistry(IEquipmentFetcher equipmentFetcher) : IItemRe
         return item;
     }
 
-    private static IItem Activate(Type itemType)
+    private IItem Activate(Type itemType)
     {
-        return Activator.CreateInstance(itemType, nonPublic: true) as IItem
+        return ActivatorUtilities.CreateInstance(serviceProvider, itemType) as IItem
             ?? throw new CannotCreateItemException($"Could not create equipment item '{itemType.FullName}'!");
     }
 

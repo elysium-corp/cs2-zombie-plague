@@ -2,7 +2,7 @@
   "schemaVersion": 3,
   "version": 1,
   "generatedAt": "2026-08-31T00:00:00Z",
-  "checksum": "sha256:c62f481929af56cfb33dd139d095329641ec15242c4a7e859bc54158d67cae4a",
+  "checksum": "sha256:de449ab0376cf0181ee65d3bef8fa1dd8ab2188da3933dce622b1f6cee14a374",
   "serverFallbackLanguage": "ru",
   "languages": [
     "ru",
@@ -110,6 +110,10 @@
     "Menu.Knife.SelectionSuccess": {
       "ru": "Вы выбрали нож: {knife}",
       "en": "Knife selected: {knife}"
+    },
+    "Menu.Knife.PermissionRequired": {
+      "ru": "Требуется разрешение: {permission}",
+      "en": "Requires permission: {permission}"
     },
     "CustomKnife.Monarch.Name": {
       "ru": "Монарх",

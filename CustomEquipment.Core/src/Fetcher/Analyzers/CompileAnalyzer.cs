@@ -1,9 +1,11 @@
 ﻿using System.Reflection;
 using CustomEquipment.Api.Data.Contracts;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CustomEquipment.Fetcher.Analyzers;
 
-internal class CompileAnalyzer<TItem>(Assembly assembly) : IAnalyzer<TItem> where TItem : IItem
+internal class CompileAnalyzer<TItem>(Assembly assembly, IServiceProvider serviceProvider) : IAnalyzer<TItem>
+    where TItem : IItem
 {
     public HashSet<TItem> Analyze()
     {
@@ -14,21 +16,16 @@ internal class CompileAnalyzer<TItem>(Assembly assembly) : IAnalyzer<TItem> wher
             .Where(type =>
                 type.IsClass &&
                 !type.IsAbstract &&
-                itemType.IsAssignableFrom(type) &&
-                type.GetConstructor(
-                    BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
-                    binder: null,
-                    Type.EmptyTypes,
-                    modifiers: null
-                ) is not null
+                type.Namespace?.StartsWith("CustomEquipment.Data.Equipments.", StringComparison.Ordinal) == true &&
+                itemType.IsAssignableFrom(type)
             )
             .Select(CreateItem)
             .ToHashSet();
     }
 
-    private static TItem CreateItem(Type type)
+    private TItem CreateItem(Type type)
     {
-        return Activator.CreateInstance(type, nonPublic: true) is TItem item
+        return ActivatorUtilities.CreateInstance(serviceProvider, type) is TItem item
             ? item
             : throw new InvalidOperationException($"Could not create equipment item '{type.FullName}'!");
     }
