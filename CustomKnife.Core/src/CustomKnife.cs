@@ -5,6 +5,7 @@ using Common.Di;
 using CustomKnife.Data.Menus;
 using CustomKnife.Database;
 using CustomKnife.Di;
+using CustomKnife.Initializer;
 using CustomKnife.Services;
 using Menu.Api;
 using Localization.Api;

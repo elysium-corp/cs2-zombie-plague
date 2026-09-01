@@ -123,9 +123,9 @@ internal static class GameplayItemDefaults
             )
         };
 
-    public static IReadOnlyCollection<string> ImplementationKeys => Definitions.Keys;
+    public static IReadOnlyCollection<string> ImplementationKeys => Definitions.Keys.ToArray();
 
-    public static IReadOnlyCollection<GameplayItemDefinition> All => Definitions.Values;
+    public static IReadOnlyCollection<GameplayItemDefinition> All => Definitions.Values.ToArray();
 
     public static GameplayItemDefinition Get(string implementationKey)
     {
