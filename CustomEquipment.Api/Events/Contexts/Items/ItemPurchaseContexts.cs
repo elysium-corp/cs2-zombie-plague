@@ -20,7 +20,13 @@ public enum ItemPurchaseRejectionReason
     PaymentRejected,
 
     /// <summary>Модуль снаряжения отклонил постановку выдачи.</summary>
-    GrantRejected
+    GrantRejected,
+
+    /// <summary>Магазин или выбранная витрина недоступны текущей роли игрока.</summary>
+    ShopUnavailable,
+
+    /// <summary>Достигнут общий или предметный лимит покупок.</summary>
+    LimitReached
 }
 
 /// <summary>Контекст подтверждённого списания денег за предмет.</summary>

@@ -1,8 +1,8 @@
 {
   "schemaVersion": 3,
-  "version": 1,
-  "generatedAt": "2026-08-31T00:00:00Z",
-  "checksum": "sha256:de449ab0376cf0181ee65d3bef8fa1dd8ab2188da3933dce622b1f6cee14a374",
+  "version": 2,
+  "generatedAt": "2026-09-01T17:40:00Z",
+  "checksum": "sha256:dc9bd3298a63104ffb374c1a42e910753b12273f03c1de10dbb7f5ae8c252f5f",
   "serverFallbackLanguage": "ru",
   "languages": [
     "ru",
@@ -127,6 +127,10 @@
       "ru": "Снаряжение",
       "en": "Equipment"
     },
+    "Menu.Equipment.Back": {
+      "ru": "Назад",
+      "en": "Back"
+    },
     "Menu.Equipment.Category.Pistol": {
       "ru": "Пистолеты",
       "en": "Pistols"
@@ -166,6 +170,30 @@
     "Equipment.Errors.NotEnoughMoney": {
       "ru": "Недостаточно денег!",
       "en": "Not enough money!"
+    },
+    "Equipment.Errors.ShopRoundLimit": {
+      "ru": "Достигнут лимит покупок за раунд",
+      "en": "The per-round purchase limit has been reached"
+    },
+    "Equipment.Errors.ShopMapLimit": {
+      "ru": "Достигнут лимит покупок за карту",
+      "en": "The per-map purchase limit has been reached"
+    },
+    "Equipment.Errors.ItemRoundLimit": {
+      "ru": "Лимит этого предмета за раунд исчерпан",
+      "en": "This item's per-round limit has been reached"
+    },
+    "Equipment.Errors.ItemMapLimit": {
+      "ru": "Лимит этого предмета за карту исчерпан",
+      "en": "This item's per-map limit has been reached"
+    },
+    "Equipment.Errors.ShopUnavailable": {
+      "ru": "Магазин недоступен",
+      "en": "The shop is unavailable"
+    },
+    "Equipment.Item.custom_equipment.armor.Name": {
+      "ru": "Броня",
+      "en": "Armor"
     },
     "Ammo.Warning.NotEnoughMoney": {
       "ru": "Не хватает денег",
