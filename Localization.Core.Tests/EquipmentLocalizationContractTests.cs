@@ -58,6 +58,15 @@ public sealed class EquipmentLocalizationContractTests
         "Equipment.Item.custom_equipment.barrier_nade.Name",
         "Equipment.Item.custom_equipment.frost_nade.Name",
         "Equipment.Item.custom_equipment.fire_nade.Name",
+        "Equipment.Item.custom_equipment.ajm.Name",
+        "Equipment.Item.custom_equipment.blackline.Name",
+        "Equipment.Item.custom_equipment.elite.Name",
+        "Equipment.Item.custom_equipment.frostbyte.Name",
+        "Equipment.Item.custom_equipment.lava.Name",
+        "Equipment.Item.custom_equipment.omega.Name",
+        "Equipment.Item.custom_equipment.reactorleak.Name",
+        "Equipment.Item.custom_equipment.reaver.Name",
+        "Equipment.Item.custom_equipment.x3.Name",
         "Ammo.Warning.NotEnoughMoney",
         "Ammo.Warning.EnoughAmmo",
     ];
@@ -74,6 +83,28 @@ public sealed class EquipmentLocalizationContractTests
             Assert.Contains("ru", entry.Translations.Keys);
             Assert.Contains("en", entry.Translations.Keys);
         }
+    }
+
+    [Theory]
+    [InlineData("ajm", "CZ75 Ajm")]
+    [InlineData("blackline", "MP9 Blackline")]
+    [InlineData("elite", "SSG Elite")]
+    [InlineData("frostbyte", "MP7 Frostbyte")]
+    [InlineData("lava", "AK47 Lava")]
+    [InlineData("omega", "Omega Shotgun")]
+    [InlineData("reactorleak", "UMP45 ReactorLeak")]
+    [InlineData("reaver", "Deagle Reaver")]
+    [InlineData("x3", "M4A1-S X3")]
+    public void EmergencySnapshot_UsesLegacyDisplayNamesForStockWeapons(
+        string weaponId,
+        string displayName
+    )
+    {
+        var snapshot = FallbackLocalizationProvider.Load(new LocalizationFallbackConfig());
+        var entry = snapshot.Entries[$"Equipment.Item.custom_equipment.{weaponId}.Name"];
+
+        Assert.Equal(displayName, entry.Translations["ru"]);
+        Assert.Equal(displayName, entry.Translations["en"]);
     }
 
     [Fact]
