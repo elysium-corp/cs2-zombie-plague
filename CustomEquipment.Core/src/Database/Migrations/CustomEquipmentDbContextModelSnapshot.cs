@@ -22,6 +22,104 @@ internal sealed class CustomEquipmentDbContextModelSnapshot : ModelSnapshot
 
         NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+        modelBuilder.Entity("CustomEquipment.Database.Entities.GameplayItemEntity", b =>
+        {
+            b.Property<long>("Id")
+                .ValueGeneratedOnAdd()
+                .HasColumnType("bigint")
+                .HasColumnName("id");
+            NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+            b.Property<short>("AccessFlags")
+                .ValueGeneratedOnAdd()
+                .HasColumnType("smallint")
+                .HasColumnName("access_flags")
+                .HasDefaultValue((short)1);
+
+            b.Property<DateTime>("CreatedAtUtc")
+                .ValueGeneratedOnAdd()
+                .HasColumnType("timestamp with time zone")
+                .HasColumnName("created_at")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            b.Property<string>("DisplayName")
+                .IsRequired()
+                .HasMaxLength(128)
+                .HasColumnType("character varying(128)")
+                .HasColumnName("display_name");
+
+            b.Property<bool>("Enabled")
+                .ValueGeneratedOnAdd()
+                .HasColumnType("boolean")
+                .HasColumnName("enabled")
+                .HasDefaultValue(true);
+
+            b.Property<string>("ImplementationKey")
+                .IsRequired()
+                .HasMaxLength(64)
+                .HasColumnType("character varying(64)")
+                .HasColumnName("implementation_key");
+
+            b.Property<string>("InheritorName")
+                .IsRequired()
+                .HasMaxLength(64)
+                .HasColumnType("character varying(64)")
+                .HasColumnName("inheritor_name");
+
+            b.Property<string>("InternalName")
+                .IsRequired()
+                .HasMaxLength(128)
+                .HasColumnType("character varying(128)")
+                .HasColumnName("internal_name");
+
+            b.Property<int>("ItemPrice")
+                .HasColumnType("integer")
+                .HasColumnName("item_price");
+
+            b.Property<string>("Model")
+                .IsRequired()
+                .HasMaxLength(512)
+                .HasColumnType("character varying(512)")
+                .HasColumnName("model");
+
+            b.Property<string>("Rarity")
+                .IsRequired()
+                .ValueGeneratedOnAdd()
+                .HasMaxLength(32)
+                .HasColumnType("character varying(32)")
+                .HasColumnName("rarity")
+                .HasDefaultValue("Common");
+
+            b.Property<string>("SettingsJson")
+                .IsRequired()
+                .HasColumnType("jsonb")
+                .HasColumnName("settings");
+
+            b.Property<int>("SortOrder")
+                .ValueGeneratedOnAdd()
+                .HasColumnType("integer")
+                .HasColumnName("sort_order")
+                .HasDefaultValue(0);
+
+            b.Property<DateTime>("UpdatedAtUtc")
+                .ValueGeneratedOnAdd()
+                .HasColumnType("timestamp with time zone")
+                .HasColumnName("updated_at")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            b.HasKey("Id");
+            b.HasIndex("Enabled", "SortOrder");
+            b.HasIndex("ImplementationKey").IsUnique();
+            b.HasIndex("InternalName").IsUnique();
+
+            b.ToTable("gameplay_items", "custom_equipment", t =>
+            {
+                t.HasCheckConstraint("CK_gameplay_items_access_flags", "access_flags >= 0 AND access_flags <= 3");
+                t.HasCheckConstraint("CK_gameplay_items_item_price", "item_price >= 0");
+                t.HasCheckConstraint("CK_gameplay_items_settings_object", "jsonb_typeof(settings) = 'object'");
+            });
+        });
+
         modelBuilder.Entity("CustomEquipment.Database.Entities.WeaponEntity", b =>
         {
             b.Property<long>("Id")

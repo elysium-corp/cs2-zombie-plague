@@ -1,5 +1,6 @@
 ﻿using CustomEquipment.Api.Data.Contracts;
 using CustomEquipment.Api.Enums;
+using CustomEquipment.Data.GameplayItems;
 using CustomEquipment.Registry;
 
 namespace CustomEquipment.Data.Catalog;
@@ -44,6 +45,7 @@ internal sealed class EquipmentShopCatalog(IItemRegistry itemRegistry) : IEquipm
         var items = itemRegistry
             .GetDefinitions()
             .OfType<IShopItem>()
+            .Where(item => item is not IManagedGameplayItem { Enabled: false })
             .ToDictionary(
                 item => item.InternalName,
                 StringComparer.OrdinalIgnoreCase
@@ -62,7 +64,8 @@ internal sealed class EquipmentShopCatalog(IItemRegistry itemRegistry) : IEquipm
         }
 
         return items.Values
-            .OrderBy(item => item.WeaponType)
+            .OrderBy(item => item is IManagedGameplayItem managed ? managed.SortOrder : int.MaxValue)
+            .ThenBy(item => item.WeaponType)
             .ThenBy(item => item.Price.Item)
             .ThenBy(item => item.DisplayName)
             .ToArray();
@@ -99,6 +102,11 @@ internal sealed class EquipmentShopCatalog(IItemRegistry itemRegistry) : IEquipm
         // Ручная настройка имеет приоритет.
         if (_manualItems.TryGetValue(internalName, out var registration))
         {
+            if (registration.Item is IManagedGameplayItem { Enabled: false })
+            {
+                return false;
+            }
+
             item = registration.Item;
             return true;
         }
@@ -108,7 +116,9 @@ internal sealed class EquipmentShopCatalog(IItemRegistry itemRegistry) : IEquipm
             return false;
         }
 
-        item = definition as IShopItem;
+        item = definition is IManagedGameplayItem { Enabled: false }
+            ? null
+            : definition as IShopItem;
         
         return item is not null;
     }

@@ -15,11 +15,15 @@ public abstract class LaserMineEntityBase(ISwiftlyCore core) : IDisposable
     public virtual float TriggerInterval => 0f;
     public virtual float TracerDistance => 2000f;
     public virtual int MaxHealth => 100;
+
+    /// <summary>Возвращает ширину луча лазерной мины.</summary>
+    public virtual float BeamWidth => 0.5f;
+
+    /// <summary>Возвращает RGBA-цвет луча лазерной мины.</summary>
+    public virtual Color BeamColor => new(0, 0, 255, 255);
     protected CBeam? LaserMineTracer { get; private set; }
     protected Vector LaserDirection { get; private set; }
     protected IPlayer? Owner { get; private set; }
-    private const float BeamWidth = 0.5f;
-    private static readonly Color BeamColor = new(0, 0, 255, 255);
     private CancellationTokenSource? _triggerTask;
     private int _disposed;
 

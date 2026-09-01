@@ -11,6 +11,7 @@ using CustomEquipment.Api.Events;
 using CustomEquipment.Api.Registration;
 using CustomEquipment.Controllers;
 using CustomEquipment.Data.Catalog;
+using CustomEquipment.Data.GameplayItems;
 using CustomEquipment.Database;
 using CustomEquipment.Fetcher;
 using CustomEquipment.Fetcher.Analyzers;
@@ -55,6 +56,8 @@ internal sealed class CustomEquipmentModule(ISwiftlyCore core) : BaseModule(core
         AddSingleton<IMineController, MineController>(service);
         AddSingleton<IWeaponSoundController, WeaponSoundController>(service);
         AddSingleton<IEquipmentShopCatalog, EquipmentShopCatalog>(service);
+        AddSingleton<GameplayItemCatalog>(service);
+        AddSingleton<EquipmentCatalogSynchronizer>(service);
         AddSingleton<IItemGiver, ItemGiver>(service);
         AddSingleton<ItemRegistry>(service);
         AddSingleton<IItemRegistry>(service, provider => provider.GetRequiredService<ItemRegistry>());
@@ -81,11 +84,12 @@ internal sealed class CustomEquipmentModule(ISwiftlyCore core) : BaseModule(core
 
         service.AddPostgreSqlDatabase<CustomEquipmentDbContext>(Core, options);
         AddSingleton<IWeaponCatalogRepository, WeaponCatalogRepository>(service);
+        AddSingleton<IGameplayItemCatalogRepository, GameplayItemCatalogRepository>(service);
     }
 
     private IEquipmentFetcher OnWeaponRegistratorFactory(IServiceProvider service)
     {
-        var compileAnalyzer = new CompileAnalyzer<IItem>(typeof(CustomEquipmentModule).Assembly);
+        var compileAnalyzer = new CompileAnalyzer<IItem>(typeof(CustomEquipmentModule).Assembly, service);
         return new EquipmentFetcher(compileAnalyzer);
     }
 }

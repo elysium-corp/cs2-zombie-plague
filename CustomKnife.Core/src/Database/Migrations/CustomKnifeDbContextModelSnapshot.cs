@@ -23,6 +23,103 @@ namespace CustomKnife.src.Database.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("CustomKnife.Database.Entities.KnifeEntity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<float>("DamageMultiplier")
+                        .HasColumnType("real")
+                        .HasColumnName("damage_multiplier");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("description");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("display_name");
+
+                    b.Property<bool>("Enabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasColumnName("enabled")
+                        .HasDefaultValue(true);
+
+                    b.Property<int>("Gravity")
+                        .HasColumnType("integer")
+                        .HasColumnName("gravity");
+
+                    b.Property<string>("InternalName")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("internal_name");
+
+                    b.Property<float>("KnockbackPickDistance")
+                        .HasColumnType("real")
+                        .HasColumnName("knockback_pick_distance");
+
+                    b.Property<float>("KnockbackRecoil")
+                        .HasColumnType("real")
+                        .HasColumnName("knockback_recoil");
+
+                    b.Property<string>("Model")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("model");
+
+                    b.Property<string>("RequiredPermission")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("required_permission");
+
+                    b.Property<int>("SortOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("sort_order")
+                        .HasDefaultValue(0);
+
+                    b.Property<float>("Speed")
+                        .HasColumnType("real")
+                        .HasColumnName("speed");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InternalName")
+                        .IsUnique();
+
+                    b.ToTable("knives", "custom_knife", t =>
+                        {
+                            t.HasCheckConstraint("CK_knives_damage_multiplier", "damage_multiplier >= 0 AND damage_multiplier <= 1000");
+                            t.HasCheckConstraint("CK_knives_gravity", "gravity >= 1 AND gravity <= 10000");
+                            t.HasCheckConstraint("CK_knives_knockback", "knockback_recoil >= 0 AND knockback_recoil <= 100000 AND knockback_pick_distance >= 0 AND knockback_pick_distance <= 100000");
+                            t.HasCheckConstraint("CK_knives_required_permission", "required_permission IS NULL OR required_permission ~ '^[a-z0-9_.:-]+$'");
+                            t.HasCheckConstraint("CK_knives_speed", "speed >= 1 AND speed <= 2000");
+                        });
+                });
+
             modelBuilder.Entity("CustomKnife.Database.Entities.PlayerKnifeEntity", b =>
                 {
                     b.Property<int>("Id")

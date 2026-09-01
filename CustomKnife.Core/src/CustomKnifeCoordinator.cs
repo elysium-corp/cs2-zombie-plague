@@ -20,7 +20,6 @@ internal sealed class CustomKnifeCoordinator(
     ISwiftlyCore core,
     IKnifeService knifeService,
     IPlayerKnifeService playerKnifeService,
-    KnifeRegistryInitializer knifeRegistryInitializer,
     KnifeMenu knifeMenu,
     MenuApiBridge menuApiBridge,
     ILocalizationApi localization
@@ -38,8 +37,6 @@ internal sealed class CustomKnifeCoordinator(
 
     public void Start()
     {
-        knifeRegistryInitializer.Initialize();
-
         knifeMenu.RegisterCommands();
 
         RegisterEvents();

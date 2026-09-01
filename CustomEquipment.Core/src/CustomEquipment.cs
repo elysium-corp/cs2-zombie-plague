@@ -4,6 +4,7 @@ using Common.Effects;
 using CustomEquipment.Api;
 using CustomEquipment.Api.Data;
 using CustomEquipment.Controllers;
+using CustomEquipment.Data.GameplayItems;
 using CustomEquipment.Data.Equipments.Weapons.Equipments;
 using CustomEquipment.Database;
 using CustomEquipment.Di;
@@ -25,7 +26,7 @@ namespace CustomEquipment;
 
 [PluginMetadata(
     Id = "CustomEquipment.Core",
-    Version = "0.2.0",
+    Version = "0.3.0",
     Name = "[ZP] CustomEquipment",
     Author = "illusion & fdrinv",
     Description = "Database-backed custom equipment and weapon sounds"
@@ -39,7 +40,8 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
     private readonly Lazy<CustomEquipmentApi> _customEquipmentApi = GetRequiredServiceLazy<CustomEquipmentApi>();
     private readonly Lazy<EquipmentMenu> _equipmentMenu = GetRequiredServiceLazy<EquipmentMenu>();
     private readonly Lazy<IItemRegistry> _itemRegistry = GetRequiredServiceLazy<IItemRegistry>();
-    private readonly Lazy<IWeaponCatalogRepository> _weaponCatalog = GetRequiredServiceLazy<IWeaponCatalogRepository>();
+    private readonly Lazy<EquipmentCatalogSynchronizer> _catalogSynchronizer =
+        GetRequiredServiceLazy<EquipmentCatalogSynchronizer>();
     private readonly Lazy<ILocalizationApi> _localization = GetRequiredServiceLazy<ILocalizationApi>();
     private readonly Lazy<DatabaseMigrator<CustomEquipmentDbContext>> _databaseMigrator =
         GetRequiredServiceLazy<DatabaseMigrator<CustomEquipmentDbContext>>();
@@ -90,7 +92,8 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
     protected override void OnReady()
     {
         _itemRegistry.Value.Initialize();
-        TryReloadDatabaseWeapons(out _);
+        _catalogSynchronizer.Value.TryReload(out _, out _);
+        _catalogSynchronizer.Value.Start();
 
         _equipmentService.Value.Initialize();
         _itemController.Value.Initialize();
@@ -103,6 +106,7 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
 
     protected override void OnUnload()
     {
+        _catalogSynchronizer.Value.Stop();
         EffectService.Release(Core);
         _mainMenuSubscription?.Dispose();
         _mainMenuSubscription = null;
@@ -182,7 +186,10 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
             return;
         }
 
-        _equipmentService.Value.TryGiveItem(player, new LaserMine().InternalName);
+        _equipmentService.Value.TryGiveItem(
+            player,
+            GameplayItemDefaults.Get(GameplayItemKeys.LaserMine).InternalName
+        );
     }
 
     private void ReloadHandler(ICommandContext context)
@@ -193,35 +200,16 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
             return;
         }
 
-        if (TryReloadDatabaseWeapons(out var count))
+        if (_catalogSynchronizer.Value.TryReload(out var weaponCount, out var gameplayItemCount))
         {
-            context.Reply($"CustomEquipment reloaded: {count} enabled database weapons.");
+            context.Reply(
+                $"CustomEquipment reloaded: {weaponCount} database weapons, " +
+                $"{gameplayItemCount} enabled grenades/equipment items."
+            );
             return;
         }
 
         context.Reply("CustomEquipment reload failed; the previous database snapshot is still active.");
     }
 
-    private bool TryReloadDatabaseWeapons(out int count)
-    {
-        count = 0;
-
-        try
-        {
-            var weapons = _weaponCatalog.Value.GetEnabledWeapons();
-            _itemRegistry.Value.ReplaceDatabaseWeapons(weapons);
-            count = weapons.Count;
-
-            Core.Logger.LogInformation("Loaded {WeaponCount} custom equipment weapons from PostgreSQL.", count);
-            return true;
-        }
-        catch (Exception exception)
-        {
-            Core.Logger.LogError(
-                exception,
-                "Failed to load custom equipment weapons. The previous database snapshot is still active."
-            );
-            return false;
-        }
-    }
 }

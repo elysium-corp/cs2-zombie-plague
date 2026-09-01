@@ -1,6 +1,7 @@
 ﻿using CustomKnife.Data.Models;
 using CustomKnife.Data.Registrator;
 using CustomKnife.Data.Services.Contracts;
+using CustomKnife.Services;
 using Menu.Api.Data;
 using Menu.Api.Data.Contracts;
 using Menu.Api.Extensions;
@@ -18,6 +19,7 @@ internal sealed class KnifeMenu(
     IMenuExtensionDispatcher extensionDispatcher,
     IKnivesRegistry knivesRegistry,
     IKnifeService knifeService,
+    IKnifeAuthorizationService authorizationService,
     ILocalizationApi localization
 ) : DynamicOptionsMenu(core, extensionDispatcher)
 {
@@ -60,12 +62,14 @@ internal sealed class KnifeMenu(
     private ButtonMenuOption BuildKnifeOption(IPlayer player, IKnife currentKnife, IKnife knife)
     {
         var isSelected = knife.InternalName == currentKnife.InternalName;
+        var canUse = authorizationService.CanUse(player, knife);
+        var requiredPermission = authorizationService.GetRequiredPermission(knife);
         var knifeName = LocalizeKnifeField(player, knife, "Name", knife.DisplayName);
         var knifeDescription = LocalizeKnifeField(player, knife, "Description", knife.Description);
 
         var option = new ButtonMenuOption
         {
-            Enabled = !isSelected,
+            Enabled = !isSelected && canUse,
 
             Text = isSelected
                 ? localization.GetForPlayer(
@@ -75,12 +79,31 @@ internal sealed class KnifeMenu(
                   ?? knifeName
                 : knifeName,
 
-            Comment = knifeDescription
+            Comment = !canUse && requiredPermission is not null
+                ? localization.GetForPlayer(
+                      player,
+                      "Menu.Knife.PermissionRequired",
+                      new Dictionary<string, string> { ["permission"] = requiredPermission })
+                  ?? $"Requires permission: {requiredPermission}"
+                : knifeDescription
         };
 
         option.Click += async (_, args) =>
         {
             var player = args.Player;
+
+            if (!authorizationService.CanUse(player, knife))
+            {
+                var permission = authorizationService.GetRequiredPermission(knife);
+                var deniedMessage = localization.GetForPlayer(
+                    player,
+                    "Menu.Knife.PermissionRequired",
+                    new Dictionary<string, string> { ["permission"] = permission ?? string.Empty })
+                                    ?? $"Requires permission: {permission}";
+                await player.SendChatAsync(deniedMessage);
+                core.MenusAPI.CloseActiveMenu(player);
+                return;
+            }
 
             knifeService.SelectKnife(player, knife);
 

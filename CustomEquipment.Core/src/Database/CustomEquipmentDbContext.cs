@@ -13,6 +13,8 @@ public sealed class CustomEquipmentDbContext(DbContextOptions<CustomEquipmentDbC
 
     internal DbSet<WeaponSoundFileEntity> WeaponSoundFiles => Set<WeaponSoundFileEntity>();
 
+    internal DbSet<GameplayItemEntity> GameplayItems => Set<GameplayItemEntity>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -22,6 +24,7 @@ public sealed class CustomEquipmentDbContext(DbContextOptions<CustomEquipmentDbC
         ConfigureWeapons(modelBuilder);
         ConfigureSounds(modelBuilder);
         ConfigureSoundFiles(modelBuilder);
+        ConfigureGameplayItems(modelBuilder);
     }
 
     private static void ConfigureWeapons(ModelBuilder modelBuilder)
@@ -106,6 +109,33 @@ public sealed class CustomEquipmentDbContext(DbContextOptions<CustomEquipmentDbC
             "weapon_sound_files",
             SchemaName,
             table => table.HasCheckConstraint("CK_weapon_sound_files_track", "track >= 1 AND track <= 99")
+        );
+    }
+
+    private static void ConfigureGameplayItems(ModelBuilder modelBuilder)
+    {
+        var items = modelBuilder.Entity<GameplayItemEntity>();
+
+        items.HasIndex(x => x.ImplementationKey).IsUnique();
+        items.HasIndex(x => x.InternalName).IsUnique();
+        items.HasIndex(x => new { x.Enabled, x.SortOrder });
+
+        items.Property(x => x.AccessFlags).HasDefaultValue((short)1);
+        items.Property(x => x.Rarity).HasDefaultValue("Common");
+        items.Property(x => x.Enabled).HasDefaultValue(true);
+        items.Property(x => x.SortOrder).HasDefaultValue(0);
+        items.Property(x => x.CreatedAtUtc).HasDefaultValueSql("CURRENT_TIMESTAMP");
+        items.Property(x => x.UpdatedAtUtc).HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+        items.ToTable(
+            "gameplay_items",
+            SchemaName,
+            table =>
+            {
+                table.HasCheckConstraint("CK_gameplay_items_access_flags", "access_flags >= 0 AND access_flags <= 3");
+                table.HasCheckConstraint("CK_gameplay_items_item_price", "item_price >= 0");
+                table.HasCheckConstraint("CK_gameplay_items_settings_object", "jsonb_typeof(settings) = 'object'");
+            }
         );
     }
 }

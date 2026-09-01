@@ -1,41 +1,66 @@
-﻿using Common.Di;
 using CustomEquipment.Api.Data;
 using CustomEquipment.Api.Data.Contracts;
 using CustomEquipment.Api.Data.Models;
 using CustomEquipment.Api.Enums;
+using CustomEquipment.Data.GameplayItems;
 using SwiftlyS2.Shared.Players;
 
 namespace CustomEquipment.Data.Equipments.Weapons.Equipments;
 
-public sealed class LaserMine : EquipmentItemBase, IShopItem
+/// <summary>
+/// Представляет переносимую лазерную мину с параметрами из PostgreSQL-каталога.
+/// </summary>
+public sealed class LaserMine : EquipmentItemBase, IShopItem, IManagedGameplayItem
 {
+    private readonly GameplayItemCatalog _catalog;
+
+    /// <summary>
+    /// Создаёт мину со встроенными параметрами по умолчанию.
+    /// </summary>
+    public LaserMine() : this(new GameplayItemCatalog())
+    {
+    }
+
+    /// <summary>
+    /// Создаёт мину с параметрами из указанного runtime-каталога.
+    /// </summary>
+    /// <param name="catalog">Runtime-каталог параметров встроенных предметов.</param>
+    public LaserMine(GameplayItemCatalog catalog)
+    {
+        _catalog = catalog ?? throw new ArgumentNullException(nameof(catalog));
+    }
+
     internal const string ItemDisplayName = "Laser Mine";
 
-    public override string InheritorName => WeaponName.C4;
+    private GameplayItemDefinition Definition => _catalog.Get(GameplayItemKeys.LaserMine);
 
-    public override AccessFlags AccessFlags => AccessFlags.Human;
+    internal LaserMineSettings Settings => (LaserMineSettings)Definition.Settings;
 
-    public override string DisplayName => ItemDisplayName;
+    bool IManagedGameplayItem.Enabled => Definition.Enabled;
 
-    public override string InternalName => "custom_equipment:laser_mine";
+    int IManagedGameplayItem.SortOrder => Definition.SortOrder;
 
-    public override string SubclassName => "";
+    public override string InheritorName => Definition.InheritorName;
+
+    public override AccessFlags AccessFlags => Definition.AccessFlags;
+
+    public override string DisplayName => Definition.DisplayName;
+
+    public override string InternalName => Definition.InternalName;
+
+    public override string SubclassName => string.Empty;
 
     public override Slot Slot => Slot.Equipment;
 
-    public override string Model => "models/lasermine.vmdl";
-
     public override WeaponType WeaponType => WeaponType.Equipment;
 
-    public Price Price => new()
-    {
-        Item = 100
-    };
+    public Price Price => new() { Item = Definition.ItemPrice };
 
-    public ItemRarity Rarity => ItemRarity.Rare;
+    public ItemRarity Rarity => Definition.Rarity;
 
-    public override void OnPurchase(IPlayer player)
+    public override string Model => Definition.Model;
+
+    public override void OnPurchase(IPlayer owner)
     {
-        
     }
 }

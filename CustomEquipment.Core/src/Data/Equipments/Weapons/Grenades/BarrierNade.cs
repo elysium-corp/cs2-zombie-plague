@@ -1,9 +1,6 @@
-﻿using Common.Di;
+using Common.Di;
 using Common.Math;
-using CustomEquipment.Api.Data;
-using CustomEquipment.Api.Data.Contracts;
-using CustomEquipment.Api.Data.Models;
-using CustomEquipment.Api.Enums;
+using CustomEquipment.Data.GameplayItems;
 using CustomEquipment.Utils;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Natives;
@@ -12,103 +9,104 @@ using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace CustomEquipment.Data.Equipments.Weapons.Grenades;
 
-public class BarrierNade : GrenadeItemBase, IShopItem
+/// <summary>
+/// Представляет барьерную гранату с параметрами из PostgreSQL-каталога.
+/// </summary>
+public class BarrierNade : ManagedGrenadeItemBase
 {
-    public override string InheritorName => WeaponName.Smoke;
-    
-    public override AccessFlags AccessFlags => AccessFlags.Human;
+    /// <summary>
+    /// Создаёт гранату со встроенными параметрами по умолчанию.
+    /// </summary>
+    public BarrierNade() : this(new GameplayItemCatalog())
+    {
+    }
 
-    public override string DisplayName => "Barrier Nade";
-    
-    public override string InternalName => "custom_equipment:barrier_nade";
+    /// <summary>
+    /// Создаёт гранату с параметрами из указанного runtime-каталога.
+    /// </summary>
+    public BarrierNade(GameplayItemCatalog catalog)
+        : base(catalog, GameplayItemKeys.BarrierNade)
+    {
+    }
 
-    public override Slot Slot => Slot.Grenade;
-
-    public override WeaponType WeaponType => WeaponType.Grenade;
-
-    public Price Price => new() { Item = 100 };
-
-    public ItemRarity Rarity => ItemRarity.Rare;
-
-    public override string Model => "weapons/luci/elysium_smoke/elysium_smoke_ag2.vmdl";
-
-    private const string BarrierParticleName = "particles/barrier_nade.vpcf";
-
-    private const string KnockSound = "ZombiePlague.barrier_impact";
-    
-    private const string EnvironmentSound = "ZombiePlague.barrier_environment";
-
-    private const float BarrierRadius = 175.0f;
-
-    private const float BarrierDuration = 15.0f;
-
-    private const float TickDuration = 0.05f;
+    private BarrierNadeSettings Settings => (BarrierNadeSettings)Definition.Settings;
 
     public override void OnDetonate(IPlayer thrower, Vector position)
     {
         var core = DependencyResolver.GetRequiredService<ISwiftlyCore>();
-
-        CreateBarrier(core, position);
+        CreateBarrier(core, position, Settings);
     }
 
-    private void CreateBarrier(ISwiftlyCore core, Vector position)
+    private static void CreateBarrier(
+        ISwiftlyCore core,
+        Vector position,
+        BarrierNadeSettings settings
+    )
     {
         var particle = core.EntitySystem.CreateEntity<CParticleSystem>();
         particle.StartActive = true;
-        particle.EffectName = BarrierParticleName;
+        particle.EffectName = settings.Particle;
         particle.Teleport(position, null, null);
         particle.DispatchSpawn();
-        
-        SoundExt.PlayInPlace(particle, EnvironmentSound, position, 0.65f);
-        
-        CreateBarrierHandler(core, position, particle);
+
+        SoundExt.PlayInPlace(
+            particle,
+            settings.EnvironmentSound,
+            position,
+            settings.EnvironmentVolume
+        );
+
+        CreateBarrierHandler(core, position, particle, settings);
     }
 
-    private void CreateBarrierHandler(ISwiftlyCore core, Vector position, CParticleSystem particle)
+    private static void CreateBarrierHandler(
+        ISwiftlyCore core,
+        Vector position,
+        CParticleSystem particle,
+        BarrierNadeSettings settings
+    )
     {
         var elapsedTime = 0f;
         CancellationTokenSource? token = null;
 
-        token = core.Scheduler.RepeatBySeconds(TickDuration, () =>
+        token = core.Scheduler.RepeatBySeconds(settings.TickInterval, () =>
         {
-            elapsedTime += TickDuration;
+            elapsedTime += settings.TickInterval;
+            FindPlayersToKnock(core, position, settings);
 
-            FindPlayersToKnock(core, position);
-
-            if (!IsActive(elapsedTime))
+            if (elapsedTime > settings.Duration)
             {
                 DespawnBarrier(token, particle);
             }
         });
     }
 
-    private void FindPlayersToKnock(ISwiftlyCore core, Vector position)
+    private static void FindPlayersToKnock(
+        ISwiftlyCore core,
+        Vector position,
+        BarrierNadeSettings settings
+    )
     {
         var alivePlayers = core.PlayerManager.GetTAlive();
-        var playersInRadius = Geometry.FindPlayersInSphere(alivePlayers, BarrierRadius, position);
+        var playersInRadius = Geometry.FindPlayersInSphere(alivePlayers, settings.Radius, position);
 
         foreach (var player in playersInRadius)
         {
-            Knock(player, position);
+            Knock(player, position, settings);
         }
     }
 
-    private bool IsActive(float time)
-    {
-        return time <= BarrierDuration;
-    }
-
-    private void DespawnBarrier(CancellationTokenSource token, CParticleSystem particle)
+    private static void DespawnBarrier(CancellationTokenSource? token, CParticleSystem particle)
     {
         if (particle.IsValidEntity)
         {
             particle.Despawn();
         }
 
-        token.Cancel();
+        token?.Cancel();
     }
 
-    private void Knock(IPlayer player, Vector position)
+    private static void Knock(IPlayer player, Vector position, BarrierNadeSettings settings)
     {
         var pawn = player.PlayerPawn;
 
@@ -120,17 +118,14 @@ public class BarrierNade : GrenadeItemBase, IShopItem
         var origin = pawn.AbsOrigin.Value;
         var directionVector = (origin - position).Normalized();
         var onGround = pawn.GroundEntity.Value != null;
-        var zBoost = onGround ? 150f : 25f;
         var newVelocity = new Vector(
-            pawn.AbsVelocity.X + directionVector.X * 200.0f,
-            pawn.AbsVelocity.Y + directionVector.Y * 200.0f,
-            zBoost
+            pawn.AbsVelocity.X + directionVector.X * settings.HorizontalKnockback,
+            pawn.AbsVelocity.Y + directionVector.Y * settings.HorizontalKnockback,
+            onGround ? settings.GroundZBoost : settings.AirZBoost
         );
 
         pawn.GroundEntity.Value = null;
-
         pawn.Teleport(origin, pawn.EyeAngles, newVelocity);
-
-        SoundExt.PlayAt(player, KnockSound, 1);
+        SoundExt.PlayAt(player, settings.KnockSound, 1);
     }
 }
