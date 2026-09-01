@@ -9,6 +9,7 @@ using Localization.Core.Data;
 using Localization.Core.Database;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using SwiftlyS2.Shared;
 
 namespace Localization.Core.Di;
@@ -19,7 +20,21 @@ internal sealed class LocalizationModule(ISwiftlyCore core) : BaseModule(core)
     {
         var services = new ServiceCollection();
         Core.Configuration.Configure(builder =>
-            builder.AddJsonFile("localization.json", optional: true, reloadOnChange: true));
+            builder.AddJsonFile(source =>
+            {
+                source.Path = "localization.json";
+                source.Optional = true;
+                source.ReloadOnChange = true;
+                source.OnLoadException = context =>
+                {
+                    Core.Logger.LogError(
+                        context.Exception,
+                        "[Localization] localization.json is invalid and was ignored. " +
+                        "The emergency snapshot remains active until PostgreSQL is loaded."
+                    );
+                    context.Ignore = true;
+                };
+            }));
         services
             .AddOptionsWithValidateOnStart<LocalizationFallbackConfig>()
             .BindConfiguration(string.Empty);
