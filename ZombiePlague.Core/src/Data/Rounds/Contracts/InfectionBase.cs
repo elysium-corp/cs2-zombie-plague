@@ -43,28 +43,41 @@ internal abstract class InfectionBase(
         }
 
         var armor = pawn.ArmorValue;
+        var aliveHumanCount = PlayerManager
+            .GetAllAliveHumans()
+            .Count();
 
-        if (armor > 0)
+        switch (InfectionDamagePolicy.ResolveKnifeHit(armor, aliveHumanCount))
         {
-            var armorDamage = InfectionDamagePolicy.GetArmorDamage(
-                activeWeapon?.As<CCSWeaponBase>().WeaponMode ?? CSWeaponMode.Primary_Mode,
-                coreConfig.Value
-            );
-            var remainingArmor = InfectionDamagePolicy.CalculateRemainingArmor(armor, armorDamage);
+            case InfectionKnifeHitOutcome.AbsorbWithArmor:
+            {
+                var armorDamage = InfectionDamagePolicy.GetArmorDamage(
+                    activeWeapon?.As<CCSWeaponBase>().WeaponMode ?? CSWeaponMode.Primary_Mode,
+                    coreConfig.Value
+                );
+                var remainingArmor = InfectionDamagePolicy.CalculateRemainingArmor(armor, armorDamage);
 
-            victim.SetArmor(remainingArmor);
+                victim.SetArmor(remainingArmor);
 
-            // Броня управляется механикой Zombie Plague, а урон по здоровью
-            // остаётся обычным и не должен повторно снимать броню движком.
-            context.Params.Info.DamageFlags |= TakeDamageFlags_t.DFLAG_IGNORE_ARMOR;
+                // Броня поглощает удар целиком: движок не должен отдельно
+                // уменьшать здоровье или повторно пересчитывать броню.
+                SuppressDamage(ref context);
+                return;
+            }
 
-            return;
-        }
+            case InfectionKnifeHitOutcome.Infect:
+                SuppressDamage(ref context);
+                PlayerManager.TryInfect(victim, attacker);
+                return;
 
-        if (CanInfect(victim))
-        {
-            SuppressDamage(ref context);
-            PlayerManager.TryInfect(victim, attacker);
+            case InfectionKnifeHitOutcome.DamageLastHuman:
+                // Последний человек сражается до смерти: броня остаётся нетронутой,
+                // а исходный урон полностью проходит в здоровье.
+                context.Params.Info.DamageFlags |= TakeDamageFlags_t.DFLAG_IGNORE_ARMOR;
+                return;
+
+            default:
+                throw new ArgumentOutOfRangeException();
         }
     }
     
@@ -120,17 +133,6 @@ internal abstract class InfectionBase(
     private bool IsZombieAttackingHuman(IPlayer attacker, IPlayer victim)
     {
         return PlayerManager.IsZombie(attacker) && PlayerManager.IsHuman(victim);
-    }
-
-    private bool CanInfect(IPlayer victim)
-    {
-        if (!PlayerManager.IsHuman(victim)) return false;
-
-        var aliveHumanCount = PlayerManager
-            .GetAllHumans()
-            .Count(player => player.IsAlive);
-
-        return aliveHumanCount > 1;
     }
 
     private static void SuppressDamage(ref TakeDamageEntityPreContext context)

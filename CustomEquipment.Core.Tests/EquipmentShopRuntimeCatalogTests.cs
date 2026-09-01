@@ -6,29 +6,16 @@ namespace CustomEquipment.Core.Tests;
 public sealed class EquipmentShopRuntimeCatalogTests
 {
     [Fact]
-    public void Defaults_KeepHumanAndZombieStorefrontsIndependent()
+    public void Defaults_StartWithEmptyStorefrontsAndKeepArmorAvailableForManualListing()
     {
         var catalog = new EquipmentShopRuntimeCatalog();
-        var humanListings = catalog.GetListings(EquipmentShopType.Human);
-        var zombieListings = catalog.GetListings(EquipmentShopType.Zombie);
+        var snapshot = EquipmentShopDefaults.CreateSnapshot();
 
-        Assert.Contains(humanListings, listing =>
-            listing.ItemInternalName == "custom_equipment:fire_nade"
-        );
-        Assert.DoesNotContain(zombieListings, listing =>
-            listing.ItemInternalName == "custom_equipment:fire_nade"
-        );
-        Assert.Contains(zombieListings, listing =>
-            listing.ItemInternalName == "custom_equipment:jump_nade"
-        );
-        Assert.DoesNotContain(humanListings, listing =>
-            listing.ItemInternalName == "custom_equipment:jump_nade"
-        );
-        Assert.Contains(humanListings, listing =>
-            listing.ItemInternalName == EquipmentShopItemKeys.Armor
-        );
-        Assert.DoesNotContain(zombieListings, listing =>
-            listing.ItemInternalName == EquipmentShopItemKeys.Armor
+        Assert.Empty(catalog.GetListings(EquipmentShopType.Human));
+        Assert.Empty(catalog.GetListings(EquipmentShopType.Zombie));
+        Assert.Contains(
+            snapshot.Products.Values,
+            product => product.InternalName == EquipmentShopItemKeys.Armor
         );
     }
 

@@ -3,6 +3,13 @@ using ZombiePlague.Core.Config.Core;
 
 namespace ZombiePlague.Core.Data.Rounds.Contracts;
 
+internal enum InfectionKnifeHitOutcome
+{
+    AbsorbWithArmor,
+    Infect,
+    DamageLastHuman
+}
+
 internal static class InfectionDamagePolicy
 {
     internal static bool IsKnifeAttack(DamageTypes_t damageType, string? activeWeaponName)
@@ -16,15 +23,33 @@ internal static class InfectionDamagePolicy
         ZombiePlagueCoreConfig config
     )
     {
-        var configuredDamage = weaponMode == CSWeaponMode.Secondary_Mode
+        var isSecondaryAttack = weaponMode == CSWeaponMode.Secondary_Mode;
+        var configuredDamage = isSecondaryAttack
             ? config.ZombieSecondaryAttackArmorDamage
             : config.ZombiePrimaryAttackArmorDamage;
 
-        return Math.Max(0, configuredDamage);
+        return configuredDamage > 0
+            ? configuredDamage
+            : isSecondaryAttack ? 2 : 1;
     }
 
     internal static int CalculateRemainingArmor(int currentArmor, int armorDamage)
     {
         return Math.Max(0, currentArmor - Math.Max(0, armorDamage));
+    }
+
+    internal static InfectionKnifeHitOutcome ResolveKnifeHit(
+        int currentArmor,
+        int aliveHumanCount
+    )
+    {
+        if (aliveHumanCount <= 1)
+        {
+            return InfectionKnifeHitOutcome.DamageLastHuman;
+        }
+
+        return currentArmor > 0
+            ? InfectionKnifeHitOutcome.AbsorbWithArmor
+            : InfectionKnifeHitOutcome.Infect;
     }
 }

@@ -1,5 +1,4 @@
 using CustomEquipment.Api.Enums;
-using CustomEquipment.Data.GameplayItems;
 
 namespace CustomEquipment.Data.Shop;
 
@@ -20,25 +19,6 @@ internal static class EquipmentShopDefaults
     public static EquipmentShopSnapshot CreateSnapshot()
     {
         var categories = CreateCategories();
-        var listings = CreateGameplayItemListings(categories);
-        var armorCategory = categories.Single(category =>
-            category.ShopType == EquipmentShopType.Human &&
-            category.Key == CategoryKey(WeaponType.Equipment)
-        );
-
-        listings.Add(new EquipmentShopListingDefinition(
-            1_000,
-            EquipmentShopType.Human,
-            EquipmentShopItemKeys.Armor,
-            armorCategory.Id,
-            "Добавляет указанное количество брони, но не выше 100",
-            100,
-            1,
-            0,
-            true,
-            1_000,
-            new ArmorEquipmentShopListingSettings(50)
-        ));
 
         var settings = new Dictionary<EquipmentShopType, EquipmentShopSettingsDefinition>
         {
@@ -69,7 +49,7 @@ internal static class EquipmentShopDefaults
         return new EquipmentShopSnapshot(
             settings,
             categories,
-            listings,
+            [],
             [],
             new Dictionary<string, EquipmentShopProductDefinition>(StringComparer.Ordinal)
             {
@@ -111,54 +91,6 @@ internal static class EquipmentShopDefaults
         }
 
         return categories;
-    }
-
-    private static List<EquipmentShopListingDefinition> CreateGameplayItemListings(
-        IReadOnlyCollection<EquipmentShopCategoryDefinition> categories
-    )
-    {
-        var listings = new List<EquipmentShopListingDefinition>();
-        long id = 1;
-
-        foreach (var item in GameplayItemDefaults.All)
-        {
-            var categoryKey = item.ImplementationKey == GameplayItemKeys.LaserMine
-                ? CategoryKey(WeaponType.Equipment)
-                : CategoryKey(WeaponType.Grenade);
-
-            foreach (var shopType in Enum.GetValues<EquipmentShopType>())
-            {
-                var accessFlag = shopType == EquipmentShopType.Human
-                    ? AccessFlags.Human
-                    : AccessFlags.Zombie;
-
-                if ((item.AccessFlags & accessFlag) == 0)
-                {
-                    continue;
-                }
-
-                var category = categories.Single(candidate =>
-                    candidate.ShopType == shopType &&
-                    candidate.Key == categoryKey
-                );
-
-                listings.Add(new EquipmentShopListingDefinition(
-                    id++,
-                    shopType,
-                    item.InternalName,
-                    category.Id,
-                    string.Empty,
-                    item.ItemPrice,
-                    0,
-                    0,
-                    true,
-                    item.SortOrder,
-                    EmptyEquipmentShopListingSettings.Instance
-                ));
-            }
-        }
-
-        return listings;
     }
 
     private static string CategoryDisplayName(WeaponType weaponType)

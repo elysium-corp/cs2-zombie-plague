@@ -63,16 +63,16 @@ public sealed class InfectionDamagePolicyTests
     }
 
     [Fact]
-    public void GetArmorDamage_NeverReturnsNegativeValue()
+    public void GetArmorDamage_UsesSafeDefaultsForNonPositiveValues()
     {
         var config = new ZombiePlagueCoreConfig
         {
-            ZombiePrimaryAttackArmorDamage = -1,
+            ZombiePrimaryAttackArmorDamage = 0,
             ZombieSecondaryAttackArmorDamage = -2
         };
 
-        Assert.Equal(0, InfectionDamagePolicy.GetArmorDamage(CSWeaponMode.Primary_Mode, config));
-        Assert.Equal(0, InfectionDamagePolicy.GetArmorDamage(CSWeaponMode.Secondary_Mode, config));
+        Assert.Equal(1, InfectionDamagePolicy.GetArmorDamage(CSWeaponMode.Primary_Mode, config));
+        Assert.Equal(2, InfectionDamagePolicy.GetArmorDamage(CSWeaponMode.Secondary_Mode, config));
     }
 
     [Theory]
@@ -90,5 +90,45 @@ public sealed class InfectionDamagePolicyTests
             expectedArmor,
             InfectionDamagePolicy.CalculateRemainingArmor(currentArmor, armorDamage)
         );
+    }
+
+    [Theory]
+    [InlineData(10, 2)]
+    [InlineData(1, 10)]
+    public void ResolveKnifeHit_AbsorbsHit_WhenArmorAndOtherHumansRemain(
+        int currentArmor,
+        int aliveHumanCount
+    )
+    {
+        var outcome = InfectionDamagePolicy.ResolveKnifeHit(currentArmor, aliveHumanCount);
+
+        Assert.Equal(InfectionKnifeHitOutcome.AbsorbWithArmor, outcome);
+    }
+
+    [Theory]
+    [InlineData(0, 2)]
+    [InlineData(-1, 10)]
+    public void ResolveKnifeHit_Infects_WhenArmorIsEmptyAndOtherHumansRemain(
+        int currentArmor,
+        int aliveHumanCount
+    )
+    {
+        var outcome = InfectionDamagePolicy.ResolveKnifeHit(currentArmor, aliveHumanCount);
+
+        Assert.Equal(InfectionKnifeHitOutcome.Infect, outcome);
+    }
+
+    [Theory]
+    [InlineData(100, 1)]
+    [InlineData(0, 1)]
+    [InlineData(100, 0)]
+    public void ResolveKnifeHit_DamagesLastHuman_IgnoringCurrentArmor(
+        int currentArmor,
+        int aliveHumanCount
+    )
+    {
+        var outcome = InfectionDamagePolicy.ResolveKnifeHit(currentArmor, aliveHumanCount);
+
+        Assert.Equal(InfectionKnifeHitOutcome.DamageLastHuman, outcome);
     }
 }
