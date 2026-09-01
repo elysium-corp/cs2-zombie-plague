@@ -12,6 +12,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZombiePlague.Core.Tests", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.Di", "Common.Di\Common.Di.csproj", "{D3AFF91C-6556-4783-AEAF-9B21A4EE2D76}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.Di.Tests", "Common.Di.Tests\Common.Di.Tests.csproj", "{76267D83-B326-4C99-977B-880476BF50B1}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Economy.Api", "Economy.Api\Economy.Api.csproj", "{6296B5E4-E4DC-4B85-9089-C21DEF305FC0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DamageNotify.Core", "DamageNotify.Core\DamageNotify.Core.csproj", "{46B0A7F4-5314-4D03-813C-61E6BE6AADD2}"
@@ -120,6 +122,10 @@ Global
         {D3AFF91C-6556-4783-AEAF-9B21A4EE2D76}.Debug|Any CPU.Build.0 = Debug|Any CPU
         {D3AFF91C-6556-4783-AEAF-9B21A4EE2D76}.Release|Any CPU.ActiveCfg = Release|Any CPU
         {D3AFF91C-6556-4783-AEAF-9B21A4EE2D76}.Release|Any CPU.Build.0 = Release|Any CPU
+        {76267D83-B326-4C99-977B-880476BF50B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+        {76267D83-B326-4C99-977B-880476BF50B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+        {76267D83-B326-4C99-977B-880476BF50B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+        {76267D83-B326-4C99-977B-880476BF50B1}.Release|Any CPU.Build.0 = Release|Any CPU
         {6296B5E4-E4DC-4B85-9089-C21DEF305FC0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
         {6296B5E4-E4DC-4B85-9089-C21DEF305FC0}.Debug|Any CPU.Build.0 = Debug|Any CPU
         {6296B5E4-E4DC-4B85-9089-C21DEF305FC0}.Release|Any CPU.ActiveCfg = Release|Any CPU

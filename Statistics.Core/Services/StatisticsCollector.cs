@@ -56,13 +56,26 @@ internal sealed class StatisticsCollector(
         ArgumentNullException.ThrowIfNull(zombiePlagueApi);
         ArgumentNullException.ThrowIfNull(localization);
 
-        if (_zombiePlagueApi is not null)
+        var previousZombiePlagueApi = _zombiePlagueApi;
+
+        if (ReferenceEquals(previousZombiePlagueApi, zombiePlagueApi))
         {
-            throw new InvalidOperationException("Zombie Plague API is already initialized!");
+            _localization = localization;
+            return;
+        }
+
+        if (_isStarted && previousZombiePlagueApi is not null)
+        {
+            UnsubscribeFromZombiePlague(previousZombiePlagueApi);
         }
 
         _zombiePlagueApi = zombiePlagueApi;
         _localization = localization;
+
+        if (_isStarted)
+        {
+            SubscribeToZombiePlague(zombiePlagueApi);
+        }
     }
 
     public void Start()
@@ -82,9 +95,7 @@ internal sealed class StatisticsCollector(
         _roundEndHook = core.GameEvent.HookPost<EventRoundEnd>(OnRoundEnd);
         _gameRestartHook = core.GameEvent.HookPost<EventCsPreRestart>(OnGameRestart);
 
-        zombiePlagueApi.Events.Players.Infecting.Hook(OnPlayerInfecting, HookPriority.Low);
-        zombiePlagueApi.Events.Players.Infected.Hook(OnPlayerInfected);
-        zombiePlagueApi.Events.Rounds.Started.Hook(OnRoundStarted);
+        SubscribeToZombiePlague(zombiePlagueApi);
 
         core.Event.OnMapLoad += OnMapLoad;
         core.Event.OnMapUnload += OnMapUnload;
@@ -102,9 +113,7 @@ internal sealed class StatisticsCollector(
 
         var zombiePlagueApi = GetZombiePlagueApi();
 
-        zombiePlagueApi.Events.Players.Infecting.Unhook(OnPlayerInfecting);
-        zombiePlagueApi.Events.Players.Infected.Unhook(OnPlayerInfected);
-        zombiePlagueApi.Events.Rounds.Started.Unhook(OnRoundStarted);
+        UnsubscribeFromZombiePlague(zombiePlagueApi);
 
         core.Event.OnMapLoad -= OnMapLoad;
         core.Event.OnMapUnload -= OnMapUnload;
@@ -124,6 +133,20 @@ internal sealed class StatisticsCollector(
         _mapFormula = null;
         _isRoundActive = false;
         _isStarted = false;
+    }
+
+    private void SubscribeToZombiePlague(IZombiePlagueApi zombiePlagueApi)
+    {
+        zombiePlagueApi.Events.Players.Infecting.Hook(OnPlayerInfecting, HookPriority.Low);
+        zombiePlagueApi.Events.Players.Infected.Hook(OnPlayerInfected);
+        zombiePlagueApi.Events.Rounds.Started.Hook(OnRoundStarted);
+    }
+
+    private void UnsubscribeFromZombiePlague(IZombiePlagueApi zombiePlagueApi)
+    {
+        zombiePlagueApi.Events.Players.Infecting.Unhook(OnPlayerInfecting);
+        zombiePlagueApi.Events.Players.Infected.Unhook(OnPlayerInfected);
+        zombiePlagueApi.Events.Rounds.Started.Unhook(OnRoundStarted);
     }
 
     private HookResult OnPlayerDeath(EventPlayerDeath @event)

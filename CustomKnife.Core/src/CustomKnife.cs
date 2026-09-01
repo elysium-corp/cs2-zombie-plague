@@ -54,6 +54,7 @@ internal sealed partial class CustomKnife(ISwiftlyCore core) : Plugin<CustomKnif
         }
         else
         {
+            _adminApiProxy.Value.Uninitialize();
             Core.Logger.LogWarning(
                 "[CustomKnife] Admin.Core не загружен. Ножи с required_permission будут недоступны."
             );

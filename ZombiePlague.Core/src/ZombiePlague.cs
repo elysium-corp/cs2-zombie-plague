@@ -67,6 +67,7 @@ public sealed partial class ZombiePlague(ISwiftlyCore core) : Plugin<ZombiePlagu
         }
         else
         {
+            _metricsApiBridge.Value.Uninitialize();
             Core.Logger.LogWarning(
                 "Metrics.Core is not loaded. ZombiePlague.Core will continue without analytics events."
             );
