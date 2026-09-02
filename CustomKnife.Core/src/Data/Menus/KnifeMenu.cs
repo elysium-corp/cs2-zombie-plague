@@ -1,4 +1,5 @@
-﻿using CustomKnife.Data.Models;
+﻿using CustomKnife.Data.Knives;
+using CustomKnife.Data.Models;
 using CustomKnife.Data.Registrator;
 using CustomKnife.Data.Services.Contracts;
 using CustomKnife.Services;
@@ -122,6 +123,15 @@ internal sealed class KnifeMenu(
 
     private string LocalizeKnifeField(IPlayer player, IKnife knife, string field, string fallback)
     {
-        return localization.GetForPlayer(player, $"CustomKnife.{knife.InternalName}.{field}") ?? fallback;
+        var key = knife is ILocalizedKnife localizedKnife
+            ? field switch
+            {
+                "Name" => localizedKnife.DisplayNameKey,
+                "Description" => localizedKnife.DescriptionKey,
+                _ => $"CustomKnife.{knife.InternalName.Replace(':', '.')}.{field}"
+            }
+            : $"CustomKnife.{knife.InternalName.Replace(':', '.')}.{field}";
+
+        return localization.GetForPlayer(player, key) ?? fallback;
     }
 }

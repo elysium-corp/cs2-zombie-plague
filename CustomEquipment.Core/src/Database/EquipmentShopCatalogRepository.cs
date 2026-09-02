@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using CustomEquipment.Data.Shop;
 using CustomEquipment.Database.Entities;
+using CustomEquipment.Utils;
 using Microsoft.EntityFrameworkCore;
 
 namespace CustomEquipment.Database;
@@ -111,6 +112,10 @@ internal sealed class EquipmentShopCatalogRepository(
         return new EquipmentShopSettingsDefinition(
             shopType,
             displayName,
+            LocalizationKeyValidator.Required(
+                entity.DisplayNameKey,
+                nameof(entity.DisplayNameKey)
+            ),
             entity.Enabled,
             entity.MaxPurchasesPerRound,
             entity.MaxPurchasesPerMap
@@ -133,7 +138,15 @@ internal sealed class EquipmentShopCatalogRepository(
             ParseShopType(entity.ShopType),
             key,
             Required(entity.DisplayName, nameof(entity.DisplayName), 128),
+            LocalizationKeyValidator.Required(
+                entity.DisplayNameKey,
+                nameof(entity.DisplayNameKey)
+            ),
             Optional(entity.Description, 512),
+            LocalizationKeyValidator.Optional(
+                entity.DescriptionKey,
+                nameof(entity.DescriptionKey)
+            ),
             entity.Enabled,
             entity.SortOrder
         );
@@ -152,6 +165,10 @@ internal sealed class EquipmentShopCatalogRepository(
             internalName,
             entity.CategoryId,
             Optional(entity.Description, 1_024),
+            LocalizationKeyValidator.Optional(
+                entity.DescriptionKey,
+                nameof(entity.DescriptionKey)
+            ),
             entity.Price,
             entity.MaxPurchasesPerRound,
             entity.MaxPurchasesPerMap,
@@ -196,6 +213,10 @@ internal sealed class EquipmentShopCatalogRepository(
             Required(entity.ImplementationKey, nameof(entity.ImplementationKey), 64),
             Required(entity.InternalName, nameof(entity.InternalName), 128),
             Required(entity.DisplayName, nameof(entity.DisplayName), 128),
+            LocalizationKeyValidator.Required(
+                entity.DisplayNameKey,
+                nameof(entity.DisplayNameKey)
+            ),
             entity.Enabled,
             entity.SortOrder
         );

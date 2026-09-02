@@ -12,6 +12,9 @@ internal sealed class EquipmentShopSettingsEntity
     [Required, MaxLength(128), Column("display_name")]
     public string DisplayName { get; set; } = string.Empty;
 
+    [Required, MaxLength(191), Column("display_name_key")]
+    public string DisplayNameKey { get; set; } = string.Empty;
+
     [Column("enabled")]
     public bool Enabled { get; set; }
 

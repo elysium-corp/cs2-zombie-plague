@@ -25,6 +25,7 @@ internal static class EquipmentShopDefaults
             [EquipmentShopType.Human] = new(
                 EquipmentShopType.Human,
                 "Магазин людей",
+                "Equipment.Shop.Human.Title",
                 true,
                 0,
                 0
@@ -32,6 +33,7 @@ internal static class EquipmentShopDefaults
             [EquipmentShopType.Zombie] = new(
                 EquipmentShopType.Zombie,
                 "Магазин зомби",
+                "Equipment.Shop.Zombie.Title",
                 true,
                 0,
                 0
@@ -42,6 +44,7 @@ internal static class EquipmentShopDefaults
             EquipmentShopProductKeys.Armor,
             EquipmentShopItemKeys.Armor,
             "Броня",
+            "Equipment.Item.custom_equipment.armor.Name",
             true,
             1_000
         );
@@ -83,7 +86,9 @@ internal static class EquipmentShopDefaults
                     shopType,
                     CategoryKey(weaponType),
                     CategoryDisplayName(weaponType),
+                    CategoryDisplayNameKey(weaponType),
                     string.Empty,
+                    null,
                     true,
                     (int)weaponType * 10
                 ));
@@ -91,6 +96,11 @@ internal static class EquipmentShopDefaults
         }
 
         return categories;
+    }
+
+    private static string CategoryDisplayNameKey(WeaponType weaponType)
+    {
+        return $"Menu.Equipment.Category.{weaponType}";
     }
 
     private static string CategoryDisplayName(WeaponType weaponType)

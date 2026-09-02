@@ -25,7 +25,8 @@ public interface IManagedGameplayItem
 /// <summary>
 /// Базовая реализация встроенной гранаты с параметрами из runtime-каталога.
 /// </summary>
-public abstract class ManagedGrenadeItemBase : GrenadeItemBase, IShopItem, IManagedGameplayItem
+public abstract class ManagedGrenadeItemBase
+    : GrenadeItemBase, IShopItem, ILocalizedShopItem, IManagedGameplayItem
 {
     private readonly GameplayItemCatalog _catalog;
     private readonly string _implementationKey;
@@ -51,6 +52,8 @@ public abstract class ManagedGrenadeItemBase : GrenadeItemBase, IShopItem, IMana
 
     public override string DisplayName => Definition.DisplayName;
 
+    public string DisplayNameKey => Definition.DisplayNameKey;
+
     public override string InternalName => Definition.InternalName;
 
     public override Slot Slot => Slot.Grenade;
@@ -67,7 +70,7 @@ public abstract class ManagedGrenadeItemBase : GrenadeItemBase, IShopItem, IMana
 internal abstract class ManagedEquipmentItemBase(
     GameplayItemCatalog catalog,
     string implementationKey
-) : EquipmentItemBase, IShopItem, IManagedGameplayItem
+) : EquipmentItemBase, IShopItem, ILocalizedShopItem, IManagedGameplayItem
 {
     protected GameplayItemDefinition Definition => catalog.Get(implementationKey);
 
@@ -80,6 +83,8 @@ internal abstract class ManagedEquipmentItemBase(
     public override AccessFlags AccessFlags => Definition.AccessFlags;
 
     public override string DisplayName => Definition.DisplayName;
+
+    public string DisplayNameKey => Definition.DisplayNameKey;
 
     public override string InternalName => Definition.InternalName;
 

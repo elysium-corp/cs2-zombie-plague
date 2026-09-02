@@ -48,11 +48,23 @@ namespace CustomKnife.src.Database.Migrations
                         .HasColumnType("character varying(512)")
                         .HasColumnName("description");
 
+                    b.Property<string>("DescriptionKey")
+                        .IsRequired()
+                        .HasMaxLength(191)
+                        .HasColumnType("character varying(191)")
+                        .HasColumnName("description_key");
+
                     b.Property<string>("DisplayName")
                         .IsRequired()
                         .HasMaxLength(128)
                         .HasColumnType("character varying(128)")
                         .HasColumnName("display_name");
+
+                    b.Property<string>("DisplayNameKey")
+                        .IsRequired()
+                        .HasMaxLength(191)
+                        .HasColumnType("character varying(191)")
+                        .HasColumnName("display_name_key");
 
                     b.Property<bool>("Enabled")
                         .ValueGeneratedOnAdd()
@@ -63,6 +75,11 @@ namespace CustomKnife.src.Database.Migrations
                     b.Property<int>("Gravity")
                         .HasColumnType("integer")
                         .HasColumnName("gravity");
+
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)")
+                        .HasColumnName("image_url");
 
                     b.Property<string>("InternalName")
                         .IsRequired()
@@ -114,6 +131,8 @@ namespace CustomKnife.src.Database.Migrations
                         {
                             t.HasCheckConstraint("CK_knives_damage_multiplier", "damage_multiplier >= 0 AND damage_multiplier <= 1000");
                             t.HasCheckConstraint("CK_knives_gravity", "gravity >= 1 AND gravity <= 10000");
+                            t.HasCheckConstraint("CK_knives_image_url", "image_url IS NULL OR image_url ~ '^https://[^[:space:]]+$' OR image_url ~ '^assets/uploads/elysium-equipments/items/[a-f0-9]{40}\\.(jpg|jpeg|png|webp|avif)$'");
+                            t.HasCheckConstraint("CK_knives_localization_keys", "display_name_key ~ '^[A-Za-z0-9][A-Za-z0-9_.-]{1,190}$' AND description_key ~ '^[A-Za-z0-9][A-Za-z0-9_.-]{1,190}$'");
                             t.HasCheckConstraint("CK_knives_knockback", "knockback_recoil >= 0 AND knockback_recoil <= 100000 AND knockback_pick_distance >= 0 AND knockback_pick_distance <= 100000");
                             t.HasCheckConstraint("CK_knives_required_permission", "required_permission IS NULL OR required_permission ~ '^[a-z0-9_.:-]+$'");
                             t.HasCheckConstraint("CK_knives_speed", "speed >= 1 AND speed <= 2000");

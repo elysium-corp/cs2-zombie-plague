@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using CustomEquipment.Api.Enums;
 using CustomEquipment.Data.GameplayItems;
 using CustomEquipment.Database.Entities;
+using CustomEquipment.Utils;
 using Microsoft.EntityFrameworkCore;
 
 namespace CustomEquipment.Database;
@@ -53,6 +54,10 @@ internal sealed class GameplayItemCatalogRepository(
         var defaults = GameplayItemDefaults.Get(implementationKey);
         var internalName = Required(entity.InternalName, nameof(entity.InternalName), 128);
         var displayName = Required(entity.DisplayName, nameof(entity.DisplayName), 128);
+        var displayNameKey = LocalizationKeyValidator.Required(
+            entity.DisplayNameKey,
+            nameof(entity.DisplayNameKey)
+        );
         var inheritorName = Required(entity.InheritorName, nameof(entity.InheritorName), 64);
         var model = Required(entity.Model, nameof(entity.Model), 512);
 
@@ -97,6 +102,7 @@ internal sealed class GameplayItemCatalogRepository(
             implementationKey,
             internalName,
             displayName,
+            displayNameKey,
             inheritorName,
             accessFlags,
             rarity,

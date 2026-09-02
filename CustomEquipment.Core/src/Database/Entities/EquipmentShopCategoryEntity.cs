@@ -22,8 +22,14 @@ internal sealed class EquipmentShopCategoryEntity
     [Required, MaxLength(128), Column("display_name")]
     public string DisplayName { get; set; } = string.Empty;
 
+    [Required, MaxLength(191), Column("display_name_key")]
+    public string DisplayNameKey { get; set; } = string.Empty;
+
     [Required, MaxLength(512), Column("description")]
     public string Description { get; set; } = string.Empty;
+
+    [MaxLength(191), Column("description_key")]
+    public string? DescriptionKey { get; set; }
 
     [Column("enabled")]
     public bool Enabled { get; set; }

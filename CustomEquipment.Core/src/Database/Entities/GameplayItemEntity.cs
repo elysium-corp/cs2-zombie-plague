@@ -23,6 +23,9 @@ internal sealed class GameplayItemEntity
     [Required, MaxLength(128), Column("display_name")]
     public string DisplayName { get; set; } = string.Empty;
 
+    [Required, MaxLength(191), Column("display_name_key")]
+    public string DisplayNameKey { get; set; } = string.Empty;
+
     [Required, MaxLength(64), Column("inheritor_name")]
     public string InheritorName { get; set; } = string.Empty;
 
@@ -34,6 +37,9 @@ internal sealed class GameplayItemEntity
 
     [Required, MaxLength(512), Column("model")]
     public string Model { get; set; } = string.Empty;
+
+    [MaxLength(2048), Column("image_url")]
+    public string? ImageUrl { get; set; }
 
     [Column("item_price")]
     public int ItemPrice { get; set; }

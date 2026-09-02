@@ -31,7 +31,7 @@ namespace CustomEquipment;
 
 [PluginMetadata(
     Id = "CustomEquipment.Core",
-    Version = "0.4.1",
+    Version = "0.5.0",
     Name = "[ZP] CustomEquipment",
     Author = "illusion & fdrinv",
     Description = "Database-backed human and zombie equipment shops"
@@ -187,14 +187,15 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
         }
 
         var shopType = _shopRoleResolver.Value.GetShopType(context.Player);
+        var settings = _shopCatalog.Value.GetSettings(shopType);
 
-        if (!_shopCatalog.Value.GetSettings(shopType).Enabled)
+        if (!settings.Enabled)
         {
             return;
         }
 
-        var title = _localization.Value.GetForPlayer(context.Player, "Menu.Main.Item.Equipment.Title")
-                    ?? _shopCatalog.Value.GetSettings(shopType).DisplayName;
+        var title = _localization.Value.GetForPlayer(context.Player, settings.DisplayNameKey)
+                    ?? settings.DisplayName;
         var option = new ButtonMenuOption(title);
 
         option.Click += (_, args) =>

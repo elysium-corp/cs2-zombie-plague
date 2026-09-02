@@ -11,7 +11,7 @@ namespace CustomEquipment.Data.Equipments.Shop;
 internal sealed class ArmorItem(
     EquipmentShopRuntimeCatalog shopCatalog,
     IEquipmentShopRoleResolver roleResolver
-) : ItemBase, IShopItem, IManagedGameplayItem, IInstantEquipmentShopItem
+) : ItemBase, IShopItem, ILocalizedShopItem, IManagedGameplayItem, IInstantEquipmentShopItem
 {
     private EquipmentShopProductDefinition Product =>
         shopCatalog.GetProduct(EquipmentShopProductKeys.Armor);
@@ -23,6 +23,8 @@ internal sealed class ArmorItem(
     public override AccessFlags AccessFlags => AccessFlags.All;
 
     public override string DisplayName => Product.DisplayName;
+
+    public string DisplayNameKey => Product.DisplayNameKey;
 
     public override string InternalName => Product.InternalName;
 

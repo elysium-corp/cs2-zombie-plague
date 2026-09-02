@@ -3,6 +3,7 @@ using CustomEquipment.Api.Enums;
 using CustomEquipment.Data.DatabaseWeapons;
 using CustomEquipment.Data.Equipments.Models;
 using CustomEquipment.Database.Entities;
+using CustomEquipment.Utils;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
@@ -67,6 +68,10 @@ internal sealed class WeaponCatalogRepository(
             InheritorName: Required(entity.InheritorName, nameof(entity.InheritorName)),
             AccessFlags: accessFlags,
             DisplayName: Required(entity.DisplayName, nameof(entity.DisplayName)),
+            DisplayNameKey: LocalizationKeyValidator.Required(
+                entity.DisplayNameKey,
+                nameof(entity.DisplayNameKey)
+            ),
             InternalName: Required(entity.InternalName, nameof(entity.InternalName)),
             SubclassName: Required(entity.SubclassName, nameof(entity.SubclassName)),
             Slot: slot,

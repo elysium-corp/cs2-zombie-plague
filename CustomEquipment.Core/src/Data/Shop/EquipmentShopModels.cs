@@ -22,6 +22,7 @@ internal sealed record ArmorEquipmentShopListingSettings(
 internal sealed record EquipmentShopSettingsDefinition(
     EquipmentShopType ShopType,
     string DisplayName,
+    string DisplayNameKey,
     bool Enabled,
     int MaxPurchasesPerRound,
     int MaxPurchasesPerMap
@@ -32,7 +33,9 @@ internal sealed record EquipmentShopCategoryDefinition(
     EquipmentShopType ShopType,
     string Key,
     string DisplayName,
+    string DisplayNameKey,
     string Description,
+    string? DescriptionKey,
     bool Enabled,
     int SortOrder
 );
@@ -43,6 +46,7 @@ internal sealed record EquipmentShopListingDefinition(
     string ItemInternalName,
     long CategoryId,
     string Description,
+    string? DescriptionKey,
     int Price,
     int MaxPurchasesPerRound,
     int MaxPurchasesPerMap,
@@ -65,6 +69,7 @@ internal sealed record EquipmentShopProductDefinition(
     string ImplementationKey,
     string InternalName,
     string DisplayName,
+    string DisplayNameKey,
     bool Enabled,
     int SortOrder
 );

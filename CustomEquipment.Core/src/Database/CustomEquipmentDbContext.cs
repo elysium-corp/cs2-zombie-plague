@@ -58,6 +58,8 @@ public sealed class CustomEquipmentDbContext(DbContextOptions<CustomEquipmentDbC
             table =>
             {
                 table.HasCheckConstraint("CK_weapons_access_flags", "access_flags >= 0 AND access_flags <= 3");
+                table.HasCheckConstraint("CK_weapons_display_name_key", "display_name_key ~ '^[A-Za-z0-9][A-Za-z0-9_.-]{1,190}$'");
+                table.HasCheckConstraint("CK_weapons_image_url", "image_url IS NULL OR image_url ~ '^https://[^[:space:]]+$' OR image_url ~ '^assets/uploads/elysium-equipments/items/[a-f0-9]{40}\\.(jpg|jpeg|png|webp|avif)$'");
                 table.HasCheckConstraint("CK_weapons_item_price", "item_price >= 0");
                 table.HasCheckConstraint("CK_weapons_ammo_price", "ammo_price IS NULL OR ammo_price >= 0");
                 table.HasCheckConstraint("CK_weapons_ammunition", "(clip_size IS NULL OR clip_size >= 0) AND (reserve_ammo IS NULL OR reserve_ammo >= 0)");
@@ -144,6 +146,8 @@ public sealed class CustomEquipmentDbContext(DbContextOptions<CustomEquipmentDbC
             table =>
             {
                 table.HasCheckConstraint("CK_gameplay_items_access_flags", "access_flags >= 0 AND access_flags <= 3");
+                table.HasCheckConstraint("CK_gameplay_items_display_name_key", "display_name_key ~ '^[A-Za-z0-9][A-Za-z0-9_.-]{1,190}$'");
+                table.HasCheckConstraint("CK_gameplay_items_image_url", "image_url IS NULL OR image_url ~ '^https://[^[:space:]]+$' OR image_url ~ '^assets/uploads/elysium-equipments/items/[a-f0-9]{40}\\.(jpg|jpeg|png|webp|avif)$'");
                 table.HasCheckConstraint("CK_gameplay_items_item_price", "item_price >= 0");
                 table.HasCheckConstraint("CK_gameplay_items_settings_object", "jsonb_typeof(settings) = 'object'");
             }
@@ -163,6 +167,10 @@ public sealed class CustomEquipmentDbContext(DbContextOptions<CustomEquipmentDbC
             SchemaName,
             table =>
             {
+                table.HasCheckConstraint(
+                    "CK_shop_settings_display_name_key",
+                    "display_name_key ~ '^[A-Za-z0-9][A-Za-z0-9_.-]{1,190}$'"
+                );
                 table.HasCheckConstraint(
                     "CK_shop_settings_type",
                     "shop_type IN ('human', 'zombie')"
@@ -184,10 +192,17 @@ public sealed class CustomEquipmentDbContext(DbContextOptions<CustomEquipmentDbC
         categories.ToTable(
             "shop_categories",
             SchemaName,
-            table => table.HasCheckConstraint(
-                "CK_shop_categories_type",
-                "shop_type IN ('human', 'zombie')"
-            )
+            table =>
+            {
+                table.HasCheckConstraint(
+                    "CK_shop_categories_type",
+                    "shop_type IN ('human', 'zombie')"
+                );
+                table.HasCheckConstraint(
+                    "CK_shop_categories_localization_keys",
+                    "display_name_key ~ '^[A-Za-z0-9][A-Za-z0-9_.-]{1,190}$' AND (description_key IS NULL OR description_key ~ '^[A-Za-z0-9][A-Za-z0-9_.-]{1,190}$')"
+                );
+            }
         );
 
         var listings = modelBuilder.Entity<EquipmentShopListingEntity>();
@@ -211,6 +226,10 @@ public sealed class CustomEquipmentDbContext(DbContextOptions<CustomEquipmentDbC
             SchemaName,
             table =>
             {
+                table.HasCheckConstraint(
+                    "CK_shop_listings_description_key",
+                    "description_key IS NULL OR description_key ~ '^[A-Za-z0-9][A-Za-z0-9_.-]{1,190}$'"
+                );
                 table.HasCheckConstraint(
                     "CK_shop_listings_type",
                     "shop_type IN ('human', 'zombie')"
@@ -255,5 +274,13 @@ public sealed class CustomEquipmentDbContext(DbContextOptions<CustomEquipmentDbC
         products.Property(x => x.SortOrder).HasDefaultValue(0);
         products.Property(x => x.CreatedAtUtc).HasDefaultValueSql("CURRENT_TIMESTAMP");
         products.Property(x => x.UpdatedAtUtc).HasDefaultValueSql("CURRENT_TIMESTAMP");
+        products.ToTable(
+            "shop_products",
+            SchemaName,
+            table => table.HasCheckConstraint(
+                "CK_shop_products_display_name_key",
+                "display_name_key ~ '^[A-Za-z0-9][A-Za-z0-9_.-]{1,190}$'"
+            )
+        );
     }
 }
