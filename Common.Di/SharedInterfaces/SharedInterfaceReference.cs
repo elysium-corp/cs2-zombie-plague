@@ -12,9 +12,6 @@ internal sealed class SharedInterfaceReference<TInterface> where TInterface : cl
     {
         ArgumentNullException.ThrowIfNull(value);
 
-        if (Interlocked.CompareExchange(ref _value, value, null) is not null)
-        {
-            throw new InvalidOperationException($"Shared interface '{typeof(TInterface).Name}' is already initialized!");
-        }
+        Interlocked.Exchange(ref _value, value);
     }
 }

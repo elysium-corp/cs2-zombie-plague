@@ -304,7 +304,7 @@ internal sealed partial class Economy(ISwiftlyCore core) : Plugin<EconomyModule>
 
     private void TryBindOptionalApi<TApi>(
         Func<TApi> resolve,
-        Action<TApi> bind,
+        Action<TApi?> bind,
         string apiName)
         where TApi : class
     {
@@ -314,6 +314,7 @@ internal sealed partial class Economy(ISwiftlyCore core) : Plugin<EconomyModule>
         }
         catch (Exception exception)
         {
+            bind(null);
             Core.Logger.LogWarning(
                 exception,
                 "Optional economy integration {ApiName} is unavailable.",

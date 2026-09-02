@@ -16,6 +16,7 @@ public abstract class Plugin<TModule>(ISwiftlyCore core) : BasePlugin(core) wher
 {
     private bool _moduleAttached;
     private int _cleanupStarted;
+    private int _readyStarted;
     /// <summary>
     /// Текущий модуль плагина.
     /// Гарантированно доступен только после стадии инициализации модуля.
@@ -84,12 +85,16 @@ public abstract class Plugin<TModule>(ISwiftlyCore core) : BasePlugin(core) wher
     {
     }
 
+    /// <summary>
+    /// Перепривязывает зависимости, полученные напрямую из общего реестра.
+    /// Метод может вызываться повторно, поэтому замена ссылок и подписок должна быть идемпотентной.
+    /// </summary>
     protected virtual void OnSharedInterfacesInjected(IInterfaceManager interfaceManager)
     {
     }
     
     /// <summary>
-    /// Вызывается после внедрения shared-интерфейсов через <see cref="IInterfaceManager"/>.
+    /// Однократно вызывается после первого внедрения shared-интерфейсов через <see cref="IInterfaceManager"/>.
     /// Подходит для подписки на внешние API или события или поздней инициализации плагина, можно считать, что это
     /// самый безопасный метод, когда все зависимости уже известны и все плагины поделились своими API.
     /// </summary>
@@ -158,11 +163,20 @@ public abstract class Plugin<TModule>(ISwiftlyCore core) : BasePlugin(core) wher
     }
 
     /// <summary>
-    /// Вызывается после внедрения интерфейсов платформы.
+    /// Вызывается после внедрения интерфейсов платформы и при каждом последующем
+    /// перестроении общего реестра интерфейсов.
     /// </summary>
     public sealed override void OnSharedInterfaceInjected(IInterfaceManager interfaceManager)
     {
-        ExecuteOrRollback(() => { OnSharedInterfacesInjected(interfaceManager); OnReady(); });
+        ExecuteOrRollback(() =>
+        {
+            OnSharedInterfacesInjected(interfaceManager);
+
+            if (Interlocked.CompareExchange(ref _readyStarted, 1, 0) == 0)
+            {
+                OnReady();
+            }
+        });
     }
 
     /// <summary>

@@ -12,4 +12,8 @@
       <PackageReference Include="SwiftlyS2.CS2" Version="1.4.6-beta.8" />
     </ItemGroup>
 
+    <ItemGroup>
+      <InternalsVisibleTo Include="Common.Di.Tests" />
+    </ItemGroup>
+
 </Project>

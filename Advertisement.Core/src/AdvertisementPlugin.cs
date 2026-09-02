@@ -59,6 +59,7 @@ internal sealed class AdvertisementPlugin(ISwiftlyCore core) : Plugin<Advertisem
         }
         else
         {
+            _audienceResolver.Value.Uninitialize();
             Core.Logger.LogWarning(
                 "[Advertisement] Admin.Core не загружен. Аудитории admin_group будут пропущены.");
         }

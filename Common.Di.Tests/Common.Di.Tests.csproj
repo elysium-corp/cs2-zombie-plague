@@ -20,16 +20,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Common.Hooks\Common.Hooks.csproj">
-            <Private>true</Private>
-        </ProjectReference>
-        <ProjectReference Include="..\Localization.Api\Localization.Api.csproj">
-            <Private>true</Private>
-        </ProjectReference>
-        <ProjectReference Include="..\Statistics.Core\Statistics.Core.csproj">
-            <Private>true</Private>
-        </ProjectReference>
-        <ProjectReference Include="..\ZombiePlague.Api\ZombiePlague.Api.csproj">
+        <ProjectReference Include="..\Common.Di\Common.Di.csproj">
             <Private>true</Private>
         </ProjectReference>
     </ItemGroup>

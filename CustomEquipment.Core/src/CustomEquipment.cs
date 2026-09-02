@@ -103,11 +103,13 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
         }
         else
         {
+            _adminApiProxy.Value.Uninitialize();
             Core.Logger.LogWarning(
                 "Admin.Core is not loaded. Equipment shop role limits will not be applied."
             );
         }
 
+        _mainMenuSubscription?.Dispose();
         _mainMenuSubscription = menuApi.Extensions.Subscribe(
             menuId: ZombiePlagueMenuIds.Main,
             handler: ExtendMainMenu
