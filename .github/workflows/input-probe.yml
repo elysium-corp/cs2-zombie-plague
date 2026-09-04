@@ -52,19 +52,28 @@ jobs:
         run: |
           set -euo pipefail
 
-          output="ElysiumInputProbe.Core/bin/Release/net10.0"
           package="artifacts/ElysiumInputProbe.Core"
-
           mkdir -p "$package"
-          cp "$output/ElysiumInputProbe.Core.dll" "$package/"
 
-          if [[ -f "$output/ElysiumInputProbe.Core.pdb" ]]; then
-            cp "$output/ElysiumInputProbe.Core.pdb" "$package/"
+          echo "Build output:"
+          find ElysiumInputProbe.Core/bin/Release -maxdepth 4 -type f -print | sort
+
+          dll="$(find ElysiumInputProbe.Core/bin/Release -type f -name 'ElysiumInputProbe.Core.dll' -print -quit)"
+          if [[ -z "$dll" ]]; then
+            echo "::error::ElysiumInputProbe.Core.dll was not produced"
+            exit 1
           fi
 
-          if [[ -f "$output/ElysiumInputProbe.Core.runtimeconfig.json" ]]; then
-            cp "$output/ElysiumInputProbe.Core.runtimeconfig.json" "$package/"
-          fi
+          output="$(dirname "$dll")"
+          cp "$dll" "$package/"
+
+          for optional in \
+            ElysiumInputProbe.Core.pdb \
+            ElysiumInputProbe.Core.runtimeconfig.json; do
+            if [[ -f "$output/$optional" ]]; then
+              cp "$output/$optional" "$package/"
+            fi
+          done
 
           cp ElysiumInputProbe.Core/README.md "$package/"
 
