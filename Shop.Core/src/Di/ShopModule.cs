@@ -28,22 +28,26 @@ internal sealed class ShopModule(ISwiftlyCore core) : BaseModule(core)
     public override (ServiceProvider, ServiceCollection) GetProvider()
     {
         var services = new ServiceCollection();
-        Core.Configuration.Configure(builder => builder.AddJsonFile(source =>
-        {
-            source.Path = "shop.json";
-            source.Optional = true;
-            // Провайдер перечитывает файл, но runtime snapshot заменяется только координатором:
-            // в конце карты или по команде shop_reload.
-            source.ReloadOnChange = true;
-            source.OnLoadException = context =>
+        // SwiftlyS2 creates the plugin configuration directory during initialization.
+        // Configure() cannot be called first on a clean Shop.Core installation.
+        Core.Configuration
+            .InitializeWithTemplate("shop.json", "template.jsonc")
+            .Configure(builder => builder.AddJsonFile(source =>
             {
-                Core.Logger.LogError(
-                    context.Exception,
-                    "[Shop] shop.json повреждён и проигнорирован. " +
-                    "При доступном PostgreSQL будет загружен обычный memory snapshot.");
-                context.Ignore = true;
-            };
-        }));
+                source.Path = "shop.json";
+                source.Optional = true;
+                // Провайдер перечитывает файл, но runtime snapshot заменяется только координатором:
+                // в конце карты или по команде shop_reload.
+                source.ReloadOnChange = true;
+                source.OnLoadException = context =>
+                {
+                    Core.Logger.LogError(
+                        context.Exception,
+                        "[Shop] shop.json повреждён и проигнорирован. " +
+                        "При доступном PostgreSQL будет загружен обычный memory snapshot.");
+                    context.Ignore = true;
+                };
+            }));
         services.AddOptionsWithValidateOnStart<ShopFallbackConfig>()
             .BindConfiguration(string.Empty);
         services.AddSwiftly(Core);
