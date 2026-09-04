@@ -1,8 +1,8 @@
 {
   "schemaVersion": 3,
-  "version": 3,
-  "generatedAt": "2026-09-04T09:00:00Z",
-  "checksum": "sha256:70517a65c45657eb0254852997577d36a127c5f3a6c3b7594042b056a2fcdacb",
+  "version": 4,
+  "generatedAt": "2026-09-04T09:06:33Z",
+  "checksum": "sha256:32c58fd25e86756d45ba8ee11dcd2b5d12398e6d61093bd8c188ba1ebec3d118",
   "serverFallbackLanguage": "ru",
   "languages": [
     "ru",
@@ -127,6 +127,14 @@
       "ru": "Назад",
       "en": "Back"
     },
+    "Equipment.Shop.Human.Title": {
+      "ru": "Магазин людей",
+      "en": "Human Shop"
+    },
+    "Equipment.Shop.Zombie.Title": {
+      "ru": "Магазин зомби",
+      "en": "Zombie Shop"
+    },
     "Menu.Equipment.Category.Pistol": {
       "ru": "Пистолеты",
       "en": "Pistols"
@@ -187,9 +195,85 @@
       "ru": "Магазин недоступен",
       "en": "The shop is unavailable"
     },
+    "Equipment.LaserMine.AlreadyOwned": {
+      "ru": "У вас уже есть лазерная мина",
+      "en": "You already have a laser mine"
+    },
+    "Equipment.LaserMine.Granted": {
+      "ru": "Лазерная мина получена",
+      "en": "Laser mine granted"
+    },
+    "Equipment.LaserMine.Installing": {
+      "ru": "Установка лазерной мины",
+      "en": "Installing laser mine"
+    },
+    "Equipment.LaserMine.InvalidSurface": {
+      "ru": "Здесь нельзя установить лазерную мину",
+      "en": "The laser mine cannot be placed here"
+    },
+    "Equipment.Item.custom_equipment.laser_mine.Name": {
+      "ru": "Лазерная мина",
+      "en": "Laser Mine"
+    },
+    "Equipment.Item.custom_equipment.shake_nade.Name": {
+      "ru": "Сотрясающая граната",
+      "en": "Shake Nade"
+    },
+    "Equipment.Item.custom_equipment.jump_nade.Name": {
+      "ru": "Прыжковая граната",
+      "en": "Jump Nade"
+    },
+    "Equipment.Item.custom_equipment.barrier_nade.Name": {
+      "ru": "Барьерная граната",
+      "en": "Barrier Nade"
+    },
+    "Equipment.Item.custom_equipment.frost_nade.Name": {
+      "ru": "Замораживающая граната",
+      "en": "Frost Nade"
+    },
+    "Equipment.Item.custom_equipment.fire_nade.Name": {
+      "ru": "Огненная граната",
+      "en": "Fire Nade"
+    },
     "Equipment.Item.custom_equipment.armor.Name": {
       "ru": "Броня",
       "en": "Armor"
+    },
+    "Equipment.Item.custom_equipment.ajm.Name": {
+      "ru": "CZ75 Ajm",
+      "en": "CZ75 Ajm"
+    },
+    "Equipment.Item.custom_equipment.blackline.Name": {
+      "ru": "MP9 Blackline",
+      "en": "MP9 Blackline"
+    },
+    "Equipment.Item.custom_equipment.elite.Name": {
+      "ru": "SSG Elite",
+      "en": "SSG Elite"
+    },
+    "Equipment.Item.custom_equipment.frostbyte.Name": {
+      "ru": "MP7 Frostbyte",
+      "en": "MP7 Frostbyte"
+    },
+    "Equipment.Item.custom_equipment.lava.Name": {
+      "ru": "AK47 Lava",
+      "en": "AK47 Lava"
+    },
+    "Equipment.Item.custom_equipment.omega.Name": {
+      "ru": "Omega Shotgun",
+      "en": "Omega Shotgun"
+    },
+    "Equipment.Item.custom_equipment.reactorleak.Name": {
+      "ru": "UMP45 ReactorLeak",
+      "en": "UMP45 ReactorLeak"
+    },
+    "Equipment.Item.custom_equipment.reaver.Name": {
+      "ru": "Deagle Reaver",
+      "en": "Deagle Reaver"
+    },
+    "Equipment.Item.custom_equipment.x3.Name": {
+      "ru": "M4A1-S X3",
+      "en": "M4A1-S X3"
     },
     "Ammo.Warning.NotEnoughMoney": {
       "ru": "Не хватает денег",
@@ -198,6 +282,410 @@
     "Ammo.Warning.EnoughAmmo": {
       "ru": "Боезапас заполнен",
       "en": "Ammo full"
+    },
+    "Admin.Menu.Title": {
+      "ru": "Админ-меню",
+      "en": "Admin menu"
+    },
+    "Admin.Menu.Kick": {
+      "ru": "Кикнуть игрока",
+      "en": "Kick player"
+    },
+    "Admin.Menu.Ban": {
+      "ru": "Заблокировать игрока",
+      "en": "Ban player"
+    },
+    "Admin.Menu.Kill": {
+      "ru": "Убить игрока",
+      "en": "Kill player"
+    },
+    "Admin.Menu.Respawn": {
+      "ru": "Возродить игрока",
+      "en": "Respawn player"
+    },
+    "Admin.Menu.Round": {
+      "ru": "Управление раундом",
+      "en": "Round management"
+    },
+    "Admin.Kick.Title": {
+      "ru": "Кикнуть игрока",
+      "en": "Kick player"
+    },
+    "Admin.Kick.Reason": {
+      "ru": "Вы были исключены администратором {administrator}",
+      "en": "You were kicked by administrator {administrator}"
+    },
+    "Admin.Kill.Title": {
+      "ru": "Убить игрока",
+      "en": "Kill player"
+    },
+    "Admin.Respawn.Title": {
+      "ru": "Возродить игрока",
+      "en": "Respawn player"
+    },
+    "Admin.Round.Title": {
+      "ru": "Управление раундом",
+      "en": "Round management"
+    },
+    "Admin.Round.EndWarmup": {
+      "ru": "Завершить разминку",
+      "en": "End warmup"
+    },
+    "Admin.Round.EndRound": {
+      "ru": "Завершить раунд",
+      "en": "End round"
+    },
+    "Admin.Round.Restart": {
+      "ru": "Перезапустить игру",
+      "en": "Restart game"
+    },
+    "Admin.Ban.Title": {
+      "ru": "Заблокировать игрока",
+      "en": "Ban player"
+    },
+    "Admin.Ban.DurationTitle": {
+      "ru": "Срок блокировки: {player}",
+      "en": "Ban duration: {player}"
+    },
+    "Admin.Ban.Duration.30Minutes": {
+      "ru": "30 минут",
+      "en": "30 minutes"
+    },
+    "Admin.Ban.Duration.1Hour": {
+      "ru": "1 час",
+      "en": "1 hour"
+    },
+    "Admin.Ban.Duration.6Hours": {
+      "ru": "6 часов",
+      "en": "6 hours"
+    },
+    "Admin.Ban.Duration.1Day": {
+      "ru": "1 день",
+      "en": "1 day"
+    },
+    "Admin.Ban.Duration.7Days": {
+      "ru": "7 дней",
+      "en": "7 days"
+    },
+    "Admin.Ban.Duration.30Days": {
+      "ru": "30 дней",
+      "en": "30 days"
+    },
+    "Admin.Ban.Duration.Permanent": {
+      "ru": "Навсегда",
+      "en": "Permanent"
+    },
+    "Admin.Ban.ReasonTitle": {
+      "ru": "Причина блокировки: {player}",
+      "en": "Ban reason: {player}"
+    },
+    "Admin.Ban.ChoosePredefinedReason": {
+      "ru": "Выбрать причину",
+      "en": "Choose a reason"
+    },
+    "Admin.Ban.EnterCustomReason": {
+      "ru": "Ввести свою причину",
+      "en": "Enter custom reason"
+    },
+    "Admin.Ban.CustomReasonInput": {
+      "ru": "Причина",
+      "en": "Reason"
+    },
+    "Admin.Ban.CustomReasonHint": {
+      "ru": "Введите причину блокировки",
+      "en": "Enter the ban reason"
+    },
+    "Admin.Ban.Reason.Cheating": {
+      "ru": "Использование читов",
+      "en": "Cheating"
+    },
+    "Admin.Ban.Reason.Toxicity": {
+      "ru": "Оскорбления и токсичность",
+      "en": "Toxicity and abuse"
+    },
+    "Admin.Ban.Reason.Spam": {
+      "ru": "Спам",
+      "en": "Spam"
+    },
+    "Admin.Ban.Reason.GameplayInterference": {
+      "ru": "Помеха игровому процессу",
+      "en": "Gameplay interference"
+    },
+    "Admin.Ban.Reason.Evasion": {
+      "ru": "Обход наказания",
+      "en": "Ban evasion"
+    },
+    "Admin.Ban.Reason.Advertising": {
+      "ru": "Сторонняя реклама",
+      "en": "Unauthorized advertising"
+    },
+    "Admin.Ban.Reason.RulesViolation": {
+      "ru": "Нарушение правил сервера",
+      "en": "Server rules violation"
+    },
+    "Admin.Ban.KickPermanent": {
+      "ru": "Вы заблокированы навсегда. Причина: {reason}",
+      "en": "You are permanently banned. Reason: {reason}"
+    },
+    "Admin.Ban.KickTemporary": {
+      "ru": "Вы заблокированы до {expires_at}. Причина: {reason}",
+      "en": "You are banned until {expires_at}. Reason: {reason}"
+    },
+    "SupplyBox.Editor.Title": {
+      "ru": "Редактор ящиков снабжения",
+      "en": "Supply box editor"
+    },
+    "SupplyBox.Editor.RotateRight": {
+      "ru": "Повернуть вправо",
+      "en": "Rotate right"
+    },
+    "SupplyBox.Editor.RotateLeft": {
+      "ru": "Повернуть влево",
+      "en": "Rotate left"
+    },
+    "SupplyBox.Editor.Cancel": {
+      "ru": "Отмена",
+      "en": "Cancel"
+    },
+    "SupplyBox.Editor.Install": {
+      "ru": "Установить",
+      "en": "Install"
+    },
+    "SupplyBox.Editor.AddTitle": {
+      "ru": "Новый ящик снабжения",
+      "en": "New supply box"
+    },
+    "SupplyBox.Editor.RemoveTitle": {
+      "ru": "Удаление ящика",
+      "en": "Remove supply box"
+    },
+    "SupplyBox.Editor.RemoveItem": {
+      "ru": "Ящик №{index}",
+      "en": "Box #{index}"
+    },
+    "SupplyBox.Editor.Create": {
+      "ru": "Добавить ящик",
+      "en": "Add box"
+    },
+    "SupplyBox.Editor.Remove": {
+      "ru": "Удалить ящик",
+      "en": "Remove box"
+    },
+    "ZombiePlague.Admin.Title": {
+      "ru": "Админка Zombie Mode",
+      "en": "Zombie Mode admin"
+    },
+    "ZombiePlague.Admin.RootItem": {
+      "ru": "[Zombie Mode] Админ-меню",
+      "en": "[Zombie Mode] Admin menu"
+    },
+    "ZombiePlague.Admin.Infect": {
+      "ru": "Заразить игрока",
+      "en": "Infect player"
+    },
+    "ZombiePlague.Admin.Disinfect": {
+      "ru": "Вылечить игрока",
+      "en": "Disinfect player"
+    },
+    "ZombiePlague.Admin.Rounds": {
+      "ru": "Управление раундами",
+      "en": "Round management"
+    },
+    "ZombiePlague.Admin.Infect.Title": {
+      "ru": "Сделать зомби",
+      "en": "Turn into zombie"
+    },
+    "ZombiePlague.Admin.Disinfect.Title": {
+      "ru": "Сделать человеком",
+      "en": "Turn into human"
+    },
+    "ZombiePlague.Admin.Round.Title": {
+      "ru": "Управление раундами",
+      "en": "Round management"
+    },
+    "ZombiePlague.Admin.Round.Current": {
+      "ru": "Текущий:",
+      "en": "Current:"
+    },
+    "ZombiePlague.Admin.Round.Next": {
+      "ru": "Следующий:",
+      "en": "Next:"
+    },
+    "ZombiePlague.Admin.Round.Automatic": {
+      "ru": "Автоматически",
+      "en": "Automatic"
+    },
+    "ZombiePlague.Admin.Round.State.Preparing": {
+      "ru": "Подготовка",
+      "en": "Preparing"
+    },
+    "ZombiePlague.Admin.Round.State.None": {
+      "ru": "Нет",
+      "en": "None"
+    },
+    "ZombiePlague.Admin.Round.State.Unknown": {
+      "ru": "Неизвестно",
+      "en": "Unknown"
+    },
+    "ZombiePlague.Admin.Round.StartNow": {
+      "ru": "⚡ Запустить немедленно",
+      "en": "⚡ Start immediately"
+    },
+    "ZombiePlague.Admin.Round.SelectNext": {
+      "ru": "Выбрать следующий раунд",
+      "en": "Select next round"
+    },
+    "ZombiePlague.Admin.Round.Started": {
+      "ru": "Запущен раунд: {round}",
+      "en": "Round started: {round}"
+    },
+    "ZombiePlague.Admin.Round.NotPreparing": {
+      "ru": "Подготовка уже завершена",
+      "en": "Preparation has already ended"
+    },
+    "ZombiePlague.Admin.Round.CannotStart": {
+      "ru": "Не удалось подобрать раунд для запуска",
+      "en": "No eligible round could be selected"
+    },
+    "ZombiePlague.Admin.Round.Cancelled": {
+      "ru": "Запуск раунда отменён",
+      "en": "Round start was cancelled"
+    },
+    "ZombiePlague.Admin.Round.Selection.Title": {
+      "ru": "Следующий раунд",
+      "en": "Next round"
+    },
+    "ZombiePlague.Admin.Round.Selection.AutomaticSelected": {
+      "ru": "Следующий раунд будет выбран автоматически.",
+      "en": "The next round will be selected automatically."
+    },
+    "ZombiePlague.Admin.Round.Selection.Selected": {
+      "ru": "Следующий раунд: {round}",
+      "en": "Next round: {round}"
+    },
+    "ZombiePlague.Admin.Round.Selection.ConditionsPending": {
+      "ru": "Следующий раунд: {round}. Условия будут проверены перед запуском.",
+      "en": "Next round: {round}. Its conditions will be checked before start."
+    },
+    "ZombiePlague.Round.infection.Name": {
+      "ru": "Инфекция",
+      "en": "Infection"
+    },
+    "ZombiePlague.Round.plague.Name": {
+      "ru": "Чума",
+      "en": "Plague"
+    },
+    "ZombiePlague.Round.nemesis.Name": {
+      "ru": "Немезида",
+      "en": "Nemesis"
+    },
+    "ZombiePlague.Round.survivor.Name": {
+      "ru": "Выживший",
+      "en": "Survivor"
+    },
+    "ZombiePlague.Round.Preparing": {
+      "ru": "До заражения {seconds} сек.",
+      "en": "Infection begins in {seconds} sec."
+    },
+    "ZombiePlague.Round.Infection.FirstInfected": {
+      "ru": "Первый заражённый — {player}",
+      "en": "First infected — {player}"
+    },
+    "ZombiePlague.Round.Plague.Started": {
+      "ru": "Массовое заражение!",
+      "en": "Mass infection!"
+    },
+    "ZombiePlague.Round.Nemesis.Selected": {
+      "ru": "Немезида — {player}",
+      "en": "Nemesis — {player}"
+    },
+    "ZombiePlague.Round.Survivor.Selected": {
+      "ru": "Выживший — {player}",
+      "en": "Survivor — {player}"
+    },
+    "ZombiePlague.Ability.Cooldown": {
+      "ru": "Способность восстановится через {seconds} сек.",
+      "en": "Ability ready in {seconds} sec."
+    },
+    "ZombiePlague.ZClass.zombie_cleric.Name": {
+      "ru": "Клирик",
+      "en": "Cleric"
+    },
+    "ZombiePlague.ZClass.zombie_cleric.Description": {
+      "ru": "Лечит зомби",
+      "en": "Heals zombies"
+    },
+    "ZombiePlague.ZClass.zombie_hunter.Name": {
+      "ru": "Охотник",
+      "en": "Hunter"
+    },
+    "ZombiePlague.ZClass.zombie_hunter.Description": {
+      "ru": "Устанавливает ловушки",
+      "en": "Places traps"
+    },
+    "ZombiePlague.ZClass.zombie_assassin.Name": {
+      "ru": "Ассасин",
+      "en": "Assassin"
+    },
+    "ZombiePlague.ZClass.zombie_assassin.Description": {
+      "ru": "Ускоряется",
+      "en": "Can charge"
+    },
+    "ZombiePlague.ZClass.zombie_heavy.Name": {
+      "ru": "Тяжёлый",
+      "en": "Heavy"
+    },
+    "ZombiePlague.ZClass.zombie_heavy.Description": {
+      "ru": "Ослепляет людей",
+      "en": "Blinds humans"
+    },
+    "ZombiePlague.ZClass.zombie_smoker.Name": {
+      "ru": "Курильщик",
+      "en": "Smoker"
+    },
+    "ZombiePlague.ZClass.zombie_smoker.Description": {
+      "ru": "Притягивает людей",
+      "en": "Pulls humans"
+    },
+    "ZombiePlague.ZClass.zombie_nemesis.Name": {
+      "ru": "Немезида",
+      "en": "Nemesis"
+    },
+    "ZombiePlague.ZClass.zombie_nemesis.Description": {
+      "ru": "Убивает одним ударом",
+      "en": "Kills with one hit"
+    },
+    "CustomKnife.knife_piercer.Name": {
+      "ru": "Пронзатель",
+      "en": "Piercer"
+    },
+    "CustomKnife.knife_piercer.Description": {
+      "ru": "Усиленная отдача",
+      "en": "Increased knockback"
+    },
+    "CustomKnife.knife_spike.Name": {
+      "ru": "Шип",
+      "en": "Spike"
+    },
+    "CustomKnife.knife_spike.Description": {
+      "ru": "Повышенная скорость",
+      "en": "Increased speed"
+    },
+    "CustomKnife.knife_axe.Name": {
+      "ru": "Топор",
+      "en": "Axe"
+    },
+    "CustomKnife.knife_axe.Description": {
+      "ru": "Пониженная гравитация",
+      "en": "Reduced gravity"
+    },
+    "CustomKnife.knife_katana.Name": {
+      "ru": "Катана",
+      "en": "Katana"
+    },
+    "CustomKnife.knife_katana.Description": {
+      "ru": "VIP-нож",
+      "en": "VIP knife"
     },
     "RoundRatingNotify.prefix": {
       "ru": "[[green]Elysium[default]]",
