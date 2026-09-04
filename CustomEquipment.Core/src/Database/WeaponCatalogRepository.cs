@@ -86,11 +86,6 @@ internal sealed class WeaponCatalogRepository(
                 .ThenBy(sound => sound.Id)
                 .Select(MapSound)
                 .ToArray(),
-            Price: new Price
-            {
-                Item = entity.ItemPrice,
-                Ammo = entity.AmmoPrice
-            },
             Rarity: rarity
         );
 

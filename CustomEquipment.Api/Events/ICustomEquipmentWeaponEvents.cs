@@ -86,11 +86,11 @@ public interface ICustomEquipmentWeaponEvents
     /// </remarks>
     IHookSubscription<WeaponImpactProcessedContext> ImpactProcessed { get; }
 
-    /// <summary>Вызывается перед списанием денег за боеприпасы.</summary>
+    /// <summary>Legacy-событие старой докупки патронов; сохранено только для бинарной совместимости.</summary>
     /// <remarks>
     /// <list type="table">
     /// <listheader><term>Характеристика</term><description>Значение</description></listheader>
-    /// <item><term>Когда</term><description>По нажатию `E` с активным магазинным оружием, до проверки лимита и оплаты</description></item>
+    /// <item><term>Когда</term><description>Не вызывается начиная с CustomEquipment.Core 0.6.0; докупкой по `E` управляет Shop.Core</description></item>
     /// <item><term>Частота</term><description>Игрок</description></item>
     /// <item><term>Нагрузка</term><description>Низкая</description></item>
     /// <item><term>Риск</term><description>Высокий: цена и количество изменяемы; значения валидируются</description></item>
@@ -99,11 +99,11 @@ public interface ICustomEquipmentWeaponEvents
     /// </remarks>
     IHookSubscription<WeaponAmmoPurchasingContext> AmmoPurchasing { get; }
 
-    /// <summary>Вызывается после списания денег и обновления запаса боеприпасов.</summary>
+    /// <summary>Legacy-событие старой докупки патронов; сохранено только для бинарной совместимости.</summary>
     /// <remarks>
     /// <list type="table">
     /// <listheader><term>Характеристика</term><description>Значение</description></listheader>
-    /// <item><term>Когда</term><description>После оплаты и обновления reserve ammo</description></item>
+    /// <item><term>Когда</term><description>Не вызывается начиная с CustomEquipment.Core 0.6.0; используйте `Shop.Api.IShopApi.Events.AmmoPurchased`</description></item>
     /// <item><term>Частота</term><description>Игрок</description></item>
     /// <item><term>Нагрузка</term><description>Низкая</description></item>
     /// <item><term>Риск</term><description>Средний: содержит фактически добавленное число патронов с учётом лимита</description></item>
@@ -112,11 +112,11 @@ public interface ICustomEquipmentWeaponEvents
     /// </remarks>
     IHookSubscription<WeaponAmmoPurchasedContext> AmmoPurchased { get; }
 
-    /// <summary>Вызывается при ожидаемом отказе покупки боеприпасов.</summary>
+    /// <summary>Legacy-событие старой докупки патронов; сохранено только для бинарной совместимости.</summary>
     /// <remarks>
     /// <list type="table">
     /// <listheader><term>Характеристика</term><description>Значение</description></listheader>
-    /// <item><term>Когда</term><description>При отсутствии настройки, полном запасе, отмене, неверных значениях или отказе оплаты</description></item>
+    /// <item><term>Когда</term><description>Не вызывается начиная с CustomEquipment.Core 0.6.0; используйте `Shop.Api.IShopApi.Events.PurchaseRejected`</description></item>
     /// <item><term>Частота</term><description>Игрок</description></item>
     /// <item><term>Нагрузка</term><description>Низкая</description></item>
     /// <item><term>Риск</term><description>Низкий: боеприпасы не изменены</description></item>

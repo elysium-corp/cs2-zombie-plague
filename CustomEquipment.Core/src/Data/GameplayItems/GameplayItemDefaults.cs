@@ -27,7 +27,6 @@ internal static class GameplayItemDefaults
                 AccessFlags.Human,
                 ItemRarity.Rare,
                 "weapons/luci/elysium_smoke/elysium_smoke_ag2.vmdl",
-                100,
                 true,
                 10,
                 new BarrierNadeSettings(
@@ -52,7 +51,6 @@ internal static class GameplayItemDefaults
                 AccessFlags.Human,
                 ItemRarity.Uncommon,
                 "weapons/luci/incenderiary_gren/incenderiary_gren_ag2.vmdl",
-                100,
                 true,
                 20,
                 new FireNadeSettings(275f, 8f, 2f, 5f)
@@ -66,7 +64,6 @@ internal static class GameplayItemDefaults
                 AccessFlags.Human,
                 ItemRarity.Rare,
                 "weapons/luci/sifi_hegrenade/sifi_hegrenade_ag2.vmdl",
-                100,
                 true,
                 30,
                 new FrostNadeSettings(250f, 5f, 0.1f)
@@ -80,7 +77,6 @@ internal static class GameplayItemDefaults
                 AccessFlags.Zombie,
                 ItemRarity.Uncommon,
                 "models/throwhead/throwhead2_ag2.vmdl",
-                100,
                 true,
                 40,
                 new JumpNadeSettings(250f, 1050f)
@@ -94,7 +90,6 @@ internal static class GameplayItemDefaults
                 AccessFlags.Zombie,
                 ItemRarity.Rare,
                 "models/throwhead/throwhead_ag2.vmdl",
-                100,
                 true,
                 50,
                 new ShakeNadeSettings(250f, 10f)
@@ -108,7 +103,6 @@ internal static class GameplayItemDefaults
                 AccessFlags.Human,
                 ItemRarity.Rare,
                 "models/lasermine.vmdl",
-                100,
                 true,
                 60,
                 new LaserMineSettings(

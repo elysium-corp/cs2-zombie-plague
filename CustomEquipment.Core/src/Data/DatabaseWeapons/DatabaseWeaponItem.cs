@@ -7,7 +7,7 @@ using CustomEquipment.Data.Equipments.Models;
 namespace CustomEquipment.Data.DatabaseWeapons;
 
 internal sealed class DatabaseWeaponItem(DatabaseWeaponDefinition definition)
-    : WeaponItemBase, IShopItem, ILocalizedShopItem
+    : WeaponItemBase, ILocalizedShopItem
 {
     public override string InheritorName => definition.InheritorName;
 
@@ -37,8 +37,6 @@ internal sealed class DatabaseWeaponItem(DatabaseWeaponDefinition definition)
 
     public override IReadOnlyCollection<WeaponSound> Sounds => definition.Sounds;
 
-    public Price Price => definition.Price;
-
     public ItemRarity Rarity => definition.Rarity;
 
     internal DatabaseWeaponItem CreateInstance() => new(definition);
@@ -59,6 +57,5 @@ internal sealed record DatabaseWeaponDefinition(
     WeaponParticle? Particle,
     Ammunition? Ammunition,
     IReadOnlyCollection<WeaponSound> Sounds,
-    Price Price,
     ItemRarity Rarity
 );

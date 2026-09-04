@@ -1,6 +1,5 @@
 using CustomEquipment.Api.Data;
 using CustomEquipment.Api.Data.Contracts;
-using CustomEquipment.Api.Data.Models;
 using CustomEquipment.Api.Enums;
 using CustomEquipment.Data.GameplayItems;
 using SwiftlyS2.Shared.Players;
@@ -10,7 +9,7 @@ namespace CustomEquipment.Data.Equipments.Weapons.Equipments;
 /// <summary>
 /// Представляет переносимую лазерную мину с параметрами из PostgreSQL-каталога.
 /// </summary>
-public sealed class LaserMine : EquipmentItemBase, IShopItem, IManagedGameplayItem
+public sealed class LaserMine : EquipmentItemBase, ILocalizedShopItem, IManagedGameplayItem
 {
     private readonly GameplayItemCatalog _catalog;
 
@@ -46,6 +45,8 @@ public sealed class LaserMine : EquipmentItemBase, IShopItem, IManagedGameplayIt
 
     public override string DisplayName => Definition.DisplayName;
 
+    public string DisplayNameKey => Definition.DisplayNameKey;
+
     public override string InternalName => Definition.InternalName;
 
     public override string SubclassName => string.Empty;
@@ -53,8 +54,6 @@ public sealed class LaserMine : EquipmentItemBase, IShopItem, IManagedGameplayIt
     public override Slot Slot => Slot.Equipment;
 
     public override WeaponType WeaponType => WeaponType.Equipment;
-
-    public Price Price => new() { Item = Definition.ItemPrice };
 
     public ItemRarity Rarity => Definition.Rarity;
 

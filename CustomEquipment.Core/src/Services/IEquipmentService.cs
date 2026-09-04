@@ -1,4 +1,5 @@
 using CustomEquipment.Api.Data;
+using CustomEquipment.Api.Data.Models;
 using CustomEquipment.Api.Enums;
 using SwiftlyS2.Shared.Players;
 
@@ -13,6 +14,14 @@ internal interface IEquipmentService
     bool CanUseItem(IPlayer player, string internalName);
 
     TItem? GetActiveItem<TItem>(IPlayer player) where TItem : ItemBase;
+
+    bool CanRefillActiveWeapon(IPlayer player, string expectedInternalName);
+
+    bool TryRefillActiveWeapon(
+        IPlayer player,
+        string expectedInternalName,
+        int amount,
+        out AmmoRefillResult result);
 
     bool HasItem<TItem>(IPlayer player) where TItem : ItemBase;
 

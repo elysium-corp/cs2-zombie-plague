@@ -25,9 +25,16 @@ internal sealed class WeaponSoundController(
     private readonly List<Guid> _gameEventHooks = [];
     private readonly Dictionary<(int PlayerId, string Trigger), int> _lastEmitTicks = [];
     private Guid _soundMessageHook = Guid.Empty;
+    private bool _initialized;
 
     public void Initialize()
     {
+        if (_initialized)
+        {
+            return;
+        }
+
+        _initialized = true;
         _gameEventHooks.Add(core.GameEvent.HookPost<EventWeaponFire>(OnWeaponFire));
         _gameEventHooks.Add(core.GameEvent.HookPost<EventWeaponReload>(OnWeaponReload));
         _gameEventHooks.Add(core.GameEvent.HookPost<EventWeaponFireOnEmpty>(OnWeaponFireOnEmpty));
@@ -45,6 +52,12 @@ internal sealed class WeaponSoundController(
 
     public void Dispose()
     {
+        if (!_initialized)
+        {
+            return;
+        }
+
+        _initialized = false;
         core.Event.OnPrecacheResource -= OnPrecacheResource;
 
         foreach (var hook in _gameEventHooks)

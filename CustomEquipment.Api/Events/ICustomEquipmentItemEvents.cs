@@ -8,11 +8,11 @@ namespace CustomEquipment.Api.Events;
 /// </summary>
 public interface ICustomEquipmentItemEvents
 {
-    /// <summary>Вызывается до списания денег за предмет. Покупку можно изменить или отменить.</summary>
+    /// <summary>Legacy-событие старого магазина; сохранено только для бинарной совместимости.</summary>
     /// <remarks>
     /// <list type="table">
     /// <listheader><term>Характеристика</term><description>Значение</description></listheader>
-    /// <item><term>Когда</term><description>`EquipmentMenu.BuyItem`, до проверки роли и списания денег</description></item>
+    /// <item><term>Когда</term><description>Не вызывается начиная с CustomEquipment.Core 0.6.0; используйте `Shop.Api.IShopApi.Events.Purchasing`</description></item>
     /// <item><term>Частота</term><description>Игрок</description></item>
     /// <item><term>Нагрузка</term><description>Низкая</description></item>
     /// <item><term>Риск</term><description>Высокий: можно отменить или подменить игрока/предмет</description></item>
@@ -21,11 +21,11 @@ public interface ICustomEquipmentItemEvents
     /// </remarks>
     IHookSubscription<ItemPurchasingContext> Purchasing { get; }
 
-    /// <summary>Вызывается непосредственно после подтверждённого списания денег.</summary>
+    /// <summary>Legacy-событие старого магазина; сохранено только для бинарной совместимости.</summary>
     /// <remarks>
     /// <list type="table">
     /// <listheader><term>Характеристика</term><description>Значение</description></listheader>
-    /// <item><term>Когда</term><description>Сразу после успешного `Economy.TrySpendMoney`, до постановки выдачи</description></item>
+    /// <item><term>Когда</term><description>Не вызывается начиная с CustomEquipment.Core 0.6.0; оплатой управляет Shop.Core</description></item>
     /// <item><term>Частота</term><description>Игрок</description></item>
     /// <item><term>Нагрузка</term><description>Низкая</description></item>
     /// <item><term>Риск</term><description>Высокий: деньги уже списаны, предмет ещё не выдан</description></item>
@@ -34,11 +34,11 @@ public interface ICustomEquipmentItemEvents
     /// </remarks>
     IHookSubscription<ItemPaymentCommittedContext> PaymentCommitted { get; }
 
-    /// <summary>Вызывается после списания денег и успешной постановки выдачи предмета в очередь.</summary>
+    /// <summary>Legacy-событие старого магазина; сохранено только для бинарной совместимости.</summary>
     /// <remarks>
     /// <list type="table">
     /// <listheader><term>Характеристика</term><description>Значение</description></listheader>
-    /// <item><term>Когда</term><description>После того как `TryGiveItem` принял выдачу; для гранаты фактическое прикрепление может завершиться на следующем world update</description></item>
+    /// <item><term>Когда</term><description>Не вызывается начиная с CustomEquipment.Core 0.6.0; используйте `Shop.Api.IShopApi.Events.Purchased`</description></item>
     /// <item><term>Частота</term><description>Игрок</description></item>
     /// <item><term>Нагрузка</term><description>Низкая</description></item>
     /// <item><term>Риск</term><description>Высокий: не считать это гарантией завершённой асинхронной выдачи; для этого есть `Items.Given`</description></item>
@@ -47,11 +47,11 @@ public interface ICustomEquipmentItemEvents
     /// </remarks>
     IHookSubscription<ItemPurchasedContext> Purchased { get; }
 
-    /// <summary>Вызывается при ожидаемом отказе покупки.</summary>
+    /// <summary>Legacy-событие старого магазина; сохранено только для бинарной совместимости.</summary>
     /// <remarks>
     /// <list type="table">
     /// <listheader><term>Характеристика</term><description>Значение</description></listheader>
-    /// <item><term>Когда</term><description>При отмене, недействительном игроке, запрете роли, отказе оплаты или выдачи</description></item>
+    /// <item><term>Когда</term><description>Не вызывается начиная с CustomEquipment.Core 0.6.0; используйте `Shop.Api.IShopApi.Events.PurchaseRejected`</description></item>
     /// <item><term>Частота</term><description>Игрок</description></item>
     /// <item><term>Нагрузка</term><description>Низкая</description></item>
     /// <item><term>Риск</term><description>Низкий: баланс не менялся либо уже запущен возврат</description></item>
@@ -60,11 +60,11 @@ public interface ICustomEquipmentItemEvents
     /// </remarks>
     IHookSubscription<ItemPurchaseRejectedContext> PurchaseRejected { get; }
 
-    /// <summary>Вызывается после возврата денег из-за отклонённой выдачи.</summary>
+    /// <summary>Legacy-событие старого магазина; сохранено только для бинарной совместимости.</summary>
     /// <remarks>
     /// <list type="table">
     /// <listheader><term>Характеристика</term><description>Значение</description></listheader>
-    /// <item><term>Когда</term><description>После вызова возврата денег, если `TryGiveItem` синхронно отклонил выдачу</description></item>
+    /// <item><term>Когда</term><description>Не вызывается начиная с CustomEquipment.Core 0.6.0; возвратом управляет Shop.Core</description></item>
     /// <item><term>Частота</term><description>Редко</description></item>
     /// <item><term>Нагрузка</term><description>Низкая</description></item>
     /// <item><term>Риск</term><description>Высокий: обработчики экономики способны изменить/отменить возврат; проверять её `Transactions`</description></item>

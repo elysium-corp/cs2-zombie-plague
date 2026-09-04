@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "kind": "elysium.event-catalog",
-  "eventCount": 81,
+  "eventCount": 85,
   "projects": [
     {
       "key": "zombie-plague",
@@ -72,6 +72,17 @@
         {
           "name": "Accounts",
           "eventCount": 6
+        }
+      ]
+    },
+    {
+      "key": "shop",
+      "name": "Shop.Api",
+      "eventCount": 4,
+      "groups": [
+        {
+          "name": "Purchases",
+          "eventCount": 4
         }
       ]
     }
@@ -1098,8 +1109,8 @@
           "mutable": true
         }
       ],
-      "summary": "Вызывается до списания денег за предмет. Покупку можно изменить или отменить.",
-      "when": "`EquipmentMenu.BuyItem`, до проверки роли и списания денег",
+      "summary": "Legacy-событие старого магазина; сохранено только для бинарной совместимости.",
+      "when": "Не вызывается начиная с CustomEquipment.Core 0.6.0; используйте `Shop.Api.IShopApi.Events.Purchasing`",
       "frequency": "Игрок",
       "load": "Низкая",
       "riskLevel": "Высокий",
@@ -1137,8 +1148,8 @@
           "mutable": false
         }
       ],
-      "summary": "Вызывается непосредственно после подтверждённого списания денег.",
-      "when": "Сразу после успешного `Economy.TrySpendMoney`, до постановки выдачи",
+      "summary": "Legacy-событие старого магазина; сохранено только для бинарной совместимости.",
+      "when": "Не вызывается начиная с CustomEquipment.Core 0.6.0; оплатой управляет Shop.Core",
       "frequency": "Игрок",
       "load": "Низкая",
       "riskLevel": "Высокий",
@@ -1170,8 +1181,8 @@
           "mutable": false
         }
       ],
-      "summary": "Вызывается после списания денег и успешной постановки выдачи предмета в очередь.",
-      "when": "После того как `TryGiveItem` принял выдачу; для гранаты фактическое прикрепление может завершиться на следующем world update",
+      "summary": "Legacy-событие старого магазина; сохранено только для бинарной совместимости.",
+      "when": "Не вызывается начиная с CustomEquipment.Core 0.6.0; используйте `Shop.Api.IShopApi.Events.Purchased`",
       "frequency": "Игрок",
       "load": "Низкая",
       "riskLevel": "Высокий",
@@ -1209,8 +1220,8 @@
           "mutable": false
         }
       ],
-      "summary": "Вызывается при ожидаемом отказе покупки.",
-      "when": "При отмене, недействительном игроке, запрете роли, отказе оплаты или выдачи",
+      "summary": "Legacy-событие старого магазина; сохранено только для бинарной совместимости.",
+      "when": "Не вызывается начиная с CustomEquipment.Core 0.6.0; используйте `Shop.Api.IShopApi.Events.PurchaseRejected`",
       "frequency": "Игрок",
       "load": "Низкая",
       "riskLevel": "Низкий",
@@ -1248,8 +1259,8 @@
           "mutable": false
         }
       ],
-      "summary": "Вызывается после возврата денег из-за отклонённой выдачи.",
-      "when": "После вызова возврата денег, если `TryGiveItem` синхронно отклонил выдачу",
+      "summary": "Legacy-событие старого магазина; сохранено только для бинарной совместимости.",
+      "when": "Не вызывается начиная с CustomEquipment.Core 0.6.0; возвратом управляет Shop.Core",
       "frequency": "Редко",
       "load": "Низкая",
       "riskLevel": "Высокий",
@@ -1725,8 +1736,8 @@
           "mutable": true
         }
       ],
-      "summary": "Вызывается перед списанием денег за боеприпасы.",
-      "when": "По нажатию `E` с активным магазинным оружием, до проверки лимита и оплаты",
+      "summary": "Legacy-событие старой докупки патронов; сохранено только для бинарной совместимости.",
+      "when": "Не вызывается начиная с CustomEquipment.Core 0.6.0; докупкой по `E` управляет Shop.Core",
       "frequency": "Игрок",
       "load": "Низкая",
       "riskLevel": "Высокий",
@@ -1776,8 +1787,8 @@
           "mutable": false
         }
       ],
-      "summary": "Вызывается после списания денег и обновления запаса боеприпасов.",
-      "when": "После оплаты и обновления reserve ammo",
+      "summary": "Legacy-событие старой докупки патронов; сохранено только для бинарной совместимости.",
+      "when": "Не вызывается начиная с CustomEquipment.Core 0.6.0; используйте `Shop.Api.IShopApi.Events.AmmoPurchased`",
       "frequency": "Игрок",
       "load": "Низкая",
       "riskLevel": "Средний",
@@ -1815,8 +1826,8 @@
           "mutable": false
         }
       ],
-      "summary": "Вызывается при ожидаемом отказе покупки боеприпасов.",
-      "when": "При отсутствии настройки, полном запасе, отмене, неверных значениях или отказе оплаты",
+      "summary": "Legacy-событие старой докупки патронов; сохранено только для бинарной совместимости.",
+      "when": "Не вызывается начиная с CustomEquipment.Core 0.6.0; используйте `Shop.Api.IShopApi.Events.PurchaseRejected`",
       "frequency": "Игрок",
       "load": "Низкая",
       "riskLevel": "Низкий",
@@ -2898,6 +2909,174 @@
       "thread": "Фоновая очередь БД",
       "sourcePath": "Economy.Api/Events/IEconomyAccountEvents.cs",
       "sourceLine": 84
+    },
+    {
+      "id": "Shop.Api:Events.Purchasing",
+      "projectKey": "shop",
+      "project": "Shop.Api",
+      "group": "Purchases",
+      "apiPath": "Events.Purchasing",
+      "name": "Purchasing",
+      "context": "ShopPurchasingContext",
+      "isCancellable": true,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": true
+        },
+        {
+          "name": "Offer",
+          "type": "ShopOffer",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Price",
+          "type": "int",
+          "nullable": false,
+          "mutable": true
+        }
+      ],
+      "summary": "Вызывается перед покупкой товара.",
+      "when": "После первой проверки оффера, до повторной проверки, списания и выдачи",
+      "frequency": "Игрок",
+      "load": "Низкая",
+      "riskLevel": "Высокий",
+      "risk": "Высокий: отмена, подмена игрока или цены меняет покупку; все значения будут повторно проверены",
+      "thread": "Игровой поток",
+      "sourcePath": "Shop.Api/Events/IShopEvents.cs",
+      "sourceLine": 18
+    },
+    {
+      "id": "Shop.Api:Events.Purchased",
+      "projectKey": "shop",
+      "project": "Shop.Api",
+      "group": "Purchases",
+      "apiPath": "Events.Purchased",
+      "name": "Purchased",
+      "context": "ShopPurchasedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Offer",
+          "type": "ShopOffer",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Price",
+          "type": "int",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
+      "summary": "Вызывается после успешной оплаты и выдачи товара.",
+      "when": "После списания, принятой выдачи и записи лимитов оффера",
+      "frequency": "Игрок",
+      "load": "Низкая",
+      "riskLevel": "Высокий",
+      "risk": "Высокий: для гранаты фактическое прикрепление сущности может завершиться на следующем world update",
+      "thread": "Игровой поток",
+      "sourcePath": "Shop.Api/Events/IShopEvents.cs",
+      "sourceLine": 30
+    },
+    {
+      "id": "Shop.Api:Events.PurchaseRejected",
+      "projectKey": "shop",
+      "project": "Shop.Api",
+      "group": "Purchases",
+      "apiPath": "Events.PurchaseRejected",
+      "name": "PurchaseRejected",
+      "context": "ShopPurchaseRejectedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Offer",
+          "type": "ShopOffer?",
+          "nullable": true,
+          "mutable": false
+        },
+        {
+          "name": "Reason",
+          "type": "ShopAvailabilityReason",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
+      "summary": "Вызывается при ожидаемом отказе покупки.",
+      "when": "При недоступности, отмене, отказе списания/выдачи или ошибке возврата",
+      "frequency": "Игрок",
+      "load": "Низкая",
+      "riskLevel": "Низкий",
+      "risk": "Низкий: событие предназначено для UI, аудита и телеметрии; повторять покупку из обработчика нельзя",
+      "thread": "Игровой поток",
+      "sourcePath": "Shop.Api/Events/IShopEvents.cs",
+      "sourceLine": 42
+    },
+    {
+      "id": "Shop.Api:Events.AmmoPurchased",
+      "projectKey": "shop",
+      "project": "Shop.Api",
+      "group": "Purchases",
+      "apiPath": "Events.AmmoPurchased",
+      "name": "AmmoPurchased",
+      "context": "ShopAmmoPurchasedContext",
+      "isCancellable": false,
+      "contextParameters": [
+        {
+          "name": "Player",
+          "type": "IPlayer",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Offer",
+          "type": "ShopOffer",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "Price",
+          "type": "int",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "AddedAmount",
+          "type": "int",
+          "nullable": false,
+          "mutable": false
+        },
+        {
+          "name": "ReserveAmmo",
+          "type": "int",
+          "nullable": false,
+          "mutable": false
+        }
+      ],
+      "summary": "Вызывается после успешной покупки патронов кнопкой E.",
+      "when": "После списания цены патронов и успешного увеличения резерва активного оружия",
+      "frequency": "Игрок",
+      "load": "Низкая",
+      "riskLevel": "Средний",
+      "risk": "Средний: баланс и reserve ammo уже изменены; обработчик не должен повторять операцию",
+      "thread": "Игровой поток",
+      "sourcePath": "Shop.Api/Events/IShopEvents.cs",
+      "sourceLine": 54
     }
   ]
 }

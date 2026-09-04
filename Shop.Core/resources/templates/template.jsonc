@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-04T00:00:00+00:00",
+  "storefronts": [
+    {
+      "shopType": "human",
+      "titleKey": "Shop.Human.Title",
+      "enabled": true,
+      "sortMode": "priority"
+    },
+    {
+      "shopType": "zombie",
+      "titleKey": "Shop.Zombie.Title",
+      "enabled": true,
+      "sortMode": "priority"
+    }
+  ],
+  "categories": [],
+  "offers": []
+}

@@ -1,4 +1,3 @@
-using Admin.Api;
 using Common.Database.Migrator;
 using Common.Di;
 using Common.Effects;
@@ -6,26 +5,17 @@ using CustomEquipment.Api;
 using CustomEquipment.Api.Data;
 using CustomEquipment.Controllers;
 using CustomEquipment.Data.GameplayItems;
-using CustomEquipment.Data.Shop;
 using CustomEquipment.Data.Equipments.Weapons.Equipments;
 using CustomEquipment.Database;
 using CustomEquipment.Di;
-using CustomEquipment.Menus;
 using CustomEquipment.Registry;
 using CustomEquipment.Services;
-using Economy.Api;
-using Menu.Api;
-using Menu.Api.Extensions;
 using Localization.Api;
 using Microsoft.Extensions.Logging;
-using SwiftlyS2.Core.Menus.OptionsBase;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Commands;
 using SwiftlyS2.Shared.Events;
-using SwiftlyS2.Shared.Misc;
-using SwiftlyS2.Shared.Players;
 using ZombiePlague.Api;
-using ZombiePlague.Api.Menus;
 
 namespace CustomEquipment;
 
@@ -34,7 +24,7 @@ namespace CustomEquipment;
     Version = "0.6.0",
     Name = "[ZP] CustomEquipment",
     Author = "illusion & fdrinv",
-    Description = "Database-backed human and zombie equipment shops"
+    Description = "Database-backed custom weapons, grenades and gameplay equipment"
 )]
 internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<CustomEquipmentModule>(core)
 {
@@ -43,24 +33,13 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
     private readonly Lazy<IEquipmentService> _equipmentService = GetRequiredServiceLazy<IEquipmentService>();
     private readonly Lazy<IMineController> _equipmentController = GetRequiredServiceLazy<IMineController>();
     private readonly Lazy<CustomEquipmentApi> _customEquipmentApi = GetRequiredServiceLazy<CustomEquipmentApi>();
-    private readonly Lazy<EquipmentMenu> _equipmentMenu = GetRequiredServiceLazy<EquipmentMenu>();
     private readonly Lazy<IItemRegistry> _itemRegistry = GetRequiredServiceLazy<IItemRegistry>();
     private readonly Lazy<EquipmentCatalogSynchronizer> _catalogSynchronizer =
         GetRequiredServiceLazy<EquipmentCatalogSynchronizer>();
-    private readonly Lazy<IEquipmentShopPurchaseLimitService> _purchaseLimitService =
-        GetRequiredServiceLazy<IEquipmentShopPurchaseLimitService>();
-    private readonly Lazy<EquipmentShopRuntimeCatalog> _shopCatalog =
-        GetRequiredServiceLazy<EquipmentShopRuntimeCatalog>();
-    private readonly Lazy<IEquipmentShopRoleResolver> _shopRoleResolver =
-        GetRequiredServiceLazy<IEquipmentShopRoleResolver>();
-    private readonly Lazy<EquipmentAdminApiProxy> _adminApiProxy =
-        GetRequiredServiceLazy<EquipmentAdminApiProxy>();
-    private readonly Lazy<ILocalizationApi> _localization = GetRequiredServiceLazy<ILocalizationApi>();
     private readonly Lazy<DatabaseMigrator<CustomEquipmentDbContext>> _databaseMigrator =
         GetRequiredServiceLazy<DatabaseMigrator<CustomEquipmentDbContext>>();
 
     private readonly List<Guid> _commandHooks = [];
-    private IDisposable? _mainMenuSubscription;
     private bool _isReady;
 
     protected override void OnStart()
@@ -80,7 +59,6 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
 
     protected override void OnUseSharedInterfaces(IInterfaceManager interfaceManager)
     {
-        BindSharedInterface<IEconomyApi>(interfaceManager, IEconomyApi.SharedApiKey);
         BindSharedInterface<IZombiePlagueApi>(interfaceManager, IZombiePlagueApi.SharedApiKey);
         BindSharedInterface<ILocalizationApi>(interfaceManager, ILocalizationApi.SharedApiKey);
     }
@@ -93,43 +71,17 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
         );
     }
 
-    protected override void OnSharedInterfacesInjected(IInterfaceManager interfaceManager)
-    {
-        var menuApi = interfaceManager.GetSharedInterface<IMenuApi>(IMenuApi.SharedApiKey);
-
-        if (interfaceManager.TryGetSharedInterface<IAdminApi>(IAdminApi.SharedApiKey, out var adminApi))
-        {
-            _adminApiProxy.Value.Initialize(adminApi);
-        }
-        else
-        {
-            _adminApiProxy.Value.Uninitialize();
-            Core.Logger.LogWarning(
-                "Admin.Core is not loaded. Equipment shop role limits will not be applied."
-            );
-        }
-
-        _mainMenuSubscription?.Dispose();
-        _mainMenuSubscription = menuApi.Extensions.Subscribe(
-            menuId: ZombiePlagueMenuIds.Main,
-            handler: ExtendMainMenu
-        );
-    }
-
     protected override void OnReady()
     {
         _isReady = true;
         _itemRegistry.Value.Initialize();
-        _catalogSynchronizer.Value.TryReload(out _, out _, out _);
+        _catalogSynchronizer.Value.TryReload(out _, out _);
         Core.Event.OnMapLoad += OnMapLoad;
 
         _equipmentService.Value.Initialize();
-        _purchaseLimitService.Value.Initialize();
         _itemController.Value.Initialize();
         _equipmentController.Value.Initialize();
         _soundController.Value.Initialize();
-        _equipmentMenu.Value.RegisterCommands();
-        _equipmentMenu.Value.Initialize();
 
         RegisterCommands();
     }
@@ -139,17 +91,10 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
         _isReady = false;
         Core.Event.OnMapLoad -= OnMapLoad;
         EffectService.Release(Core);
-        _mainMenuSubscription?.Dispose();
-        _mainMenuSubscription = null;
-
-        _equipmentMenu.Value.UnregisterCommands();
-        _equipmentMenu.Value.Dispose();
-        _adminApiProxy.Value.Uninitialize();
-
-        if (_purchaseLimitService.Value is IDisposable purchaseLimitService)
-        {
-            purchaseLimitService.Dispose();
-        }
+        (_itemController.Value as IDisposable)?.Dispose();
+        (_equipmentController.Value as IDisposable)?.Dispose();
+        (_soundController.Value as IDisposable)?.Dispose();
+        (_equipmentService.Value as IDisposable)?.Dispose();
 
         foreach (var hook in _commandHooks)
         {
@@ -179,34 +124,6 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
             registerRaw: true,
             helpText: "Reload CustomEquipment weapons and sounds from PostgreSQL"
         ));
-    }
-
-    private void ExtendMainMenu(MenuExtensionContext context)
-    {
-        if (context.Player.Controller.Team is not (Team.T or Team.CT))
-        {
-            return;
-        }
-
-        var shopType = _shopRoleResolver.Value.GetShopType(context.Player);
-        var settings = _shopCatalog.Value.GetSettings(shopType);
-
-        if (!settings.Enabled)
-        {
-            return;
-        }
-
-        var title = _localization.Value.GetForPlayer(context.Player, settings.DisplayNameKey)
-                    ?? settings.DisplayName;
-        var option = new ButtonMenuOption(title);
-
-        option.Click += (_, args) =>
-        {
-            core.Scheduler.NextTickAsync(() => _equipmentMenu.Value.Open(args.Player));
-            return ValueTask.CompletedTask;
-        };
-
-        context.Options.Add(option, 3);
     }
 
     private void GunHandler(ICommandContext context)
@@ -251,16 +168,11 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
             return;
         }
 
-        if (_catalogSynchronizer.Value.TryReload(
-                out var weaponCount,
-                out var gameplayItemCount,
-                out var shopListingCount
-            ))
+        if (_catalogSynchronizer.Value.TryReload(out var weaponCount, out var gameplayItemCount))
         {
             context.Reply(
                 $"CustomEquipment reloaded: {weaponCount} database weapons, " +
-                $"{gameplayItemCount} enabled grenades/equipment items, " +
-                $"{shopListingCount} enabled shop listings."
+                $"{gameplayItemCount} enabled grenades/equipment items."
             );
             return;
         }
@@ -275,7 +187,7 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
         {
             if (_isReady)
             {
-                _catalogSynchronizer.Value.TryReload(out _, out _, out _);
+                _catalogSynchronizer.Value.TryReload(out _, out _);
             }
         });
     }

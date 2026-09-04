@@ -1,4 +1,3 @@
-using Admin.Api;
 using Common.Database;
 using Common.Database.Utils;
 using Common.Di;
@@ -11,17 +10,13 @@ using CustomEquipment.Api.Data.Contracts;
 using CustomEquipment.Api.Events;
 using CustomEquipment.Api.Registration;
 using CustomEquipment.Controllers;
-using CustomEquipment.Data.Catalog;
 using CustomEquipment.Data.GameplayItems;
-using CustomEquipment.Data.Shop;
 using CustomEquipment.Database;
 using CustomEquipment.Fetcher;
 using CustomEquipment.Fetcher.Analyzers;
 using CustomEquipment.Giver;
-using CustomEquipment.Menus;
 using CustomEquipment.Registry;
 using CustomEquipment.Services;
-using Economy.Api;
 using Localization.Api;
 using Microsoft.Extensions.DependencyInjection;
 using SwiftlyS2.Shared;
@@ -37,7 +32,6 @@ internal sealed class CustomEquipmentModule(ISwiftlyCore core) : BaseModule(core
 
         service.AddSwiftly(core);
 
-        service.AddSharedInterface<IEconomyApi>();
         service.AddSharedInterface<IZombiePlagueApi>();
         service.AddSharedInterface<ILocalizationApi>();
 
@@ -57,14 +51,6 @@ internal sealed class CustomEquipmentModule(ISwiftlyCore core) : BaseModule(core
         AddSingleton<ILaserMineInstallerService, LaserMineInstallerService>(service);
         AddSingleton<IMineController, MineController>(service);
         AddSingleton<IWeaponSoundController, WeaponSoundController>(service);
-        AddSingleton<IEquipmentShopCatalog, EquipmentShopCatalog>(service);
-        AddSingleton<EquipmentAdminApiProxy>(service);
-        AddSingleton<IAdminApi>(service, provider =>
-            provider.GetRequiredService<EquipmentAdminApiProxy>()
-        );
-        AddSingleton<EquipmentShopRuntimeCatalog>(service);
-        AddSingleton<IEquipmentShopRoleResolver, EquipmentShopRoleResolver>(service);
-        AddSingleton<IEquipmentShopPurchaseLimitService, EquipmentShopPurchaseLimitService>(service);
         AddSingleton<GameplayItemCatalog>(service);
         AddSingleton<EquipmentCatalogSynchronizer>(service);
         AddSingleton<IItemGiver, ItemGiver>(service);
@@ -72,7 +58,6 @@ internal sealed class CustomEquipmentModule(ISwiftlyCore core) : BaseModule(core
         AddSingleton<IItemRegistry>(service, provider => provider.GetRequiredService<ItemRegistry>());
         AddSingleton<IEquipmentRegistrar>(service, provider => provider.GetRequiredService<ItemRegistry>());
 
-        AddSingleton<EquipmentMenu>(service);
         AddSingleton<CustomEquipmentApi>(service);
 
         AddDatabase(service);
@@ -94,7 +79,6 @@ internal sealed class CustomEquipmentModule(ISwiftlyCore core) : BaseModule(core
         service.AddPostgreSqlDatabase<CustomEquipmentDbContext>(Core, options);
         AddSingleton<IWeaponCatalogRepository, WeaponCatalogRepository>(service);
         AddSingleton<IGameplayItemCatalogRepository, GameplayItemCatalogRepository>(service);
-        AddSingleton<IEquipmentShopCatalogRepository, EquipmentShopCatalogRepository>(service);
     }
 
     private IEquipmentFetcher OnWeaponRegistratorFactory(IServiceProvider service)

@@ -1,8 +1,8 @@
 {
   "schemaVersion": 4,
-  "version": 5,
-  "generatedAt": "2026-09-04T12:00:00Z",
-  "checksum": "sha256:2eb264d158cd39043f4a3a3cf02f1d33b6c0532e64963547710d886fef5cfa3a",
+  "version": 7,
+  "generatedAt": "2026-09-04T18:35:00Z",
+  "checksum": "sha256:4a74855caca07c4cdf46e233ffb3cdc4e73397f0590a73085e2551f779d3af85",
   "serverFallbackLanguage": "ru",
   "languages": [
     "ru",
@@ -28,7 +28,97 @@
       "sortOrder": 0
     }
   },
-  "parameters": {},
+  "parameters": {
+    "Shop.Menu.Balance": [
+      {
+        "name": "balance",
+        "type": "integer",
+        "required": true,
+        "description": "Текущий баланс игрока",
+        "example": "1500"
+      }
+    ],
+    "Shop.Menu.Price": [
+      {
+        "name": "price",
+        "type": "integer",
+        "required": true,
+        "description": "Цена товара",
+        "example": "2500"
+      }
+    ],
+    "Shop.Menu.Ammo": [
+      {
+        "name": "amount",
+        "type": "integer",
+        "required": true,
+        "description": "Количество патронов",
+        "example": "30"
+      },
+      {
+        "name": "price",
+        "type": "integer",
+        "required": true,
+        "description": "Цена патронов",
+        "example": "250"
+      }
+    ],
+    "Shop.Errors.Cooldown": [
+      {
+        "name": "seconds",
+        "type": "integer",
+        "required": true,
+        "description": "Оставшееся время",
+        "example": "10"
+      }
+    ],
+    "Shop.Admin.Reload.Succeeded": [
+      {
+        "name": "source",
+        "type": "string",
+        "required": true,
+        "description": "Источник загруженного snapshot",
+        "example": "postgresql"
+      },
+      {
+        "name": "offers",
+        "type": "integer",
+        "required": true,
+        "description": "Количество загруженных товаров",
+        "example": "24"
+      }
+    ],
+    "Shop.Admin.Status": [
+      {
+        "name": "source",
+        "type": "string",
+        "required": true,
+        "description": "Источник текущего snapshot",
+        "example": "postgresql"
+      },
+      {
+        "name": "categories",
+        "type": "integer",
+        "required": true,
+        "description": "Количество категорий",
+        "example": "8"
+      },
+      {
+        "name": "offers",
+        "type": "integer",
+        "required": true,
+        "description": "Количество товаров",
+        "example": "24"
+      },
+      {
+        "name": "loaded",
+        "type": "string",
+        "required": true,
+        "description": "Время загрузки snapshot в ISO 8601",
+        "example": "2026-09-04T18:35:00.0000000+00:00"
+      }
+    ]
+  },
   "entries": {
     "Localization.Menu.Title": {
       "ru": "Язык / Language",
@@ -147,6 +237,122 @@
     "Equipment.Shop.Zombie.Title": {
       "ru": "Магазин зомби",
       "en": "Zombie Shop"
+    },
+    "Shop.Human.Title": {
+      "ru": "Магазин людей",
+      "en": "Human shop"
+    },
+    "Shop.Zombie.Title": {
+      "ru": "Магазин зомби",
+      "en": "Zombie shop"
+    },
+    "Shop.Menu.Balance": {
+      "ru": "Баланс: {balance}$",
+      "en": "Balance: {balance}$"
+    },
+    "Shop.Menu.Price": {
+      "ru": "{price}$",
+      "en": "${price}"
+    },
+    "Shop.Menu.Ammo": {
+      "ru": "Патроны: {amount} за {price}$ (кнопка E)",
+      "en": "Ammo: {amount} for {price}$ (E key)"
+    },
+    "Shop.Menu.Empty": {
+      "ru": "В этом магазине пока нет товаров",
+      "en": "This shop has no items yet"
+    },
+    "Shop.Menu.Back": {
+      "ru": "Назад",
+      "en": "Back"
+    },
+    "Shop.Commands.Reload.Help": {
+      "ru": "Перезагрузить магазин из PostgreSQL или shop.json",
+      "en": "Reload the shop from PostgreSQL or shop.json"
+    },
+    "Shop.Commands.Status.Help": {
+      "ru": "Показать состояние текущего snapshot магазина",
+      "en": "Show the current shop snapshot status"
+    },
+    "Shop.Admin.Reload.Started": {
+      "ru": "Обновление магазина запущено",
+      "en": "Shop reload started"
+    },
+    "Shop.Admin.Reload.Succeeded": {
+      "ru": "Магазин обновлён из {source}. Загружено товаров: {offers}",
+      "en": "Shop reloaded from {source}. Offers loaded: {offers}"
+    },
+    "Shop.Admin.Reload.Failed": {
+      "ru": "Не удалось обновить магазин; сохранён предыдущий snapshot",
+      "en": "Shop reload failed; the previous snapshot remains active"
+    },
+    "Shop.Admin.Status": {
+      "ru": "Shop.Core 1.0.0\nИсточник: {source}\nКатегории: {categories}\nТовары: {offers}\nЗагружено: {loaded}",
+      "en": "Shop.Core 1.0.0\nSource: {source}\nCategories: {categories}\nOffers: {offers}\nLoaded: {loaded}"
+    },
+    "Shop.Item.Unknown.Name": {
+      "ru": "Неизвестный предмет",
+      "en": "Unknown item"
+    },
+    "Shop.Errors.Unavailable": {
+      "ru": "Товар сейчас недоступен",
+      "en": "This item is currently unavailable"
+    },
+    "Shop.Errors.ProductUnavailable": {
+      "ru": "Предмет отсутствует в экипировке сервера",
+      "en": "The item is missing from the server equipment catalog"
+    },
+    "Shop.Errors.TeamUnavailable": {
+      "ru": "Товар недоступен для текущей стороны",
+      "en": "The item is unavailable for your current side"
+    },
+    "Shop.Errors.AccessDenied": {
+      "ru": "Недостаточно прав для покупки",
+      "en": "You do not have permission to buy this item"
+    },
+    "Shop.Errors.NotEnoughMoney": {
+      "ru": "Недостаточно денег",
+      "en": "Not enough money"
+    },
+    "Shop.Errors.RoundLimit": {
+      "ru": "Лимит покупок за раунд исчерпан",
+      "en": "The per-round purchase limit has been reached"
+    },
+    "Shop.Errors.MapLimit": {
+      "ru": "Лимит покупок за карту исчерпан",
+      "en": "The per-map purchase limit has been reached"
+    },
+    "Shop.Errors.Cooldown": {
+      "ru": "Повторная покупка через {seconds} сек.",
+      "en": "Available again in {seconds} sec."
+    },
+    "Shop.Errors.InvalidPlayer": {
+      "ru": "Сейчас покупка невозможна",
+      "en": "You cannot buy anything right now"
+    },
+    "Shop.Errors.Cancelled": {
+      "ru": "Покупка отменена",
+      "en": "Purchase cancelled"
+    },
+    "Shop.Errors.PaymentRejected": {
+      "ru": "Не удалось списать деньги",
+      "en": "Payment was rejected"
+    },
+    "Shop.Errors.GrantRejected": {
+      "ru": "Не удалось выдать предмет, деньги возвращены",
+      "en": "The item could not be granted; your money was refunded"
+    },
+    "Shop.Errors.RefundFailed": {
+      "ru": "Не удалось выдать предмет и вернуть деньги. Сообщите администратору",
+      "en": "The item and refund both failed. Please contact an administrator"
+    },
+    "Shop.Errors.AmmoNotConfigured": {
+      "ru": "Для этого оружия покупка патронов не настроена",
+      "en": "Ammo purchase is not configured for this weapon"
+    },
+    "Shop.Errors.AmmoFull": {
+      "ru": "Запас патронов уже заполнен",
+      "en": "Your ammo reserve is already full"
     },
     "Menu.Equipment.Category.Pistol": {
       "ru": "Пистолеты",

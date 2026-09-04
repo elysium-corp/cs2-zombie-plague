@@ -19,22 +19,26 @@ internal sealed class LocalizationModule(ISwiftlyCore core) : BaseModule(core)
     public override (ServiceProvider, ServiceCollection) GetProvider()
     {
         var services = new ServiceCollection();
-        Core.Configuration.Configure(builder =>
-            builder.AddJsonFile(source =>
-            {
-                source.Path = "localization.json";
-                source.Optional = true;
-                source.ReloadOnChange = true;
-                source.OnLoadException = context =>
+        // SwiftlyS2 creates the plugin configuration directory during initialization.
+        // Configure() cannot be called first on a clean Localization.Core installation.
+        Core.Configuration
+            .InitializeWithTemplate("localization.json", "template.jsonc")
+            .Configure(builder =>
+                builder.AddJsonFile(source =>
                 {
-                    Core.Logger.LogError(
-                        context.Exception,
-                        "[Localization] localization.json is invalid and was ignored. " +
-                        "The current memory snapshot remains active until a source is loaded."
-                    );
-                    context.Ignore = true;
-                };
-            }));
+                    source.Path = "localization.json";
+                    source.Optional = true;
+                    source.ReloadOnChange = true;
+                    source.OnLoadException = context =>
+                    {
+                        Core.Logger.LogError(
+                            context.Exception,
+                            "[Localization] localization.json is invalid and was ignored. " +
+                            "The current memory snapshot remains active until a source is loaded."
+                        );
+                        context.Ignore = true;
+                    };
+                }));
         services
             .AddOptionsWithValidateOnStart<LocalizationFallbackConfig>()
             .BindConfiguration(string.Empty);

@@ -1,6 +1,5 @@
 using CustomEquipment.Api.Data;
 using CustomEquipment.Api.Data.Contracts;
-using CustomEquipment.Api.Data.Models;
 using CustomEquipment.Api.Enums;
 
 namespace CustomEquipment.Data.GameplayItems;
@@ -26,7 +25,7 @@ public interface IManagedGameplayItem
 /// Базовая реализация встроенной гранаты с параметрами из runtime-каталога.
 /// </summary>
 public abstract class ManagedGrenadeItemBase
-    : GrenadeItemBase, IShopItem, ILocalizedShopItem, IManagedGameplayItem
+    : GrenadeItemBase, ILocalizedShopItem, IManagedGameplayItem
 {
     private readonly GameplayItemCatalog _catalog;
     private readonly string _implementationKey;
@@ -60,8 +59,6 @@ public abstract class ManagedGrenadeItemBase
 
     public override WeaponType WeaponType => WeaponType.Grenade;
 
-    public Price Price => new() { Item = Definition.ItemPrice };
-
     public ItemRarity Rarity => Definition.Rarity;
 
     public override string Model => Definition.Model;
@@ -70,7 +67,7 @@ public abstract class ManagedGrenadeItemBase
 internal abstract class ManagedEquipmentItemBase(
     GameplayItemCatalog catalog,
     string implementationKey
-) : EquipmentItemBase, IShopItem, ILocalizedShopItem, IManagedGameplayItem
+) : EquipmentItemBase, ILocalizedShopItem, IManagedGameplayItem
 {
     protected GameplayItemDefinition Definition => catalog.Get(implementationKey);
 
@@ -93,8 +90,6 @@ internal abstract class ManagedEquipmentItemBase(
     public override Slot Slot => Slot.Equipment;
 
     public override WeaponType WeaponType => WeaponType.Equipment;
-
-    public Price Price => new() { Item = Definition.ItemPrice };
 
     public ItemRarity Rarity => Definition.Rarity;
 
