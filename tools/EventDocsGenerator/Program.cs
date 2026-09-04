@@ -32,6 +32,7 @@ internal static partial class Program
         new("supply-box", "SupplyBox.Api", "Supply boxes", false, "Events.", "SupplyBox.Api/Events/ISupplyBoxEvents.cs"),
         new("economy", "Economy.Api", "Transactions", false, "Events.Transactions.", "Economy.Api/Events/IEconomyTransactionEvents.cs"),
         new("economy", "Economy.Api", "Accounts", true, "Events.Accounts.", "Economy.Api/Events/IEconomyAccountEvents.cs"),
+        new("shop", "Shop.Api", "Purchases", false, "Events.", "Shop.Api/Events/IShopEvents.cs"),
     ];
 
     private static readonly HashSet<string> Frequencies =

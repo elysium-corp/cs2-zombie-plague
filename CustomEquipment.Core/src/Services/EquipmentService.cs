@@ -2,13 +2,13 @@
 using Common.Hooks.Abstractions;
 using CustomEquipment.Api.Data;
 using CustomEquipment.Api.Data.Contracts;
+using CustomEquipment.Api.Data.Models;
 using CustomEquipment.Api.Enums;
 using CustomEquipment.Api.Events.Contexts.Grenades;
 using CustomEquipment.Api.Events.Contexts.Items;
 using CustomEquipment.Data.Equipments.Weapons;
 using CustomEquipment.Data.Equipments.Weapons.Equipments;
 using CustomEquipment.Data.GameplayItems;
-using CustomEquipment.Data.Shop;
 using CustomEquipment.Giver;
 using CustomEquipment.Policies;
 using CustomEquipment.Registry;
@@ -41,6 +41,11 @@ internal sealed class EquipmentService(
 
     public void Initialize()
     {
+        if (_initialized)
+        {
+            return;
+        }
+
         _initialized = true;
         core.Event.OnEntityCreated += OnEntityCreated;
         core.Event.OnEntityDeleted += OnEntityDeleted;
@@ -60,6 +65,11 @@ internal sealed class EquipmentService(
 
     public void Dispose()
     {
+        if (!_initialized)
+        {
+            return;
+        }
+
         _initialized = false;
         core.Event.OnEntityCreated -= OnEntityCreated;
         core.Event.OnEntityDeleted -= OnEntityDeleted;
@@ -275,24 +285,6 @@ internal sealed class EquipmentService(
             }
         }
 
-        if (preparedItem is IInstantEquipmentShopItem instantItem)
-        {
-            if (!instantItem.TryGrant(preparedPlayer))
-            {
-                DispatchGiveRejected(
-                    preparedPlayer,
-                    internalName,
-                    preparedItem,
-                    preparedAction,
-                    ItemGiveRejectionReason.NoEffect
-                );
-                return false;
-            }
-
-            DispatchItemGiven(preparedPlayer, preparedItem, preparedAction);
-            return true;
-        }
-
         int? laserMineGrantPlayerId = null;
 
         if (preparedItem is LaserMine)
@@ -377,6 +369,49 @@ internal sealed class EquipmentService(
         if (activeWeaponIndex == null) return null;
 
         return _items.Find(wp => wp.AttachedEntity.Index == activeWeaponIndex) as TItem;
+    }
+
+    public bool TryRefillActiveWeapon(
+        IPlayer player,
+        string expectedInternalName,
+        int amount,
+        out AmmoRefillResult result)
+    {
+        result = default;
+
+        if (amount <= 0 ||
+            GetActiveItem<WeaponItemBase>(player) is not { } weapon ||
+            !weapon.InternalName.Equals(expectedInternalName, StringComparison.OrdinalIgnoreCase) ||
+            weapon.Ammunition?.ReserveAmmo is not { } maximumReserve ||
+            maximumReserve <= 0)
+        {
+            return false;
+        }
+
+        var currentReserve = Math.Clamp(weapon.AttachedWeapon.ReserveAmmo[0], 0, maximumReserve);
+        if (currentReserve >= maximumReserve)
+        {
+            return false;
+        }
+
+        var updatedReserve = (int)Math.Min((long)currentReserve + amount, maximumReserve);
+        weapon.AttachedWeapon.ReserveAmmo[0] = updatedReserve;
+        weapon.AttachedWeapon.ReserveAmmoUpdated();
+        result = new AmmoRefillResult(updatedReserve - currentReserve, updatedReserve);
+        return true;
+    }
+
+    public bool CanRefillActiveWeapon(IPlayer player, string expectedInternalName)
+    {
+        if (GetActiveItem<WeaponItemBase>(player) is not { } weapon ||
+            !weapon.InternalName.Equals(expectedInternalName, StringComparison.OrdinalIgnoreCase) ||
+            weapon.Ammunition?.ReserveAmmo is not { } maximumReserve ||
+            maximumReserve <= 0)
+        {
+            return false;
+        }
+
+        return weapon.AttachedWeapon.ReserveAmmo[0] < maximumReserve;
     }
 
     public bool HasItem<TItem>(IPlayer player) where TItem : ItemBase

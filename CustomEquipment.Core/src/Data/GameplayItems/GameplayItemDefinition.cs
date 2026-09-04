@@ -67,7 +67,6 @@ internal sealed record GameplayItemDefinition(
     AccessFlags AccessFlags,
     ItemRarity Rarity,
     string Model,
-    int ItemPrice,
     bool Enabled,
     int SortOrder,
     IGameplayItemBehaviorSettings Settings

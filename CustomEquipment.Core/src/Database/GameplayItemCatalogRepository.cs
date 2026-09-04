@@ -90,11 +90,6 @@ internal sealed class GameplayItemCatalogRepository(
             throw new InvalidOperationException($"Gameplay item '{implementationKey}' has an invalid rarity.");
         }
 
-        if (entity.ItemPrice < 0)
-        {
-            throw new InvalidOperationException($"Gameplay item '{implementationKey}' has a negative price.");
-        }
-
         var settings = ParseSettings(implementationKey, entity.SettingsJson);
         ValidateSettings(implementationKey, settings);
 
@@ -107,7 +102,6 @@ internal sealed class GameplayItemCatalogRepository(
             accessFlags,
             rarity,
             model,
-            entity.ItemPrice,
             entity.Enabled,
             entity.SortOrder,
             settings

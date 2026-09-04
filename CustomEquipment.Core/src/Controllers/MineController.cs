@@ -28,12 +28,18 @@ internal sealed class MineController(
     : IMineController, IDisposable
 {
     private readonly Dictionary<CBaseModelEntity, (IPlayer Owner, LaserMineEntityBase Mine)> _mines = [];
+    private bool _initialized;
 
     public void Initialize()
     {
-        events.Items.Purchasing.Hook(OnItemPurchasing);
+        if (_initialized)
+        {
+            return;
+        }
+
+        _initialized = true;
         events.Items.Giving.Hook(OnItemGiving);
-        events.Items.Purchased.Hook(OnItemBought);
+        events.Items.Given.Hook(OnItemGiven);
         events.Mines.Placed.Hook(OnMinePlaced);
         core.GameHooks.Entities.TakeDamage.Pre += OnEntityTakeDamage;
         core.GameHooks.Movement.RunCommand.Pre += OnRunCommand;
@@ -46,9 +52,14 @@ internal sealed class MineController(
 
     public void Dispose()
     {
-        events.Items.Purchasing.Unhook(OnItemPurchasing);
+        if (!_initialized)
+        {
+            return;
+        }
+
+        _initialized = false;
         events.Items.Giving.Unhook(OnItemGiving);
-        events.Items.Purchased.Unhook(OnItemBought);
+        events.Items.Given.Unhook(OnItemGiven);
         events.Mines.Placed.Unhook(OnMinePlaced);
         core.GameHooks.Entities.TakeDamage.Pre -= OnEntityTakeDamage;
         core.GameHooks.Movement.RunCommand.Pre -= OnRunCommand;
@@ -60,24 +71,6 @@ internal sealed class MineController(
 
         foreach (var mine in _mines.Values) mine.Mine.Dispose();
         _mines.Clear();
-    }
-
-    private void OnItemPurchasing(ref ItemPurchasingContext context)
-    {
-        if (context.Item is not LaserMine)
-        {
-            return;
-        }
-
-        var player = context.Player;
-
-        if (!HasLaserMine(player))
-        {
-            return;
-        }
-
-        player.SendAlert(localization.GetForPlayerOrKey(player, "Equipment.LaserMine.AlreadyOwned"));
-        context.Cancel();
     }
 
     private void OnItemGiving(ref ItemGivingContext context)
@@ -92,7 +85,7 @@ internal sealed class MineController(
         context.Cancel();
     }
 
-    private void OnItemBought(ref ItemPurchasedContext context)
+    private void OnItemGiven(ref ItemGivenContext context)
     {
         if (context.Item is not LaserMine)
         {
