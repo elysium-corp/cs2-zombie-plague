@@ -9,6 +9,7 @@
 
     <ItemGroup>
         <Compile Remove="ElysiumInputProbePlugin.cs" />
+        <Compile Remove="ElysiumInputProbePluginV4.cs" />
     </ItemGroup>
 
     <ItemGroup>
