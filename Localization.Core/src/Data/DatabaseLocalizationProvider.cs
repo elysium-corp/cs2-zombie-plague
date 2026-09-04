@@ -8,11 +8,18 @@ namespace Localization.Core.Data;
 internal sealed class DatabaseLocalizationProvider(
     IDbContextFactory<LocalizationDbContext> contextFactory)
 {
+    internal sealed record RuntimeSettings(
+        string ServerFallbackLanguage,
+        int RefreshIntervalSeconds,
+        bool LogMissingKeys,
+        long ConfigurationVersion,
+        string ColorTagsJson);
+
     public async Task<LocalizationSnapshot> LoadAsync(CancellationToken cancellationToken)
     {
         await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
-        var settingsEntity = await context.Settings.AsNoTracking()
-            .SingleOrDefaultAsync(entity => entity.Id == 1, cancellationToken)
+        var settings = await BuildRuntimeSettingsQuery(context)
+            .SingleOrDefaultAsync(cancellationToken)
             ?? throw new InvalidOperationException("В localization.settings отсутствует строка id = 1.");
 
         var languageEntities = await context.Languages.AsNoTracking()
@@ -50,14 +57,14 @@ internal sealed class DatabaseLocalizationProvider(
                 group => group.Key,
                 group => group.Last(),
                 StringComparer.OrdinalIgnoreCase);
-        var colorTags = LocalizationColorSchema.FromJson(settingsEntity.ColorTagsJson);
+        var colorTags = LocalizationColorSchema.FromJson(settings.ColorTagsJson);
 
         var snapshot = new LocalizationSnapshot(
             new LocalizationSettings(
-                LocaleNormalizer.Normalize(settingsEntity.ServerFallbackLanguage),
-                settingsEntity.RefreshIntervalSeconds,
-                settingsEntity.LogMissingKeys,
-                settingsEntity.ConfigurationVersion,
+                LocaleNormalizer.Normalize(settings.ServerFallbackLanguage),
+                settings.RefreshIntervalSeconds,
+                settings.LogMissingKeys,
+                settings.ConfigurationVersion,
                 colorTags),
             languages,
             entries,
@@ -68,6 +75,18 @@ internal sealed class DatabaseLocalizationProvider(
         LocalizationValidation.ValidateSnapshot(snapshot);
         return snapshot;
     }
+
+    internal static IQueryable<RuntimeSettings> BuildRuntimeSettingsQuery(
+        LocalizationDbContext context) =>
+        context.Settings
+            .AsNoTracking()
+            .Where(entity => entity.Id == 1)
+            .Select(entity => new RuntimeSettings(
+                entity.ServerFallbackLanguage,
+                entity.RefreshIntervalSeconds,
+                entity.LogMissingKeys,
+                entity.ConfigurationVersion,
+                entity.ColorTagsJson));
 
     private static LocalizationLanguageState MapLanguage(LocalizationLanguageEntity entity) => new(
         entity.Id,

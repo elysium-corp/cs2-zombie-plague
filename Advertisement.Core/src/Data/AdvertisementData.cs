@@ -199,10 +199,19 @@ internal sealed class ConfigAdvertisementProvider(IOptionsMonitor<AdvertisementC
 
 internal sealed class DatabaseAdvertisementProvider(IDbContextFactory<AdvertisementDbContext> contextFactory)
 {
+    internal sealed record RuntimeSettings(
+        bool Enabled,
+        int IntervalSeconds,
+        int RefreshIntervalSeconds,
+        int InitialDelaySeconds,
+        string OrderMode,
+        bool ExcludeBotsFromPlayers,
+        long ConfigurationVersion);
+
     public async Task<AdvertisementSnapshot> LoadAsync(CancellationToken cancellationToken)
     {
         await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
-        var settingsEntity = await context.Settings.AsNoTracking()
+        var settingsEntity = await BuildRuntimeSettingsQuery(context)
             .SingleOrDefaultAsync(cancellationToken)
             ?? throw new InvalidOperationException("В advertisement.settings отсутствует настройка.");
 
@@ -223,6 +232,19 @@ internal sealed class DatabaseAdvertisementProvider(IDbContextFactory<Advertisem
             DateTimeOffset.UtcNow,
             AdvertisementSource.Database);
     }
+
+    internal static IQueryable<RuntimeSettings> BuildRuntimeSettingsQuery(
+        AdvertisementDbContext context) =>
+        context.Settings
+            .AsNoTracking()
+            .Select(entity => new RuntimeSettings(
+                entity.Enabled,
+                entity.IntervalSeconds,
+                entity.RefreshIntervalSeconds,
+                entity.InitialDelaySeconds,
+                entity.OrderMode,
+                entity.ExcludeBotsFromPlayers,
+                entity.ConfigurationVersion));
 
     private static AdvertisementMessage MapMessage(AdvertisementMessageEntity entity) => new(
         entity.Id, entity.Key, entity.Name, entity.LocalizationKey,

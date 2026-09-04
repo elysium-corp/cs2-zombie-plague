@@ -71,4 +71,20 @@ public sealed class LocalizationTagMigrationTests
         var settings = context.Model.FindEntityType(typeof(AdvertisementSettingsEntity))!;
         Assert.NotNull(settings.FindProperty(nameof(AdvertisementSettingsEntity.FallbackExportedVersion)));
     }
+
+    [Fact]
+    public void RuntimeSettingsQuery_DoesNotRequireFallbackExportMarker()
+    {
+        var options = new DbContextOptionsBuilder<AdvertisementDbContext>()
+            .UseNpgsql("Host=localhost;Database=advertisement_model_test;Username=test;Password=test")
+            .Options;
+        using var context = new AdvertisementDbContext(options);
+
+        var sql = DatabaseAdvertisementProvider
+            .BuildRuntimeSettingsQuery(context)
+            .ToQueryString();
+
+        Assert.Contains("configuration_version", sql);
+        Assert.DoesNotContain("fallback_exported_version", sql);
+    }
 }
