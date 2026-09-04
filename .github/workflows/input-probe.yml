@@ -52,13 +52,14 @@ jobs:
         run: |
           set -euo pipefail
 
+          build_root="artifacts/bin/ElysiumInputProbe.Core/release"
           package="artifacts/ElysiumInputProbe.Core"
           mkdir -p "$package"
 
           echo "Build output:"
-          find ElysiumInputProbe.Core/bin/Release -maxdepth 4 -type f -print | sort
+          find "$build_root" -maxdepth 3 -type f -print | sort
 
-          dll="$(find ElysiumInputProbe.Core/bin/Release -type f -name 'ElysiumInputProbe.Core.dll' -print -quit)"
+          dll="$(find "$build_root" -type f -name 'ElysiumInputProbe.Core.dll' -print -quit)"
           if [[ -z "$dll" ]]; then
             echo "::error::ElysiumInputProbe.Core.dll was not produced"
             exit 1
