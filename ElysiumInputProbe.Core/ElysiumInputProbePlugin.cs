@@ -7,6 +7,7 @@ using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.GameHooks;
 using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Plugins;
+using SwiftlyS2.Shared.ProtobufDefinitions;
 
 namespace ElysiumInputProbe.Core;
 
@@ -209,7 +210,7 @@ public sealed class ElysiumInputProbePlugin(ISwiftlyCore core) : BasePlugin(core
             _states[playerId] = state;
         }
 
-        state.Marker = string.Join(' ', context.Args.Skip(1));
+        state.Marker = string.Join(" ", context.Args.Skip(1));
 
         Core.Logger.LogInformation(
             "[InputProbe][MARK] player={PlayerId} t={ElapsedMs:F3}ms marker={Marker}",
@@ -306,15 +307,18 @@ public sealed class ElysiumInputProbePlugin(ISwiftlyCore core) : BasePlugin(core
         UserCmdSnapshot snapshot,
         IReadOnlyList<ButtonSubtickSnapshot> buttonSubticks)
     {
-        var activeBits = FormatActiveBits(snapshot.ProtobufState1);
+        var currentPb = snapshot.ProtobufStates;
+        var currentSchema = snapshot.SchemaStates;
+        var activeBits = FormatActiveBits(currentPb);
         var changedBits = state.LastSnapshot is { } previous
-            ? FormatChangedBits(previous.ProtobufState1, snapshot.ProtobufState1)
+            ? FormatChangedBits(previous.ProtobufStates, currentPb)
             : "baseline";
         var subticks = FormatSubticks(buttonSubticks);
+        var statesMatch = currentPb.SequenceEqual(currentSchema);
 
         Core.Logger.LogInformation(
             "[InputProbe][USERCMD] player={PlayerId} t={ElapsedMs:F3}ms marker={Marker} cmd={CommandNumber} legacy={LegacyCommandNumber} tick={ClientTick} " +
-            "pb=[{Pb1},{Pb2},{Pb3}] schema=[{Schema1},{Schema2},{Schema3}] activeBits={ActiveBits} changedBits={ChangedBits} " +
+            "pb=[{Pb1},{Pb2},{Pb3}] schema=[{Schema1},{Schema2},{Schema3}] statesMatch={StatesMatch} activeBits={ActiveBits} changedBits={ChangedBits} " +
             "weaponSelect={WeaponSelect} impulse={Impulse} flags={CmdFlags} subticks={Subticks}",
             playerId,
             state.ElapsedMilliseconds,
@@ -328,6 +332,7 @@ public sealed class ElysiumInputProbePlugin(ISwiftlyCore core) : BasePlugin(core
             Hex(snapshot.SchemaState1),
             Hex(snapshot.SchemaState2),
             Hex(snapshot.SchemaState3),
+            statesMatch,
             activeBits,
             changedBits,
             snapshot.WeaponSelect,
@@ -339,18 +344,14 @@ public sealed class ElysiumInputProbePlugin(ISwiftlyCore core) : BasePlugin(core
 
     private static bool HasMeaningfulChange(UserCmdSnapshot previous, UserCmdSnapshot current)
     {
-        return previous.ProtobufState1 != current.ProtobufState1
-            || previous.ProtobufState2 != current.ProtobufState2
-            || previous.ProtobufState3 != current.ProtobufState3
-            || previous.SchemaState1 != current.SchemaState1
-            || previous.SchemaState2 != current.SchemaState2
-            || previous.SchemaState3 != current.SchemaState3
+        return !previous.ProtobufStates.SequenceEqual(current.ProtobufStates)
+            || !previous.SchemaStates.SequenceEqual(current.SchemaStates)
             || previous.WeaponSelect != current.WeaponSelect
             || previous.Impulse != current.Impulse;
     }
 
     private static List<ButtonSubtickSnapshot> CaptureButtonSubticks(
-        IEnumerable<SwiftlyS2.Shared.ProtobufDefinitions.CSubtickMoveStep> subtickMoves)
+        IEnumerable<CSubtickMoveStep> subtickMoves)
     {
         List<ButtonSubtickSnapshot> result = [];
 
@@ -375,57 +376,59 @@ public sealed class ElysiumInputProbePlugin(ISwiftlyCore core) : BasePlugin(core
         }
 
         return string.Join(
-            ',',
+            ",",
             subticks.Select(step =>
                 $"{Hex(step.Button)}:{(step.Pressed ? '+' : '-')}@{step.When:F3}:{DescribeSingleButton(step.Button)}"
             )
         );
     }
 
-    private static string FormatActiveBits(ulong state)
+    private static string FormatActiveBits(IReadOnlyList<ulong> states)
     {
-        if (state == 0)
-        {
-            return "-";
-        }
-
         List<string> bits = [];
-        for (var bit = 0; bit < 64; bit++)
-        {
-            var mask = 1UL << bit;
-            if ((state & mask) == 0)
-            {
-                continue;
-            }
 
-            bits.Add($"{bit}:{KnownButtonName(bit)}");
+        for (var wordIndex = 0; wordIndex < states.Count; wordIndex++)
+        {
+            var state = states[wordIndex];
+            for (var bit = 0; bit < 64; bit++)
+            {
+                var mask = 1UL << bit;
+                if ((state & mask) == 0)
+                {
+                    continue;
+                }
+
+                var globalBit = wordIndex * 64 + bit;
+                bits.Add($"{globalBit}:{KnownButtonName(globalBit)}");
+            }
         }
 
-        return string.Join(',', bits);
+        return bits.Count == 0 ? "-" : string.Join(",", bits);
     }
 
-    private static string FormatChangedBits(ulong previous, ulong current)
+    private static string FormatChangedBits(IReadOnlyList<ulong> previous, IReadOnlyList<ulong> current)
     {
-        var changed = previous ^ current;
-        if (changed == 0)
-        {
-            return "-";
-        }
-
         List<string> bits = [];
-        for (var bit = 0; bit < 64; bit++)
-        {
-            var mask = 1UL << bit;
-            if ((changed & mask) == 0)
-            {
-                continue;
-            }
+        var wordCount = Math.Min(previous.Count, current.Count);
 
-            var pressed = (current & mask) != 0;
-            bits.Add($"{bit}:{KnownButtonName(bit)}{(pressed ? '+' : '-')}");
+        for (var wordIndex = 0; wordIndex < wordCount; wordIndex++)
+        {
+            var changed = previous[wordIndex] ^ current[wordIndex];
+            for (var bit = 0; bit < 64; bit++)
+            {
+                var mask = 1UL << bit;
+                if ((changed & mask) == 0)
+                {
+                    continue;
+                }
+
+                var globalBit = wordIndex * 64 + bit;
+                var pressed = (current[wordIndex] & mask) != 0;
+                bits.Add($"{globalBit}:{KnownButtonName(globalBit)}{(pressed ? '+' : '-')}");
+            }
         }
 
-        return string.Join(',', bits);
+        return bits.Count == 0 ? "-" : string.Join(",", bits);
     }
 
     private static string DescribeSingleButton(ulong button)
@@ -518,7 +521,11 @@ public sealed class ElysiumInputProbePlugin(ISwiftlyCore core) : BasePlugin(core
         int WeaponSelect,
         int Impulse,
         int CmdFlags
-    );
+    )
+    {
+        public ulong[] ProtobufStates => [ProtobufState1, ProtobufState2, ProtobufState3];
+        public ulong[] SchemaStates => [SchemaState1, SchemaState2, SchemaState3];
+    }
 
     private readonly record struct ButtonSubtickSnapshot(
         ulong Button,
