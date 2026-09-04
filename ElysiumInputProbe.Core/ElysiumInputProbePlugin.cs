@@ -6,14 +6,16 @@ using SwiftlyS2.Shared.Commands;
 using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.GameHooks;
 using SwiftlyS2.Shared.Misc;
+using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.Plugins;
 using SwiftlyS2.Shared.ProtobufDefinitions;
+using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace ElysiumInputProbe.Core;
 
 [PluginMetadata(
     Id = "ElysiumInputProbe.Core",
-    Version = "0.1.0",
+    Version = "0.2.0",
     Name = "Elysium Input Probe",
     Author = "Elysium",
     Description = "Diagnostic probe for CS2 usercmd, key-state and client-command input."
@@ -119,7 +121,7 @@ public sealed class ElysiumInputProbePlugin(ISwiftlyCore core) : BasePlugin(core
                 break;
 
             case "mark":
-                SetMarker(context, playerId);
+                SetMarker(context, player);
                 break;
 
             case "reset":
@@ -196,7 +198,7 @@ public sealed class ElysiumInputProbePlugin(ISwiftlyCore core) : BasePlugin(core
         }
     }
 
-    private void SetMarker(ICommandContext context, int playerId)
+    private void SetMarker(ICommandContext context, IPlayer player)
     {
         if (context.Args.Length < 2)
         {
@@ -204,6 +206,7 @@ public sealed class ElysiumInputProbePlugin(ISwiftlyCore core) : BasePlugin(core
             return;
         }
 
+        var playerId = player.PlayerID;
         if (!_states.TryGetValue(playerId, out var state))
         {
             state = new ProbeState();
@@ -211,6 +214,7 @@ public sealed class ElysiumInputProbePlugin(ISwiftlyCore core) : BasePlugin(core
         }
 
         state.Marker = string.Join(" ", context.Args.Skip(1));
+        state.ResetCommandDeduplication();
 
         Core.Logger.LogInformation(
             "[InputProbe][MARK] player={PlayerId} t={ElapsedMs:F3}ms marker={Marker}",
@@ -219,7 +223,44 @@ public sealed class ElysiumInputProbePlugin(ISwiftlyCore core) : BasePlugin(core
             state.Marker
         );
 
+        LogInventory(player, state);
         context.Reply($"[InputProbe] Marker: {state.Marker}");
+    }
+
+    private void LogInventory(IPlayer player, ProbeState state)
+    {
+        var pawn = player.PlayerPawn;
+        var weaponServices = pawn?.WeaponServices;
+        if (pawn is not { IsValid: true } || weaponServices is null)
+        {
+            Core.Logger.LogInformation(
+                "[InputProbe][INVENTORY] player={PlayerId} t={ElapsedMs:F3}ms marker={Marker} unavailable",
+                player.PlayerID,
+                state.ElapsedMilliseconds,
+                state.Marker
+            );
+            return;
+        }
+
+        var activeWeapon = weaponServices.ActiveWeapon.IsValid
+            ? weaponServices.ActiveWeapon.Value
+            : null;
+        var activeDescription = activeWeapon is { IsValid: true }
+            ? $"{activeWeapon.Index}:{activeWeapon.DesignerName}"
+            : "-";
+        var inventory = weaponServices.MyValidWeapons
+            .OrderBy(weapon => weapon.Index)
+            .Select(weapon => $"{weapon.Index}:{weapon.DesignerName}")
+            .ToArray();
+
+        Core.Logger.LogInformation(
+            "[InputProbe][INVENTORY] player={PlayerId} t={ElapsedMs:F3}ms marker={Marker} active={ActiveWeapon} weapons=[{Weapons}]",
+            player.PlayerID,
+            state.ElapsedMilliseconds,
+            state.Marker,
+            activeDescription,
+            inventory.Length == 0 ? "-" : string.Join(',', inventory)
+        );
     }
 
     private HookResult OnClientCommand(int playerId, string commandLine)
@@ -259,7 +300,8 @@ public sealed class ElysiumInputProbePlugin(ISwiftlyCore core) : BasePlugin(core
 
     private void OnProcessUsercmds(ref ProcessUsercmdsPreContext context)
     {
-        var playerId = context.Params.Player.PlayerID;
+        var player = context.Params.Player;
+        var playerId = player.PlayerID;
         if (!_states.TryGetValue(playerId, out var state))
         {
             return;
@@ -267,6 +309,11 @@ public sealed class ElysiumInputProbePlugin(ISwiftlyCore core) : BasePlugin(core
 
         foreach (var usercmd in context.Params.Usercmds)
         {
+            if (!state.TryAcceptCommand(usercmd.CommandNumber))
+            {
+                continue;
+            }
+
             var baseCmd = usercmd.CSGOUserCmd.Base;
             var protobufButtons = baseCmd.ButtonsPb;
             var schemaButtons = usercmd.ButtonState.ButtonStates;
@@ -294,7 +341,7 @@ public sealed class ElysiumInputProbePlugin(ISwiftlyCore core) : BasePlugin(core
 
             if (shouldLog)
             {
-                LogUserCmd(playerId, state, snapshot, buttonSubticks);
+                LogUserCmd(player, state, snapshot, buttonSubticks);
             }
 
             state.LastSnapshot = snapshot;
@@ -302,7 +349,7 @@ public sealed class ElysiumInputProbePlugin(ISwiftlyCore core) : BasePlugin(core
     }
 
     private void LogUserCmd(
-        int playerId,
+        IPlayer player,
         ProbeState state,
         UserCmdSnapshot snapshot,
         IReadOnlyList<ButtonSubtickSnapshot> buttonSubticks)
@@ -315,12 +362,14 @@ public sealed class ElysiumInputProbePlugin(ISwiftlyCore core) : BasePlugin(core
             : "baseline";
         var subticks = FormatSubticks(buttonSubticks);
         var statesMatch = currentPb.SequenceEqual(currentSchema);
+        var weaponSelectDescription = DescribeWeaponSelect(player, snapshot.WeaponSelect);
+        var activeWeaponDescription = DescribeActiveWeapon(player);
 
         Core.Logger.LogInformation(
             "[InputProbe][USERCMD] player={PlayerId} t={ElapsedMs:F3}ms marker={Marker} cmd={CommandNumber} legacy={LegacyCommandNumber} tick={ClientTick} " +
             "pb=[{Pb1},{Pb2},{Pb3}] schema=[{Schema1},{Schema2},{Schema3}] statesMatch={StatesMatch} activeBits={ActiveBits} changedBits={ChangedBits} " +
-            "weaponSelect={WeaponSelect} impulse={Impulse} flags={CmdFlags} subticks={Subticks}",
-            playerId,
+            "weaponSelect={WeaponSelect} weapon={WeaponDescription} activeBefore={ActiveWeapon} impulse={Impulse} flags={CmdFlags} subticks={Subticks}",
+            player.PlayerID,
             state.ElapsedMilliseconds,
             state.Marker,
             snapshot.CommandNumber,
@@ -336,10 +385,59 @@ public sealed class ElysiumInputProbePlugin(ISwiftlyCore core) : BasePlugin(core
             activeBits,
             changedBits,
             snapshot.WeaponSelect,
+            weaponSelectDescription,
+            activeWeaponDescription,
             snapshot.Impulse,
             snapshot.CmdFlags,
             subticks
         );
+    }
+
+    private string DescribeWeaponSelect(IPlayer player, int weaponSelect)
+    {
+        if (weaponSelect == 0)
+        {
+            return "-";
+        }
+
+        try
+        {
+            // CBaseUserCmdPB::weaponselect передаёт packed entity handle.
+            // Нижние 14 бит соответствуют индексу entity для этого wire-формата.
+            var candidateIndex = (uint)(weaponSelect & 0x3FFF);
+            var entity = Core.EntitySystem.GetEntityByIndex(candidateIndex);
+            var designerName = entity is { IsValid: true }
+                ? entity.DesignerName
+                : "?";
+            var inInventory = player.PlayerPawn?.WeaponServices?.MyValidWeapons
+                .Any(weapon => weapon.Index == candidateIndex) == true;
+
+            return $"packed={weaponSelect};index={candidateIndex};name={designerName};inInventory={inInventory}";
+        }
+        catch (Exception exception)
+        {
+            Core.Logger.LogDebug(
+                exception,
+                "[InputProbe] Failed to resolve weaponSelect={WeaponSelect} for player={PlayerId}",
+                weaponSelect,
+                player.PlayerID
+            );
+            return $"packed={weaponSelect};unresolved";
+        }
+    }
+
+    private static string DescribeActiveWeapon(IPlayer player)
+    {
+        var weaponServices = player.PlayerPawn?.WeaponServices;
+        if (weaponServices is null || !weaponServices.ActiveWeapon.IsValid)
+        {
+            return "-";
+        }
+
+        var activeWeapon = weaponServices.ActiveWeapon.Value;
+        return activeWeapon is { IsValid: true }
+            ? $"{activeWeapon.Index}:{activeWeapon.DesignerName}"
+            : "-";
     }
 
     private static bool HasMeaningfulChange(UserCmdSnapshot previous, UserCmdSnapshot current)
@@ -389,11 +487,11 @@ public sealed class ElysiumInputProbePlugin(ISwiftlyCore core) : BasePlugin(core
 
         for (var wordIndex = 0; wordIndex < states.Count; wordIndex++)
         {
-            var state = states[wordIndex];
+            var buttonState = states[wordIndex];
             for (var bit = 0; bit < 64; bit++)
             {
                 var mask = 1UL << bit;
-                if ((state & mask) == 0)
+                if ((buttonState & mask) == 0)
                 {
                     continue;
                 }
@@ -498,12 +596,30 @@ public sealed class ElysiumInputProbePlugin(ISwiftlyCore core) : BasePlugin(core
         public ProbeMode Mode { get; set; } = ProbeMode.Changes;
         public string Marker { get; set; } = "-";
         public UserCmdSnapshot? LastSnapshot { get; set; }
+        public uint? HighestCommandNumber { get; private set; }
 
         public double ElapsedMilliseconds => Stopwatch.GetElapsedTime(_startedAt).TotalMilliseconds;
+
+        public bool TryAcceptCommand(uint commandNumber)
+        {
+            if (HighestCommandNumber is { } highest && commandNumber <= highest)
+            {
+                return false;
+            }
+
+            HighestCommandNumber = commandNumber;
+            return true;
+        }
+
+        public void ResetCommandDeduplication()
+        {
+            HighestCommandNumber = null;
+        }
 
         public void ResetBaseline()
         {
             LastSnapshot = null;
+            HighestCommandNumber = null;
             _startedAt = Stopwatch.GetTimestamp();
         }
     }
