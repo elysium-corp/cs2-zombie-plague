@@ -50,8 +50,155 @@ internal sealed class NormalizeKeysAndTrackFallback : Migration
 
             DO $migration$
             DECLARE
+                duplicate_group RECORD;
                 duplicate_key TEXT;
+                kept_entry_id BIGINT;
+                kept_entry_key TEXT;
+                kept_tag_id BIGINT;
+                kept_tag_key TEXT;
             BEGIN
+                IF to_regclass('localization.tags') IS NOT NULL THEN
+                    FOR duplicate_group IN
+                        SELECT lower(localization.canonicalize_key(tag.key)) AS normalized_key
+                        FROM localization.tags AS tag
+                        GROUP BY lower(localization.canonicalize_key(tag.key))
+                        HAVING count(*) > 1
+                        ORDER BY 1
+                    LOOP
+                        SELECT tag.id, tag.key
+                        INTO kept_tag_id, kept_tag_key
+                        FROM localization.tags AS tag
+                        WHERE lower(localization.canonicalize_key(tag.key)) =
+                              duplicate_group.normalized_key
+                        ORDER BY
+                            (tag.key = localization.canonicalize_key(tag.key)) DESC,
+                            tag.id
+                        LIMIT 1;
+
+                        IF to_regclass('advertisement.messages') IS NOT NULL
+                           AND EXISTS (
+                               SELECT 1
+                               FROM information_schema.columns
+                               WHERE table_schema = 'advertisement'
+                                 AND table_name = 'messages'
+                                 AND column_name = 'tag_key'
+                           ) THEN
+                            EXECUTE
+                                'UPDATE advertisement.messages AS message
+                                 SET tag_key = $1
+                                 WHERE message.tag_key IS NOT NULL
+                                   AND lower(localization.canonicalize_key(message.tag_key)) = $2'
+                            USING kept_tag_key, duplicate_group.normalized_key;
+                        END IF;
+
+                        DELETE FROM localization.tags AS tag
+                        WHERE lower(localization.canonicalize_key(tag.key)) =
+                              duplicate_group.normalized_key
+                          AND tag.id <> kept_tag_id;
+                    END LOOP;
+                END IF;
+
+                FOR duplicate_group IN
+                    SELECT lower(localization.canonicalize_key(entry.key)) AS normalized_key
+                    FROM localization.entries AS entry
+                    GROUP BY lower(localization.canonicalize_key(entry.key))
+                    HAVING count(*) > 1
+                    ORDER BY 1
+                LOOP
+                    SELECT entry.id, entry.key
+                    INTO kept_entry_id, kept_entry_key
+                    FROM localization.entries AS entry
+                    WHERE lower(localization.canonicalize_key(entry.key)) =
+                          duplicate_group.normalized_key
+                    ORDER BY
+                        (entry.key = localization.canonicalize_key(entry.key)) DESC,
+                        entry.id
+                    LIMIT 1;
+
+                    INSERT INTO localization.translations
+                        (entry_id, language_code, text, created_at, updated_at)
+                    SELECT
+                        kept_entry_id,
+                        source.language_code,
+                        source.text,
+                        source.created_at,
+                        source.updated_at
+                    FROM (
+                        SELECT DISTINCT ON (translation.language_code)
+                            translation.language_code,
+                            translation.text,
+                            translation.created_at,
+                            translation.updated_at
+                        FROM localization.entries AS entry
+                        JOIN localization.translations AS translation
+                          ON translation.entry_id = entry.id
+                        WHERE lower(localization.canonicalize_key(entry.key)) =
+                              duplicate_group.normalized_key
+                          AND entry.id <> kept_entry_id
+                        ORDER BY
+                            translation.language_code,
+                            translation.updated_at DESC,
+                            entry.id
+                    ) AS source
+                    ON CONFLICT (entry_id, language_code) DO NOTHING;
+
+                    UPDATE localization.entries AS kept
+                    SET is_critical = merged.is_critical,
+                        description = COALESCE(
+                            NULLIF(kept.description, ''),
+                            merged.description
+                        ),
+                        parameters = CASE
+                            WHEN kept.parameters = '[]'::jsonb
+                                THEN COALESCE(merged.parameters, kept.parameters)
+                            ELSE kept.parameters
+                        END,
+                        updated_at = NOW()
+                    FROM (
+                        SELECT
+                            bool_or(entry.is_critical) AS is_critical,
+                            (array_agg(entry.description ORDER BY entry.id)
+                                FILTER (WHERE NULLIF(entry.description, '') IS NOT NULL))[1]
+                                AS description,
+                            (array_agg(entry.parameters ORDER BY entry.updated_at DESC, entry.id)
+                                FILTER (WHERE entry.parameters <> '[]'::jsonb))[1]
+                                AS parameters
+                        FROM localization.entries AS entry
+                        WHERE lower(localization.canonicalize_key(entry.key)) =
+                              duplicate_group.normalized_key
+                    ) AS merged
+                    WHERE kept.id = kept_entry_id;
+
+                    IF to_regclass('localization.tags') IS NOT NULL THEN
+                        UPDATE localization.tags AS tag
+                        SET localization_key = kept_entry_key,
+                            updated_at = NOW()
+                        WHERE lower(localization.canonicalize_key(tag.localization_key)) =
+                              duplicate_group.normalized_key;
+                    END IF;
+
+                    IF to_regclass('advertisement.messages') IS NOT NULL
+                       AND EXISTS (
+                           SELECT 1
+                           FROM information_schema.columns
+                           WHERE table_schema = 'advertisement'
+                             AND table_name = 'messages'
+                             AND column_name = 'localization_key'
+                       ) THEN
+                        EXECUTE
+                            'UPDATE advertisement.messages AS message
+                             SET localization_key = $1,
+                                 updated_at = NOW()
+                             WHERE lower(localization.canonicalize_key(message.localization_key)) = $2'
+                        USING kept_entry_key, duplicate_group.normalized_key;
+                    END IF;
+
+                    DELETE FROM localization.entries AS entry
+                    WHERE lower(localization.canonicalize_key(entry.key)) =
+                          duplicate_group.normalized_key
+                      AND entry.id <> kept_entry_id;
+                END LOOP;
+
                 SELECT lower(localization.canonicalize_key(entry.key))
                 INTO duplicate_key
                 FROM localization.entries AS entry
@@ -64,22 +211,6 @@ internal sealed class NormalizeKeysAndTrackFallback : Migration
                     RAISE EXCEPTION
                         'Нельзя нормализовать Localization: несколько записей превращаются в ключ %',
                         duplicate_key;
-                END IF;
-
-                IF to_regclass('localization.tags') IS NOT NULL THEN
-                    SELECT lower(localization.canonicalize_key(tag.key))
-                    INTO duplicate_key
-                    FROM localization.tags AS tag
-                    GROUP BY lower(localization.canonicalize_key(tag.key))
-                    HAVING count(*) > 1
-                    ORDER BY 1
-                    LIMIT 1;
-
-                    IF duplicate_key IS NOT NULL THEN
-                        RAISE EXCEPTION
-                            'Нельзя нормализовать теги Localization: несколько тегов превращаются в ключ %',
-                            duplicate_key;
-                    END IF;
                 END IF;
 
                 IF to_regclass('advertisement.messages') IS NOT NULL THEN

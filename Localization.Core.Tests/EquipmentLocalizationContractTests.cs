@@ -124,7 +124,7 @@ public sealed class EquipmentLocalizationContractTests
     {
         var script = GenerateScript(PreviousMigration, FeatureMigration);
 
-        foreach (var key in LegacyRequiredKeys)
+        foreach (var key in RequiredKeys)
         {
             Assert.Contains($"'{key}'", script);
             Assert.Contains(
@@ -200,6 +200,11 @@ public sealed class EquipmentLocalizationContractTests
         Assert.Contains("entries_key_ci_unique", script);
         Assert.Contains("entries_key_immutable", script);
         Assert.Contains("entries_key_advertisement_unique", script);
+        Assert.Contains("FOR duplicate_group IN", script);
+        Assert.Contains("INSERT INTO localization.translations", script);
+        Assert.Contains("ON CONFLICT (entry_id, language_code) DO NOTHING", script);
+        Assert.Contains("DELETE FROM localization.entries", script);
+        Assert.Contains("SET localization_key = kept_entry_key", script);
     }
 
     [Fact]
