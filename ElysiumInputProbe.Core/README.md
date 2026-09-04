@@ -2,71 +2,87 @@
 
 Диагностический SwiftlyS2-плагин для проверки цифрового input через `CBaseUserCmdPB.weaponselect`.
 
-## Версия 0.4.0
+## Версия 0.5.0
 
-Текущий эксперимент проверяет `5, 6, 7, 8, 9, 0`:
+По предыдущим тестам подтверждено:
 
-- `5` → `slot5` → `weapon_c4`;
-- `6` → `slot6` → `weapon_hegrenade`;
-- `7` → `slot7` → `weapon_flashbang`;
-- `8` → `slot8` → `weapon_smokegrenade`;
-- `9` → `slot9` → `weapon_decoy`;
-- `0` → `slot10` → `weapon_molotov` / `weapon_incgrenade`.
+- `1`, `2`, `3` стабильно формируют `weaponselect`, включая повторное нажатие уже активного слота;
+- `6`, `7`, `8` стабильно распознаются через HE / Flash / Smoke;
+- зануление `Weaponselect` в `ProcessUsercmds.Pre` подавляет фактическое переключение предмета;
+- `HIDEHUD_WEAPONSELECTION` не ломает capture-механику.
 
-При включённом capture плагин:
+Версия `0.4.0` показала, что `GiveItem` может вернуть валидную entity, но игра не обязана добавить её в `MyValidWeapons`. Поэтому в `0.5.0`:
 
-1. Ставит только бит `HIDEHUD_WEAPONSELECTION` в `CBasePlayerPawn.HideHUD`, не трогая остальные HUD-флаги.
-2. Выдаёт только отсутствующие тестовые предметы, включая C4.
-3. Запоминает entity index только предметов, созданных самим probe.
-4. Ловит `weaponselect` в `ProcessUsercmds.Pre`.
-5. Для тестовых slot-команд зануляет `Weaponselect`, чтобы предмет не переключался в руках.
-6. При выключении capture удаляет только созданные probe предметы и снимает HUD-бит только если probe сам его установил.
-7. На unload выполняет ту же очистку.
+1. Добавлен изолированный тест одной клавиши: `capture key 5|6|7|8|9|0`.
+2. Лог различает `existing-attached`, `created-attached` и `created-not-attached`.
+3. Все созданные probe entity отслеживаются по index.
+4. При `capture off`, `inputprobe off`, disconnect или unload предмет из инвентаря удаляется через `RemoveWeapon`, а неприкреплённая entity принудительно `Despawn()`.
+5. Weapon-selection HUD скрывается только на время capture и возвращается после него.
+6. Для распознанного `slot5..slot10` `Weaponselect` зануляется на каждой копии usercmd, а лог пишется только один раз на `CommandNumber`.
 
 ## Команды
 
 ```text
 !inputprobe on
 !inputprobe status
-!inputprobe capture on
+!inputprobe capture key 5
+!inputprobe capture key 9
+!inputprobe capture key 0
+!inputprobe capture all
 !inputprobe capture off
 !inputprobe off
 ```
 
-## Рекомендуемый тест
+## Рекомендуемый тест 5 / 9 / 0
 
-После загрузки DLL:
+Тестировать по одному, чтобы не упираться в ограничения grenade inventory.
+
+### C4 / клавиша 5
 
 ```text
 !inputprobe on
-!inputprobe capture on
+!inputprobe capture key 5
 ```
 
-Проверить, что стандартный weapon-selection HUD скрыт, затем нажать несколько раз:
+Нажать несколько раз `5`.
+
+Если C4 реально прикрепился к инвентарю, ожидается:
 
 ```text
-5 5 5
-6 6 6
-7 7 7
-8 8 8
-9 9 9
-0 0 0
-```
-
-В серверном логе ожидаются строки вида:
-
-```text
+[InputProbe][INJECT] ... key=5 ... status=created-attached
 [InputProbe][CAPTURE] ... key=5 slot=slot5 weapon=weapon_c4 ... suppressed=True
-[InputProbe][CAPTURE] ... key=6 slot=slot6 weapon=weapon_hegrenade ... suppressed=True
 ```
 
-При этом активное оружие игрока не должно переключаться на тестовый предмет.
+Если игра создала C4 entity, но не дала её игроку:
+
+```text
+[InputProbe][INJECT] ... key=5 ... status=created-not-attached
+```
 
 После теста:
 
 ```text
 !inputprobe capture off
-!inputprobe off
 ```
 
-Ожидается восстановление weapon HUD и удаление только временных предметов probe.
+Для orphan entity ожидается:
+
+```text
+[InputProbe][CLEANUP] ... status=despawned-orphan
+```
+
+### Decoy / клавиша 9
+
+```text
+!inputprobe capture key 9
+```
+
+Нажать `9` несколько раз.
+
+### Molotov / клавиша 0
+
+```text
+!inputprobe capture key 0
+```
+
+Нажать `0` несколько раз. Для CT клиент может разрешить `slot10` в `weapon_incgrenade`; probe это тоже распознаёт.
