@@ -1,5 +1,6 @@
 using Localization.Core.Database;
 using Localization.Core.Database.Entities;
+using Localization.Core.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
@@ -69,6 +70,22 @@ public sealed class LocalizationDbContextModelTests
             .FindProperty(nameof(LocalizationSettingsEntity.FallbackExportedVersion))!;
 
         Assert.Equal(0L, Assert.IsType<long>(property.GetDefaultValue()));
+    }
+
+    [Fact]
+    public void RuntimeSettingsQuery_DoesNotRequireFallbackExportMarker()
+    {
+        var options = new DbContextOptionsBuilder<LocalizationDbContext>()
+            .UseNpgsql("Host=localhost;Database=metadata;Username=metadata;Password=metadata")
+            .Options;
+        using var context = new LocalizationDbContext(options);
+
+        var sql = DatabaseLocalizationProvider
+            .BuildRuntimeSettingsQuery(context)
+            .ToQueryString();
+
+        Assert.Contains("configuration_version", sql);
+        Assert.DoesNotContain("fallback_exported_version", sql);
     }
 
     [Fact]

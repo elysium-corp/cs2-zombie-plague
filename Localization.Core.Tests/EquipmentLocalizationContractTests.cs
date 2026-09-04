@@ -15,6 +15,8 @@ public sealed class EquipmentLocalizationContractTests
     private const string TagCleanupMigration = "20260904090000_RemoveAdvertisementTagLocalizationEntries";
     private const string TagOwnershipMigration = "20260904120000_OwnAdvertisementTags";
     private const string NormalizeMigration = "20260904150000_NormalizeKeysAndTrackFallback";
+    private const string RepairFallbackMarkerMigration =
+        "20260904172000_EnsureFallbackExportMarker";
 
     private static readonly string[] LegacyRequiredKeys =
     [
@@ -198,6 +200,20 @@ public sealed class EquipmentLocalizationContractTests
         Assert.Contains("entries_key_ci_unique", script);
         Assert.Contains("entries_key_immutable", script);
         Assert.Contains("entries_key_advertisement_unique", script);
+    }
+
+    [Fact]
+    public void RepairMigration_RestoresMissingFallbackExportMarker()
+    {
+        var script = GenerateScript(NormalizeMigration, RepairFallbackMarkerMigration);
+
+        Assert.Contains(
+            "ADD COLUMN IF NOT EXISTS fallback_exported_version BIGINT",
+            script);
+        Assert.Contains(
+            "ALTER COLUMN fallback_exported_version SET NOT NULL",
+            script);
+        Assert.Contains("settings_fallback_exported_version_valid", script);
     }
 
     private static string GenerateScript(string fromMigration, string toMigration)
