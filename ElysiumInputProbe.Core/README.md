@@ -1,89 +1,72 @@
 # ElysiumInputProbe
 
-Диагностический SwiftlyS2-плагин для исследования того, какие данные ввода CS2-клиент реально передаёт серверу.
+Диагностический SwiftlyS2-плагин для проверки цифрового input через `CBaseUserCmdPB.weaponselect`.
 
-Плагин ничего не изменяет в `CUserCmd`: только читает и логирует данные для игрока, который явно включил probe.
+## Версия 0.4.0
 
-## Что наблюдаем
+Текущий эксперимент проверяет `5, 6, 7, 8, 9, 0`:
 
-Одновременно логируются три уровня:
+- `5` → `slot5` → `weapon_c4`;
+- `6` → `slot6` → `weapon_hegrenade`;
+- `7` → `slot7` → `weapon_flashbang`;
+- `8` → `slot8` → `weapon_smokegrenade`;
+- `9` → `slot9` → `weapon_decoy`;
+- `0` → `slot10` → `weapon_molotov` / `weapon_incgrenade`.
 
-1. `Core.GameHooks.Controller.ProcessUsercmds.Pre`
-   - `CBaseUserCmdPB.ButtonsPb` (`buttonstate1/2/3`);
-   - `CInButtonState.ButtonStates[0..2]`;
-   - button-события из `SubtickMoves`;
-   - `Weaponselect`;
-   - `Impulse`;
-   - `CmdFlags`;
-   - command number и client tick.
-2. `Core.Event.OnClientKeyStateChanged` — то, что Swiftly уже смог преобразовать в `KeyKind`.
-3. `Core.Command.HookClientCommand` — команды, которые действительно дошли от клиента до серверного command pipeline.
+При включённом capture плагин:
+
+1. Ставит только бит `HIDEHUD_WEAPONSELECTION` в `CBasePlayerPawn.HideHUD`, не трогая остальные HUD-флаги.
+2. Выдаёт только отсутствующие тестовые предметы, включая C4.
+3. Запоминает entity index только предметов, созданных самим probe.
+4. Ловит `weaponselect` в `ProcessUsercmds.Pre`.
+5. Для тестовых slot-команд зануляет `Weaponselect`, чтобы предмет не переключался в руках.
+6. При выключении capture удаляет только созданные probe предметы и снимает HUD-бит только если probe сам его установил.
+7. На unload выполняет ту же очистку.
 
 ## Команды
 
 ```text
 !inputprobe on
-!inputprobe off
 !inputprobe status
-!inputprobe reset
-!inputprobe mode changes
-!inputprobe mode all
-!inputprobe mark 1
+!inputprobe capture on
+!inputprobe capture off
+!inputprobe off
 ```
 
-`changes` — режим по умолчанию. USER_CMD пишется только при изменении button state / weaponselect / impulse либо при наличии button subtick.
+## Рекомендуемый тест
 
-`all` — пишет каждый `usercmd` выбранного игрока. Использовать короткими интервалами: этот режим специально шумный.
-
-`mark <label>` — добавляет метку в последующие строки лога. Удобно перед тестированием конкретной клавиши.
-
-## Рекомендуемый тест цифр
-
-Стоять на месте и ничего не нажимать кроме тестируемой клавиши.
+После загрузки DLL:
 
 ```text
 !inputprobe on
-!inputprobe mark key-1
+!inputprobe capture on
 ```
 
-Нажать `1` несколько раз. Затем:
+Проверить, что стандартный weapon-selection HUD скрыт, затем нажать несколько раз:
 
 ```text
-!inputprobe mark key-2
+5 5 5
+6 6 6
+7 7 7
+8 8 8
+9 9 9
+0 0 0
 ```
 
-Нажать `2` несколько раз и так далее до `9`.
-
-Отдельно проверить повторный выбор уже активного оружия: например, взять primary weapon и несколько раз нажать `1`.
-
-Если в `changes` нажатие не оставляет следа, повторить короткий тест:
+В серверном логе ожидаются строки вида:
 
 ```text
-!inputprobe mode all
-!inputprobe mark key-1-all
+[InputProbe][CAPTURE] ... key=5 slot=slot5 weapon=weapon_c4 ... suppressed=True
+[InputProbe][CAPTURE] ... key=6 slot=slot6 weapon=weapon_hegrenade ... suppressed=True
 ```
 
-Нажать `1` один-два раза, затем сразу вернуть:
+При этом активное оружие игрока не должно переключаться на тестовый предмет.
+
+После теста:
 
 ```text
-!inputprobe mode changes
+!inputprobe capture off
+!inputprobe off
 ```
 
-## На что смотреть
-
-Пример строки:
-
-```text
-[InputProbe][USERCMD] ... pb=[0x...,0x...,0x...] schema=[0x...,0x...,0x...] activeBits=20:Weapon1? changedBits=20:Weapon1?+ weaponSelect=... subticks=...
-```
-
-Главные вопросы эксперимента:
-
-- появляется ли уникальный бит для `1`, `2`, ... `9`;
-- появляются ли button subticks;
-- меняется ли `weaponSelect`;
-- видит ли тот же ввод `OnClientKeyStateChanged`;
-- приходит ли `slot1`, `slot2`, ... как client command;
-- есть ли след при повторном нажатии цифры, когда соответствующее оружие уже выбрано.
-
-Если цифры имеют стабильный уникальный server-side след, следующий шаг — вынести его в нормальный `ElysiumMenu` input adapter вместо diagnostic probe.
+Ожидается восстановление weapon HUD и удаление только временных предметов probe.
