@@ -91,8 +91,8 @@ internal sealed class AddEquipmentLocalizationEntries : Migration
                 );
             }
 
-            var escapedKey = Escape(key);
-            var module = Escape(key.Split('.', 2)[0]);
+            var escapedKey = Escape(seedKey);
+            var module = Escape(seedKey.Split('.', 2)[0]);
             var escapedRussianText = Escape(russianText);
             var escapedEnglishText = Escape(englishText);
 
