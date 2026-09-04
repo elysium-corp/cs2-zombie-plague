@@ -109,9 +109,10 @@ internal sealed class AdvertisementSender(
             var output = new StringBuilder(text.Length + 48);
             if (tag is { Enabled: true })
             {
-                var tagText = localeOverride is null
-                    ? localization().GetForPlayer(player, tag.LocalizationKey)
-                    : localization().GetForLanguage(localeOverride, tag.LocalizationKey);
+                var localizationApi = localization();
+                var tagText = tag.ResolveText(
+                    localeOverride ?? localizationApi.Resolve(player),
+                    localizationApi.ServerFallbackLanguage);
                 if (!string.IsNullOrWhiteSpace(tagText))
                     output.Append('[').Append(markupRenderer.NormalizeColor(tag.Color)).Append("][").Append(tagText).Append("][/] ");
             }

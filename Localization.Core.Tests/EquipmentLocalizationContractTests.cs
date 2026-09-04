@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Localization.Core.Configuration;
 using Localization.Core.Data;
 using Localization.Core.Database;
@@ -11,6 +12,7 @@ public sealed class EquipmentLocalizationContractTests
 {
     private const string PreviousMigration = "20260831050000_AddLocalizationColorTags";
     private const string FeatureMigration = "20260901223000_AddEquipmentLocalizationEntries";
+    private const string TagCleanupMigration = "20260904090000_RemoveAdvertisementTagLocalizationEntries";
 
     private static readonly string[] RequiredKeys =
     [
@@ -72,9 +74,9 @@ public sealed class EquipmentLocalizationContractTests
     ];
 
     [Fact]
-    public void EmergencySnapshot_ContainsRequiredEquipmentAndKnifeTranslations()
+    public void FallbackTemplate_ContainsRequiredEquipmentAndKnifeTranslations()
     {
-        var snapshot = FallbackLocalizationProvider.Load(new LocalizationFallbackConfig());
+        var snapshot = FallbackLocalizationProvider.Load(ReadFallbackConfig());
 
         foreach (var key in RequiredKeys)
         {
@@ -95,12 +97,12 @@ public sealed class EquipmentLocalizationContractTests
     [InlineData("reactorleak", "UMP45 ReactorLeak")]
     [InlineData("reaver", "Deagle Reaver")]
     [InlineData("x3", "M4A1-S X3")]
-    public void EmergencySnapshot_UsesLegacyDisplayNamesForStockWeapons(
+    public void FallbackTemplate_UsesExpectedDisplayNamesForStockWeapons(
         string weaponId,
         string displayName
     )
     {
-        var snapshot = FallbackLocalizationProvider.Load(new LocalizationFallbackConfig());
+        var snapshot = FallbackLocalizationProvider.Load(ReadFallbackConfig());
         var entry = snapshot.Entries[$"Equipment.Item.custom_equipment.{weaponId}.Name"];
 
         Assert.Equal(displayName, entry.Translations["ru"]);
@@ -152,6 +154,17 @@ public sealed class EquipmentLocalizationContractTests
         );
     }
 
+    [Fact]
+    public void TagCleanupMigration_MovesTranslationsBeforeRemovingDuplicateKeys()
+    {
+        var script = GenerateScript(FeatureMigration, TagCleanupMigration);
+
+        Assert.Contains("INSERT INTO advertisement.tag_translations", script);
+        Assert.Contains("ON CONFLICT (tag_id, locale) DO UPDATE", script);
+        Assert.Contains("DELETE FROM localization.entries", script);
+        Assert.Contains("advertisement.tags.%", script);
+    }
+
     private static string GenerateScript(string fromMigration, string toMigration)
     {
         var options = new DbContextOptionsBuilder<LocalizationDbContext>()
@@ -175,5 +188,14 @@ public sealed class EquipmentLocalizationContractTests
         }
 
         return count;
+    }
+
+    private static LocalizationFallbackConfig ReadFallbackConfig()
+    {
+        var path = Path.Combine(AppContext.BaseDirectory, "Fixtures", "template.jsonc");
+        return JsonSerializer.Deserialize<LocalizationFallbackConfig>(
+                   File.ReadAllText(path),
+                   new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
+               ?? throw new InvalidDataException("Не удалось прочитать fixture localization.json.");
     }
 }

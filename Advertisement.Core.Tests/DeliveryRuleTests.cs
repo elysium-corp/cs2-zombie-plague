@@ -47,6 +47,26 @@ public sealed class DeliveryRuleTests
         Assert.Equal(expected, DeliveryRuleParser.ParseDispatchMode(value).ToString());
     }
 
+    [Fact]
+    public void TagTranslation_UsesRequestedLanguageThenServerFallback()
+    {
+        var tag = new AdvertisementTag(
+            1,
+            "elysium",
+            "purple",
+            true,
+            0,
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["ru"] = "Элизиум",
+                ["en"] = "Elysium",
+            }.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase));
+
+        Assert.Equal("Elysium", tag.ResolveText("en", "ru"));
+        Assert.Equal("Элизиум", tag.ResolveText("de", "ru"));
+        Assert.Null(tag.ResolveText("de", "pl"));
+    }
+
     private static AdvertisementMessage CreateMessage(
         TimeOnly? dailyStartTime,
         TimeOnly? dailyEndTime)

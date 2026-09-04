@@ -18,7 +18,7 @@ namespace Localization.Core;
 
 [PluginMetadata(
     Id = "Localization.Core",
-    Version = "1.2.1",
+    Version = "1.3.0",
     Name = "Elysium Localization",
     Author = "Elysium",
     Description = "Единая локализация Elysium с языком игрока, PostgreSQL и fallback-конфигурацией.")]
@@ -61,7 +61,7 @@ internal sealed class LocalizationPlugin(ISwiftlyCore core) : Plugin<Localizatio
         TryMigrateDatabase();
         Core.Event.OnClientSteamAuthorize += OnClientSteamAuthorize;
         Core.Event.OnClientDisconnected += OnClientDisconnected;
-        Core.Event.OnMapLoad += OnMapLoad;
+        Core.Event.OnMapUnload += OnMapUnload;
         RegisterCommands();
         _coordinator.Value.Start();
     }
@@ -73,7 +73,7 @@ internal sealed class LocalizationPlugin(ISwiftlyCore core) : Plugin<Localizatio
             BindAndLoad(player.PlayerID, player.SteamID);
         }
 
-        Core.Logger.LogInformation("[Localization] Localization.Core 1.2.1 загружен.");
+        Core.Logger.LogInformation("[Localization] Localization.Core 1.3.0 загружен.");
     }
 
     protected override void OnUnload()
@@ -92,7 +92,7 @@ internal sealed class LocalizationPlugin(ISwiftlyCore core) : Plugin<Localizatio
 
         Core.Event.OnClientSteamAuthorize -= OnClientSteamAuthorize;
         Core.Event.OnClientDisconnected -= OnClientDisconnected;
-        Core.Event.OnMapLoad -= OnMapLoad;
+        Core.Event.OnMapUnload -= OnMapUnload;
 
         _lifetime.Cancel();
         _coordinator.Value.Dispose();
@@ -132,7 +132,7 @@ internal sealed class LocalizationPlugin(ISwiftlyCore core) : Plugin<Localizatio
             ReloadCommand,
             registerRaw: true,
             permission: "localization.admin",
-            helpText: "Перезагрузить локализацию из PostgreSQL"));
+            helpText: "Перезагрузить локализацию из PostgreSQL или fallback-конфига"));
         _commands.Add(Core.Command.RegisterCommand(
             "lang",
             LanguageCommand,
@@ -160,9 +160,9 @@ internal sealed class LocalizationPlugin(ISwiftlyCore core) : Plugin<Localizatio
         }
     }
 
-    private void OnMapLoad(IOnMapLoadEvent _)
+    private void OnMapUnload(IOnMapUnloadEvent _)
     {
-        _coordinator.Value.OnMapLoaded();
+        _coordinator.Value.OnMapEnded();
     }
 
     private HookResult OnClientChat(int playerId, string text, bool teamOnly)
@@ -201,12 +201,21 @@ internal sealed class LocalizationPlugin(ISwiftlyCore core) : Plugin<Localizatio
         var languages = _api.Value.GetEnabledLanguages();
         if (languages.Count == 0)
         {
-            player.SendChat(_api.Value.GetForPlayer(player, "localization.menu.loading")
-                            ?? "Локализация ещё загружается");
+            var loadingMessage = _api.Value.GetForPlayer(player, "localization.menu.loading");
+            if (!string.IsNullOrWhiteSpace(loadingMessage))
+            {
+                player.SendChat(loadingMessage);
+            }
+
             return;
         }
 
-        var title = _api.Value.GetForPlayer(player, "localization.menu.title") ?? "Язык / Language";
+        var title = _api.Value.GetForPlayer(player, "localization.menu.title");
+        if (string.IsNullOrWhiteSpace(title))
+        {
+            return;
+        }
+
         var builder = Core.MenusAPI.CreateBuilder()
             .EnableExit()
             .SetPlayerFrozen(false)
@@ -247,8 +256,7 @@ internal sealed class LocalizationPlugin(ISwiftlyCore core) : Plugin<Localizatio
                               new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
                               {
                                   ["language"] = language.NativeName,
-                              })
-                          ?? $"Language changed to {language.NativeName}";
+                              });
             Core.Scheduler.NextTick(() =>
             {
                 if (_lifetime.IsCancellationRequested)
@@ -257,7 +265,7 @@ internal sealed class LocalizationPlugin(ISwiftlyCore core) : Plugin<Localizatio
                 }
 
                 var current = Core.PlayerManager.GetPlayer(playerId);
-                if (current?.SteamID == steamId)
+                if (current?.SteamID == steamId && !string.IsNullOrWhiteSpace(message))
                 {
                     current.SendChat(message);
                 }
@@ -289,8 +297,13 @@ internal sealed class LocalizationPlugin(ISwiftlyCore core) : Plugin<Localizatio
                 var current = Core.PlayerManager.GetPlayer(playerId);
                 if (current?.SteamID == steamId)
                 {
-                    current.SendChat(_api.Value.GetForPlayer(current, "localization.menu.unavailable")
-                                     ?? "Не удалось изменить язык. Попробуйте позже");
+                    var unavailableMessage = _api.Value.GetForPlayer(
+                        current,
+                        "localization.menu.unavailable");
+                    if (!string.IsNullOrWhiteSpace(unavailableMessage))
+                    {
+                        current.SendChat(unavailableMessage);
+                    }
                 }
             });
         }
@@ -335,12 +348,12 @@ internal sealed class LocalizationPlugin(ISwiftlyCore core) : Plugin<Localizatio
         var snapshot = _cache.Value.Current;
         if (snapshot is null)
         {
-            context.Reply("Localization.Core 1.2.1\nSnapshot: загружается");
+            context.Reply("Localization.Core 1.3.0\nSnapshot: загружается");
             return;
         }
 
         context.Reply(
-            $"Localization.Core 1.2.1\nSource: {snapshot.Source}\nKeys: {snapshot.Entries.Count}" +
+            $"Localization.Core 1.3.0\nSource: {snapshot.Source}\nKeys: {snapshot.Entries.Count}" +
             $"\nLanguages: {snapshot.Languages.Values.Count(language => language.Enabled)}" +
             $"\nServer fallback: {snapshot.Settings.ServerFallbackLanguage}" +
             $"\nVersion: {snapshot.Settings.ConfigurationVersion}");

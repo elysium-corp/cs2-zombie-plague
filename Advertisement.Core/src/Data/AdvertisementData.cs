@@ -28,9 +28,26 @@ internal sealed record AdvertisementTag(
     string Key,
     string Color,
     bool Enabled,
-    int SortOrder)
+    int SortOrder,
+    FrozenDictionary<string, string> Translations)
 {
-    public string LocalizationKey => $"advertisement.tags.{Key}";
+    public string? ResolveText(string? languageCode, string? fallbackLanguageCode)
+    {
+        var requested = languageCode?.Trim();
+        if (!string.IsNullOrWhiteSpace(requested)
+            && Translations.TryGetValue(requested, out var requestedText)
+            && !string.IsNullOrWhiteSpace(requestedText))
+        {
+            return requestedText;
+        }
+
+        var fallback = fallbackLanguageCode?.Trim();
+        return !string.IsNullOrWhiteSpace(fallback)
+               && Translations.TryGetValue(fallback, out var fallbackText)
+               && !string.IsNullOrWhiteSpace(fallbackText)
+            ? fallbackText
+            : null;
+    }
 }
 
 internal sealed record AdvertisementMessage(
@@ -171,7 +188,14 @@ internal sealed class ConfigAdvertisementProvider(IOptionsMonitor<AdvertisementC
         {
             var id = tagId--;
             tagIds[tag.Key] = id;
-            tags[id] = new AdvertisementTag(id, tag.Key, tag.Color, true, tags.Count);
+            var translations = NormalizeTagTranslations(tag.Translations);
+            tags[id] = new AdvertisementTag(
+                id,
+                tag.Key,
+                tag.Color,
+                true,
+                tags.Count,
+                translations);
         }
 
         var messages = new Dictionary<long, AdvertisementMessage>();
@@ -215,6 +239,15 @@ internal sealed class ConfigAdvertisementProvider(IOptionsMonitor<AdvertisementC
         _ => AdvertisementOrderMode.Sequential,
     };
 
+    private static FrozenDictionary<string, string> NormalizeTagTranslations(
+        IEnumerable<KeyValuePair<string, string>> translations) => translations
+        .Where(item => !string.IsNullOrWhiteSpace(item.Key) && !string.IsNullOrWhiteSpace(item.Value))
+        .GroupBy(item => item.Key.Trim(), StringComparer.OrdinalIgnoreCase)
+        .ToFrozenDictionary(
+            group => group.Key,
+            group => group.Last().Value.Trim(),
+            StringComparer.OrdinalIgnoreCase);
+
 }
 
 internal sealed class DatabaseAdvertisementProvider(
@@ -230,6 +263,7 @@ internal sealed class DatabaseAdvertisementProvider(
             ?? throw new InvalidOperationException("В advertisement.settings отсутствует настройка.");
 
         var tags = await context.Tags.AsNoTracking()
+            .Include(tag => tag.Translations)
             .OrderBy(x => x.SortOrder).ThenBy(x => x.Id).ToListAsync(cancellationToken);
         var messages = await context.Messages.AsNoTracking()
             .OrderByDescending(x => x.Priority).ThenBy(x => x.SortOrder).ThenBy(x => x.Id)
@@ -251,7 +285,19 @@ internal sealed class DatabaseAdvertisementProvider(
     }
 
     private static AdvertisementTag MapTag(AdvertisementTagEntity entity) => new(
-        entity.Id, entity.Key, entity.Color, entity.Enabled, entity.SortOrder);
+        entity.Id,
+        entity.Key,
+        entity.Color,
+        entity.Enabled,
+        entity.SortOrder,
+        entity.Translations
+            .Where(translation => !string.IsNullOrWhiteSpace(translation.Locale)
+                                  && !string.IsNullOrWhiteSpace(translation.Text))
+            .GroupBy(translation => translation.Locale.Trim(), StringComparer.OrdinalIgnoreCase)
+            .ToFrozenDictionary(
+                group => group.Key,
+                group => group.Last().Text.Trim(),
+                StringComparer.OrdinalIgnoreCase));
 
     private static AdvertisementMessage MapMessage(AdvertisementMessageEntity entity) => new(
         entity.Id, entity.Key, entity.Name, entity.LocalizationKey, entity.TagId, entity.Type, entity.Enabled,

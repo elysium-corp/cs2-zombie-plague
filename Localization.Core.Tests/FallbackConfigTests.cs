@@ -30,24 +30,30 @@ public sealed class FallbackConfigTests
     }
 
     [Fact]
-    public void MissingOrLegacyEmptyConfig_UsesEmergencySnapshot()
+    public void DistributedTemplate_DoesNotContainAdvertisementTagKeys()
     {
-        var snapshot = FallbackLocalizationProvider.Load(new LocalizationFallbackConfig());
+        var snapshot = FallbackLocalizationProvider.Load(CreateConfig());
 
-        Assert.Equal(LocalizationSource.Emergency, snapshot.Source);
-        Assert.Equal(1, snapshot.Settings.ConfigurationVersion);
-        Assert.Contains("localization.menu.title", snapshot.Entries.Keys);
+        Assert.DoesNotContain(
+            snapshot.Entries.Keys,
+            key => key.StartsWith("advertisement.tags.", StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]
-    public void EmptyVersionOneConfig_UsesEmergencySnapshot()
+    public void MissingOrLegacyEmptyConfig_IsRejected()
     {
-        var snapshot = FallbackLocalizationProvider.Load(new LocalizationFallbackConfig
-        {
-            SchemaVersion = 1,
-        });
+        Assert.Throws<InvalidDataException>(() =>
+            FallbackLocalizationProvider.Load(new LocalizationFallbackConfig()));
+    }
 
-        Assert.Equal(LocalizationSource.Emergency, snapshot.Source);
+    [Fact]
+    public void EmptyVersionOneConfig_IsRejected()
+    {
+        Assert.Throws<InvalidDataException>(() =>
+            FallbackLocalizationProvider.Load(new LocalizationFallbackConfig
+            {
+                SchemaVersion = 1,
+            }));
     }
 
     [Fact]
@@ -230,14 +236,10 @@ public sealed class FallbackConfigTests
 
     private static LocalizationFallbackConfig CreateConfig()
     {
-        return new LocalizationFallbackConfig
-        {
-            SchemaVersion = 2,
-            Version = 1,
-            GeneratedAt = new DateTimeOffset(2026, 8, 31, 0, 0, 0, TimeSpan.Zero),
-            ServerFallbackLanguage = "ru",
-            Languages = ["ru", "en", "de", "pl"],
-            Entries = BuiltInLocalizationEntries.Create(),
-        };
+        var path = Path.Combine(AppContext.BaseDirectory, "Fixtures", "template.jsonc");
+        return JsonSerializer.Deserialize<LocalizationFallbackConfig>(
+                   File.ReadAllText(path),
+                   new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
+               ?? throw new InvalidDataException("Не удалось прочитать fixture localization.json.");
     }
 }

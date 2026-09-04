@@ -180,7 +180,6 @@ public sealed class LocalizationRuntimeTests
                 "ru",
                 30,
                 true,
-                true,
                 1,
                 colorTags.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase)),
             languages,

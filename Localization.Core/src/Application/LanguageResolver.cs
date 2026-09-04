@@ -10,7 +10,12 @@ internal sealed class LanguageResolver(
     public string Resolve(IPlayer player)
     {
         ArgumentNullException.ThrowIfNull(player);
-        var snapshot = localizationCache.Current ?? EmergencyLocalizationSnapshot.Create();
+        var snapshot = localizationCache.Current;
+        if (snapshot is null)
+        {
+            return LocaleNormalizer.Normalize(player.PlayerLanguage.Value);
+        }
+
         playerLanguageCache.TryGetManual(player.SteamID, out var manualLanguage);
         return Resolve(manualLanguage, player.PlayerLanguage.Value, snapshot);
     }

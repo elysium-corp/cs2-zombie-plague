@@ -1,5 +1,4 @@
 using Localization.Core.Data;
-using Microsoft.Extensions.Logging;
 
 namespace Localization.Core.Application;
 
@@ -7,57 +6,38 @@ internal sealed class LocalizationCoordinator(
     LocalizationCache cache,
     DatabaseLocalizationProvider databaseProvider,
     FallbackLocalizationProvider fallbackProvider,
-    RateLimitedLocalizationLogger rateLimitedLogger,
-    ILogger logger) : IDisposable
+    RateLimitedLocalizationLogger rateLimitedLogger) : IDisposable
 {
     private readonly CancellationTokenSource _lifetime = new();
     private readonly SemaphoreSlim _reloadLock = new(1, 1);
     private readonly object _taskSync = new();
     private readonly HashSet<Task> _tasks = [];
-    private LocalizationSnapshot _fallback = EmergencyLocalizationSnapshot.Create();
     private int _stopped;
 
     public void Start()
     {
-        try
-        {
-            _fallback = fallbackProvider.Load();
-            if (_fallback.Source == LocalizationSource.Emergency)
-            {
-                logger.LogWarning(
-                    "[Localization] localization.json отсутствует или содержит пустой шаблон. " +
-                    "До загрузки PostgreSQL используется встроенный snapshot.");
-            }
-        }
-        catch (Exception exception)
-        {
-            logger.LogError(
-                exception,
-                "[Localization] Fallback-конфигурация не прошла валидацию. Используется аварийный snapshot.");
-        }
-
-        cache.Replace(_fallback);
-        Track(ReloadDatabaseAsync(_lifetime.Token));
+        Track(ReloadFromSourcesAsync(_lifetime.Token));
     }
 
-    public void OnMapLoaded()
+    public void OnMapEnded()
     {
         if (Volatile.Read(ref _stopped) != 0)
         {
             return;
         }
 
-        Track(ReloadDatabaseAsync(_lifetime.Token));
+        Track(ReloadFromSourcesAsync(_lifetime.Token));
     }
 
     public Task<(bool Success, string Message)> ReloadNowAsync()
     {
-        var task = ReloadDatabaseAsync(_lifetime.Token);
+        var task = ReloadFromSourcesAsync(_lifetime.Token);
         Track(task);
         return task;
     }
 
-    private async Task<(bool Success, string Message)> ReloadDatabaseAsync(CancellationToken cancellationToken)
+    private async Task<(bool Success, string Message)> ReloadFromSourcesAsync(
+        CancellationToken cancellationToken)
     {
         try
         {
@@ -70,35 +50,48 @@ internal sealed class LocalizationCoordinator(
 
         try
         {
-            var snapshot = await databaseProvider.LoadAsync(cancellationToken);
-            cache.Replace(snapshot);
-            return (true, $"Snapshot обновлён: {snapshot.Entries.Count} ключей.");
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            return (false, "Localization reload cancelled.");
-        }
-        catch (Exception exception)
-        {
-            var current = cache.Current;
-            if (current?.Settings.LocalCacheEnabled == true)
+            try
             {
-                if (current.Source == LocalizationSource.Database)
+                var databaseSnapshot = await databaseProvider.LoadAsync(cancellationToken);
+                cache.Replace(databaseSnapshot);
+                return (
+                    true,
+                    $"Snapshot из PostgreSQL обновлён: {databaseSnapshot.Entries.Count} ключей.");
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                return (false, "Localization reload cancelled.");
+            }
+            catch (Exception databaseException)
+            {
+                try
                 {
-                    cache.Replace(current.AsCache());
+                    var configSnapshot = fallbackProvider.Load();
+                    cache.Replace(configSnapshot);
+                    rateLimitedLogger.Warning(
+                        "database:fallback-config",
+                        TimeSpan.FromMinutes(2),
+                        "[Localization] PostgreSQL недоступен или snapshot невалиден: {DatabaseError}. " +
+                        "В memory cache загружен localization.json.",
+                        databaseException.Message);
+                    return (
+                        true,
+                        $"PostgreSQL недоступен; загружен localization.json: {configSnapshot.Entries.Count} ключей.");
+                }
+                catch (Exception configException)
+                {
+                    rateLimitedLogger.Warning(
+                        "sources:unavailable",
+                        TimeSpan.FromMinutes(2),
+                        "[Localization] Не удалось обновить memory cache. PostgreSQL: {DatabaseError}. " +
+                        "localization.json: {ConfigError}. Текущий snapshot сохранён без изменений.",
+                        databaseException.Message,
+                        configException.Message);
+                    return (
+                        false,
+                        "PostgreSQL и localization.json недоступны; текущий snapshot сохранён.");
                 }
             }
-            else
-            {
-                cache.Replace(_fallback);
-            }
-
-            rateLimitedLogger.Warning(
-                "database:unavailable",
-                TimeSpan.FromMinutes(2),
-                "[Localization] PostgreSQL недоступен или snapshot невалиден: {Error}. Сохранён LKG/fallback.",
-                exception.Message);
-            return (false, "Reload failed. LKG/fallback preserved.");
         }
         finally
         {
