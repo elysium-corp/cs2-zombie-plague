@@ -39,18 +39,18 @@ public sealed class EquipmentLocalizationDefaultsTests
         Assert.Equal(expectedCategoryKeys, categoryKeys);
         Assert.All(snapshot.Categories, category => Assert.Null(category.DescriptionKey));
         Assert.Equal(
-            "Equipment.Item.custom_equipment.armor.Name",
+            "Equipment.Item.Custom.Equipment.Armor.Name",
             snapshot.Products[EquipmentShopProductKeys.Armor].DisplayNameKey
         );
     }
 
     [Theory]
-    [InlineData(GameplayItemKeys.BarrierNade, "Equipment.Item.custom_equipment.barrier_nade.Name")]
-    [InlineData(GameplayItemKeys.FireNade, "Equipment.Item.custom_equipment.fire_nade.Name")]
-    [InlineData(GameplayItemKeys.FrostNade, "Equipment.Item.custom_equipment.frost_nade.Name")]
-    [InlineData(GameplayItemKeys.JumpNade, "Equipment.Item.custom_equipment.jump_nade.Name")]
-    [InlineData(GameplayItemKeys.ShakeNade, "Equipment.Item.custom_equipment.shake_nade.Name")]
-    [InlineData(GameplayItemKeys.LaserMine, "Equipment.Item.custom_equipment.laser_mine.Name")]
+    [InlineData(GameplayItemKeys.BarrierNade, "Equipment.Item.Custom.Equipment.Barrier.Nade.Name")]
+    [InlineData(GameplayItemKeys.FireNade, "Equipment.Item.Custom.Equipment.Fire.Nade.Name")]
+    [InlineData(GameplayItemKeys.FrostNade, "Equipment.Item.Custom.Equipment.Frost.Nade.Name")]
+    [InlineData(GameplayItemKeys.JumpNade, "Equipment.Item.Custom.Equipment.Jump.Nade.Name")]
+    [InlineData(GameplayItemKeys.ShakeNade, "Equipment.Item.Custom.Equipment.Shake.Nade.Name")]
+    [InlineData(GameplayItemKeys.LaserMine, "Equipment.Item.Custom.Equipment.Laser.Mine.Name")]
     public void GameplayDefaults_ReuseExistingLocalizationKeys(
         string implementationKey,
         string expectedKey

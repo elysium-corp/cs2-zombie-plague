@@ -74,10 +74,12 @@ internal sealed class AddEquipmentLocalizationEntries : Migration
 
         foreach (var key in RequiredKeys)
         {
-            if (!entries.TryGetValue(key, out var translations))
+            var seedKey = Localization.Api.LocalizationKey.Canonicalize(key);
+
+            if (!entries.TryGetValue(seedKey, out var translations))
             {
                 throw new InvalidOperationException(
-                    $"Встроенный ключ локализации '{key}' отсутствует."
+                    $"Встроенный ключ локализации '{seedKey}' отсутствует."
                 );
             }
 

@@ -18,7 +18,7 @@ public sealed class LocalizationRuntimeTests
             languageResolver,
             new RateLimitedLocalizationLogger(NullLogger.Instance));
 
-        var text = runtime.GetForLanguage("de", "economy.errors.insufficient_money", null);
+        var text = runtime.GetForLanguage("de", "Economy.Errors.Insufficient.Money", null);
 
         Assert.Equal("Недостаточно средств", text);
     }
@@ -35,7 +35,7 @@ public sealed class LocalizationRuntimeTests
 
         var text = runtime.GetForLanguage(
             "en",
-            "test.reward",
+            "Test.Reward",
             new Dictionary<string, string> { ["points"] = "15" });
 
         Assert.Equal("[green]+15[default][/]", text);
@@ -53,26 +53,26 @@ public sealed class LocalizationRuntimeTests
 
         var valid = runtime.FormatForLanguage(
             "en",
-            "test.reward",
+            "Test.Reward",
             new Dictionary<string, object?> { ["points"] = 15 });
         var validString = runtime.FormatForLanguage(
             "en",
-            "test.reward",
+            "Test.Reward",
             new Dictionary<string, object?> { ["points"] = "15" });
         var invalid = runtime.FormatForLanguage(
             "en",
-            "test.reward",
+            "Test.Reward",
             new Dictionary<string, object?> { ["points"] = "fifteen" });
         var missing = runtime.FormatForLanguage(
             "en",
-            "test.reward",
+            "Test.Reward",
             new Dictionary<string, object?>());
 
         Assert.Equal("[green]+15[default][/]", valid);
         Assert.Equal("[green]+15[default][/]", validString);
         Assert.Null(invalid);
         Assert.Null(missing);
-        Assert.Equal(LocalizationParameterType.Integer, runtime.GetParameterDefinitions("test.reward")[0].Type);
+        Assert.Equal(LocalizationParameterType.Integer, runtime.GetParameterDefinitions("Test.Reward")[0].Type);
         Assert.False(LocalizationParameterSchema.TryFormatValue(
             LocalizationParameterType.String,
             15,
@@ -89,7 +89,7 @@ public sealed class LocalizationRuntimeTests
             new LanguageResolver(cache, new PlayerLanguageCache()),
             new RateLimitedLocalizationLogger(NullLogger.Instance));
 
-        var text = runtime.GetForLanguage("ru", "test.vip", null);
+        var text = runtime.GetForLanguage("ru", "Test.Vip", null);
 
         Assert.Equal("[gold]VIP игрок[default][/]", text);
     }
@@ -106,7 +106,7 @@ public sealed class LocalizationRuntimeTests
 
         var text = runtime.FormatForLanguage(
             "en",
-            "test.player",
+            "Test.Player",
             new Dictionary<string, object?>
             {
                 ["nickname"] = "[red]{warning}fdrinv{/warning}[/]",
@@ -125,11 +125,11 @@ public sealed class LocalizationRuntimeTests
             new LanguageResolver(cache, new PlayerLanguageCache()),
             new RateLimitedLocalizationLogger(NullLogger.Instance));
 
-        var english = runtime.GetTagForLanguage("en", "elysium");
-        var fallback = runtime.GetTagForLanguage("de", "elysium");
+        var english = runtime.GetTagForLanguage("en", "Elysium");
+        var fallback = runtime.GetTagForLanguage("de", "Elysium");
 
-        Assert.Equal(new LocalizationTag("elysium", "Elysium", "purple"), english);
-        Assert.Equal(new LocalizationTag("elysium", "Элизиум", "purple"), fallback);
+        Assert.Equal(new LocalizationTag("Elysium", "Elysium", "purple"), english);
+        Assert.Equal(new LocalizationTag("Elysium", "Элизиум", "purple"), fallback);
         Assert.Null(runtime.GetTagForLanguage("ru", "missing"));
     }
 
@@ -145,7 +145,7 @@ public sealed class LocalizationRuntimeTests
         {
             CreateEntry(
                 1,
-                "economy.errors.insufficient_money",
+                "Economy.Errors.Insufficient.Money",
                 new Dictionary<string, string>
                 {
                     ["ru"] = "Недостаточно средств",
@@ -153,7 +153,7 @@ public sealed class LocalizationRuntimeTests
                 }),
             CreateEntry(
                 2,
-                "test.reward",
+                "Test.Reward",
                 new Dictionary<string, string>
                 {
                     ["ru"] = "{success}+{points}{/success}",
@@ -167,7 +167,7 @@ public sealed class LocalizationRuntimeTests
                     "15")]),
             CreateEntry(
                 3,
-                "test.vip",
+                "Test.Vip",
                 new Dictionary<string, string>
                 {
                     ["ru"] = "{vip}VIP игрок{/vip}",
@@ -175,7 +175,7 @@ public sealed class LocalizationRuntimeTests
                 }),
             CreateEntry(
                 4,
-                "test.player",
+                "Test.Player",
                 new Dictionary<string, string>
                 {
                     ["ru"] = "Игрок: {nickname}",
@@ -189,7 +189,7 @@ public sealed class LocalizationRuntimeTests
                     "fdrinv")]),
             CreateEntry(
                 5,
-                "Tags.elysium",
+                "Tag.Elysium",
                 new Dictionary<string, string>
                 {
                     ["ru"] = "Элизиум",
@@ -212,7 +212,7 @@ public sealed class LocalizationRuntimeTests
             entries,
             new[]
             {
-                new LocalizationTagState(1, "elysium", "Tags.elysium", "purple", true, 0),
+                new LocalizationTagState(1, "Elysium", "Tag.Elysium", "purple", true, 0),
             }.ToFrozenDictionary(tag => tag.Key, StringComparer.OrdinalIgnoreCase),
             DateTimeOffset.UtcNow,
             LocalizationSource.Database);

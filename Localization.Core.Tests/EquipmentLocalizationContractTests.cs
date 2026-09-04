@@ -14,8 +14,9 @@ public sealed class EquipmentLocalizationContractTests
     private const string FeatureMigration = "20260901223000_AddEquipmentLocalizationEntries";
     private const string TagCleanupMigration = "20260904090000_RemoveAdvertisementTagLocalizationEntries";
     private const string TagOwnershipMigration = "20260904120000_OwnAdvertisementTags";
+    private const string NormalizeMigration = "20260904150000_NormalizeKeysAndTrackFallback";
 
-    private static readonly string[] RequiredKeys =
+    private static readonly string[] LegacyRequiredKeys =
     [
         "Menu.Main.Item.Knife.Title",
         "Menu.Knife.Title",
@@ -74,6 +75,10 @@ public sealed class EquipmentLocalizationContractTests
         "Ammo.Warning.EnoughAmmo",
     ];
 
+    private static readonly string[] RequiredKeys = LegacyRequiredKeys
+        .Select(Localization.Api.LocalizationKey.Canonicalize)
+        .ToArray();
+
     [Fact]
     public void FallbackTemplate_ContainsRequiredEquipmentAndKnifeTranslations()
     {
@@ -104,7 +109,9 @@ public sealed class EquipmentLocalizationContractTests
     )
     {
         var snapshot = FallbackLocalizationProvider.Load(ReadFallbackConfig());
-        var entry = snapshot.Entries[$"Equipment.Item.custom_equipment.{weaponId}.Name"];
+        var entry = snapshot.Entries[
+            Localization.Api.LocalizationKey.Canonicalize(
+                $"Equipment.Item.custom_equipment.{weaponId}.Name")];
 
         Assert.Equal(displayName, entry.Translations["ru"]);
         Assert.Equal(displayName, entry.Translations["en"]);
@@ -115,7 +122,7 @@ public sealed class EquipmentLocalizationContractTests
     {
         var script = GenerateScript(PreviousMigration, FeatureMigration);
 
-        foreach (var key in RequiredKeys)
+        foreach (var key in LegacyRequiredKeys)
         {
             Assert.Contains($"'{key}'", script);
             Assert.Contains(
@@ -125,11 +132,11 @@ public sealed class EquipmentLocalizationContractTests
         }
 
         Assert.Equal(
-            RequiredKeys.Length,
+            LegacyRequiredKeys.Length,
             CountOccurrences(script, "WITH inserted_entry AS")
         );
         Assert.Equal(
-            RequiredKeys.Length,
+            LegacyRequiredKeys.Length,
             CountOccurrences(script, "FROM inserted_entry AS inserted")
         );
         Assert.Contains("ON CONFLICT (key) DO NOTHING", script);
@@ -178,6 +185,19 @@ public sealed class EquipmentLocalizationContractTests
         Assert.Contains("REFERENCES localization.tags(key)", script);
         Assert.Contains("DROP TABLE IF EXISTS advertisement.tag_translations", script);
         Assert.Contains("DROP TABLE IF EXISTS advertisement.tags", script);
+    }
+
+    [Fact]
+    public void NormalizeMigration_UsesCanonicalImmutableKeysAndTracksFallbackExport()
+    {
+        var script = GenerateScript(TagOwnershipMigration, NormalizeMigration);
+
+        Assert.Contains("fallback_exported_version", script);
+        Assert.Contains("localization.canonicalize_key", script);
+        Assert.Contains("'Tag.' || localization.canonicalize_key", script);
+        Assert.Contains("entries_key_ci_unique", script);
+        Assert.Contains("entries_key_immutable", script);
+        Assert.Contains("entries_key_advertisement_unique", script);
     }
 
     private static string GenerateScript(string fromMigration, string toMigration)

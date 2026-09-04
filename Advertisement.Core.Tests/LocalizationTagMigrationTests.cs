@@ -12,6 +12,7 @@ public sealed class LocalizationTagMigrationTests
 {
     private const string PreviousMigration = "20260831030000_ReferenceLocalizationKeys";
     private const string FeatureMigration = "20260904121000_ReferenceLocalizationTags";
+    private const string NormalizeMigration = "20260904151000_NormalizeKeysAndTrackFallback";
 
     [Fact]
     public void UpgradeScript_KeepsOnlyTagKeyReferenceInAdvertisementModel()
@@ -48,5 +49,26 @@ public sealed class LocalizationTagMigrationTests
         Assert.DoesNotContain(
             context.Model.GetEntityTypes(),
             entity => entity.ClrType.Name.Contains("AdvertisementTag", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void NormalizeMigration_UsesCanonicalImmutableKeysAndTracksFallbackExport()
+    {
+        var options = new DbContextOptionsBuilder<AdvertisementDbContext>()
+            .UseNpgsql("Host=localhost;Database=advertisement_migration_test;Username=test;Password=test")
+            .Options;
+        using var context = new AdvertisementDbContext(options);
+
+        var script = context.GetService<IMigrator>().GenerateScript(FeatureMigration, NormalizeMigration);
+
+        Assert.Contains("fallback_exported_version", script);
+        Assert.Contains("advertisement.canonicalize_key", script);
+        Assert.Contains("messages_key_ci_unique", script);
+        Assert.Contains("messages_key_immutable", script);
+        Assert.Contains("messages_key_localization_unique", script);
+        Assert.Contains("messages_bump_configuration_version", script);
+
+        var settings = context.Model.FindEntityType(typeof(AdvertisementSettingsEntity))!;
+        Assert.NotNull(settings.FindProperty(nameof(AdvertisementSettingsEntity.FallbackExportedVersion)));
     }
 }

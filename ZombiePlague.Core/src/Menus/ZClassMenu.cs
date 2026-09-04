@@ -129,7 +129,7 @@ internal sealed class ZClassMenu(
     {
         return localization().GetForPlayer(
                    player,
-                   $"ZombiePlague.ZClass.{zClass.InternalName}.{field}")
+                   $"ZombiePlague.ZClass.{LocalizationKey.Canonicalize(zClass.InternalName)}.{field}")
                ?? fallback;
     }
 }

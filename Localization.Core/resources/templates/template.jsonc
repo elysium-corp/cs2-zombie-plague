@@ -2,7 +2,7 @@
   "schemaVersion": 4,
   "version": 5,
   "generatedAt": "2026-09-04T12:00:00Z",
-  "checksum": "sha256:3516bfb288fb83ff6d2443150cd64c8ccdfb9d08c5bbb6cb1c3a69a04bacf562",
+  "checksum": "sha256:2eb264d158cd39043f4a3a3cf02f1d33b6c0532e64963547710d886fef5cfa3a",
   "serverFallbackLanguage": "ru",
   "languages": [
     "ru",
@@ -22,7 +22,7 @@
     "muted": "gray"
   },
   "tags": {
-    "elysium": {
+    "Elysium": {
       "color": "purple",
       "enabled": true,
       "sortOrder": 0
@@ -30,35 +30,35 @@
   },
   "parameters": {},
   "entries": {
-    "localization.menu.title": {
+    "Localization.Menu.Title": {
       "ru": "Язык / Language",
       "en": "Language",
       "de": "Sprache",
       "pl": "Język"
     },
-    "localization.menu.changed": {
+    "Localization.Menu.Changed": {
       "ru": "Язык изменён на {language}",
       "en": "Language changed to {language}",
       "de": "Sprache geändert zu {language}",
       "pl": "Zmieniono język na {language}"
     },
-    "localization.menu.loading": {
+    "Localization.Menu.Loading": {
       "ru": "Локализация ещё загружается",
       "en": "Localization is still loading",
       "de": "Die Lokalisierung wird noch geladen",
       "pl": "Lokalizacja wciąż się ładuje"
     },
-    "localization.menu.unavailable": {
+    "Localization.Menu.Unavailable": {
       "ru": "Не удалось изменить язык. Попробуйте позже",
       "en": "Unable to change language. Try again later",
       "de": "Die Sprache konnte nicht geändert werden. Versuche es später erneut",
       "pl": "Nie udało się zmienić języka. Spróbuj ponownie później"
     },
-    "advertisement.messages.discord": {
+    "Advertisement.Messages.Discord": {
       "ru": "Наш Discord: {accent}discord.gg/elysium{/accent}",
       "en": "Our Discord: {accent}discord.gg/elysium{/accent}"
     },
-    "Tags.elysium": {
+    "Tag.Elysium": {
       "ru": "Elysium",
       "en": "Elysium",
       "de": "Elysium",
@@ -224,67 +224,67 @@
       "ru": "Здесь нельзя установить лазерную мину",
       "en": "The laser mine cannot be placed here"
     },
-    "Equipment.Item.custom_equipment.laser_mine.Name": {
+    "Equipment.Item.Custom.Equipment.Laser.Mine.Name": {
       "ru": "Лазерная мина",
       "en": "Laser Mine"
     },
-    "Equipment.Item.custom_equipment.shake_nade.Name": {
+    "Equipment.Item.Custom.Equipment.Shake.Nade.Name": {
       "ru": "Сотрясающая граната",
       "en": "Shake Nade"
     },
-    "Equipment.Item.custom_equipment.jump_nade.Name": {
+    "Equipment.Item.Custom.Equipment.Jump.Nade.Name": {
       "ru": "Прыжковая граната",
       "en": "Jump Nade"
     },
-    "Equipment.Item.custom_equipment.barrier_nade.Name": {
+    "Equipment.Item.Custom.Equipment.Barrier.Nade.Name": {
       "ru": "Барьерная граната",
       "en": "Barrier Nade"
     },
-    "Equipment.Item.custom_equipment.frost_nade.Name": {
+    "Equipment.Item.Custom.Equipment.Frost.Nade.Name": {
       "ru": "Замораживающая граната",
       "en": "Frost Nade"
     },
-    "Equipment.Item.custom_equipment.fire_nade.Name": {
+    "Equipment.Item.Custom.Equipment.Fire.Nade.Name": {
       "ru": "Огненная граната",
       "en": "Fire Nade"
     },
-    "Equipment.Item.custom_equipment.armor.Name": {
+    "Equipment.Item.Custom.Equipment.Armor.Name": {
       "ru": "Броня",
       "en": "Armor"
     },
-    "Equipment.Item.custom_equipment.ajm.Name": {
+    "Equipment.Item.Custom.Equipment.Ajm.Name": {
       "ru": "CZ75 Ajm",
       "en": "CZ75 Ajm"
     },
-    "Equipment.Item.custom_equipment.blackline.Name": {
+    "Equipment.Item.Custom.Equipment.Blackline.Name": {
       "ru": "MP9 Blackline",
       "en": "MP9 Blackline"
     },
-    "Equipment.Item.custom_equipment.elite.Name": {
+    "Equipment.Item.Custom.Equipment.Elite.Name": {
       "ru": "SSG Elite",
       "en": "SSG Elite"
     },
-    "Equipment.Item.custom_equipment.frostbyte.Name": {
+    "Equipment.Item.Custom.Equipment.Frostbyte.Name": {
       "ru": "MP7 Frostbyte",
       "en": "MP7 Frostbyte"
     },
-    "Equipment.Item.custom_equipment.lava.Name": {
+    "Equipment.Item.Custom.Equipment.Lava.Name": {
       "ru": "AK47 Lava",
       "en": "AK47 Lava"
     },
-    "Equipment.Item.custom_equipment.omega.Name": {
+    "Equipment.Item.Custom.Equipment.Omega.Name": {
       "ru": "Omega Shotgun",
       "en": "Omega Shotgun"
     },
-    "Equipment.Item.custom_equipment.reactorleak.Name": {
+    "Equipment.Item.Custom.Equipment.Reactorleak.Name": {
       "ru": "UMP45 ReactorLeak",
       "en": "UMP45 ReactorLeak"
     },
-    "Equipment.Item.custom_equipment.reaver.Name": {
+    "Equipment.Item.Custom.Equipment.Reaver.Name": {
       "ru": "Deagle Reaver",
       "en": "Deagle Reaver"
     },
-    "Equipment.Item.custom_equipment.x3.Name": {
+    "Equipment.Item.Custom.Equipment.X3.Name": {
       "ru": "M4A1-S X3",
       "en": "M4A1-S X3"
     },
@@ -580,19 +580,19 @@
       "ru": "Следующий раунд: {round}. Условия будут проверены перед запуском.",
       "en": "Next round: {round}. Its conditions will be checked before start."
     },
-    "ZombiePlague.Round.infection.Name": {
+    "ZombiePlague.Round.Infection.Name": {
       "ru": "Инфекция",
       "en": "Infection"
     },
-    "ZombiePlague.Round.plague.Name": {
+    "ZombiePlague.Round.Plague.Name": {
       "ru": "Чума",
       "en": "Plague"
     },
-    "ZombiePlague.Round.nemesis.Name": {
+    "ZombiePlague.Round.Nemesis.Name": {
       "ru": "Немезида",
       "en": "Nemesis"
     },
-    "ZombiePlague.Round.survivor.Name": {
+    "ZombiePlague.Round.Survivor.Name": {
       "ru": "Выживший",
       "en": "Survivor"
     },
@@ -620,87 +620,87 @@
       "ru": "Способность восстановится через {seconds} сек.",
       "en": "Ability ready in {seconds} sec."
     },
-    "ZombiePlague.ZClass.zombie_cleric.Name": {
+    "ZombiePlague.ZClass.Zombie.Cleric.Name": {
       "ru": "Клирик",
       "en": "Cleric"
     },
-    "ZombiePlague.ZClass.zombie_cleric.Description": {
+    "ZombiePlague.ZClass.Zombie.Cleric.Description": {
       "ru": "Лечит зомби",
       "en": "Heals zombies"
     },
-    "ZombiePlague.ZClass.zombie_hunter.Name": {
+    "ZombiePlague.ZClass.Zombie.Hunter.Name": {
       "ru": "Охотник",
       "en": "Hunter"
     },
-    "ZombiePlague.ZClass.zombie_hunter.Description": {
+    "ZombiePlague.ZClass.Zombie.Hunter.Description": {
       "ru": "Устанавливает ловушки",
       "en": "Places traps"
     },
-    "ZombiePlague.ZClass.zombie_assassin.Name": {
+    "ZombiePlague.ZClass.Zombie.Assassin.Name": {
       "ru": "Ассасин",
       "en": "Assassin"
     },
-    "ZombiePlague.ZClass.zombie_assassin.Description": {
+    "ZombiePlague.ZClass.Zombie.Assassin.Description": {
       "ru": "Ускоряется",
       "en": "Can charge"
     },
-    "ZombiePlague.ZClass.zombie_heavy.Name": {
+    "ZombiePlague.ZClass.Zombie.Heavy.Name": {
       "ru": "Тяжёлый",
       "en": "Heavy"
     },
-    "ZombiePlague.ZClass.zombie_heavy.Description": {
+    "ZombiePlague.ZClass.Zombie.Heavy.Description": {
       "ru": "Ослепляет людей",
       "en": "Blinds humans"
     },
-    "ZombiePlague.ZClass.zombie_smoker.Name": {
+    "ZombiePlague.ZClass.Zombie.Smoker.Name": {
       "ru": "Курильщик",
       "en": "Smoker"
     },
-    "ZombiePlague.ZClass.zombie_smoker.Description": {
+    "ZombiePlague.ZClass.Zombie.Smoker.Description": {
       "ru": "Притягивает людей",
       "en": "Pulls humans"
     },
-    "ZombiePlague.ZClass.zombie_nemesis.Name": {
+    "ZombiePlague.ZClass.Zombie.Nemesis.Name": {
       "ru": "Немезида",
       "en": "Nemesis"
     },
-    "ZombiePlague.ZClass.zombie_nemesis.Description": {
+    "ZombiePlague.ZClass.Zombie.Nemesis.Description": {
       "ru": "Убивает одним ударом",
       "en": "Kills with one hit"
     },
-    "CustomKnife.knife_piercer.Name": {
+    "CustomKnife.Knife.Piercer.Name": {
       "ru": "Пронзатель",
       "en": "Piercer"
     },
-    "CustomKnife.knife_piercer.Description": {
+    "CustomKnife.Knife.Piercer.Description": {
       "ru": "Усиленная отдача",
       "en": "Increased knockback"
     },
-    "CustomKnife.knife_spike.Name": {
+    "CustomKnife.Knife.Spike.Name": {
       "ru": "Шип",
       "en": "Spike"
     },
-    "CustomKnife.knife_spike.Description": {
+    "CustomKnife.Knife.Spike.Description": {
       "ru": "Повышенная скорость",
       "en": "Increased speed"
     },
-    "CustomKnife.knife_axe.Name": {
+    "CustomKnife.Knife.Axe.Name": {
       "ru": "Топор",
       "en": "Axe"
     },
-    "CustomKnife.knife_axe.Description": {
+    "CustomKnife.Knife.Axe.Description": {
       "ru": "Пониженная гравитация",
       "en": "Reduced gravity"
     },
-    "CustomKnife.knife_katana.Name": {
+    "CustomKnife.Knife.Katana.Name": {
       "ru": "Катана",
       "en": "Katana"
     },
-    "CustomKnife.knife_katana.Description": {
+    "CustomKnife.Knife.Katana.Description": {
       "ru": "VIP-нож",
       "en": "VIP knife"
     },
-    "RoundRatingNotify.prefix": {
+    "RoundRatingNotify.Prefix": {
       "ru": "[[green]Elysium[default]]",
       "en": "[[green]Elysium[default]]"
     },

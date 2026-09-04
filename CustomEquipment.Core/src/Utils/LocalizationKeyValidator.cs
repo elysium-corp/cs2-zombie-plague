@@ -19,11 +19,11 @@ internal static class LocalizationKeyValidator
 
         var key = value.Trim();
 
-        if (key.Length is < 2 or > MaximumLength ||
-            !char.IsAsciiLetterOrDigit(key[0]) ||
-            key.Skip(1).Any(character =>
-                !char.IsAsciiLetterOrDigit(character) &&
-                character is not '_' and not '.' and not '-'))
+        if (key.Length > MaximumLength ||
+            key.Split('.').Any(segment =>
+                segment.Length == 0 ||
+                !(segment[0] is >= 'A' and <= 'Z' || char.IsAsciiDigit(segment[0])) ||
+                segment.Skip(1).Any(character => !char.IsAsciiLetterOrDigit(character))))
         {
             throw new InvalidOperationException($"{field} is not a valid localization key.");
         }

@@ -13,10 +13,10 @@ internal static partial class LocalizationValidation
 
     public static readonly FrozenSet<string> CriticalKeys = new[]
     {
-        "localization.menu.title",
-        "localization.menu.changed",
-        "localization.menu.loading",
-        "localization.menu.unavailable",
+        "Localization.Menu.Title",
+        "Localization.Menu.Changed",
+        "Localization.Menu.Loading",
+        "Localization.Menu.Unavailable",
     }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
     private static readonly FrozenSet<string> MarkupTags = new[]
@@ -169,8 +169,8 @@ internal static partial class LocalizationValidation
                     $"Тег '{tag.Key}' использует неподдерживаемый цвет '{tag.Color}'.");
             }
 
-            var expectedLocalizationKey = $"Tags.{tag.Key}";
-            if (!string.Equals(tag.LocalizationKey, expectedLocalizationKey, StringComparison.OrdinalIgnoreCase)
+            var expectedLocalizationKey = $"Tag.{tag.Key}";
+            if (!string.Equals(tag.LocalizationKey, expectedLocalizationKey, StringComparison.Ordinal)
                 || !snapshot.Entries.TryGetValue(tag.LocalizationKey, out var entry))
             {
                 throw new InvalidDataException(
@@ -197,7 +197,7 @@ internal static partial class LocalizationValidation
                     $"Тег '{tagKey}' использует неподдерживаемый цвет '{tag.Color}'.");
             }
 
-            var localizationKey = $"Tags.{tagKey}";
+            var localizationKey = $"Tag.{tagKey}";
             if (!entries.TryGetValue(localizationKey, out var values))
             {
                 throw new InvalidDataException(
@@ -213,10 +213,10 @@ internal static partial class LocalizationValidation
 
     private static void ValidateTagKey(string key)
     {
-        if (string.IsNullOrWhiteSpace(key) || !TagKeyRegex().IsMatch(key))
+        if (string.IsNullOrWhiteSpace(key) || key.Length > 64 || !TagKeyRegex().IsMatch(key))
         {
             throw new InvalidDataException(
-                $"Некорректный ключ тега '{key}': ожидается строчная латиница, цифры, точка, дефис или подчёркивание.");
+                $"Некорректный ключ тега '{key}': слова должны разделяться точкой и начинаться с заглавной латинской буквы.");
         }
     }
 
@@ -286,7 +286,7 @@ internal static partial class LocalizationValidation
 
     private static void ValidateKey(string key)
     {
-        if (string.IsNullOrWhiteSpace(key) || !KeyRegex().IsMatch(key))
+        if (string.IsNullOrWhiteSpace(key) || key.Length > 191 || !KeyRegex().IsMatch(key))
         {
             throw new InvalidDataException($"Некорректный ключ локализации '{key}'.");
         }
@@ -391,10 +391,10 @@ internal static partial class LocalizationValidation
         return stack.Count == 0;
     }
 
-    [GeneratedRegex("^[a-z0-9][a-z0-9_.-]{1,190}$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    [GeneratedRegex(@"^[A-Z0-9][A-Za-z0-9]*(\.[A-Z0-9][A-Za-z0-9]*)*$", RegexOptions.CultureInvariant)]
     private static partial Regex KeyRegex();
 
-    [GeneratedRegex("^[a-z0-9][a-z0-9_.-]{0,63}$", RegexOptions.CultureInvariant)]
+    [GeneratedRegex(@"^[A-Z0-9][A-Za-z0-9]*(\.[A-Z0-9][A-Za-z0-9]*)*$", RegexOptions.CultureInvariant)]
     private static partial Regex TagKeyRegex();
 
     [GeneratedRegex(@"\{(?<name>[a-z][a-z0-9_]*)\}", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
@@ -484,7 +484,7 @@ internal static class FallbackConfigChecksum
             foreach (var tag in config.Tags.OrderBy(item => item.Key, StringComparer.Ordinal))
             {
                 Append(builder, "tagKey", tag.Key);
-                Append(builder, "tagLocalizationKey", $"Tags.{tag.Key}");
+                Append(builder, "tagLocalizationKey", $"Tag.{tag.Key}");
                 Append(builder, "tagColor", tag.Value.Color.Trim().ToLowerInvariant());
                 Append(builder, "tagEnabled", tag.Value.Enabled ? "1" : "0");
                 Append(builder, "tagSortOrder", tag.Value.SortOrder.ToString(CultureInfo.InvariantCulture));

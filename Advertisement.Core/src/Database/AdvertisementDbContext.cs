@@ -42,6 +42,7 @@ internal sealed class AdvertisementDbContext(DbContextOptions<AdvertisementDbCon
         entity.Property(x => x.OrderMode).HasDefaultValue("sequential");
         entity.Property(x => x.ExcludeBotsFromPlayers).HasDefaultValue(true);
         entity.Property(x => x.ConfigurationVersion).HasDefaultValue(1L);
+        entity.Property(x => x.FallbackExportedVersion).HasDefaultValue(0L);
         entity.Property(x => x.CreatedAt).HasDefaultValueSql(PostgreSqlCurrentTimestamp);
         entity.Property(x => x.UpdatedAt).HasDefaultValueSql(PostgreSqlCurrentTimestamp);
 
@@ -56,6 +57,9 @@ internal sealed class AdvertisementDbContext(DbContextOptions<AdvertisementDbCon
                 table.HasCheckConstraint(
                     "ck_advertisement_settings_order_mode",
                     "order_mode IN ('sequential', 'random', 'weighted_random')");
+                table.HasCheckConstraint(
+                    "ck_advertisement_settings_fallback_exported_version",
+                    "fallback_exported_version >= 0");
             });
     }
 
@@ -112,6 +116,9 @@ internal sealed class AdvertisementDbContext(DbContextOptions<AdvertisementDbCon
                 table.HasCheckConstraint(
                     "ck_advertisement_messages_time_range",
                     "starts_at IS NULL OR ends_at IS NULL OR starts_at < ends_at");
+                table.HasCheckConstraint(
+                    "ck_advertisement_messages_key_format",
+                    @"key ~ '^[A-Z0-9][A-Za-z0-9]*(\.[A-Z0-9][A-Za-z0-9]*)*$'");
             });
 
         entity.HasIndex(x => x.Key)

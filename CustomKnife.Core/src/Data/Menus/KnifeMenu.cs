@@ -128,9 +128,9 @@ internal sealed class KnifeMenu(
             {
                 "Name" => localizedKnife.DisplayNameKey,
                 "Description" => localizedKnife.DescriptionKey,
-                _ => $"CustomKnife.{knife.InternalName.Replace(':', '.')}.{field}"
+                _ => $"CustomKnife.{LocalizationKey.Canonicalize(knife.InternalName)}.{field}"
             }
-            : $"CustomKnife.{knife.InternalName.Replace(':', '.')}.{field}";
+            : $"CustomKnife.{LocalizationKey.Canonicalize(knife.InternalName)}.{field}";
 
         return localization.GetForPlayer(player, key) ?? fallback;
     }

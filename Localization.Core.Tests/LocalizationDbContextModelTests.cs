@@ -57,6 +57,21 @@ public sealed class LocalizationDbContextModelTests
     }
 
     [Fact]
+    public void Settings_TrackLastExportedFallbackVersion()
+    {
+        var options = new DbContextOptionsBuilder<LocalizationDbContext>()
+            .UseNpgsql("Host=localhost;Database=metadata;Username=metadata;Password=metadata")
+            .Options;
+        using var context = new LocalizationDbContext(options);
+
+        var property = context.Model
+            .FindEntityType(typeof(LocalizationSettingsEntity))!
+            .FindProperty(nameof(LocalizationSettingsEntity.FallbackExportedVersion))!;
+
+        Assert.Equal(0L, Assert.IsType<long>(property.GetDefaultValue()));
+    }
+
+    [Fact]
     public void LocalizationTag_ReferencesAnEntryByLocalizationKey()
     {
         var options = new DbContextOptionsBuilder<LocalizationDbContext>()

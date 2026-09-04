@@ -13,10 +13,10 @@ internal sealed class AdvertisementConfig
     [
         new()
         {
-            Key = "discord",
+            Key = "Discord",
             Name = "Discord",
-            LocalizationKey = "advertisement.messages.discord",
-            Tag = "elysium",
+            LocalizationKey = "Advertisement.Messages.Discord",
+            Tag = "Elysium",
         },
     ];
 }

@@ -34,10 +34,14 @@ internal sealed class LocalizationDbContext(DbContextOptions<LocalizationDbConte
             .HasDefaultValueSql(
                 "'{\"default\":\"default\",\"accent\":\"lightblue\",\"warning\":\"red\",\"success\":\"green\",\"important\":\"orange\",\"muted\":\"gray\"}'::jsonb");
         settings.Property(entity => entity.ConfigurationVersion).HasDefaultValue(1L);
+        settings.Property(entity => entity.FallbackExportedVersion).HasDefaultValue(0L);
         settings.ToTable("settings", SchemaName, table =>
         {
             table.HasCheckConstraint("settings_singleton", "id = 1");
             table.HasCheckConstraint("settings_color_tags_object", "jsonb_typeof(color_tags) = 'object'");
+            table.HasCheckConstraint(
+                "settings_fallback_exported_version_valid",
+                "fallback_exported_version >= 0");
         });
 
         var entry = modelBuilder.Entity<LocalizationEntryEntity>();
@@ -46,7 +50,12 @@ internal sealed class LocalizationDbContext(DbContextOptions<LocalizationDbConte
             .HasColumnType("jsonb")
             .HasDefaultValueSql("'[]'::jsonb");
         entry.ToTable("entries", SchemaName, table =>
-            table.HasCheckConstraint("entries_parameters_array", "jsonb_typeof(parameters) = 'array'"));
+        {
+            table.HasCheckConstraint("entries_parameters_array", "jsonb_typeof(parameters) = 'array'");
+            table.HasCheckConstraint(
+                "entries_key_format",
+                @"key ~ '^[A-Z0-9][A-Za-z0-9]*(\.[A-Z0-9][A-Za-z0-9]*)*$'");
+        });
 
         var translation = modelBuilder.Entity<LocalizationTranslationEntity>();
         translation.HasKey(entity => new { entity.EntryId, entity.LanguageCode });
@@ -70,10 +79,10 @@ internal sealed class LocalizationDbContext(DbContextOptions<LocalizationDbConte
         {
             table.HasCheckConstraint(
                 "tags_key_format",
-                "key ~ '^[a-z0-9][a-z0-9_.-]{0,63}$'");
+                @"key ~ '^[A-Z0-9][A-Za-z0-9]*(\.[A-Z0-9][A-Za-z0-9]*)*$'");
             table.HasCheckConstraint(
                 "tags_localization_key_group",
-                "lower(localization_key) = lower('Tags.' || key)");
+                "localization_key = 'Tag.' || key");
         });
         tag.HasOne<LocalizationEntryEntity>()
             .WithMany()
