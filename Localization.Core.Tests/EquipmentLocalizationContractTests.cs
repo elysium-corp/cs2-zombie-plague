@@ -13,6 +13,7 @@ public sealed class EquipmentLocalizationContractTests
     private const string PreviousMigration = "20260831050000_AddLocalizationColorTags";
     private const string FeatureMigration = "20260901223000_AddEquipmentLocalizationEntries";
     private const string TagCleanupMigration = "20260904090000_RemoveAdvertisementTagLocalizationEntries";
+    private const string TagOwnershipMigration = "20260904120000_OwnAdvertisementTags";
 
     private static readonly string[] RequiredKeys =
     [
@@ -163,6 +164,20 @@ public sealed class EquipmentLocalizationContractTests
         Assert.Contains("ON CONFLICT (tag_id, locale) DO UPDATE", script);
         Assert.Contains("DELETE FROM localization.entries", script);
         Assert.Contains("advertisement.tags.%", script);
+    }
+
+    [Fact]
+    public void TagOwnershipMigration_MovesDefinitionsToLocalizationAndLeavesReferencesInAdvertisement()
+    {
+        var script = GenerateScript(TagCleanupMigration, TagOwnershipMigration);
+
+        Assert.Contains("CREATE TABLE IF NOT EXISTS localization.tags", script);
+        Assert.Contains("'Tags.' || lower(tag.key)", script);
+        Assert.Contains("ADD COLUMN IF NOT EXISTS tag_key", script);
+        Assert.Contains("FOREIGN KEY (tag_key)", script);
+        Assert.Contains("REFERENCES localization.tags(key)", script);
+        Assert.Contains("DROP TABLE IF EXISTS advertisement.tag_translations", script);
+        Assert.Contains("DROP TABLE IF EXISTS advertisement.tags", script);
     }
 
     private static string GenerateScript(string fromMigration, string toMigration)

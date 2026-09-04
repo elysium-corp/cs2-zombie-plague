@@ -33,10 +33,19 @@ internal sealed record LocalizationEntry(
     FrozenDictionary<string, string> Translations,
     FrozenDictionary<string, LocalizationParameterDefinition> Parameters);
 
+internal sealed record LocalizationTagState(
+    long Id,
+    string Key,
+    string LocalizationKey,
+    string Color,
+    bool Enabled,
+    int SortOrder);
+
 internal sealed record LocalizationSnapshot(
     LocalizationSettings Settings,
     FrozenDictionary<string, LocalizationLanguageState> Languages,
     FrozenDictionary<string, LocalizationEntry> Entries,
+    FrozenDictionary<string, LocalizationTagState> Tags,
     DateTimeOffset LoadedAt,
     LocalizationSource Source)
 {

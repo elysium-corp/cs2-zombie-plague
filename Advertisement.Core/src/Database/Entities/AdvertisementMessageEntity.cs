@@ -22,8 +22,9 @@ internal sealed class AdvertisementMessageEntity
     [Column("localization_key")]
     public string LocalizationKey { get; set; } = string.Empty;
 
-    [Column("tag_id")]
-    public long? TagId { get; set; }
+    [MaxLength(64)]
+    [Column("tag_key")]
+    public string? TagKey { get; set; }
 
     [MaxLength(32)]
     [Column("type")]
@@ -87,6 +88,5 @@ internal sealed class AdvertisementMessageEntity
     [Column("updated_at")]
     public DateTimeOffset UpdatedAt { get; set; }
 
-    public AdvertisementTagEntity? Tag { get; set; }
     public ICollection<AdvertisementMessageTranslationEntity> Translations { get; set; } = [];
 }

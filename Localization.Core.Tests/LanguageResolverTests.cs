@@ -58,6 +58,7 @@ public sealed class LanguageResolverTests
             new LocalizationSettings("ru", 30, true, 1, LocalizationColorSchema.Defaults),
             languages,
             FrozenDictionary<string, LocalizationEntry>.Empty,
+            FrozenDictionary<string, LocalizationTagState>.Empty,
             DateTimeOffset.UtcNow,
             LocalizationSource.Database);
     }

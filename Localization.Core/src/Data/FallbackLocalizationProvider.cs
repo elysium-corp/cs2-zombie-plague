@@ -55,6 +55,22 @@ internal sealed class FallbackLocalizationProvider(IOptionsMonitor<LocalizationF
                         parameters);
                 },
                 StringComparer.OrdinalIgnoreCase);
+        long tagId = -1;
+        var tags = (config.SchemaVersion >= 4
+                ? config.Tags
+                : new Dictionary<string, LocalizationFallbackTagConfig>(StringComparer.OrdinalIgnoreCase))
+            .OrderBy(item => item.Value.SortOrder)
+            .ThenBy(item => item.Key, StringComparer.OrdinalIgnoreCase)
+            .ToFrozenDictionary(
+                item => item.Key,
+                item => new LocalizationTagState(
+                    tagId--,
+                    item.Key,
+                    $"Tags.{item.Key}",
+                    item.Value.Color.Trim().ToLowerInvariant(),
+                    item.Value.Enabled,
+                    item.Value.SortOrder),
+                StringComparer.OrdinalIgnoreCase);
 
         var snapshot = new LocalizationSnapshot(
             new LocalizationSettings(
@@ -65,6 +81,7 @@ internal sealed class FallbackLocalizationProvider(IOptionsMonitor<LocalizationF
                 colorTags),
             languages,
             entries,
+            tags,
             DateTimeOffset.UtcNow,
             source);
 

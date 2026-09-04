@@ -23,6 +23,10 @@ internal sealed class DatabaseLocalizationProvider(
             .Include(entity => entity.Translations)
             .OrderBy(entity => entity.Key)
             .ToListAsync(cancellationToken);
+        var tagEntities = await context.Tags.AsNoTracking()
+            .OrderBy(entity => entity.SortOrder)
+            .ThenBy(entity => entity.Id)
+            .ToListAsync(cancellationToken);
 
         var languages = languageEntities
             .Select(MapLanguage)
@@ -39,6 +43,13 @@ internal sealed class DatabaseLocalizationProvider(
         var entries = entryEntities
             .Select(entity => MapEntry(entity, languageCodes, enabledLanguageCodes))
             .ToFrozenDictionary(entry => entry.Key, StringComparer.OrdinalIgnoreCase);
+        var tags = tagEntities
+            .Select(MapTag)
+            .GroupBy(tag => tag.Key, StringComparer.OrdinalIgnoreCase)
+            .ToFrozenDictionary(
+                group => group.Key,
+                group => group.Last(),
+                StringComparer.OrdinalIgnoreCase);
         var colorTags = LocalizationColorSchema.FromJson(settingsEntity.ColorTagsJson);
 
         var snapshot = new LocalizationSnapshot(
@@ -50,6 +61,7 @@ internal sealed class DatabaseLocalizationProvider(
                 colorTags),
             languages,
             entries,
+            tags,
             DateTimeOffset.UtcNow,
             LocalizationSource.Database);
 
@@ -85,6 +97,14 @@ internal sealed class DatabaseLocalizationProvider(
                     .Where(item => enabledLanguages.Contains(item.Key))
                     .ToFrozenDictionary(StringComparer.OrdinalIgnoreCase)));
     }
+
+    private static LocalizationTagState MapTag(LocalizationTagEntity entity) => new(
+        entity.Id,
+        entity.Key.Trim(),
+        entity.LocalizationKey.Trim(),
+        entity.Color.Trim().ToLowerInvariant(),
+        entity.Enabled,
+        entity.SortOrder);
 }
 
 internal sealed class PlayerLanguagePreferenceRepository(

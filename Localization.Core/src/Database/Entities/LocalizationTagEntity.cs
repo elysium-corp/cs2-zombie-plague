@@ -2,11 +2,12 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
-namespace Advertisement.Core.Database.Entities;
+namespace Localization.Core.Database.Entities;
 
-[Index(nameof(Key), Name = "tags_key_key", IsUnique = true)]
-[Table("tags", Schema = AdvertisementDbContext.SchemaName)]
-internal sealed class AdvertisementTagEntity
+[Index(nameof(Key), Name = "tags_key_unique", IsUnique = true)]
+[Index(nameof(LocalizationKey), Name = "tags_localization_key_unique", IsUnique = true)]
+[Table("tags", Schema = LocalizationDbContext.SchemaName)]
+internal sealed class LocalizationTagEntity
 {
     [Key]
     [Column("id")]
@@ -15,6 +16,10 @@ internal sealed class AdvertisementTagEntity
     [MaxLength(64)]
     [Column("key")]
     public string Key { get; set; } = string.Empty;
+
+    [MaxLength(191)]
+    [Column("localization_key")]
+    public string LocalizationKey { get; set; } = string.Empty;
 
     [MaxLength(32)]
     [Column("color")]
@@ -31,7 +36,4 @@ internal sealed class AdvertisementTagEntity
 
     [Column("updated_at")]
     public DateTimeOffset UpdatedAt { get; set; }
-
-    public ICollection<AdvertisementTagTranslationEntity> Translations { get; set; } = [];
-    public ICollection<AdvertisementMessageEntity> Messages { get; set; } = [];
 }

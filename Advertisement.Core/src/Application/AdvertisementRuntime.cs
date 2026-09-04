@@ -68,30 +68,16 @@ internal sealed class RateLimitedLogger(ILogger logger)
     }
 }
 
-internal sealed class MarkupRenderer
-{
-    private static readonly HashSet<string> SupportedColors = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "default","white","darkred","lightpurple","green","olive","lime","red","gray","grey",
-        "lightyellow","yellow","silver","bluegrey","lightblue","blue","darkblue","purple","magenta",
-        "lightred","gold","orange",
-    };
-
-    public string NormalizeColor(string? value) =>
-        !string.IsNullOrWhiteSpace(value) && SupportedColors.Contains(value) ? value.ToLowerInvariant() : "default";
-}
-
-internal sealed class AdvertisementSender(
-    Func<ILocalizationApi> localization,
-    MarkupRenderer markupRenderer)
+internal sealed class AdvertisementSender(Func<ILocalizationApi> localization)
 {
     public void Send(AdvertisementSnapshot snapshot, AdvertisementMessage message, IEnumerable<IPlayer> targets,
         int humans, int bots, string serverName, string mapName, string nextMap, int maxPlayers,
-        DateTimeOffset now, AdvertisementTag? tag, string? localeOverride = null)
+        DateTimeOffset now, string? tagKey, string? localeOverride = null)
     {
         foreach (var player in targets)
         {
             if (player.IsFakeClient || !player.IsAuthorized) continue;
+            var localizationApi = localization();
             var parameters = CreateParameters(
                 player,
                 serverName,
@@ -102,19 +88,20 @@ internal sealed class AdvertisementSender(
                 nextMap,
                 now);
             var text = localeOverride is null
-                ? localization().FormatForPlayer(player, message.LocalizationKey, parameters)
-                : localization().FormatForLanguage(localeOverride, message.LocalizationKey, parameters);
+                ? localizationApi.FormatForPlayer(player, message.LocalizationKey, parameters)
+                : localizationApi.FormatForLanguage(localeOverride, message.LocalizationKey, parameters);
             if (text is null) continue;
 
             var output = new StringBuilder(text.Length + 48);
-            if (tag is { Enabled: true })
+            if (!string.IsNullOrWhiteSpace(tagKey))
             {
-                var localizationApi = localization();
-                var tagText = tag.ResolveText(
-                    localeOverride ?? localizationApi.Resolve(player),
-                    localizationApi.ServerFallbackLanguage);
-                if (!string.IsNullOrWhiteSpace(tagText))
-                    output.Append('[').Append(markupRenderer.NormalizeColor(tag.Color)).Append("][").Append(tagText).Append("][/] ");
+                var tag = localeOverride is null
+                    ? localizationApi.GetTagForPlayer(player, tagKey)
+                    : localizationApi.GetTagForLanguage(localeOverride, tagKey);
+                if (tag is not null)
+                {
+                    output.Append('[').Append(tag.Color).Append("][").Append(tag.Text).Append("][/] ");
+                }
             }
             output.Append(text).Append("[/]");
             player.SendMessage(MessageType.Chat, output.ToString().Colored());
@@ -151,7 +138,8 @@ internal sealed class AdvertisementScheduler(
     ISwiftlyCore core,
     AdvertisementCache cache,
     AdvertisementSender sender,
-    AdminAudienceResolver audienceResolver)
+    AdminAudienceResolver audienceResolver,
+    Func<ILocalizationApi> localization)
 {
     private readonly ConcurrentDictionary<long, DateTimeOffset> _lastSent = new();
     private readonly ConcurrentDictionary<string, byte> _dailyOccurrences = new(StringComparer.Ordinal);
@@ -212,7 +200,7 @@ internal sealed class AdvertisementScheduler(
 
         var message = Select(candidates, snapshot.Settings.OrderMode);
         var targets = audienceResolver.Resolve(message, players);
-        Send(snapshot, message, targets, humans, bots, now, ResolveConfiguredTag(snapshot, message));
+        Send(snapshot, message, targets, humans, bots, now, message.TagKey);
         _lastSent[message.Id] = now;
         _nextDispatchAt = now.AddSeconds(message.IntervalSeconds ?? snapshot.Settings.IntervalSeconds);
     }
@@ -226,7 +214,7 @@ internal sealed class AdvertisementScheduler(
             core.ConVar.FindAsString("hostname")?.ValueAsString ?? "Elysium", _mapName,
             core.ConVar.FindAsString("nextlevel")?.ValueAsString ?? string.Empty,
             core.PlayerManager.MaxPlayers, DateTimeOffset.UtcNow,
-            ResolveConfiguredTag(snapshot, message), locale);
+            message.TagKey, locale);
     }
 
     public bool SendManual(AdvertisementMessage message, IEnumerable<IPlayer> targets, string? tagKey)
@@ -237,16 +225,10 @@ internal sealed class AdvertisementScheduler(
             return false;
         }
 
-        AdvertisementTag? tag;
-        if (tagKey is null)
+        if (tagKey is not null)
         {
-            tag = ResolveConfiguredTag(snapshot, message);
-        }
-        else
-        {
-            tag = snapshot.Tags.Values.FirstOrDefault(value =>
-                value.Enabled && value.Key.Equals(tagKey, StringComparison.OrdinalIgnoreCase));
-            if (tag is null)
+            var localizationApi = localization();
+            if (localizationApi.GetTagForLanguage(localizationApi.ServerFallbackLanguage, tagKey) is null)
             {
                 return false;
             }
@@ -255,7 +237,7 @@ internal sealed class AdvertisementScheduler(
         var all = core.PlayerManager.GetAllPlayers().Where(x => x.IsAuthorized).ToArray();
         var bots = all.Count(x => x.IsFakeClient);
         var humans = all.Length - bots;
-        Send(snapshot, message, targets, humans, bots, DateTimeOffset.UtcNow, tag);
+        Send(snapshot, message, targets, humans, bots, DateTimeOffset.UtcNow, tagKey ?? message.TagKey);
         return true;
     }
 
@@ -301,7 +283,7 @@ internal sealed class AdvertisementScheduler(
                 continue;
             }
 
-            Send(snapshot, message, targets, humans, bots, now, ResolveConfiguredTag(snapshot, message));
+            Send(snapshot, message, targets, humans, bots, now, message.TagKey);
         }
     }
 
@@ -312,23 +294,12 @@ internal sealed class AdvertisementScheduler(
         int humans,
         int bots,
         DateTimeOffset now,
-        AdvertisementTag? tag)
+        string? tagKey)
     {
         sender.Send(snapshot, message, targets, humans, bots,
             core.ConVar.FindAsString("hostname")?.ValueAsString ?? "Elysium", _mapName,
             core.ConVar.FindAsString("nextlevel")?.ValueAsString ?? string.Empty,
-            core.PlayerManager.MaxPlayers, now, tag);
-    }
-
-    private static AdvertisementTag? ResolveConfiguredTag(
-        AdvertisementSnapshot snapshot,
-        AdvertisementMessage message)
-    {
-        return message.TagId is { } tagId
-               && snapshot.Tags.TryGetValue(tagId, out var tag)
-               && tag.Enabled
-            ? tag
-            : null;
+            core.PlayerManager.MaxPlayers, now, tagKey);
     }
 
     private AdvertisementMessage Select(AdvertisementMessage[] items, AdvertisementOrderMode mode)

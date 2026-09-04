@@ -66,6 +66,22 @@ public interface ILocalizationApi : ILanguageResolver
     IReadOnlyList<LocalizationParameterDefinition> GetParameterDefinitions(string key);
 
     /// <summary>
+    /// Возвращает включённый тег для эффективного языка игрока.
+    /// </summary>
+    /// <param name="player">Получатель локализованного тега.</param>
+    /// <param name="tagKey">Стабильный ключ тега без префикса <c>Tags.</c>.</param>
+    /// <returns>Локализованный тег либо <c>null</c>, если тег отключён, отсутствует или не переведён.</returns>
+    LocalizationTag? GetTagForPlayer(IPlayer player, string tagKey);
+
+    /// <summary>
+    /// Возвращает включённый тег для явно указанного языка.
+    /// </summary>
+    /// <param name="languageCode">Запрошенный код языка.</param>
+    /// <param name="tagKey">Стабильный ключ тега без префикса <c>Tags.</c>.</param>
+    /// <returns>Локализованный тег либо <c>null</c>, если тег отключён, отсутствует или не переведён.</returns>
+    LocalizationTag? GetTagForLanguage(string languageCode, string tagKey);
+
+    /// <summary>
     /// Возвращает включённые языки в порядке, заданном администратором.
     /// </summary>
     /// <returns>Неизменяемый снимок доступных языков.</returns>

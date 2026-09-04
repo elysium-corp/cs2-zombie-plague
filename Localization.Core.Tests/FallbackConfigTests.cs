@@ -40,6 +40,31 @@ public sealed class FallbackConfigTests
     }
 
     [Fact]
+    public void DistributedTemplate_ContainsLocalizationOwnedElysiumTag()
+    {
+        var snapshot = FallbackLocalizationProvider.Load(CreateConfig());
+
+        Assert.Contains("elysium", snapshot.Tags.Keys);
+        var tag = snapshot.Tags["elysium"];
+        Assert.Equal("Tags.elysium", tag.LocalizationKey);
+        Assert.Equal("purple", tag.Color);
+        Assert.True(tag.Enabled);
+        var entry = snapshot.Entries[tag.LocalizationKey];
+        Assert.False(entry.IsCritical);
+        Assert.Equal("Elysium", entry.Translations["ru"]);
+    }
+
+    [Fact]
+    public void TagTranslationWithMarkup_IsRejected()
+    {
+        var config = CreateConfig();
+        config.Entries["Tags.elysium"]["ru"] = "{accent}Elysium{/accent}";
+        config.Checksum = FallbackConfigChecksum.Compute(config);
+
+        Assert.Throws<InvalidDataException>(() => LocalizationValidation.ValidateFallback(config));
+    }
+
+    [Fact]
     public void MissingOrLegacyEmptyConfig_IsRejected()
     {
         Assert.Throws<InvalidDataException>(() =>
