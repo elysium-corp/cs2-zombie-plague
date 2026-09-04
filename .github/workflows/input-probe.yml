@@ -1,0 +1,78 @@
+name: Elysium Input Probe
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - develop
+    paths:
+      - "ElysiumInputProbe.Core/**"
+      - ".github/workflows/input-probe.yml"
+  push:
+    branches:
+      - feature/elysium-input-probe
+    paths:
+      - "ElysiumInputProbe.Core/**"
+      - ".github/workflows/input-probe.yml"
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  DOTNET_NOLOGO: "1"
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "1"
+
+jobs:
+  build:
+    name: Build diagnostic plugin
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore
+        run: dotnet restore ElysiumInputProbe.Core/ElysiumInputProbe.Core.csproj
+
+      - name: Build
+        run: |
+          dotnet build ElysiumInputProbe.Core/ElysiumInputProbe.Core.csproj \
+            --configuration Release \
+            --no-restore
+
+      - name: Package plugin
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          output="ElysiumInputProbe.Core/bin/Release/net10.0"
+          package="artifacts/ElysiumInputProbe.Core"
+
+          mkdir -p "$package"
+          cp "$output/ElysiumInputProbe.Core.dll" "$package/"
+
+          if [[ -f "$output/ElysiumInputProbe.Core.pdb" ]]; then
+            cp "$output/ElysiumInputProbe.Core.pdb" "$package/"
+          fi
+
+          if [[ -f "$output/ElysiumInputProbe.Core.runtimeconfig.json" ]]; then
+            cp "$output/ElysiumInputProbe.Core.runtimeconfig.json" "$package/"
+          fi
+
+          cp ElysiumInputProbe.Core/README.md "$package/"
+
+      - name: Upload probe artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ElysiumInputProbe.Core-${{ github.sha }}
+          path: artifacts/ElysiumInputProbe.Core/**
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 6
