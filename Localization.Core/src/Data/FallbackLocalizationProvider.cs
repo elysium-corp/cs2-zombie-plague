@@ -66,7 +66,7 @@ internal sealed class FallbackLocalizationProvider(IOptionsMonitor<LocalizationF
                 item => new LocalizationTagState(
                     tagId--,
                     item.Key,
-                    $"Tags.{item.Key}",
+                    $"Tag.{item.Key}",
                     item.Value.Color.Trim().ToLowerInvariant(),
                     item.Value.Enabled,
                     item.Value.SortOrder),

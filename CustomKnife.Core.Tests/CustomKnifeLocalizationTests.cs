@@ -12,6 +12,7 @@ public sealed class CustomKnifeLocalizationTests
 {
     private const string PreviousMigration = "20260901090000_CreateKnifeCatalog";
     private const string FeatureMigration = "20260901220500_AddKnifeLocalizationAndImage";
+    private const string NormalizeMigration = "20260904153000_NormalizeLocalizationReferences";
 
     [Fact]
     public void UpgradeScript_BackfillsKeysBeforeMakingThemRequired()
@@ -53,8 +54,22 @@ public sealed class CustomKnifeLocalizationTests
     [Fact]
     public void FallbackKnife_UsesExplicitLocalizationKeys()
     {
-        Assert.Equal("CustomKnife.knife_axe.Name", KnifeDefaults.Fallback.DisplayNameKey);
-        Assert.Equal("CustomKnife.knife_axe.Description", KnifeDefaults.Fallback.DescriptionKey);
+        Assert.Equal("CustomKnife.Knife.Axe.Name", KnifeDefaults.Fallback.DisplayNameKey);
+        Assert.Equal("CustomKnife.Knife.Axe.Description", KnifeDefaults.Fallback.DescriptionKey);
+    }
+
+    [Fact]
+    public void NormalizeScript_UpdatesKnifeLocalizationReferencesBeforeStrictCheck()
+    {
+        using var context = CreateContext();
+        var script = context.GetService<IMigrator>().GenerateScript(
+            FeatureMigration,
+            NormalizeMigration
+        );
+
+        Assert.Contains("custom_knife.canonicalize_localization_key", script);
+        Assert.Contains("UPDATE custom_knife.knives", script);
+        Assert.Contains("^[A-Z0-9]", script);
     }
 
     private static void AssertProperty(

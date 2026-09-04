@@ -168,7 +168,7 @@ internal sealed class RoundSelectionMenu(
     private string RoundName(IPlayer player, RoundBase round) => RoundName(player, round.Id);
 
     private string RoundName(IPlayer player, string roundId) =>
-        L(player, $"ZombiePlague.Round.{roundId}.Name");
+        L(player, $"ZombiePlague.Round.{LocalizationKey.Canonicalize(roundId)}.Name");
 
     private string L(
         IPlayer player,

@@ -44,7 +44,7 @@ internal static class EquipmentShopDefaults
             EquipmentShopProductKeys.Armor,
             EquipmentShopItemKeys.Armor,
             "Броня",
-            "Equipment.Item.custom_equipment.armor.Name",
+            "Equipment.Item.Custom.Equipment.Armor.Name",
             true,
             1_000
         );

@@ -1,6 +1,6 @@
 # Localization.Core
 
-Версия `1.4.0` использует только два источника данных: PostgreSQL и проверенный
+Версия `1.5.0` использует только два источника данных: PostgreSQL и проверенный
 fallback-файл. Переводы внутри runtime-классов отсутствуют.
 
 Единая серверная локализация Elysium.
@@ -56,7 +56,7 @@ Swiftly доступен через парный тег `{color:green}...{/color
 
 Префиксы сообщений также принадлежат Localization. Метаданные таких тегов
 хранятся в `localization.tags`, а их тексты — в общем каталоге под ключами
-`Tags.<tag_key>`. Fallback schema v4 экспортирует те же метаданные в секции
+`Tag.<TagKey>`. Fallback schema v4 экспортирует те же метаданные в секции
 `tags`; отдельного списка переводов или fallback-классов для тегов нет.
 `ILocalizationApi.GetTagForPlayer` и `GetTagForLanguage` возвращают уже
 локализованный текст и цвет из текущего memory snapshot.

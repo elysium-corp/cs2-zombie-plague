@@ -13,6 +13,8 @@ public sealed class EquipmentLocalizationMigrationTests
         "20260901190000_RemoveAutomaticallySeededShopListings";
     private const string FeatureMigration =
         "20260901220000_AddLocalizationKeysAndImages";
+    private const string NormalizeMigration =
+        "20260904152000_NormalizeLocalizationReferences";
 
     [Fact]
     public void UpgradeScript_BackfillsKeysBeforeMakingThemRequired()
@@ -43,6 +45,21 @@ public sealed class EquipmentLocalizationMigrationTests
             script,
             StringComparison.OrdinalIgnoreCase
         );
+    }
+
+    [Fact]
+    public void NormalizeScript_UpdatesEveryLocalizationReferenceBeforeStrictChecks()
+    {
+        var script = GenerateScript(FeatureMigration, NormalizeMigration);
+
+        Assert.Contains("custom_equipment.canonicalize_localization_key", script);
+        Assert.Contains("UPDATE custom_equipment.weapons", script);
+        Assert.Contains("UPDATE custom_equipment.gameplay_items", script);
+        Assert.Contains("UPDATE custom_equipment.shop_settings", script);
+        Assert.Contains("UPDATE custom_equipment.shop_categories", script);
+        Assert.Contains("UPDATE custom_equipment.shop_listings", script);
+        Assert.Contains("UPDATE custom_equipment.shop_products", script);
+        Assert.Contains("^[A-Z0-9]", script);
     }
 
     [Theory]

@@ -531,7 +531,7 @@ internal sealed class EquipmentMenu(
         var weaponColor = item.Rarity.ToColor();
         var displayNameKey = item is ILocalizedShopItem localizedItem
             ? localizedItem.DisplayNameKey
-            : $"Equipment.Item.{item.InternalName.Replace(':', '.')}.Name";
+            : $"Equipment.Item.{LocalizationKey.Canonicalize(item.InternalName)}.Name";
         var displayName = localization.GetForPlayer(player, displayNameKey)
                           ?? item.DisplayName;
         var weaponText = HtmlHelper.TextWithColor(displayName, weaponColor);

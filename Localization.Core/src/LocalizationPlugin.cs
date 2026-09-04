@@ -18,7 +18,7 @@ namespace Localization.Core;
 
 [PluginMetadata(
     Id = "Localization.Core",
-    Version = "1.4.0",
+    Version = "1.5.0",
     Name = "Elysium Localization",
     Author = "Elysium",
     Description = "Единая локализация Elysium с языком игрока, PostgreSQL и fallback-конфигурацией.")]
@@ -73,7 +73,7 @@ internal sealed class LocalizationPlugin(ISwiftlyCore core) : Plugin<Localizatio
             BindAndLoad(player.PlayerID, player.SteamID);
         }
 
-        Core.Logger.LogInformation("[Localization] Localization.Core 1.4.0 загружен.");
+        Core.Logger.LogInformation("[Localization] Localization.Core 1.5.0 загружен.");
     }
 
     protected override void OnUnload()
@@ -201,7 +201,7 @@ internal sealed class LocalizationPlugin(ISwiftlyCore core) : Plugin<Localizatio
         var languages = _api.Value.GetEnabledLanguages();
         if (languages.Count == 0)
         {
-            var loadingMessage = _api.Value.GetForPlayer(player, "localization.menu.loading");
+            var loadingMessage = _api.Value.GetForPlayer(player, "Localization.Menu.Loading");
             if (!string.IsNullOrWhiteSpace(loadingMessage))
             {
                 player.SendChat(loadingMessage);
@@ -210,7 +210,7 @@ internal sealed class LocalizationPlugin(ISwiftlyCore core) : Plugin<Localizatio
             return;
         }
 
-        var title = _api.Value.GetForPlayer(player, "localization.menu.title");
+        var title = _api.Value.GetForPlayer(player, "Localization.Menu.Title");
         if (string.IsNullOrWhiteSpace(title))
         {
             return;
@@ -252,7 +252,7 @@ internal sealed class LocalizationPlugin(ISwiftlyCore core) : Plugin<Localizatio
 
             var message = _api.Value.GetForLanguage(
                               language.Code,
-                              "localization.menu.changed",
+                              "Localization.Menu.Changed",
                               new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
                               {
                                   ["language"] = language.NativeName,
@@ -299,7 +299,7 @@ internal sealed class LocalizationPlugin(ISwiftlyCore core) : Plugin<Localizatio
                 {
                     var unavailableMessage = _api.Value.GetForPlayer(
                         current,
-                        "localization.menu.unavailable");
+                        "Localization.Menu.Unavailable");
                     if (!string.IsNullOrWhiteSpace(unavailableMessage))
                     {
                         current.SendChat(unavailableMessage);
@@ -348,12 +348,12 @@ internal sealed class LocalizationPlugin(ISwiftlyCore core) : Plugin<Localizatio
         var snapshot = _cache.Value.Current;
         if (snapshot is null)
         {
-            context.Reply("Localization.Core 1.4.0\nSnapshot: загружается");
+            context.Reply("Localization.Core 1.5.0\nSnapshot: загружается");
             return;
         }
 
         context.Reply(
-            $"Localization.Core 1.4.0\nSource: {snapshot.Source}\nKeys: {snapshot.Entries.Count}" +
+            $"Localization.Core 1.5.0\nSource: {snapshot.Source}\nKeys: {snapshot.Entries.Count}" +
             $"\nTags: {snapshot.Tags.Count}" +
             $"\nLanguages: {snapshot.Languages.Values.Count(language => language.Enabled)}" +
             $"\nServer fallback: {snapshot.Settings.ServerFallbackLanguage}" +

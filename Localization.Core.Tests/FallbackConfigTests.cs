@@ -7,6 +7,15 @@ namespace Localization.Core.Tests;
 
 public sealed class FallbackConfigTests
 {
+    [Theory]
+    [InlineData("tags.elysium", "Tag.Elysium")]
+    [InlineData("Equipment.Item.custom_equipment.barrier_nade.Name", "Equipment.Item.Custom.Equipment.Barrier.Nade.Name")]
+    [InlineData("Admin.Ban.Duration.30Minutes", "Admin.Ban.Duration.30Minutes")]
+    public void LocalizationKey_CanonicalizesEverySegment(string source, string expected)
+    {
+        Assert.Equal(expected, Localization.Api.LocalizationKey.Canonicalize(source));
+    }
+
     [Fact]
     public void ValidConfig_PassesChecksumPlaceholderAndMarkupValidation()
     {
@@ -44,9 +53,9 @@ public sealed class FallbackConfigTests
     {
         var snapshot = FallbackLocalizationProvider.Load(CreateConfig());
 
-        Assert.Contains("elysium", snapshot.Tags.Keys);
-        var tag = snapshot.Tags["elysium"];
-        Assert.Equal("Tags.elysium", tag.LocalizationKey);
+        Assert.Contains("Elysium", snapshot.Tags.Keys);
+        var tag = snapshot.Tags["Elysium"];
+        Assert.Equal("Tag.Elysium", tag.LocalizationKey);
         Assert.Equal("purple", tag.Color);
         Assert.True(tag.Enabled);
         var entry = snapshot.Entries[tag.LocalizationKey];
@@ -58,7 +67,7 @@ public sealed class FallbackConfigTests
     public void TagTranslationWithMarkup_IsRejected()
     {
         var config = CreateConfig();
-        config.Entries["Tags.elysium"]["ru"] = "{accent}Elysium{/accent}";
+        config.Entries["Tag.Elysium"]["ru"] = "{accent}Elysium{/accent}";
         config.Checksum = FallbackConfigChecksum.Compute(config);
 
         Assert.Throws<InvalidDataException>(() => LocalizationValidation.ValidateFallback(config));
@@ -107,7 +116,7 @@ public sealed class FallbackConfigTests
     {
         var config = CreateConfig();
         config.Checksum = FallbackConfigChecksum.Compute(config);
-        config.Entries["localization.menu.changed"]["en"] = "Language changed to {locale}";
+        config.Entries["Localization.Menu.Changed"]["en"] = "Language changed to {locale}";
 
         Assert.Throws<InvalidDataException>(() => LocalizationValidation.ValidateFallback(config));
     }
@@ -116,7 +125,7 @@ public sealed class FallbackConfigTests
     public void UnsupportedMarkupArgument_IsRejected()
     {
         var config = CreateConfig();
-        config.Entries["localization.menu.title"]["ru"] = "{accent:red}Язык{/accent}";
+        config.Entries["Localization.Menu.Title"]["ru"] = "{accent:red}Язык{/accent}";
         config.Checksum = FallbackConfigChecksum.Compute(config);
 
         Assert.Throws<InvalidDataException>(() => LocalizationValidation.ValidateFallback(config));
@@ -186,7 +195,7 @@ public sealed class FallbackConfigTests
         var config = CreateConfig();
         config.SchemaVersion = 3;
         config.ColorTags["vip"] = "gold";
-        config.Entries["optional.vip"] = new Dictionary<string, string>
+        config.Entries["Optional.Vip"] = new Dictionary<string, string>
         {
             ["ru"] = "{vip}VIP игрок{/vip}",
         };
@@ -212,7 +221,7 @@ public sealed class FallbackConfigTests
     public void NonCriticalEntryWithoutFallbackTranslation_IsAllowed()
     {
         var config = CreateConfig();
-        config.Entries["optional.only_english"] = new Dictionary<string, string>
+        config.Entries["Optional.Only.English"] = new Dictionary<string, string>
         {
             ["en"] = "Optional text",
         };
@@ -243,10 +252,10 @@ public sealed class FallbackConfigTests
         var languages = snapshot.Languages.Values
             .Select(language => language.Code == "de" ? language with { Enabled = false } : language)
             .ToFrozenDictionary(language => language.Code, StringComparer.OrdinalIgnoreCase);
-        var translations = snapshot.Entries["localization.menu.changed"].Translations
+        var translations = snapshot.Entries["Localization.Menu.Changed"].Translations
             .ToDictionary(item => item.Key, item => item.Value, StringComparer.OrdinalIgnoreCase);
         translations["de"] = "Sprache geändert zu {locale}";
-        var changedEntry = snapshot.Entries["localization.menu.changed"] with
+        var changedEntry = snapshot.Entries["Localization.Menu.Changed"] with
         {
             Translations = translations.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase),
         };

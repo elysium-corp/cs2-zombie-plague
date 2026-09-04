@@ -108,7 +108,7 @@ internal sealed partial class RoundRatingNotify(ISwiftlyCore core) : Plugin<Roun
         foreach (var player in core.PlayerManager.GetAllPlayers()
                      .Where(value => value is { IsAuthorized: true, IsFakeClient: false }))
         {
-            var prefix = _localization.GetForPlayer(player, "RoundRatingNotify.prefix")
+            var prefix = _localization.GetForPlayer(player, "RoundRatingNotify.Prefix")
                          ?? "[[green]Elysium[default]]";
 
             if (!string.IsNullOrEmpty(humanTopPlayer.Key))

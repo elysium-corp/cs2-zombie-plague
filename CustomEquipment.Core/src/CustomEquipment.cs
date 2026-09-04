@@ -31,7 +31,7 @@ namespace CustomEquipment;
 
 [PluginMetadata(
     Id = "CustomEquipment.Core",
-    Version = "0.5.0",
+    Version = "0.6.0",
     Name = "[ZP] CustomEquipment",
     Author = "illusion & fdrinv",
     Description = "Database-backed human and zombie equipment shops"

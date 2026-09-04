@@ -32,7 +32,7 @@ internal sealed class CustomKnifeDbContext(DbContextOptions<CustomKnifeDbContext
                 table.HasCheckConstraint("CK_knives_speed", "speed >= 1 AND speed <= 2000");
                 table.HasCheckConstraint(
                     "CK_knives_localization_keys",
-                    "display_name_key ~ '^[A-Za-z0-9][A-Za-z0-9_.-]{1,190}$' AND description_key ~ '^[A-Za-z0-9][A-Za-z0-9_.-]{1,190}$'"
+                    "display_name_key ~ '^[A-Z0-9][A-Za-z0-9]*(\\.[A-Z0-9][A-Za-z0-9]*)*$' AND description_key ~ '^[A-Z0-9][A-Za-z0-9]*(\\.[A-Z0-9][A-Za-z0-9]*)*$'"
                 );
                 table.HasCheckConstraint(
                     "CK_knives_image_url",

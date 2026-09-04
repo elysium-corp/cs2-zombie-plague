@@ -30,6 +30,9 @@ internal sealed class LocalizationSettingsEntity
     [Column("configuration_version")]
     public long ConfigurationVersion { get; set; } = 1;
 
+    [Column("fallback_exported_version")]
+    public long FallbackExportedVersion { get; set; }
+
     [Column("created_at")]
     public DateTimeOffset CreatedAt { get; set; }
 

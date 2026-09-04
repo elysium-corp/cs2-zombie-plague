@@ -3,6 +3,7 @@ using System.Text.Json;
 using Advertisement.Core.Configuration;
 using Advertisement.Core.Database;
 using Advertisement.Core.Database.Entities;
+using Localization.Api;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
@@ -157,12 +158,13 @@ internal sealed class ConfigAdvertisementProvider(IOptionsMonitor<AdvertisementC
         foreach (var message in config.Messages.Where(x => !string.IsNullOrWhiteSpace(x.Key)))
         {
             var id = messageId--;
+            var key = LocalizationKey.Canonicalize(message.Key);
             messages[id] = new AdvertisementMessage(
-                id, message.Key,
-                string.IsNullOrWhiteSpace(message.Name) ? message.Key : message.Name,
+                id, key,
+                string.IsNullOrWhiteSpace(message.Name) ? key : message.Name,
                 string.IsNullOrWhiteSpace(message.LocalizationKey)
-                    ? $"advertisement.messages.{message.Key}"
-                    : message.LocalizationKey.Trim(),
+                    ? $"Advertisement.Messages.{key}"
+                    : LocalizationKey.Canonicalize(message.LocalizationKey),
                 NormalizeTagKey(message.Tag), message.Type, message.Enabled, message.Priority, Math.Max(0, message.Weight),
                 message.SortOrder, message.IntervalSeconds,
                 DeliveryRuleParser.ParseDispatchMode(message.DispatchMode),
@@ -192,7 +194,7 @@ internal sealed class ConfigAdvertisementProvider(IOptionsMonitor<AdvertisementC
     };
 
     private static string? NormalizeTagKey(string? value) =>
-        string.IsNullOrWhiteSpace(value) ? null : value.Trim().ToLowerInvariant();
+        string.IsNullOrWhiteSpace(value) ? null : LocalizationKey.Canonicalize(value);
 }
 
 internal sealed class DatabaseAdvertisementProvider(IDbContextFactory<AdvertisementDbContext> contextFactory)
@@ -224,7 +226,7 @@ internal sealed class DatabaseAdvertisementProvider(IDbContextFactory<Advertisem
 
     private static AdvertisementMessage MapMessage(AdvertisementMessageEntity entity) => new(
         entity.Id, entity.Key, entity.Name, entity.LocalizationKey,
-        string.IsNullOrWhiteSpace(entity.TagKey) ? null : entity.TagKey.Trim().ToLowerInvariant(),
+        string.IsNullOrWhiteSpace(entity.TagKey) ? null : entity.TagKey.Trim(),
         entity.Type, entity.Enabled,
         entity.Priority, entity.Weight, entity.SortOrder, entity.IntervalSeconds,
         DeliveryRuleParser.ParseDispatchMode(entity.DispatchMode),
