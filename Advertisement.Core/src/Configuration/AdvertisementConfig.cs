@@ -9,25 +9,6 @@ internal sealed class AdvertisementConfig
     public string OrderMode { get; set; } = "sequential";
     public bool ExcludeBotsFromPlayers { get; set; } = true;
 
-    public Dictionary<string, string> Colors { get; set; } = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ["default"] = "default",
-        ["accent"] = "lightblue",
-        ["warning"] = "red",
-        ["success"] = "green",
-        ["important"] = "orange",
-        ["muted"] = "gray",
-    };
-
-    public List<FallbackTagConfig> Tags { get; set; } =
-    [
-        new()
-        {
-            Key = "elysium",
-            Color = "purple",
-        },
-    ];
-
     public List<FallbackMessageConfig> Messages { get; set; } =
     [
         new()
@@ -38,14 +19,6 @@ internal sealed class AdvertisementConfig
             Tag = "elysium",
         },
     ];
-}
-
-internal sealed class FallbackTagConfig
-{
-    public string Key { get; set; } = string.Empty;
-    public string Color { get; set; } = "default";
-    public Dictionary<string, string> Translations { get; set; } =
-        new(StringComparer.OrdinalIgnoreCase);
 }
 
 internal sealed class FallbackMessageConfig

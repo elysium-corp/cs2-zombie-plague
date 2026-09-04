@@ -1,6 +1,6 @@
 # Localization.Core
 
-Версия `1.3.0` использует только два источника данных: PostgreSQL и проверенный
+Версия `1.4.0` использует только два источника данных: PostgreSQL и проверенный
 fallback-файл. Переводы внутри runtime-классов отсутствуют.
 
 Единая серверная локализация Elysium.
@@ -53,6 +53,13 @@ var text = localization.FormatForPlayer(
 же разметка работает во всех подключённых модулях. Fallback schema v3 хранит
 словарь `colorTags`; схемы v1 и v2 остаются совместимыми. Любой встроенный цвет
 Swiftly доступен через парный тег `{color:green}...{/color}`.
+
+Префиксы сообщений также принадлежат Localization. Метаданные таких тегов
+хранятся в `localization.tags`, а их тексты — в общем каталоге под ключами
+`Tags.<tag_key>`. Fallback schema v4 экспортирует те же метаданные в секции
+`tags`; отдельного списка переводов или fallback-классов для тегов нет.
+`ILocalizationApi.GetTagForPlayer` и `GetTagForLanguage` возвращают уже
+локализованный текст и цвет из текущего memory snapshot.
 
 Периодического polling нет. Устаревшее поле `refresh_interval_seconds` остаётся
 в БД и fallback только для совместимости; snapshot обновляется при запуске плагина,

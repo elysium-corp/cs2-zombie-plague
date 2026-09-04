@@ -8,7 +8,7 @@ namespace Localization.Core.Application;
 
 internal static partial class LocalizationValidation
 {
-    public const int SupportedSchemaVersion = 3;
+    public const int SupportedSchemaVersion = 4;
     public const int MinimumSchemaVersion = 1;
 
     public static readonly FrozenSet<string> CriticalKeys = new[]
@@ -103,6 +103,11 @@ internal static partial class LocalizationValidation
             }
         }
 
+        if (config.SchemaVersion >= 4)
+        {
+            ValidateFallbackTags(config.Tags, config.Entries, languages, fallback);
+        }
+
         var expectedChecksum = FallbackConfigChecksum.Compute(config);
         if (!string.Equals(expectedChecksum, config.Checksum, StringComparison.OrdinalIgnoreCase))
         {
@@ -152,6 +157,89 @@ internal static partial class LocalizationValidation
             {
                 throw new InvalidDataException(
                     $"В snapshot отсутствует критический ключ '{criticalKey}'.");
+            }
+        }
+
+        foreach (var tag in snapshot.Tags.Values)
+        {
+            ValidateTagKey(tag.Key);
+            if (!LocalizationColorSchema.SupportedColors.Contains(tag.Color))
+            {
+                throw new InvalidDataException(
+                    $"Тег '{tag.Key}' использует неподдерживаемый цвет '{tag.Color}'.");
+            }
+
+            var expectedLocalizationKey = $"Tags.{tag.Key}";
+            if (!string.Equals(tag.LocalizationKey, expectedLocalizationKey, StringComparison.OrdinalIgnoreCase)
+                || !snapshot.Entries.TryGetValue(tag.LocalizationKey, out var entry))
+            {
+                throw new InvalidDataException(
+                    $"Для тега '{tag.Key}' отсутствует ключ локализации '{expectedLocalizationKey}'.");
+            }
+
+            ValidateTagTranslations(tag.Key, entry.Translations, fallback);
+        }
+    }
+
+    private static void ValidateFallbackTags(
+        IReadOnlyDictionary<string, LocalizationFallbackTagConfig> tags,
+        IReadOnlyDictionary<string, Dictionary<string, string>> entries,
+        IReadOnlySet<string> languages,
+        string fallback)
+    {
+        foreach (var (tagKey, tag) in tags)
+        {
+            ValidateTagKey(tagKey);
+            var color = tag.Color.Trim().ToLowerInvariant();
+            if (!LocalizationColorSchema.SupportedColors.Contains(color))
+            {
+                throw new InvalidDataException(
+                    $"Тег '{tagKey}' использует неподдерживаемый цвет '{tag.Color}'.");
+            }
+
+            var localizationKey = $"Tags.{tagKey}";
+            if (!entries.TryGetValue(localizationKey, out var values))
+            {
+                throw new InvalidDataException(
+                    $"Для тега '{tagKey}' отсутствует ключ локализации '{localizationKey}'.");
+            }
+
+            ValidateTagTranslations(
+                tagKey,
+                NormalizeTranslations(values, languages),
+                fallback);
+        }
+    }
+
+    private static void ValidateTagKey(string key)
+    {
+        if (string.IsNullOrWhiteSpace(key) || !TagKeyRegex().IsMatch(key))
+        {
+            throw new InvalidDataException(
+                $"Некорректный ключ тега '{key}': ожидается строчная латиница, цифры, точка, дефис или подчёркивание.");
+        }
+    }
+
+    private static void ValidateTagTranslations(
+        string tagKey,
+        IReadOnlyDictionary<string, string> translations,
+        string fallback)
+    {
+        if (!translations.TryGetValue(fallback, out var fallbackText)
+            || string.IsNullOrWhiteSpace(fallbackText))
+        {
+            throw new InvalidDataException(
+                $"Для тега '{tagKey}' отсутствует перевод fallback-языка '{fallback}'.");
+        }
+
+        foreach (var (language, text) in translations)
+        {
+            if (text.Length > 64
+                || text.IndexOfAny(['{', '}', '[', ']']) >= 0
+                || ExtractPlaceholders(text).Count > 0)
+            {
+                throw new InvalidDataException(
+                    $"Тег '{tagKey}' для языка '{language}' должен быть обычным текстом длиной до 64 символов без placeholder и разметки.");
             }
         }
     }
@@ -306,6 +394,9 @@ internal static partial class LocalizationValidation
     [GeneratedRegex("^[a-z0-9][a-z0-9_.-]{1,190}$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex KeyRegex();
 
+    [GeneratedRegex("^[a-z0-9][a-z0-9_.-]{0,63}$", RegexOptions.CultureInvariant)]
+    private static partial Regex TagKeyRegex();
+
     [GeneratedRegex(@"\{(?<name>[a-z][a-z0-9_]*)\}", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex PlaceholderRegex();
 
@@ -385,6 +476,18 @@ internal static class FallbackConfigChecksum
             {
                 Append(builder, "colorTagName", colorTag.Key);
                 Append(builder, "colorTagColor", colorTag.Value);
+            }
+        }
+
+        if (config.SchemaVersion >= 4)
+        {
+            foreach (var tag in config.Tags.OrderBy(item => item.Key, StringComparer.Ordinal))
+            {
+                Append(builder, "tagKey", tag.Key);
+                Append(builder, "tagLocalizationKey", $"Tags.{tag.Key}");
+                Append(builder, "tagColor", tag.Value.Color.Trim().ToLowerInvariant());
+                Append(builder, "tagEnabled", tag.Value.Enabled ? "1" : "0");
+                Append(builder, "tagSortOrder", tag.Value.SortOrder.ToString(CultureInfo.InvariantCulture));
             }
         }
 

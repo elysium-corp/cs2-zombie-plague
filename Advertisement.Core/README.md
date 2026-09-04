@@ -6,25 +6,29 @@
 
 Основной источник данных — PostgreSQL. Runtime использует общую инфраструктуру `Common.Database`, `Entity Framework Core 9.0.3` и именованное подключение SwiftlyS2 `elysium_zp_server_1`.
 
-База данных является границей данных сервера: отдельный `ServerId` не используется. Плагин и Flute CMS читают и изменяют одни и те же настройки, теги и сообщения в выбранной PostgreSQL-базе.
+База данных является границей данных сервера: отдельный `ServerId` не используется. Плагин и Flute CMS читают и изменяют одни и те же настройки и сообщения в выбранной PostgreSQL-базе.
 
 PostgreSQL читается один раз при запуске плагина, при фактической смене карты и по ручной команде `ads_reload`. Периодический polling отсутствует; отправка сообщений всегда работает с текущим snapshot в памяти. Поле `refresh_interval_seconds` пока сохраняется в схеме для обратной совместимости, но runtime его больше не использует.
 
 Текст и его цветовая разметка полностью поступают из `Localization.Core`.
-Палитра `advertisement.settings.colors` сохраняется только для совместимости со
-старыми конфигами и больше не обрабатывает сообщения повторно. Динамические
-значения (`player_name`, `server_name` и другие) передаются в типизированные
+Историческая колонка `advertisement.settings.colors` остаётся в схеме для
+совместимости, но отсутствует в runtime-конфиге, snapshot и fallback-экспорте.
+Динамические значения (`player_name`, `server_name` и другие) передаются в типизированные
 `FormatForPlayer` / `FormatForLanguage`: обязательность и тип проверяет
 `Localization.Core`, там же значения очищаются от цветовых тегов.
 
-Названия тегов принадлежат только группе Tags и хранятся в
-`advertisement.tag_translations`. Ключи вида `advertisement.tags.*` в общем
-каталоге Localization не создаются и при обновлении удаляются после безопасного
-переноса существующих переводов в таблицу тегов.
+Теги полностью принадлежат `Localization.Core`: метаданные находятся в
+`localization.tags`, а переводы — в общем каталоге под ключами `Tags.<tag_key>`.
+Advertisement хранит в сообщении только nullable-ссылку `tag_key`, получает
+локализованный текст и цвет через `ILocalizationApi` и не содержит собственных
+таблиц, конфигурации или runtime-cache с определениями тегов.
 
 Connection string и пароль не хранятся в `advertisement.json`. Для design-time генерации миграций можно временно задать `ADVERTISEMENT_DB_CONNECTION`.
 
-Первая миграция создаёт схемы/таблицы `advertisement.settings`, `advertisement.tags`, `advertisement.tag_translations`, `advertisement.messages`, `advertisement.message_translations` и поле локали в `core.player_preferences`.
+Историческая первая миграция создаёт прежние таблицы тегов, а миграция
+`20260904121000_ReferenceLocalizationTags` переносит данные в Localization,
+заменяет `tag_id` на `tag_key` и удаляет `advertisement.tags` вместе с
+`advertisement.tag_translations`.
 
 Миграция `20260827110000_RemoveAdvertisementServerScope` удаляет устаревшие поля `server_id`. Если в старой БД есть конфликтующие записи с одинаковым `key`, сохраняется общая запись, а при её отсутствии — запись с минимальным `id`.
 
@@ -36,7 +40,7 @@ Connection string и пароль не хранятся в `advertisement.json`.
 
 При недоступности PostgreSQL уже загруженный snapshot сохраняется. До первой успешной загрузки БД используется локальная модель `AdvertisementConfig` как fallback.
 
-Модуль Flute CMS умеет сгенерировать готовый `advertisement.json` из содержимого выбранной БД. В файл входят настройки, теги, переводы, расписания и аудитории, но не входят connection string и другие секреты.
+Модуль Flute CMS умеет сгенерировать готовый `advertisement.json` из содержимого выбранной БД. В файл входят настройки, сообщения со ссылками `Tag`, расписания и аудитории, но не входят определения тегов, connection string и другие секреты. Fallback-определения тегов экспортируются только модулем ElysiumLocalization.
 
 ## Режимы отправки
 

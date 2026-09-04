@@ -24,7 +24,6 @@ internal sealed class AdvertisementModule(ISwiftlyCore core) : BaseModule(core)
 
         AddSingleton<AdvertisementCache>(services);
         AddSingleton<AdminAudienceResolver>(services);
-        AddSingleton<MarkupRenderer>(services);
         AddSingleton<AdvertisementSender>(services);
         AddSingleton<AdvertisementScheduler>(services);
         AddSingleton<AdvertisementApi>(services);

@@ -9,8 +9,6 @@ internal sealed class AdvertisementDbContext(DbContextOptions<AdvertisementDbCon
     public const string CoreSchemaName = "core";
 
     internal DbSet<AdvertisementSettingsEntity> Settings => Set<AdvertisementSettingsEntity>();
-    internal DbSet<AdvertisementTagEntity> Tags => Set<AdvertisementTagEntity>();
-    internal DbSet<AdvertisementTagTranslationEntity> TagTranslations => Set<AdvertisementTagTranslationEntity>();
     internal DbSet<AdvertisementMessageEntity> Messages => Set<AdvertisementMessageEntity>();
     internal DbSet<AdvertisementMessageTranslationEntity> MessageTranslations => Set<AdvertisementMessageTranslationEntity>();
     internal DbSet<PlayerPreferenceEntity> PlayerPreferences => Set<PlayerPreferenceEntity>();
@@ -24,8 +22,6 @@ internal sealed class AdvertisementDbContext(DbContextOptions<AdvertisementDbCon
         modelBuilder.HasDefaultSchema(SchemaName);
 
         ConfigureSettings(modelBuilder);
-        ConfigureTags(modelBuilder);
-        ConfigureTagTranslations(modelBuilder);
         ConfigureMessages(modelBuilder);
         ConfigureMessageTranslations(modelBuilder);
         ConfigurePlayerPreferences(modelBuilder);
@@ -45,9 +41,6 @@ internal sealed class AdvertisementDbContext(DbContextOptions<AdvertisementDbCon
         entity.Property(x => x.InitialDelaySeconds).HasDefaultValue(45);
         entity.Property(x => x.OrderMode).HasDefaultValue("sequential");
         entity.Property(x => x.ExcludeBotsFromPlayers).HasDefaultValue(true);
-        entity.Property(x => x.ColorsJson)
-            .HasColumnType("jsonb")
-            .HasDefaultValueSql("'{\"default\":\"default\",\"accent\":\"lightblue\",\"warning\":\"red\",\"success\":\"green\",\"important\":\"orange\",\"muted\":\"gray\"}'::jsonb");
         entity.Property(x => x.ConfigurationVersion).HasDefaultValue(1L);
         entity.Property(x => x.CreatedAt).HasDefaultValueSql(PostgreSqlCurrentTimestamp);
         entity.Property(x => x.UpdatedAt).HasDefaultValueSql(PostgreSqlCurrentTimestamp);
@@ -64,30 +57,6 @@ internal sealed class AdvertisementDbContext(DbContextOptions<AdvertisementDbCon
                     "ck_advertisement_settings_order_mode",
                     "order_mode IN ('sequential', 'random', 'weighted_random')");
             });
-    }
-
-    private static void ConfigureTags(ModelBuilder modelBuilder)
-    {
-        var entity = modelBuilder.Entity<AdvertisementTagEntity>();
-        entity.Property(x => x.Color).HasDefaultValue("default");
-        entity.Property(x => x.Enabled).HasDefaultValue(true);
-        entity.Property(x => x.SortOrder).HasDefaultValue(0);
-        entity.Property(x => x.CreatedAt).HasDefaultValueSql(PostgreSqlCurrentTimestamp);
-        entity.Property(x => x.UpdatedAt).HasDefaultValueSql(PostgreSqlCurrentTimestamp);
-    }
-
-    private static void ConfigureTagTranslations(ModelBuilder modelBuilder)
-    {
-        var entity = modelBuilder.Entity<AdvertisementTagTranslationEntity>();
-        entity.HasKey(x => new { x.TagId, x.Locale });
-
-        entity.Property(x => x.CreatedAt).HasDefaultValueSql(PostgreSqlCurrentTimestamp);
-        entity.Property(x => x.UpdatedAt).HasDefaultValueSql(PostgreSqlCurrentTimestamp);
-
-        entity.HasOne(x => x.Tag)
-            .WithMany(x => x.Translations)
-            .HasForeignKey(x => x.TagId)
-            .OnDelete(DeleteBehavior.Cascade);
     }
 
     private static void ConfigureMessages(ModelBuilder modelBuilder)
@@ -152,6 +121,10 @@ internal sealed class AdvertisementDbContext(DbContextOptions<AdvertisementDbCon
         entity.HasIndex(x => x.LocalizationKey)
             .HasDatabaseName("messages_localization_key_idx");
 
+        entity.HasIndex(x => x.TagKey)
+            .HasDatabaseName("messages_tag_key_idx")
+            .HasFilter("tag_key IS NOT NULL");
+
         entity.HasIndex(x => new { x.Enabled, x.Priority, x.SortOrder, x.Id })
             .HasDatabaseName("messages_active_idx")
             .IsDescending(false, true, false, false);
@@ -163,10 +136,6 @@ internal sealed class AdvertisementDbContext(DbContextOptions<AdvertisementDbCon
         entity.HasIndex(x => new { x.Enabled, x.DispatchMode })
             .HasDatabaseName("messages_dispatch_idx");
 
-        entity.HasOne(x => x.Tag)
-            .WithMany(x => x.Messages)
-            .HasForeignKey(x => x.TagId)
-            .OnDelete(DeleteBehavior.SetNull);
     }
 
     private static void ConfigureMessageTranslations(ModelBuilder modelBuilder)

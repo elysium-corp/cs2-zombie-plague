@@ -2,7 +2,7 @@ namespace Localization.Core.Configuration;
 
 internal sealed class LocalizationFallbackConfig
 {
-    public int SchemaVersion { get; set; } = 3;
+    public int SchemaVersion { get; set; } = 4;
     public long Version { get; set; }
     public DateTimeOffset GeneratedAt { get; set; } = DateTimeOffset.UnixEpoch;
     public string Checksum { get; set; } = string.Empty;
@@ -24,6 +24,8 @@ internal sealed class LocalizationFallbackConfig
         new(StringComparer.OrdinalIgnoreCase);
     public Dictionary<string, List<LocalizationFallbackParameterConfig>> Parameters { get; set; } =
         new(StringComparer.OrdinalIgnoreCase);
+    public Dictionary<string, LocalizationFallbackTagConfig> Tags { get; set; } =
+        new(StringComparer.OrdinalIgnoreCase);
 }
 
 internal sealed class LocalizationFallbackParameterConfig
@@ -33,4 +35,11 @@ internal sealed class LocalizationFallbackParameterConfig
     public bool Required { get; set; } = true;
     public string? Description { get; set; }
     public string Example { get; set; } = string.Empty;
+}
+
+internal sealed class LocalizationFallbackTagConfig
+{
+    public string Color { get; set; } = "default";
+    public bool Enabled { get; set; } = true;
+    public int SortOrder { get; set; }
 }

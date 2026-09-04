@@ -151,6 +151,31 @@ internal sealed partial class LocalizationRuntime(
             .ToArray();
     }
 
+    public LocalizationTag? GetTagForPlayer(IPlayer player, string tagKey)
+    {
+        return GetTagForLanguage(languageResolver.Resolve(player), tagKey);
+    }
+
+    public LocalizationTag? GetTagForLanguage(string languageCode, string tagKey)
+    {
+        var snapshot = cache.Current;
+        if (snapshot is null || string.IsNullOrWhiteSpace(tagKey))
+        {
+            return null;
+        }
+
+        var normalizedKey = tagKey.Trim();
+        if (!snapshot.Tags.TryGetValue(normalizedKey, out var tag) || !tag.Enabled)
+        {
+            return null;
+        }
+
+        var text = GetForLanguage(languageCode, tag.LocalizationKey, null);
+        return string.IsNullOrWhiteSpace(text)
+            ? null
+            : new LocalizationTag(tag.Key, text, tag.Color);
+    }
+
     private static bool TryGetValue(
         IReadOnlyDictionary<string, object?>? parameters,
         string name,

@@ -20,42 +20,14 @@ internal sealed record AdvertisementSettings(
     int InitialDelaySeconds,
     AdvertisementOrderMode OrderMode,
     bool ExcludeBotsFromPlayers,
-    FrozenDictionary<string, string> Colors,
     long ConfigurationVersion);
-
-internal sealed record AdvertisementTag(
-    long Id,
-    string Key,
-    string Color,
-    bool Enabled,
-    int SortOrder,
-    FrozenDictionary<string, string> Translations)
-{
-    public string? ResolveText(string? languageCode, string? fallbackLanguageCode)
-    {
-        var requested = languageCode?.Trim();
-        if (!string.IsNullOrWhiteSpace(requested)
-            && Translations.TryGetValue(requested, out var requestedText)
-            && !string.IsNullOrWhiteSpace(requestedText))
-        {
-            return requestedText;
-        }
-
-        var fallback = fallbackLanguageCode?.Trim();
-        return !string.IsNullOrWhiteSpace(fallback)
-               && Translations.TryGetValue(fallback, out var fallbackText)
-               && !string.IsNullOrWhiteSpace(fallbackText)
-            ? fallbackText
-            : null;
-    }
-}
 
 internal sealed record AdvertisementMessage(
     long Id,
     string Key,
     string Name,
     string LocalizationKey,
-    long? TagId,
+    string? TagKey,
     string Type,
     bool Enabled,
     int Priority,
@@ -114,7 +86,6 @@ internal sealed record AdvertisementMessage(
 internal sealed record AdvertisementSnapshot(
     AdvertisementSettings Settings,
     FrozenDictionary<long, AdvertisementMessage> Messages,
-    FrozenDictionary<long, AdvertisementTag> Tags,
     DateTimeOffset LoadedAt,
     AdvertisementSource Source)
 {
@@ -181,36 +152,18 @@ internal sealed class ConfigAdvertisementProvider(IOptionsMonitor<AdvertisementC
     {
         var config = options.CurrentValue;
 
-        var tags = new Dictionary<long, AdvertisementTag>();
-        var tagIds = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
-        long tagId = -1;
-        foreach (var tag in config.Tags.Where(x => !string.IsNullOrWhiteSpace(x.Key)))
-        {
-            var id = tagId--;
-            tagIds[tag.Key] = id;
-            var translations = NormalizeTagTranslations(tag.Translations);
-            tags[id] = new AdvertisementTag(
-                id,
-                tag.Key,
-                tag.Color,
-                true,
-                tags.Count,
-                translations);
-        }
-
         var messages = new Dictionary<long, AdvertisementMessage>();
         long messageId = -1;
         foreach (var message in config.Messages.Where(x => !string.IsNullOrWhiteSpace(x.Key)))
         {
             var id = messageId--;
-            long? resolvedTag = message.Tag is not null && tagIds.TryGetValue(message.Tag, out var value) ? value : null;
             messages[id] = new AdvertisementMessage(
                 id, message.Key,
                 string.IsNullOrWhiteSpace(message.Name) ? message.Key : message.Name,
                 string.IsNullOrWhiteSpace(message.LocalizationKey)
                     ? $"advertisement.messages.{message.Key}"
                     : message.LocalizationKey.Trim(),
-                resolvedTag, message.Type, message.Enabled, message.Priority, Math.Max(0, message.Weight),
+                NormalizeTagKey(message.Tag), message.Type, message.Enabled, message.Priority, Math.Max(0, message.Weight),
                 message.SortOrder, message.IntervalSeconds,
                 DeliveryRuleParser.ParseDispatchMode(message.DispatchMode),
                 DeliveryRuleParser.ParseDailyTimes(message.DailyTimes),
@@ -225,10 +178,9 @@ internal sealed class ConfigAdvertisementProvider(IOptionsMonitor<AdvertisementC
         var settings = new AdvertisementSettings(
             config.Enabled, Math.Max(10, config.IntervalSeconds),
             Math.Max(5, config.RefreshIntervalSeconds), Math.Max(0, config.InitialDelaySeconds),
-            ParseOrder(config.OrderMode), config.ExcludeBotsFromPlayers,
-            config.Colors.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase), 0);
+            ParseOrder(config.OrderMode), config.ExcludeBotsFromPlayers, 0);
 
-        return new AdvertisementSnapshot(settings, messages.ToFrozenDictionary(), tags.ToFrozenDictionary(),
+        return new AdvertisementSnapshot(settings, messages.ToFrozenDictionary(),
             DateTimeOffset.UtcNow, AdvertisementSource.Config);
     }
 
@@ -239,22 +191,12 @@ internal sealed class ConfigAdvertisementProvider(IOptionsMonitor<AdvertisementC
         _ => AdvertisementOrderMode.Sequential,
     };
 
-    private static FrozenDictionary<string, string> NormalizeTagTranslations(
-        IEnumerable<KeyValuePair<string, string>> translations) => translations
-        .Where(item => !string.IsNullOrWhiteSpace(item.Key) && !string.IsNullOrWhiteSpace(item.Value))
-        .GroupBy(item => item.Key.Trim(), StringComparer.OrdinalIgnoreCase)
-        .ToFrozenDictionary(
-            group => group.Key,
-            group => group.Last().Value.Trim(),
-            StringComparer.OrdinalIgnoreCase);
-
+    private static string? NormalizeTagKey(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value.Trim().ToLowerInvariant();
 }
 
-internal sealed class DatabaseAdvertisementProvider(
-    IDbContextFactory<AdvertisementDbContext> contextFactory)
+internal sealed class DatabaseAdvertisementProvider(IDbContextFactory<AdvertisementDbContext> contextFactory)
 {
-    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
-
     public async Task<AdvertisementSnapshot> LoadAsync(CancellationToken cancellationToken)
     {
         await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
@@ -262,45 +204,28 @@ internal sealed class DatabaseAdvertisementProvider(
             .SingleOrDefaultAsync(cancellationToken)
             ?? throw new InvalidOperationException("В advertisement.settings отсутствует настройка.");
 
-        var tags = await context.Tags.AsNoTracking()
-            .Include(tag => tag.Translations)
-            .OrderBy(x => x.SortOrder).ThenBy(x => x.Id).ToListAsync(cancellationToken);
         var messages = await context.Messages.AsNoTracking()
             .OrderByDescending(x => x.Priority).ThenBy(x => x.SortOrder).ThenBy(x => x.Id)
             .ToListAsync(cancellationToken);
 
-        var colors = JsonSerializer.Deserialize<Dictionary<string, string>>(settingsEntity.ColorsJson, JsonOptions) ?? [];
         var settings = new AdvertisementSettings(
             settingsEntity.Enabled, settingsEntity.IntervalSeconds,
             settingsEntity.RefreshIntervalSeconds, settingsEntity.InitialDelaySeconds,
-            ConfigAdvertisementProvider.ParseOrder(settingsEntity.OrderMode), settingsEntity.ExcludeBotsFromPlayers,
-            colors.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase), settingsEntity.ConfigurationVersion);
+            ConfigAdvertisementProvider.ParseOrder(settingsEntity.OrderMode),
+            settingsEntity.ExcludeBotsFromPlayers,
+            settingsEntity.ConfigurationVersion);
 
         return new AdvertisementSnapshot(
             settings,
             messages.Select(MapMessage).ToFrozenDictionary(x => x.Id),
-            tags.Select(MapTag).ToFrozenDictionary(x => x.Id),
             DateTimeOffset.UtcNow,
             AdvertisementSource.Database);
     }
 
-    private static AdvertisementTag MapTag(AdvertisementTagEntity entity) => new(
-        entity.Id,
-        entity.Key,
-        entity.Color,
-        entity.Enabled,
-        entity.SortOrder,
-        entity.Translations
-            .Where(translation => !string.IsNullOrWhiteSpace(translation.Locale)
-                                  && !string.IsNullOrWhiteSpace(translation.Text))
-            .GroupBy(translation => translation.Locale.Trim(), StringComparer.OrdinalIgnoreCase)
-            .ToFrozenDictionary(
-                group => group.Key,
-                group => group.Last().Text.Trim(),
-                StringComparer.OrdinalIgnoreCase));
-
     private static AdvertisementMessage MapMessage(AdvertisementMessageEntity entity) => new(
-        entity.Id, entity.Key, entity.Name, entity.LocalizationKey, entity.TagId, entity.Type, entity.Enabled,
+        entity.Id, entity.Key, entity.Name, entity.LocalizationKey,
+        string.IsNullOrWhiteSpace(entity.TagKey) ? null : entity.TagKey.Trim().ToLowerInvariant(),
+        entity.Type, entity.Enabled,
         entity.Priority, entity.Weight, entity.SortOrder, entity.IntervalSeconds,
         DeliveryRuleParser.ParseDispatchMode(entity.DispatchMode),
         DeliveryRuleParser.ParseDailyTimesJson(entity.DailyTimesJson),

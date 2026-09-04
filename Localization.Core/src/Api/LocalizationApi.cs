@@ -41,6 +41,12 @@ internal sealed class LocalizationApi(
     public IReadOnlyList<LocalizationParameterDefinition> GetParameterDefinitions(string key) =>
         runtime.GetParameterDefinitions(key);
 
+    public LocalizationTag? GetTagForPlayer(IPlayer player, string tagKey) =>
+        runtime.GetTagForPlayer(player, tagKey);
+
+    public LocalizationTag? GetTagForLanguage(string languageCode, string tagKey) =>
+        runtime.GetTagForLanguage(languageCode, tagKey);
+
     public IReadOnlyList<LocalizationLanguage> GetEnabledLanguages()
     {
         var languages = cache.Current?.Languages.Values.AsEnumerable()

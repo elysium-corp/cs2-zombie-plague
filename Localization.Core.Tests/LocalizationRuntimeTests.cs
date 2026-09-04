@@ -115,6 +115,24 @@ public sealed class LocalizationRuntimeTests
         Assert.Equal("Player: fdrinv", text);
     }
 
+    [Fact]
+    public void Tag_IsResolvedFromLocalizationSnapshotForRequestedLanguage()
+    {
+        var cache = new LocalizationCache();
+        cache.Replace(CreateSnapshot());
+        var runtime = new LocalizationRuntime(
+            cache,
+            new LanguageResolver(cache, new PlayerLanguageCache()),
+            new RateLimitedLocalizationLogger(NullLogger.Instance));
+
+        var english = runtime.GetTagForLanguage("en", "elysium");
+        var fallback = runtime.GetTagForLanguage("de", "elysium");
+
+        Assert.Equal(new LocalizationTag("elysium", "Elysium", "purple"), english);
+        Assert.Equal(new LocalizationTag("elysium", "Элизиум", "purple"), fallback);
+        Assert.Null(runtime.GetTagForLanguage("ru", "missing"));
+    }
+
     private static LocalizationSnapshot CreateSnapshot()
     {
         var languages = new[]
@@ -169,6 +187,14 @@ public sealed class LocalizationRuntimeTests
                     true,
                     "Ник игрока",
                     "fdrinv")]),
+            CreateEntry(
+                5,
+                "Tags.elysium",
+                new Dictionary<string, string>
+                {
+                    ["ru"] = "Элизиум",
+                    ["en"] = "Elysium",
+                }),
         }.ToFrozenDictionary(entry => entry.Key, StringComparer.OrdinalIgnoreCase);
 
         var colorTags = LocalizationColorSchema.Defaults
@@ -184,6 +210,10 @@ public sealed class LocalizationRuntimeTests
                 colorTags.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase)),
             languages,
             entries,
+            new[]
+            {
+                new LocalizationTagState(1, "elysium", "Tags.elysium", "purple", true, 0),
+            }.ToFrozenDictionary(tag => tag.Key, StringComparer.OrdinalIgnoreCase),
             DateTimeOffset.UtcNow,
             LocalizationSource.Database);
     }

@@ -1,8 +1,8 @@
 {
-  "schemaVersion": 3,
-  "version": 4,
-  "generatedAt": "2026-09-04T09:06:33Z",
-  "checksum": "sha256:32c58fd25e86756d45ba8ee11dcd2b5d12398e6d61093bd8c188ba1ebec3d118",
+  "schemaVersion": 4,
+  "version": 5,
+  "generatedAt": "2026-09-04T12:00:00Z",
+  "checksum": "sha256:3516bfb288fb83ff6d2443150cd64c8ccdfb9d08c5bbb6cb1c3a69a04bacf562",
   "serverFallbackLanguage": "ru",
   "languages": [
     "ru",
@@ -20,6 +20,13 @@
     "success": "green",
     "important": "orange",
     "muted": "gray"
+  },
+  "tags": {
+    "elysium": {
+      "color": "purple",
+      "enabled": true,
+      "sortOrder": 0
+    }
   },
   "parameters": {},
   "entries": {
@@ -50,6 +57,12 @@
     "advertisement.messages.discord": {
       "ru": "Наш Discord: {accent}discord.gg/elysium{/accent}",
       "en": "Our Discord: {accent}discord.gg/elysium{/accent}"
+    },
+    "Tags.elysium": {
+      "ru": "Elysium",
+      "en": "Elysium",
+      "de": "Elysium",
+      "pl": "Elysium"
     },
     "ResetScore.ResetMessage": {
       "ru": "Ваш счёт обнулён!",

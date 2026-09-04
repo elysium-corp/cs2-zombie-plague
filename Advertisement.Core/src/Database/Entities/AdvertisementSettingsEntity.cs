@@ -36,9 +36,6 @@ internal sealed class AdvertisementSettingsEntity
     [Column("exclude_bots_from_players")]
     public bool ExcludeBotsFromPlayers { get; set; } = true;
 
-    [Column("colors", TypeName = "jsonb")]
-    public string ColorsJson { get; set; } = "{\"default\":\"default\",\"accent\":\"lightblue\",\"warning\":\"red\",\"success\":\"green\",\"important\":\"orange\",\"muted\":\"gray\"}";
-
     [Column("configuration_version")]
     public long ConfigurationVersion { get; set; } = 1;
 

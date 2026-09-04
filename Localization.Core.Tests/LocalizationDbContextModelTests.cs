@@ -55,4 +55,24 @@ public sealed class LocalizationDbContextModelTests
         Assert.Equal("jsonb", property.GetColumnType());
         Assert.Contains("\"success\":\"green\"", property.GetDefaultValueSql() ?? string.Empty);
     }
+
+    [Fact]
+    public void LocalizationTag_ReferencesAnEntryByLocalizationKey()
+    {
+        var options = new DbContextOptionsBuilder<LocalizationDbContext>()
+            .UseNpgsql("Host=localhost;Database=metadata;Username=metadata;Password=metadata")
+            .Options;
+        using var context = new LocalizationDbContext(options);
+
+        var entity = context.Model.FindEntityType(typeof(LocalizationTagEntity))!;
+        var foreignKey = Assert.Single(entity.GetForeignKeys());
+
+        Assert.Equal(
+            nameof(LocalizationTagEntity.LocalizationKey),
+            Assert.Single(foreignKey.Properties).Name);
+        Assert.Equal(
+            nameof(LocalizationEntryEntity.Key),
+            Assert.Single(foreignKey.PrincipalKey.Properties).Name);
+        Assert.Equal(DeleteBehavior.Cascade, foreignKey.DeleteBehavior);
+    }
 }
