@@ -55,7 +55,7 @@ public sealed class LanguageResolverTests
         }.ToFrozenDictionary(language => language.Code, StringComparer.OrdinalIgnoreCase);
 
         return new LocalizationSnapshot(
-            new LocalizationSettings("ru", 30, true, true, 1, LocalizationColorSchema.Defaults),
+            new LocalizationSettings("ru", 30, true, 1, LocalizationColorSchema.Defaults),
             languages,
             FrozenDictionary<string, LocalizationEntry>.Empty,
             DateTimeOffset.UtcNow,

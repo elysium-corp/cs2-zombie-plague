@@ -1,4 +1,3 @@
-using Localization.Core.Data;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
@@ -71,7 +70,7 @@ internal sealed class AddEquipmentLocalizationEntries : Migration
 
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        var entries = BuiltInLocalizationEntries.Create();
+        var entries = LocalizationSeedEntries.Create();
 
         foreach (var key in RequiredKeys)
         {

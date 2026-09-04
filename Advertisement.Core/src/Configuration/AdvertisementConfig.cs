@@ -44,6 +44,8 @@ internal sealed class FallbackTagConfig
 {
     public string Key { get; set; } = string.Empty;
     public string Color { get; set; } = "default";
+    public Dictionary<string, string> Translations { get; set; } =
+        new(StringComparer.OrdinalIgnoreCase);
 }
 
 internal sealed class FallbackMessageConfig

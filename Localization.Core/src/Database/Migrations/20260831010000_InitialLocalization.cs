@@ -109,8 +109,6 @@ internal sealed class InitialLocalization : Migration
                 ('localization.menu.unavailable', TRUE, 'en', 'Unable to change language. Try again later'),
                 ('localization.menu.unavailable', TRUE, 'de', 'Die Sprache konnte nicht geändert werden. Versuche es später erneut'),
                 ('localization.menu.unavailable', TRUE, 'pl', 'Nie udało się zmienić języka. Spróbuj ponownie później'),
-                ('advertisement.tags.elysium', FALSE, 'ru', 'Elysium'),
-                ('advertisement.tags.elysium', FALSE, 'en', 'Elysium'),
                 ('advertisement.messages.discord', FALSE, 'ru', 'Наш Discord: {accent}discord.gg/elysium{/accent}'),
                 ('advertisement.messages.discord', FALSE, 'en', 'Our Discord: {accent}discord.gg/elysium{/accent}'),
                 ('ResetScore.ResetMessage', FALSE, 'ru', 'Ваш счёт обнулён!'),
@@ -210,30 +208,6 @@ internal sealed class InitialLocalization : Migration
                         JOIN advertisement.messages AS message ON message.id = translation.message_id
                         JOIN localization.entries AS entry
                           ON entry.key = 'advertisement.messages.' || message.key
-                        JOIN localization.languages AS language
-                          ON language.code = lower(translation.locale)
-                        ON CONFLICT (entry_id, language_code) DO UPDATE SET
-                            text = EXCLUDED.text,
-                            updated_at = NOW()
-                    $sql$;
-                END IF;
-
-                IF to_regclass('advertisement.tags') IS NOT NULL
-                   AND to_regclass('advertisement.tag_translations') IS NOT NULL THEN
-                    EXECUTE $sql$
-                        INSERT INTO localization.entries (key, description)
-                        SELECT 'advertisement.tags.' || tag.key, 'Тег рекламы ' || tag.key
-                        FROM advertisement.tags AS tag
-                        ON CONFLICT (key) DO NOTHING
-                    $sql$;
-
-                    EXECUTE $sql$
-                        INSERT INTO localization.translations (entry_id, language_code, text)
-                        SELECT entry.id, lower(translation.locale), translation.text
-                        FROM advertisement.tag_translations AS translation
-                        JOIN advertisement.tags AS tag ON tag.id = translation.tag_id
-                        JOIN localization.entries AS entry
-                          ON entry.key = 'advertisement.tags.' || tag.key
                         JOIN localization.languages AS language
                           ON language.code = lower(translation.locale)
                         ON CONFLICT (entry_id, language_code) DO UPDATE SET

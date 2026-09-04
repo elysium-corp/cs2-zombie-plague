@@ -17,6 +17,11 @@ PostgreSQL читается один раз при запуске плагина
 `FormatForPlayer` / `FormatForLanguage`: обязательность и тип проверяет
 `Localization.Core`, там же значения очищаются от цветовых тегов.
 
+Названия тегов принадлежат только группе Tags и хранятся в
+`advertisement.tag_translations`. Ключи вида `advertisement.tags.*` в общем
+каталоге Localization не создаются и при обновлении удаляются после безопасного
+переноса существующих переводов в таблицу тегов.
+
 Connection string и пароль не хранятся в `advertisement.json`. Для design-time генерации миграций можно временно задать `ADVERTISEMENT_DB_CONNECTION`.
 
 Первая миграция создаёт схемы/таблицы `advertisement.settings`, `advertisement.tags`, `advertisement.tag_translations`, `advertisement.messages`, `advertisement.message_translations` и поле локали в `core.player_preferences`.

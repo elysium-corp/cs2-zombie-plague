@@ -1,8 +1,7 @@
 # Localization.Core
 
-Версия `1.2.1` гарантированно публикует системные ключи CustomKnife и
-CustomEquipment во встроенном аварийном snapshot и в PostgreSQL без
-перезаписи переводов, изменённых администратором.
+Версия `1.3.0` использует только два источника данных: PostgreSQL и проверенный
+fallback-файл. Переводы внутри runtime-классов отсутствуют.
 
 Единая серверная локализация Elysium.
 
@@ -12,10 +11,10 @@ CustomEquipment во встроенном аварийном snapshot и в Post
 2. язык клиента CS2;
 3. `server_fallback_language`.
 
-`ILocalizationApi.GetForPlayer` читает только immutable memory snapshot. PostgreSQL
-используется при подключении, смене языка, старте карты и ручном обновлении snapshot.
-При сбое БД сохраняется last-known-good cache или используется проверенный
-`localization.json` из каталога конфигурации плагина.
+`ILocalizationApi.GetForPlayer` читает только immutable memory snapshot. При запуске
+и в конце каждой карты координатор сначала запрашивает PostgreSQL, а при ошибке —
+проверенный `localization.json`. Успешно полученный snapshot атомарно записывается
+в memory cache. Если оба источника недоступны, текущий snapshot остаётся без изменений.
 
 Проверенный fallback-файл должен находиться здесь:
 
@@ -25,9 +24,8 @@ CustomEquipment во встроенном аварийном snapshot и в Post
 
 Скачайте `localization.json` в модуле ElysiumLocalization во Flute CMS и поместите
 его по этому пути. Файл читается как корневой JSON, без дополнительной секции.
-Если файл отсутствует или остался пустой шаблон старой версии с ключом `""`,
-плагин использует встроенный аварийный snapshot. Любой другой невалидный конфиг
-не подменяется аварийным snapshot молча, а отклоняется с ошибкой валидации.
+Если файл отсутствует, пуст или не проходит валидацию/checksum, он отклоняется.
+Встроенного аварийного набора строк нет.
 
 Игрок открывает меню языков командами `!lang`, `!language` и `!язык`.
 Администраторские команды: `localization_status`, `localization_reload`.
@@ -57,5 +55,5 @@ var text = localization.FormatForPlayer(
 Swiftly доступен через парный тег `{color:green}...{/color}`.
 
 Периодического polling нет. Устаревшее поле `refresh_interval_seconds` остаётся
-в БД и fallback только для совместимости; snapshot читается при запуске плагина,
-в начале карты или вручную командой `localization_reload`.
+в БД и fallback только для совместимости; snapshot обновляется при запуске плагина,
+в конце карты или вручную командой `localization_reload`.

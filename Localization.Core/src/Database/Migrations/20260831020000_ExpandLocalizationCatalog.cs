@@ -1,4 +1,3 @@
-using Localization.Core.Data;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
@@ -12,7 +11,7 @@ internal sealed class ExpandLocalizationCatalog : Migration
 {
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        foreach (var (key, translations) in BuiltInLocalizationEntries.Create())
+        foreach (var (key, translations) in LocalizationSeedEntries.Create())
         {
             var escapedKey = Escape(key);
             var plugin = Escape(key.Split('.', 2)[0]);

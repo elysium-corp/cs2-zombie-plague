@@ -5,15 +5,12 @@ namespace Localization.Core.Data;
 internal enum LocalizationSource
 {
     Database,
-    Cache,
     Config,
-    Emergency,
 }
 
 internal sealed record LocalizationSettings(
     string ServerFallbackLanguage,
     int RefreshIntervalSeconds,
-    bool LocalCacheEnabled,
     bool LogMissingKeys,
     long ConfigurationVersion,
     FrozenDictionary<string, string> ColorTags);
@@ -50,8 +47,6 @@ internal sealed record LocalizationSnapshot(
                && Languages.TryGetValue(normalized, out var language)
                && language.Enabled;
     }
-
-    public LocalizationSnapshot AsCache() => this with { Source = LocalizationSource.Cache };
 }
 
 internal sealed class LocalizationCache

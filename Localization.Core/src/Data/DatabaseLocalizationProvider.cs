@@ -36,36 +36,15 @@ internal sealed class DatabaseLocalizationProvider(
             .Where(language => language.Enabled)
             .Select(language => language.Code)
             .ToFrozenSet(StringComparer.OrdinalIgnoreCase);
-        var mutableEntries = entryEntities
+        var entries = entryEntities
             .Select(entity => MapEntry(entity, languageCodes, enabledLanguageCodes))
-            .ToDictionary(entry => entry.Key, StringComparer.OrdinalIgnoreCase);
-
-        long builtInId = -1;
-        foreach (var (key, translations) in BuiltInLocalizationEntries.Create())
-        {
-            if (mutableEntries.ContainsKey(key))
-            {
-                continue;
-            }
-
-            mutableEntries[key] = new LocalizationEntry(
-                builtInId--,
-                key,
-                LocalizationValidation.CriticalKeys.Contains(key),
-                LocalizationValidation.NormalizeTranslations(translations, languageCodes),
-                LocalizationParameterSchema.Normalize(
-                    null,
-                    LocalizationValidation.NormalizeTranslations(translations, languageCodes)));
-        }
-
-        var entries = mutableEntries.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
+            .ToFrozenDictionary(entry => entry.Key, StringComparer.OrdinalIgnoreCase);
         var colorTags = LocalizationColorSchema.FromJson(settingsEntity.ColorTagsJson);
 
         var snapshot = new LocalizationSnapshot(
             new LocalizationSettings(
                 LocaleNormalizer.Normalize(settingsEntity.ServerFallbackLanguage),
                 settingsEntity.RefreshIntervalSeconds,
-                settingsEntity.LocalCacheEnabled,
                 settingsEntity.LogMissingKeys,
                 settingsEntity.ConfigurationVersion,
                 colorTags),

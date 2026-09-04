@@ -10,7 +10,7 @@ internal sealed class LocalizationApi(
     LocalizationRuntime runtime) : ILocalizationApi
 {
     public string ServerFallbackLanguage =>
-        cache.Current?.Settings.ServerFallbackLanguage ?? "ru";
+        cache.Current?.Settings.ServerFallbackLanguage ?? string.Empty;
 
     public string Resolve(IPlayer player) => languageResolver.Resolve(player);
 

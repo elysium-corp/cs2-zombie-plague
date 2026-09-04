@@ -30,7 +30,7 @@ internal sealed class LocalizationModule(ISwiftlyCore core) : BaseModule(core)
                     Core.Logger.LogError(
                         context.Exception,
                         "[Localization] localization.json is invalid and was ignored. " +
-                        "The emergency snapshot remains active until PostgreSQL is loaded."
+                        "The current memory snapshot remains active until a source is loaded."
                     );
                     context.Ignore = true;
                 };
@@ -55,8 +55,7 @@ internal sealed class LocalizationModule(ISwiftlyCore core) : BaseModule(core)
             provider.GetRequiredService<LocalizationCache>(),
             provider.GetRequiredService<DatabaseLocalizationProvider>(),
             provider.GetRequiredService<FallbackLocalizationProvider>(),
-            provider.GetRequiredService<RateLimitedLocalizationLogger>(),
-            Core.Logger));
+            provider.GetRequiredService<RateLimitedLocalizationLogger>()));
 
         services.AddPostgreSqlDatabase<LocalizationDbContext>(Core, new DatabaseOptions
         {

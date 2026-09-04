@@ -39,22 +39,6 @@ internal sealed class UseSharedLocalization : Migration
                     text = EXCLUDED.text,
                     updated_at = NOW();
 
-                INSERT INTO localization.entries (key, description)
-                SELECT 'advertisement.tags.' || tag.key, 'Тег рекламы ' || tag.key
-                FROM advertisement.tags AS tag
-                ON CONFLICT (key) DO NOTHING;
-
-                INSERT INTO localization.translations (entry_id, language_code, text)
-                SELECT entry.id, language.code, translation.text
-                FROM advertisement.tag_translations AS translation
-                JOIN advertisement.tags AS tag ON tag.id = translation.tag_id
-                JOIN localization.entries AS entry
-                  ON entry.key = 'advertisement.tags.' || tag.key
-                JOIN localization.languages AS language
-                  ON language.code = lower(translation.locale)
-                ON CONFLICT (entry_id, language_code) DO UPDATE SET
-                    text = EXCLUDED.text,
-                    updated_at = NOW();
             END
             $migration$;
             """);
