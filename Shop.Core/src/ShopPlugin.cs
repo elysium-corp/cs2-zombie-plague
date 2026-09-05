@@ -29,7 +29,7 @@ namespace Shop.Core;
 
 [PluginMetadata(
     Id = "Shop.Core",
-    Version = "1.1.0",
+    Version = "1.2.0",
     Name = "Elysium Shop",
     Author = "Elysium",
     Description = "Memory-snapshot shop for human and zombie equipment")]
@@ -113,7 +113,7 @@ internal sealed class ShopPlugin(ISwiftlyCore core) : Plugin<ShopModule>(core)
         Core.Event.OnMapUnload += OnMapUnload;
         _roundStartHook = Core.GameEvent.HookPost<EventRoundStart>(OnRoundStart);
         RegisterCommands();
-        Core.Logger.LogInformation("[Shop] Shop.Core 1.1.0 загружен.");
+        Core.Logger.LogInformation("[Shop] Shop.Core 1.2.0 загружен.");
     }
 
     protected override void OnUnload()

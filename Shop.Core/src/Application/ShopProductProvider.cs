@@ -3,6 +3,7 @@ using CustomEquipment.Api;
 using Shop.Api.Data;
 using Shop.Core.Data;
 using SwiftlyS2.Shared.Players;
+using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace Shop.Core.Application;
 
@@ -21,6 +22,8 @@ internal sealed class ShopProductProvider(Func<ICustomEquipmentApi> equipmentApi
                 equipmentApi().CanUseItem(player, offer.Contract.ItemKey),
             BuiltinProvider when offer.Contract.ItemKey == ArmorItem =>
                 player.PlayerPawn is { IsValid: true },
+            StandardWeaponCatalog.ProviderKey =>
+                IsStandardWeaponAvailable(player, offer),
             _ => false
         };
     }
@@ -33,8 +36,32 @@ internal sealed class ShopProductProvider(Func<ICustomEquipmentApi> equipmentApi
                 equipmentApi().TryGiveItem(player, offer.Contract.ItemKey),
             BuiltinProvider when offer.Contract.ItemKey == ArmorItem =>
                 TryGrantArmor(player, offer.SettingsJson),
+            StandardWeaponCatalog.ProviderKey =>
+                TryGrantStandardWeapon(player, offer),
             _ => false
         };
+    }
+
+    private static bool IsStandardWeaponAvailable(IPlayer player, ShopOfferDefinition offer) =>
+        offer.ShopType == ShopType.Human &&
+        StandardWeaponCatalog.Weapons.ContainsKey(offer.Contract.ItemKey) &&
+        player.IsValid && player.IsAlive &&
+        player.PlayerPawn is { IsValid: true, ItemServices: not null, WeaponServices: not null };
+
+    private static bool TryGrantStandardWeapon(IPlayer player, ShopOfferDefinition offer)
+    {
+        if (!IsStandardWeaponAvailable(player, offer))
+        {
+            return false;
+        }
+
+        var pawn = player.RequiredPlayerPawn;
+        var weapons = pawn.WeaponServices!;
+        weapons.DropWeaponBySlot(StandardWeaponCatalog.Weapons[offer.Contract.ItemKey]);
+
+        // Используем возвращённую сущность: поиск по имени мог бы принять старое оружие за покупку.
+        var weapon = pawn.ItemServices!.GiveItem<CCSWeaponBase>(offer.Contract.ItemKey);
+        return weapon is { IsValid: true };
     }
 
     private static bool TryGrantArmor(IPlayer player, string settingsJson)

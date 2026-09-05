@@ -1,8 +1,8 @@
 {
   "schemaVersion": 4,
-  "version": 7,
-  "generatedAt": "2026-09-04T18:35:00Z",
-  "checksum": "sha256:4a74855caca07c4cdf46e233ffb3cdc4e73397f0590a73085e2551f779d3af85",
+  "version": 8,
+  "generatedAt": "2026-09-05T06:10:00Z",
+  "checksum": "sha256:10cb15e17418ecd1094e8c0a8d56ce3e120e77e8d811da73ec3fe09192a78b12",
   "serverFallbackLanguage": "ru",
   "languages": [
     "ru",
@@ -917,6 +917,142 @@
     "RoundRatingNotify.ZombieTop": {
       "ru": "Лучший игрок за зомби: {player} — заразил {value} игроков.",
       "en": "Best zombie player: {player} — infected {value} players."
+    },
+    "Shop.Weapon.Glock.Name": {
+      "ru": "Glock-18",
+      "en": "Glock-18"
+    },
+    "Shop.Weapon.P2000.Name": {
+      "ru": "P2000",
+      "en": "P2000"
+    },
+    "Shop.Weapon.UspS.Name": {
+      "ru": "USP-S",
+      "en": "USP-S"
+    },
+    "Shop.Weapon.DualBerettas.Name": {
+      "ru": "Dual Berettas",
+      "en": "Dual Berettas"
+    },
+    "Shop.Weapon.P250.Name": {
+      "ru": "P250",
+      "en": "P250"
+    },
+    "Shop.Weapon.Tec9.Name": {
+      "ru": "Tec-9",
+      "en": "Tec-9"
+    },
+    "Shop.Weapon.FiveSeven.Name": {
+      "ru": "Five-SeveN",
+      "en": "Five-SeveN"
+    },
+    "Shop.Weapon.Cz75Auto.Name": {
+      "ru": "CZ75-Auto",
+      "en": "CZ75-Auto"
+    },
+    "Shop.Weapon.DesertEagle.Name": {
+      "ru": "Desert Eagle",
+      "en": "Desert Eagle"
+    },
+    "Shop.Weapon.R8Revolver.Name": {
+      "ru": "R8 Revolver",
+      "en": "R8 Revolver"
+    },
+    "Shop.Weapon.Mac10.Name": {
+      "ru": "MAC-10",
+      "en": "MAC-10"
+    },
+    "Shop.Weapon.Mp9.Name": {
+      "ru": "MP9",
+      "en": "MP9"
+    },
+    "Shop.Weapon.Mp7.Name": {
+      "ru": "MP7",
+      "en": "MP7"
+    },
+    "Shop.Weapon.Mp5Sd.Name": {
+      "ru": "MP5-SD",
+      "en": "MP5-SD"
+    },
+    "Shop.Weapon.Ump45.Name": {
+      "ru": "UMP-45",
+      "en": "UMP-45"
+    },
+    "Shop.Weapon.P90.Name": {
+      "ru": "P90",
+      "en": "P90"
+    },
+    "Shop.Weapon.PpBizon.Name": {
+      "ru": "PP-Bizon",
+      "en": "PP-Bizon"
+    },
+    "Shop.Weapon.GalilAr.Name": {
+      "ru": "Galil AR",
+      "en": "Galil AR"
+    },
+    "Shop.Weapon.Famas.Name": {
+      "ru": "FAMAS",
+      "en": "FAMAS"
+    },
+    "Shop.Weapon.Ak47.Name": {
+      "ru": "AK-47",
+      "en": "AK-47"
+    },
+    "Shop.Weapon.M4A4.Name": {
+      "ru": "M4A4",
+      "en": "M4A4"
+    },
+    "Shop.Weapon.M4A1S.Name": {
+      "ru": "M4A1-S",
+      "en": "M4A1-S"
+    },
+    "Shop.Weapon.Aug.Name": {
+      "ru": "AUG",
+      "en": "AUG"
+    },
+    "Shop.Weapon.Sg553.Name": {
+      "ru": "SG 553",
+      "en": "SG 553"
+    },
+    "Shop.Weapon.Ssg08.Name": {
+      "ru": "SSG 08",
+      "en": "SSG 08"
+    },
+    "Shop.Weapon.Awp.Name": {
+      "ru": "AWP",
+      "en": "AWP"
+    },
+    "Shop.Weapon.Scar20.Name": {
+      "ru": "SCAR-20",
+      "en": "SCAR-20"
+    },
+    "Shop.Weapon.G3Sg1.Name": {
+      "ru": "G3SG1",
+      "en": "G3SG1"
+    },
+    "Shop.Weapon.Nova.Name": {
+      "ru": "Nova",
+      "en": "Nova"
+    },
+    "Shop.Weapon.Xm1014.Name": {
+      "ru": "XM1014",
+      "en": "XM1014"
+    },
+    "Shop.Weapon.Mag7.Name": {
+      "ru": "MAG-7",
+      "en": "MAG-7"
+    },
+    "Shop.Weapon.SawedOff.Name": {
+      "ru": "Sawed-Off",
+      "en": "Sawed-Off"
+    },
+    "Shop.Weapon.M249.Name": {
+      "ru": "M249",
+      "en": "M249"
+    },
+    "Shop.Weapon.Negev.Name": {
+      "ru": "Negev",
+      "en": "Negev"
     }
   }
 }
