@@ -1,5 +1,5 @@
 {
-  "SchemaVersion": 2,
+  "SchemaVersion": 3,
   "Settings": {
     "Enabled": true,
     "FirstDropDelaySeconds": 30,
@@ -20,7 +20,6 @@
     "AllowNemesisRound": false,
     "HumansCanCollect": true,
     "ZombiesCanCollect": false,
-    "AutoDiscoverSpawnPoints": true,
     "DropHeight": 600,
     "FallSpeed": 160,
     "PickupRadius": 60,
@@ -31,7 +30,8 @@
     "ArmorCap": 100,
     "SupplyBoxModel": "models/props/crates/cs2_drop_crate_01.vmdl",
     "ParachuteModel": "",
-    "ParachuteSound": ""
+    "ParachuteSound": "",
+    "DropSoundEvents": []
   },
   "BoxTypes": [
     {
@@ -54,7 +54,8 @@
           "MinAmount": 100,
           "MaxAmount": 300
         }
-      ]
+      ],
+      "DropSoundEvents": null
     }
   ],
   "Maps": []

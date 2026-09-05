@@ -23,7 +23,6 @@ public class SupplyBoxConfig : ISupplyBoxConfig
     public bool AllowNemesisRound { get; set; } = false;
     public bool HumansCanCollect { get; set; } = true;
     public bool ZombiesCanCollect { get; set; } = false;
-    public bool AutoDiscoverSpawnPoints { get; set; } = true;
     // При Z точки = 0 это абсолютная высота старта; иначе — расстояние над заданным Z.
     [Range(0, 4096)] public int DropHeight { get; set; } = 600;
     [Range(10, 1000)] public int FallSpeed { get; set; } = 160;
@@ -36,4 +35,5 @@ public class SupplyBoxConfig : ISupplyBoxConfig
     public string SupplyBoxModel { get; set; } = "models/props/crates/cs2_drop_crate_01.vmdl";
     public string ParachuteModel { get; set; } = "";
     [StringLength(128)] public string ParachuteSound { get; set; } = "";
+    public List<string> DropSoundEvents { get; set; } = [];
 }

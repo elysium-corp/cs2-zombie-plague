@@ -26,20 +26,19 @@ using ZombiePlague.Api.Events.Contexts.Round;
 
 namespace SupplyBox;
 
-[PluginMetadata(Id = "SupplyBox.Core", Version = "1.1.1", Name = "[ZP] SupplyBox",
+[PluginMetadata(Id = "SupplyBox.Core", Version = "1.2.0", Name = "[ZP] SupplyBox",
     Author = "illusion & fdrinv", Description = "Database-managed supply drops with Flute CMS integration")]
 internal sealed class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxModule>(core)
 {
-    internal const string EditorPermission = "supply_box.admin.edit";
+    private const string AdminPermission = "supply_box.admin.edit";
     private readonly Lazy<SupplyBoxMapConfigService> _maps = GetRequiredServiceLazy<SupplyBoxMapConfigService>();
-    private readonly Lazy<SupplyBoxMenuService> _menu = GetRequiredServiceLazy<SupplyBoxMenuService>();
     private readonly Lazy<SupplyBoxRewardService> _rewards = GetRequiredServiceLazy<SupplyBoxRewardService>();
+    private readonly Lazy<SupplyBoxDropSoundService> _dropSounds = GetRequiredServiceLazy<SupplyBoxDropSoundService>();
     private readonly Lazy<IHookPublisher> _hooks = GetRequiredServiceLazy<IHookPublisher>();
     private readonly Lazy<ISupplyBoxEvents> _events = GetRequiredServiceLazy<ISupplyBoxEvents>();
     private readonly List<Guid> _commands = [];
     private readonly List<SupplyBoxEntity> _boxes = [];
     private CancellationTokenSource? _timer;
-    private CancellationTokenSource? _refreshTimer;
     private Guid _roundEndHook;
     private Guid _restartHook;
     private IRound? _round;
@@ -79,26 +78,20 @@ internal sealed class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxModule>(cor
         // Существующую карту подхватываем при reload; иначе ждём OnMapLoad.
         if (!SupplyBoxMapBootstrap.TryLoadCurrentMap(
                 () => Core.Engine.GlobalVars.MapName.Value,
-                _maps.Value.LoadConfig))
+                _maps.Value.SetMap))
             _lastStatus = "waiting_for_map";
-        _refreshTimer = Core.Scheduler.RepeatBySeconds(30, () => _maps.Value.Refresh());
-        _commands.Add(Core.Command.RegisterCommand("supply", context =>
-        {
-            if (context.Sender is { } player) _menu.Value.ShowMainMenu(player);
-        }, registerRaw: true, permission: EditorPermission));
         _commands.Add(Core.Command.RegisterCommand("supply_reload", context =>
         {
             _maps.Value.Refresh();
-            context.Reply("SupplyBox: загрузка БД/fallback запущена. supply_status покажет источник и состояние.");
-        }, registerRaw: true, permission: EditorPermission));
+            context.Reply("SupplyBox: загрузка БД/fallback запущена — supply_status покажет источник и состояние");
+        }, registerRaw: true, permission: AdminPermission));
         _commands.Add(Core.Command.RegisterCommand("supply_status", context =>
-            context.Reply($"SupplyBox: source={_maps.Value.Source}, version={_maps.Value.Current.Version}, map={_maps.Value.MapName}, points={_maps.Value.GetSnapshot().Count}, active={_boxes.Count}, round={_roundNumber}, state={_lastStatus}"),
-            registerRaw: true, permission: EditorPermission));
+            context.Reply($"SupplyBox: source={_maps.Value.Source}, version={_maps.Value.Current.Version}, map={_maps.Value.MapName}, points={_maps.Value.GetMap()?.Points.Count ?? 0}, active={_boxes.Count}, round={_roundNumber}, state={_lastStatus}"),
+            registerRaw: true, permission: AdminPermission));
     }
 
     protected override void OnUnload()
     {
-        _refreshTimer?.Cancel(); _refreshTimer = null;
         StopRound();
         if (_ready)
         {
@@ -111,7 +104,6 @@ internal sealed class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxModule>(cor
         Core.Event.OnPrecacheResource -= OnPrecache;
         foreach (var command in _commands) Core.Command.UnregisterCommand(command);
         _commands.Clear();
-        if (_menu.IsValueCreated) _menu.Value.Dispose();
         if (_maps.IsValueCreated) _maps.Value.Dispose();
     }
 
@@ -127,10 +119,11 @@ internal sealed class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxModule>(cor
 
     private void OnMapLoad(IOnMapLoadEvent args)
     {
-        StopRound(); if (_menu.IsValueCreated) _menu.Value.ClearPreviews(); _roundNumber = 0; _mapDrops = 0;
-        _maps.Value.LoadConfig(args.MapName);
+        StopRound(); _roundNumber = 0; _mapDrops = 0;
+        _maps.Value.SetMap(args.MapName);
+        _maps.Value.Refresh();
     }
-    private void OnMapUnload(IOnMapUnloadEvent args) { StopRound(); if (_menu.IsValueCreated) _menu.Value.ClearPreviews(); _maps.Value.Refresh(); }
+    private void OnMapUnload(IOnMapUnloadEvent args) => StopRound();
     private HookResult OnRoundEnd(EventRoundEnd args) { StopRound(); return HookResult.Continue; }
     private HookResult OnRestart(EventCsPreRestart args) { StopRound(); _roundNumber = 0; _mapDrops = 0; return HookResult.Continue; }
     private void OnRoundStarted(ref RoundStartedContext context)
@@ -157,7 +150,7 @@ internal sealed class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxModule>(cor
                 if (_round is not null)
                 {
                     var settings = _maps.Value.Value;
-                    Schedule(_lastStatus is "loading" or "discovering_points" ? 3
+                    Schedule(_lastStatus == "loading" ? 3
                         : settings.RespawnTimeBySeconds + Random.Shared.Next(settings.TimeSpreadBySeconds + 1));
                 }
             }
@@ -174,16 +167,7 @@ internal sealed class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxModule>(cor
         var document = service.Current.Document;
         var map = document.Maps.FirstOrDefault(item => string.Equals(item.Name, service.MapName, StringComparison.OrdinalIgnoreCase));
         var settings = SupplyBoxMapOverrides.Resolve(document.Settings, map);
-        if (map is null && settings.AutoDiscoverSpawnPoints)
-        {
-            var positions = Core.EntitySystem.GetAllEntitiesByDesignerName<CBaseEntity>("info_player_counterterrorist")
-                .Where(entity => entity.IsValidEntity && entity.AbsOrigin.HasValue).Take(64)
-                .Select((entity, index) => new SupplyBoxPoint { Id = index + 1, Name = $"CT spawn {index + 1}",
-                    X = entity.AbsOrigin!.Value.X, Y = entity.AbsOrigin!.Value.Y, Z = entity.AbsOrigin!.Value.Z }).ToArray();
-            service.DiscoverPoints(service.MapName, positions);
-            _lastStatus = positions.Length > 0 ? "discovering_points" : "no_spawn_points";
-            return;
-        }
+        if (map is null) { Reject("map_not_configured", SupplyBoxSpawnRejectionReason.SpawnPointUnavailable); return; }
         if (!settings.Enabled || map is not { Enabled: true }) { Reject("disabled"); return; }
         if (!SupplyBoxRules.RoundAllows(settings, _roundNumber, ZombiePlagueApi.IsSurvivorRound(_round!), ZombiePlagueApi.IsNemesisRound(_round!)))
         { Reject("round_conditions"); return; }
@@ -212,6 +196,7 @@ internal sealed class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxModule>(cor
             try { if (!box.Spawn(point, type)) { box.Dispose(); return; } }
             catch { box.Dispose(); throw; }
             _boxes.Add(box); _roundDrops++; _mapDrops++; _lastStatus = "spawned";
+            _dropSounds.Value.Play(type, settings);
             var post = new SupplyBoxSpawnedContext(box); _hooks.Value.Dispatch(ref post);
         }
     }
@@ -223,6 +208,7 @@ internal sealed class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxModule>(cor
     }
     private void StopRound()
     {
+        if (_dropSounds.IsValueCreated) _dropSounds.Value.StopAll();
         _round = null; _timer?.Cancel(); _timer = null; _lastStatus = "waiting_for_round";
         foreach (var box in _boxes.ToArray()) box.Dispose();
         _boxes.Clear();
