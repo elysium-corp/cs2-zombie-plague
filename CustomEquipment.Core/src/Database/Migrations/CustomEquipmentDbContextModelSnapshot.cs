@@ -733,7 +733,8 @@ internal sealed class CustomEquipmentDbContextModelSnapshot : ModelSnapshot
             b.Property<long>("WeaponId").HasColumnType("bigint").HasColumnName("weapon_id");
 
             b.HasKey("Id");
-            b.HasIndex("WeaponId", "Trigger", "EventName").IsUnique();
+            b.HasIndex("EventName").IsUnique();
+            b.HasIndex("WeaponId", "Trigger").IsUnique();
 
             b.ToTable("weapon_sounds", "custom_equipment", t =>
             {
