@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable><IsTestProject>true</IsTestProject><CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.9.0" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="4.0.0" PrivateAssets="all" />
+    <Compile Include="../SupplyBox.Core/src/Configuration/*.cs" Link="Configuration/%(Filename)%(Extension)" />
+    <Compile Include="../SupplyBox.Core/src/Data/Configs/SupplyBoxConfig.cs" Link="SupplyBoxConfig.cs" />
+    <Compile Include="../SupplyBox.Core/src/Data/Configs/ISupplyBoxConfig.cs" Link="ISupplyBoxConfig.cs" />
+    <Content Include="../SupplyBox.Core/resources/templates/supply_box.example.json" Link="fallback.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

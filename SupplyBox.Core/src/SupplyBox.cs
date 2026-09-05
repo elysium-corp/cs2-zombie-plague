@@ -1,255 +1,224 @@
 using Common.Di;
-using Common.Di.Utils;
 using Common.Hooks;
 using Common.Hooks.Abstractions;
+using CustomEquipment.Api;
+using Economy.Api;
 using Localization.Api;
-using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
 using SupplyBox.Api;
 using SupplyBox.Api.Events;
 using SupplyBox.Api.Events.Contexts;
+using SupplyBox.Configuration;
 using SupplyBox.Data;
-using SupplyBox.Data.Configs;
 using SupplyBox.Data.Entity;
 using SupplyBox.Di;
 using SupplyBox.Services;
-using SupplyBox.Utils;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Commands;
 using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Misc;
+using SwiftlyS2.Shared.Players;
+using SwiftlyS2.Shared.SchemaDefinitions;
 using ZombiePlague.Api;
-using ZombiePlague.Api.Data;
 using ZombiePlague.Api.Data.Rounds;
 using ZombiePlague.Api.Events.Contexts.Round;
 
 namespace SupplyBox;
 
-[PluginMetadata(
-    Id = "SupplyBox.Core",
-    Version = "0.1.0",
-    Name = "[ZP] SupplyBox",
-    Author = "illusion & fdrinv",
-    Description = "Adds supply boxes that fall from the sky, can be picked up, and grant rewards")
-]
-internal sealed partial class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxModule>(core)
+[PluginMetadata(Id = "SupplyBox.Core", Version = "1.0.0", Name = "[ZP] SupplyBox",
+    Author = "illusion & fdrinv", Description = "Database-managed supply drops with Flute CMS integration")]
+internal sealed class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxModule>(core)
 {
     internal const string EditorPermission = "supply_box.admin.edit";
-    private readonly Lazy<SupplyBoxMapConfigService> _mapConfigService = GetRequiredServiceLazy<SupplyBoxMapConfigService>();
-    private readonly Lazy<SupplyBoxMenuService> _menuService = GetRequiredServiceLazy<SupplyBoxMenuService>();
-    private readonly Lazy<SupplyBoxEditService> _editService = GetRequiredServiceLazy<SupplyBoxEditService>();
-    private readonly Lazy<IOptions<SupplyBoxConfig>> _config = GetRequiredServiceLazy<IOptions<SupplyBoxConfig>>();
+    private readonly Lazy<SupplyBoxMapConfigService> _maps = GetRequiredServiceLazy<SupplyBoxMapConfigService>();
+    private readonly Lazy<SupplyBoxMenuService> _menu = GetRequiredServiceLazy<SupplyBoxMenuService>();
+    private readonly Lazy<SupplyBoxRewardService> _rewards = GetRequiredServiceLazy<SupplyBoxRewardService>();
     private readonly Lazy<IHookPublisher> _hooks = GetRequiredServiceLazy<IHookPublisher>();
     private readonly Lazy<ISupplyBoxEvents> _events = GetRequiredServiceLazy<ISupplyBoxEvents>();
-
-    private Guid _guidOnEventRoundEndPost = Guid.Empty;
-    private Guid _guidOnEventCsPreRestartPost = Guid.Empty;
-    private Guid _supplyCommand = Guid.Empty;
-
-    private readonly List<SupplyBoxEntity> _droppedSupplyBoxes = [];
-    private CancellationTokenSource? _respawnSupplyBoxThinker;
-    private bool _roundActive;
-
+    private readonly List<Guid> _commands = [];
+    private readonly List<SupplyBoxEntity> _boxes = [];
+    private CancellationTokenSource? _timer;
+    private CancellationTokenSource? _refreshTimer;
+    private Guid _roundEndHook;
+    private Guid _restartHook;
+    private IRound? _round;
+    private int _roundNumber;
+    private int _roundDrops;
+    private int _mapDrops;
+    private bool _ready;
+    private string _lastStatus = "waiting_for_round";
     public static IZombiePlagueApi ZombiePlagueApi = null!;
 
-    protected override void OnConfigureSharedInterfaces(IInterfaceManager interfaceManager)
+    protected override void OnConfigureSharedInterfaces(IInterfaceManager interfaces) =>
+        interfaces.AddSharedInterface<ISupplyBoxApi, SupplyBoxApi>(ISupplyBoxApi.SharedApiKey, new(_events.Value));
+
+    protected override void OnUseSharedInterfaces(IInterfaceManager interfaces)
     {
-        var supplyBoxApi = new SupplyBoxApi(_events.Value);
-        interfaceManager.AddSharedInterface<ISupplyBoxApi, SupplyBoxApi>(ISupplyBoxApi.SharedApiKey, supplyBoxApi);
+        ZombiePlagueApi = interfaces.GetSharedInterface<IZombiePlagueApi>(IZombiePlagueApi.SharedApiKey);
+        BindSharedInterface<ILocalizationApi>(interfaces, ILocalizationApi.SharedApiKey);
+        BindSharedInterface<IEconomyApi>(interfaces, IEconomyApi.SharedApiKey);
+        BindSharedInterface<ICustomEquipmentApi>(interfaces, ICustomEquipmentApi.SharedApiKey);
     }
 
-    protected override void OnUseSharedInterfaces(IInterfaceManager interfaceManager)
+    protected override void OnStart()
     {
-        ZombiePlagueApi = interfaceManager.GetSharedInterface<IZombiePlagueApi>(IZombiePlagueApi.SharedApiKey);
-        BindSharedInterface<ILocalizationApi>(interfaceManager, ILocalizationApi.SharedApiKey);
+        _maps.Value.Refresh();
+        Core.Event.OnPrecacheResource += OnPrecache;
     }
 
     protected override void OnReady()
     {
-        _guidOnEventRoundEndPost = core.GameEvent.HookPost<EventRoundEnd>(OnRoundEnd);
-        _guidOnEventCsPreRestartPost = core.GameEvent.HookPost<EventCsPreRestart>(OnGameRestart);
-
-        _events.Value.Collected.Hook(OnSupplyBoxCollected);
+        _ready = true;
+        _roundEndHook = Core.GameEvent.HookPost<EventRoundEnd>(OnRoundEnd);
+        _restartHook = Core.GameEvent.HookPost<EventCsPreRestart>(OnRestart);
         ZombiePlagueApi.Events.Rounds.Started.Hook(OnRoundStarted);
-
-        core.Event.OnMapLoad += OnMapLoad;
-
-        _supplyCommand = Core.Command.RegisterCommand(
-            commandName: "supply",
-            handler: SupplyEditorHandler,
-            registerRaw: true,
-            permission: EditorPermission
-        );
+        Core.Event.OnMapLoad += OnMapLoad;
+        Core.Event.OnMapUnload += OnMapUnload;
+        _maps.Value.LoadConfig(Core.Engine.GlobalVars.MapName.Value);
+        _refreshTimer = Core.Scheduler.RepeatBySeconds(30, () => _maps.Value.Refresh());
+        _commands.Add(Core.Command.RegisterCommand("supply", context =>
+        {
+            if (context.Sender is { } player) _menu.Value.ShowMainMenu(player);
+        }, registerRaw: true, permission: EditorPermission));
+        _commands.Add(Core.Command.RegisterCommand("supply_reload", context =>
+        {
+            _maps.Value.Refresh();
+            context.Reply("SupplyBox: загрузка БД/fallback запущена. supply_status покажет источник и состояние.");
+        }, registerRaw: true, permission: EditorPermission));
+        _commands.Add(Core.Command.RegisterCommand("supply_status", context =>
+            context.Reply($"SupplyBox: source={_maps.Value.Source}, version={_maps.Value.Current.Version}, map={_maps.Value.MapName}, points={_maps.Value.GetSnapshot().Count}, active={_boxes.Count}, round={_roundNumber}, state={_lastStatus}"),
+            registerRaw: true, permission: EditorPermission));
     }
 
     protected override void OnUnload()
     {
+        _refreshTimer?.Cancel(); _refreshTimer = null;
         StopRound();
-        Core.GameEvent.Unhook(_guidOnEventRoundEndPost);
-        Core.GameEvent.Unhook(_guidOnEventCsPreRestartPost);
-
-        ZombiePlagueApi.Events.Rounds.Started.Unhook(OnRoundStarted);
-        _events.Value.Collected.Unhook(OnSupplyBoxCollected);
-
-        core.Event.OnMapLoad -= OnMapLoad;
-
-        if (_supplyCommand != Guid.Empty)
+        if (_ready)
         {
-            Core.Command.UnregisterCommand(_supplyCommand);
-            _supplyCommand = Guid.Empty;
+            ZombiePlagueApi.Events.Rounds.Started.Unhook(OnRoundStarted);
+            Core.GameEvent.Unhook(_roundEndHook);
+            Core.GameEvent.Unhook(_restartHook);
         }
+        Core.Event.OnMapLoad -= OnMapLoad;
+        Core.Event.OnMapUnload -= OnMapUnload;
+        Core.Event.OnPrecacheResource -= OnPrecache;
+        foreach (var command in _commands) Core.Command.UnregisterCommand(command);
+        _commands.Clear();
+        if (_menu.IsValueCreated) _menu.Value.Dispose();
+        if (_maps.IsValueCreated) _maps.Value.Dispose();
     }
 
-    private HookResult OnRoundEnd(EventRoundEnd @event)
+    private void OnPrecache(IOnPrecacheResourceEvent args)
     {
-        StopRound();
-
-        return HookResult.Continue;
+        args.AddItem("models/props/crates/cs2_drop_crate_01.vmdl");
+        var document = _maps.Value.Current.Document;
+        foreach (var model in document.BoxTypes.SelectMany(box => new[] { box.Model, box.ParachuteModel })
+                     .Append(document.Settings.SupplyBoxModel).Append(document.Settings.ParachuteModel)
+                     .Where(model => model.Length > 0).Distinct()) args.AddItem(model);
     }
 
-    private HookResult OnGameRestart(EventCsPreRestart @event)
+    private void OnMapLoad(IOnMapLoadEvent args)
     {
-        StopRound();
-
-        return HookResult.Continue;
+        StopRound(); if (_menu.IsValueCreated) _menu.Value.ClearPreviews(); _roundNumber = 0; _mapDrops = 0;
+        _maps.Value.LoadConfig(args.MapName);
     }
-
-    private void SupplyEditorHandler(ICommandContext context)
-    {
-        var player = context.Sender;
-
-        if (player == null)
-        {
-            return;
-        }
-
-        _menuService.Value.ShowMainMenu(player);
-    }
-
-    private void OnSupplyBoxCollected(ref SupplyBoxCollectedContext context)
-    {
-        var supplyBoxIndex = context.SupplyBox.Index;
-        var box = _droppedSupplyBoxes.Find(box => box.Index == supplyBoxIndex);
-
-        if (box != null)
-        {
-            _droppedSupplyBoxes.Remove(box);
-        }
-    }
-
+    private void OnMapUnload(IOnMapUnloadEvent args) { StopRound(); if (_menu.IsValueCreated) _menu.Value.ClearPreviews(); _maps.Value.Refresh(); }
+    private HookResult OnRoundEnd(EventRoundEnd args) { StopRound(); return HookResult.Continue; }
+    private HookResult OnRestart(EventCsPreRestart args) { StopRound(); _roundNumber = 0; _mapDrops = 0; return HookResult.Continue; }
     private void OnRoundStarted(ref RoundStartedContext context)
     {
         StopRound();
-        _roundActive = true;
-        CreateRespawnTimer(context.Round);
+        _round = context.Round; _roundNumber++; _roundDrops = 0;
+        _rewards.Value.ResetRound();
+        Schedule(_maps.Value.Value.FirstDropDelaySeconds);
     }
 
-    private void OnMapLoad(IOnMapLoadEvent @event)
+    private void Schedule(int seconds)
     {
-        _mapConfigService.Value.LoadConfig(@event.MapName);
-    }
-
-    private void TrySpawnSupplyBox(IRound round)
-    {
-        var rejectionReason = GetSpawnRejectionReason(round);
-
-        if (rejectionReason is not null)
-        {
-            DispatchSpawnRejected(rejectionReason.Value);
-            CreateRespawnTimer(round);
-            return;
-        }
-
-        if (!IsDropSuccessful())
-        {
-            DispatchSpawnRejected(SupplyBoxSpawnRejectionReason.ChanceMissed);
-            CreateRespawnTimer(round);
-            return;
-        }
-
-        SpawnSupplyBox();
-        CreateRespawnTimer(round);
-    }
-
-    private void CreateRespawnTimer(IRound round)
-    {
-        CancelRespawnTimer();
-        if (!_roundActive) return;
-
-        var minimum = Math.Max(1, _config.Get().RespawnTimeBySeconds);
-        var spread = Math.Max(0, _config.Get().TimeSpreadBySeconds);
-        var maximum = (int)Math.Min(int.MaxValue, (long)minimum + spread);
-        var respawnTime = minimum == maximum ? minimum : Numeric.Random(minimum, maximum);
-
+        _timer?.Cancel();
+        if (_round is null) return;
         CancellationTokenSource? timer = null;
-        timer = core.Scheduler.DelayBySeconds(respawnTime, () =>
+        timer = Core.Scheduler.DelayBySeconds(seconds, () =>
         {
-            if (!_roundActive || !ReferenceEquals(_respawnSupplyBoxThinker, timer)) return;
-            _respawnSupplyBoxThinker = null;
-            TrySpawnSupplyBox(round);
+            if (_round is null || !ReferenceEquals(_timer, timer)) return;
+            _timer = null;
+            try { TryDrop(); }
+            catch (Exception exception) { _lastStatus = "spawn_error"; Core.Logger.LogError(exception, "[SupplyBox] Drop failed; scheduler will retry."); }
+            finally
+            {
+                if (_round is not null)
+                {
+                    var settings = _maps.Value.Value;
+                    Schedule(_lastStatus is "loading" or "discovering_points" ? 3
+                        : settings.RespawnTimeBySeconds + Random.Shared.Next(settings.TimeSpreadBySeconds + 1));
+                }
+            }
         });
-        _respawnSupplyBoxThinker = timer;
+        _timer = timer;
     }
 
-    private void SpawnSupplyBox()
+    private void TryDrop()
     {
-        var preContext = new SupplyBoxSpawningContext(
-            _droppedSupplyBoxes.Cast<ISupplyBoxEntity>().ToArray());
-
-        if (!_hooks.Value.DispatchCancellable(ref preContext))
+        var round = _round;
+        var service = _maps.Value;
+        _boxes.RemoveAll(box => !box.IsAlive);
+        if (service.Source == "loading") { _lastStatus = "loading"; return; }
+        var document = service.Current.Document;
+        var settings = document.Settings;
+        var map = service.GetMap();
+        if (map is null && settings.AutoDiscoverSpawnPoints)
         {
-            DispatchSpawnRejected(SupplyBoxSpawnRejectionReason.Cancelled);
+            var positions = Core.EntitySystem.GetAllEntitiesByDesignerName<CBaseEntity>("info_player_counterterrorist")
+                .Where(entity => entity.IsValidEntity && entity.AbsOrigin.HasValue).Take(64)
+                .Select((entity, index) => new SupplyBoxPoint { Id = index + 1, Name = $"CT spawn {index + 1}",
+                    X = entity.AbsOrigin!.Value.X, Y = entity.AbsOrigin!.Value.Y, Z = entity.AbsOrigin!.Value.Z }).ToArray();
+            service.DiscoverPoints(service.MapName, positions);
+            _lastStatus = positions.Length > 0 ? "discovering_points" : "no_spawn_points";
             return;
         }
-
-        var supplyBox = _editService.Value.TrySpawnUniqueSupplyBox(_droppedSupplyBoxes);
-
-        if (supplyBox == null)
+        if (!settings.Enabled || map is not { Enabled: true }) { Reject("disabled"); return; }
+        if (!SupplyBoxRules.RoundAllows(settings, _roundNumber, ZombiePlagueApi.IsSurvivorRound(_round!), ZombiePlagueApi.IsNemesisRound(_round!)))
+        { Reject("round_conditions"); return; }
+        var players = Core.PlayerManager.GetAllPlayers().Where(player => player.IsValid
+            && (settings.CountBots || !player.IsFakeClient) && player.Controller.Team is Team.T or Team.CT).ToArray();
+        if (!SupplyBoxRules.PopulationAllows(settings, players.Length,
+            players.Count(player => player.IsAlive && !ZombiePlagueApi.IsInfected(player)),
+            players.Count(player => player.IsAlive && ZombiePlagueApi.IsInfected(player))))
+        { Reject("player_conditions"); return; }
+        if (Random.Shared.Next(100) >= (map.ChanceDrop ?? settings.ChanceDrop))
+        { Reject("chance_missed", SupplyBoxSpawnRejectionReason.ChanceMissed); return; }
+        for (var count = 0; count < settings.BoxesPerWave; count++)
         {
-            DispatchSpawnRejected(SupplyBoxSpawnRejectionReason.SpawnPointUnavailable);
-            return;
+            if (SupplyBoxRules.LimitReached(settings, map, _boxes.Count, _roundDrops, _mapDrops))
+            { Reject("drop_limit", SupplyBoxSpawnRejectionReason.ActiveLimitReached); return; }
+            var types = document.BoxTypes.Where(type => type.Enabled && type.Loot.Any(loot => loot.Enabled)).ToArray();
+            var points = map.Points.Where(point => point.Enabled && _boxes.All(box => box.Index != point.Id)
+                && types.Any(type => point.BoxType == "" || type.Key == point.BoxType)).ToArray();
+            if (points.Length == 0) { Reject("no_available_points", SupplyBoxSpawnRejectionReason.SpawnPointUnavailable); return; }
+            var point = SupplyBoxRewardService.Weighted(points, item => item.Weight);
+            var type = SupplyBoxRewardService.Weighted(types.Where(type => point.BoxType == "" || type.Key == point.BoxType).ToArray(), item => item.Weight);
+            var pre = new SupplyBoxSpawningContext(_boxes.Cast<ISupplyBoxEntity>().ToArray());
+            if (!_hooks.Value.DispatchCancellable(ref pre)) { Reject("cancelled", SupplyBoxSpawnRejectionReason.Cancelled); return; }
+            if (!ReferenceEquals(_round, round)) return;
+            var box = DependencyResolver.GetRequiredService<SupplyBoxEntity>();
+            try { if (!box.Spawn(point, type)) { box.Dispose(); return; } }
+            catch { box.Dispose(); throw; }
+            _boxes.Add(box); _roundDrops++; _mapDrops++; _lastStatus = "spawned";
+            var post = new SupplyBoxSpawnedContext(box); _hooks.Value.Dispatch(ref post);
         }
-
-        _droppedSupplyBoxes.Add(supplyBox);
-
-        var postContext = new SupplyBoxSpawnedContext(supplyBox);
-        _hooks.Value.Dispatch(ref postContext);
     }
 
-    private bool IsDropSuccessful()
+    private void Reject(string status, SupplyBoxSpawnRejectionReason reason = SupplyBoxSpawnRejectionReason.RoundNotSupported)
     {
-        return Numeric.Random(0, 100) < Math.Clamp(_config.Get().ChanceDrop, 0, 100);
+        _lastStatus = status;
+        var rejected = new SupplyBoxSpawnRejectedContext(reason); _hooks.Value.Dispatch(ref rejected);
     }
-
     private void StopRound()
     {
-        _roundActive = false;
-        CancelRespawnTimer();
-        foreach (var box in _droppedSupplyBoxes.ToArray()) box.Dispose();
-        _droppedSupplyBoxes.Clear();
-    }
-
-    private void CancelRespawnTimer()
-    {
-        _respawnSupplyBoxThinker?.Cancel();
-        _respawnSupplyBoxThinker = null;
-    }
-
-    private SupplyBoxSpawnRejectionReason? GetSpawnRejectionReason(IRound round)
-    {
-        if (ZombiePlagueApi.IsSurvivorRound(round) || ZombiePlagueApi.IsNemesisRound(round))
-        {
-            return SupplyBoxSpawnRejectionReason.RoundNotSupported;
-        }
-
-        return _droppedSupplyBoxes.Count >= _config.Get().MaxCountTogether
-            ? SupplyBoxSpawnRejectionReason.ActiveLimitReached
-            : null;
-    }
-
-    private void DispatchSpawnRejected(SupplyBoxSpawnRejectionReason reason)
-    {
-        var context = new SupplyBoxSpawnRejectedContext(reason);
-        _hooks.Value.Dispatch(ref context);
+        _round = null; _timer?.Cancel(); _timer = null; _lastStatus = "waiting_for_round";
+        foreach (var box in _boxes.ToArray()) box.Dispose();
+        _boxes.Clear();
     }
 }

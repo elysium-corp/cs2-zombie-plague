@@ -36,7 +36,10 @@ public enum SupplyBoxCollectionRejectionReason
     InvalidPlayer,
 
     /// <summary>Уничтожение сущности ящика отменено обработчиком.</summary>
-    DestructionCancelled
+    DestructionCancelled,
+
+    /// <summary>Ни одну доступную награду выдать не удалось; ящик остаётся на карте.</summary>
+    RewardUnavailable
 }
 
 /// <summary>Контекст ожидаемого отказа создания ящика.</summary>

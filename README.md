@@ -126,7 +126,7 @@ flowchart TB
 | `ZombiePlague.Core` | `ZombiePlague.Api`, `Menu.Api`, `Metrics.Api`, `Common.Effects` |
 | `Metrics.Core` | `Metrics.Api`, `Common.Di` |
 | `MoneySystem.Core` | `MoneySystem.Api`, `ZombiePlague.Api`, `Common.Di` |
-| `SupplyBox.Core` | `SupplyBox.Api`, `ZombiePlague.Api`, `Common.Di` |
+| `SupplyBox.Core` | `SupplyBox.Api`, `ZombiePlague.Api`, `Economy.Api`, `CustomEquipment.Api`, `Localization.Api`, `Common.Di` |
 | `Menu.Core` | `Menu.Api`, `Common.Di` |
 | `DamageNotify.Core` | `ZombiePlague.Api`, `Common.Di` |
 | `RoundRatingNotify.Core` | `ZombiePlague.Api`, `Common.Di` |
