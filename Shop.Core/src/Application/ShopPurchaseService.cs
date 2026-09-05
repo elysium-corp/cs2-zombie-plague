@@ -16,14 +16,15 @@ namespace Shop.Core.Application;
 internal sealed class ShopPurchaseService(
     ISwiftlyCore core,
     ShopSnapshotCache cache,
-    ShopAccessEvaluator access,
+    IShopAccessEvaluator access,
     ShopProductProvider products,
     ShopPurchaseCounter counters,
     Func<IEconomyApi> economyApi,
     Func<ICustomEquipmentApi> equipmentApi,
     IHookPublisher hooks,
     Func<ILocalizationApi> localizationApi,
-    ILogger<ShopPurchaseService> logger)
+    ILogger<ShopPurchaseService> logger,
+    IShopSoundFeedback soundFeedback)
 {
     public IReadOnlyCollection<ShopOffer> GetOffers(ShopType shopType) => cache.Current.Offers
         .Where(offer => offer.ShopType == shopType)
@@ -128,7 +129,7 @@ internal sealed class ShopPurchaseService(
         }
 
         var availability = access.EvaluateAmmo(player, offer);
-        if (!availability.Allowed)
+        if (!availability.Allowed && availability.Reason != ShopAvailabilityReason.InsufficientFunds)
         {
             Reject(player, offer.Contract, availability.Reason, availability.RemainingCooldown, notifyPlayer: false);
             return false;
@@ -137,6 +138,14 @@ internal sealed class ShopPurchaseService(
         if (!equipmentApi().CanRefillActiveWeapon(player, offer.Contract.ItemKey))
         {
             Reject(player, offer.Contract, ShopAvailabilityReason.AmmoFull, notifyPlayer: false);
+            soundFeedback.AmmoFull(player);
+            return false;
+        }
+
+        // Полный резерв подтверждаем звуком даже при пустом балансе, до попытки списания.
+        if (!availability.Allowed)
+        {
+            Reject(player, offer.Contract, availability.Reason, availability.RemainingCooldown, notifyPlayer: false);
             return false;
         }
 
@@ -173,6 +182,10 @@ internal sealed class ShopPurchaseService(
                 ? ShopAvailabilityReason.AmmoFull
                 : ShopAvailabilityReason.RefundFailed;
             Reject(player, offer.Contract, reason, notifyPlayer: false);
+            if (reason == ShopAvailabilityReason.AmmoFull)
+            {
+                soundFeedback.AmmoFull(player);
+            }
             return false;
         }
 
@@ -183,6 +196,7 @@ internal sealed class ShopPurchaseService(
             result.AddedAmount,
             result.ReserveAmmo);
         hooks.Dispatch(ref purchased);
+        soundFeedback.AmmoPurchased(player);
         return true;
     }
 

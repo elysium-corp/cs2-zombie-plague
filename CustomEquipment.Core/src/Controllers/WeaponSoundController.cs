@@ -134,7 +134,8 @@ internal sealed class WeaponSoundController(
 
         using var soundEvent = new SoundEvent(sound.EventName)
         {
-            SourceEntityIndex = (int)weapon.AttachedWeapon.Index
+            SourceEntityIndex = (int)weapon.AttachedWeapon.Index,
+            Volume = sound.Volume
         };
 
         soundEvent.Recipients.AddAllPlayers();

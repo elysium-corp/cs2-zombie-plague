@@ -70,6 +70,8 @@ internal sealed class ShopModule(ISwiftlyCore core) : BaseModule(core)
         AddSingleton<ShopPurchaseCounter>(services);
         AddSingleton<ShopProductProvider>(services);
         AddSingleton<ShopAccessEvaluator>(services);
+        AddSingleton<IShopAccessEvaluator>(services, provider => provider.GetRequiredService<ShopAccessEvaluator>());
+        AddSingleton<IShopSoundFeedback, ShopSoundFeedback>(services);
         AddSingleton<ShopPurchaseService>(services);
         AddSingleton<ShopMenu>(services);
         AddSingleton<ShopApi>(services);

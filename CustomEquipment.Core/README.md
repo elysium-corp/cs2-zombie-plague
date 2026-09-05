@@ -1,6 +1,6 @@
 # CustomEquipment.Core
 
-Версия `0.6.0` хранит в PostgreSQL огнестрельное оружие, пять встроенных гранат
+Версия `0.6.1` хранит в PostgreSQL огнестрельное оружие, пять встроенных гранат
 и лазерную мину. Реализации поведения остаются в C#, а изменяемые игровые
 параметры, доступность, модели и порядок управляются через Game CMS. Экономика
 полностью вынесена в `Shop.Core`: каталог экипировки не загружает цены и не
@@ -18,7 +18,7 @@
 
 - `weapons` — игровые и визуальные параметры оружия;
 - `weapon_sounds` — звуковые события и заменяемые штатные sound events;
-- `weapon_sound_files` — `.vsnd` по трекам `01`–`99`;
+- `weapon_sound_files` — исторические данные старого редактора; runtime-каталог их больше не загружает;
 - `gameplay_items` — параметры `barrier_nade`, `fire_nade`, `frost_nade`,
   `jump_nade`, `shake_nade` и `laser_mine`; специфичные значения поведения
   хранятся в проверяемом JSONB-объекте `settings`.
@@ -68,7 +68,15 @@ silencer_on
 silencer_off
 ```
 
-Плагин воспроизводит `event_name` через Swiftly SoundEvent. Если заполнено
+Плагин воспроизводит `event_name` через Swiftly SoundEvent и передаёт
+`weapon_sounds.volume` в `SoundEvent.Volume` (`public.volume`) перед `Emit()`.
+Для каждого триггера оружия задаётся одно звуковое событие. Несколько файлов
+и их случайный выбор настраиваются внутри самого Sound Event средствами
+Source 2; плагин воспроизводит это событие с заданной громкостью.
+
+Громкость должна быть конечным числом от `0` до `10`; `0` — без звука,
+`1` — исходная громкость. Список `.vsnd`, тип, высота и дополнительные свойства
+старого редактора для загрузки события больше не требуются. Если заполнено
 `replaces_event_name`, сетевое сообщение именно этого штатного события
 подавляется для отслеживаемого кастомного оружия, чтобы звуки не накладывались.
 
@@ -78,9 +86,25 @@ silencer_off
 soundevents/game_sounds_elysium_weapons.vsndevts_c
 ```
 
-Flute-модуль `ElysiumEquipments` генерирует исходный `.vsndevts`. Его нужно
-скомпилировать штатными Source 2 Workshop Tools / ResourceCompiler. После
-добавления новых ресурсов требуется смена карты или перезапуск для precache.
+Исходные события готовятся в Source 2 Workshop Tools / ResourceCompiler.
+`ElysiumEquipments 1.16.0` хранит только привязку триггера, имя события и
+громкость; экспорта и автоматической генерации `.vsndevts` больше нет.
+Изменение громкости требует обновления каталога и новой выдачи оружия, без
+пересборки VPK. После добавления новых ресурсов нужна смена карты для precache.
+
+В SwiftlyS2 `1.4.6-beta.8` и проверенном `master` (`ce37bdc8`) нет отдельных
+GameEvents `clip_in`/`clip_out`: доступен общий `EventWeaponReload`.
+Анимационное событие `AE_CL_EJECT_MAG` относится к клиенту и не является
+готовой серверной подпиской на извлечение магазина.
+`WeaponSound_t` содержит `WEAPON_SOUND_RELOAD`, а `CCSUsrMsg_ReloadEffect`
+не содержит отдельной фазы извлечения или вставки магазина. Добавление этих
+триггеров требует проверки анимации/сетевых сообщений конкретной модели;
+обычная подписка на `weapon_reload` не даёт точных моментов `clip in/out`.
+
+Источники SwiftlyS2: [EventWeaponReload](https://github.com/swiftly-solution/swiftlys2/blob/ce37bdc8f26ce98059eb2cef72bbd479c4504b1e/managed/src/SwiftlyS2.Generated/GameEvents/Interfaces/EventWeaponReload.cs),
+[WeaponSound_t](https://github.com/swiftly-solution/swiftlys2/blob/ce37bdc8f26ce98059eb2cef72bbd479c4504b1e/managed/src/SwiftlyS2.Generated/Schemas/Enums/WeaponSound_t.cs),
+[SoundEvent.Volume](https://github.com/swiftly-solution/swiftlys2/blob/ce37bdc8f26ce98059eb2cef72bbd479c4504b1e/managed/src/SwiftlyS2.Shared/Modules/Sounds/SoundEvent.cs).
+
 
 ## Миграции для разработки
 

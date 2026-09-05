@@ -5,7 +5,6 @@ using CustomEquipment.Data.Equipments.Models;
 using CustomEquipment.Database.Entities;
 using CustomEquipment.Utils;
 using Microsoft.EntityFrameworkCore;
-using System.Text.Json;
 
 namespace CustomEquipment.Database;
 
@@ -21,7 +20,6 @@ internal sealed class WeaponCatalogRepository(
             .AsNoTracking()
             .Where(weapon => weapon.Enabled)
             .Include(weapon => weapon.Sounds.Where(sound => sound.Enabled))
-            .ThenInclude(sound => sound.Files)
             .OrderBy(weapon => weapon.SortOrder)
             .ThenBy(weapon => weapon.Id)
             .AsSplitQuery()
@@ -92,7 +90,7 @@ internal sealed class WeaponCatalogRepository(
         return new DatabaseWeaponItem(definition);
     }
 
-    private static WeaponSound MapSound(WeaponSoundEntity entity)
+    internal static WeaponSound MapSound(WeaponSoundEntity entity)
     {
         var trigger = Required(entity.Trigger, nameof(entity.Trigger)).ToLowerInvariant();
         var eventName = Required(entity.EventName, nameof(entity.EventName));
@@ -115,26 +113,12 @@ internal sealed class WeaponCatalogRepository(
 
         if (string.Equals(eventName, replacesEventName, StringComparison.OrdinalIgnoreCase))
         {
-            throw new InvalidOperationException("A custom sound event cannot replace itself.");
+            replacesEventName = null;
         }
 
-        if (entity.Volume < 0 || entity.Pitch <= 0)
+        if (!float.IsFinite(entity.Volume) || entity.Volume is < 0 or > 10)
         {
-            throw new InvalidOperationException($"Sound '{eventName}' has invalid volume or pitch.");
-        }
-
-        ValidateExtraProperties(entity.ExtraPropertiesJson, eventName);
-
-        var files = entity.Files
-            .OrderBy(file => file.Track)
-            .ThenBy(file => file.SortOrder)
-            .ThenBy(file => file.Id)
-            .Select(file => MapSoundFile(file, eventName))
-            .ToArray();
-
-        if (files.Length == 0)
-        {
-            throw new InvalidOperationException($"Sound '{eventName}' has no .vsnd files.");
+            throw new InvalidOperationException($"Sound '{eventName}' has invalid volume (expected 0–10).");
         }
 
         return new WeaponSound
@@ -142,61 +126,8 @@ internal sealed class WeaponCatalogRepository(
             Trigger = trigger,
             EventName = eventName,
             ReplacesEventName = replacesEventName,
-            Type = Required(entity.SoundType, nameof(entity.SoundType)),
-            Volume = entity.Volume,
-            Pitch = entity.Pitch,
-            MixGroup = Required(entity.MixGroup, nameof(entity.MixGroup)),
-            PreloadVsnds = entity.PreloadVsnds,
-            ExtraPropertiesJson = NullIfWhiteSpace(entity.ExtraPropertiesJson),
-            Files = files
+            Volume = entity.Volume
         };
-    }
-
-    private static WeaponSoundFile MapSoundFile(WeaponSoundFileEntity entity, string eventName)
-    {
-        var path = Required(entity.FilePath, nameof(entity.FilePath));
-
-        if (entity.Track is < 1 or > 99 ||
-            path.Contains("..", StringComparison.Ordinal) ||
-            !path.StartsWith("sounds/", StringComparison.OrdinalIgnoreCase) ||
-            !path.EndsWith(".vsnd", StringComparison.OrdinalIgnoreCase))
-        {
-            throw new InvalidOperationException($"Sound '{eventName}' has invalid file '{path}'.");
-        }
-
-        return new WeaponSoundFile
-        {
-            Track = entity.Track,
-            Path = path,
-            SortOrder = entity.SortOrder
-        };
-    }
-
-    private static void ValidateExtraProperties(string? value, string eventName)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return;
-        }
-
-        try
-        {
-            using var document = JsonDocument.Parse(value);
-
-            if (document.RootElement.ValueKind != JsonValueKind.Object)
-            {
-                throw new InvalidOperationException(
-                    $"Sound '{eventName}' extra properties must be a JSON object."
-                );
-            }
-        }
-        catch (JsonException exception)
-        {
-            throw new InvalidOperationException(
-                $"Sound '{eventName}' has invalid extra properties JSON.",
-                exception
-            );
-        }
     }
 
     private static bool IsSupportedTrigger(string trigger)

@@ -14,7 +14,7 @@ internal sealed class ShopAccessEvaluator(
     ShopProductProvider products,
     IAdminApi admin,
     Func<IEconomyApi> economyApi,
-    Func<IZombiePlagueApi> zombiePlagueApi)
+    Func<IZombiePlagueApi> zombiePlagueApi) : IShopAccessEvaluator
 {
     public ShopType GetShopType(IPlayer player) => zombiePlagueApi().IsInfected(player)
         ? ShopType.Zombie
