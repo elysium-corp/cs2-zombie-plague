@@ -1,5 +1,5 @@
 {
-  "SchemaVersion": 1,
+  "SchemaVersion": 2,
   "Settings": {
     "Enabled": true,
     "FirstDropDelaySeconds": 30,

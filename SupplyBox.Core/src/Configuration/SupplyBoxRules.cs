@@ -12,7 +12,7 @@ internal static class SupplyBoxRules
         players >= settings.MinPlayers && humans >= settings.MinAliveHumans && zombies >= settings.MinAliveZombies;
 
     public static bool LimitReached(SupplyBoxConfig settings, SupplyBoxMap map, int active, int roundDrops, int mapDrops) =>
-        active >= (map.MaxCountTogether ?? settings.MaxCountTogether)
+        active >= (map.Overrides?.MaxCountTogether ?? map.MaxCountTogether ?? settings.MaxCountTogether)
         || (settings.MaxDropsPerRound > 0 && roundDrops >= settings.MaxDropsPerRound)
         || (settings.MaxDropsPerMap > 0 && mapDrops >= settings.MaxDropsPerMap);
 }

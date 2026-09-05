@@ -19,7 +19,7 @@ internal sealed class SupplyBoxMapConfigService(ISwiftlyCore core, SupplyBoxRepo
     private readonly HashSet<Task> _tasks = [];
     private SupplyBoxSnapshot _snapshot = new(0, new());
     private int _disposed;
-    public SupplyBoxConfig Value => Current.Document.Settings;
+    public SupplyBoxConfig Value => Current.Document.ResolveSettings(MapName);
     public SupplyBoxSnapshot Current => Volatile.Read(ref _snapshot);
     public string MapName { get; private set; } = "";
     public string Source { get; private set; } = "loading";
