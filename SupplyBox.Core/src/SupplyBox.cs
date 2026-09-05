@@ -26,7 +26,7 @@ using ZombiePlague.Api.Events.Contexts.Round;
 
 namespace SupplyBox;
 
-[PluginMetadata(Id = "SupplyBox.Core", Version = "1.1.0", Name = "[ZP] SupplyBox",
+[PluginMetadata(Id = "SupplyBox.Core", Version = "1.1.1", Name = "[ZP] SupplyBox",
     Author = "illusion & fdrinv", Description = "Database-managed supply drops with Flute CMS integration")]
 internal sealed class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxModule>(core)
 {
