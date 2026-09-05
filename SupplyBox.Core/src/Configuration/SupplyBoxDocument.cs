@@ -10,7 +10,7 @@ namespace SupplyBox.Configuration;
 internal sealed class SupplyBoxDocument
 {
     internal const int MaximumConfigBytes = 8_388_608;
-    public int SchemaVersion { get; set; } = 2;
+    public int SchemaVersion { get; set; } = 3;
     public SupplyBoxConfig Settings { get; set; } = new();
     public List<SupplyBoxType> BoxTypes { get; set; } = [new()];
     public List<SupplyBoxMap> Maps { get; set; } = [];
@@ -43,10 +43,11 @@ internal sealed class SupplyBoxDocument
 
     public void Validate()
     {
-        if (SchemaVersion is not (1 or 2) || Settings is null || Maps is null || BoxTypes is null)
+        if (SchemaVersion is not (1 or 2 or 3) || Settings is null || Maps is null || BoxTypes is null)
             throw new InvalidDataException("Unsupported or incomplete SupplyBox configuration.");
-        SchemaVersion = 2;
+        SchemaVersion = 3;
         ValidateObject(Settings);
+        SupplyBoxSoundEvents.Validate(Settings.DropSoundEvents);
         if (BoxTypes.Count is < 1 or > 64 || Maps.Count > 512)
             throw new InvalidDataException("SupplyBox supports 1–64 box types and up to 512 maps.");
         Unique(BoxTypes.Select(box => box.Key), "box key");
@@ -54,6 +55,7 @@ internal sealed class SupplyBoxDocument
         foreach (var box in BoxTypes)
         {
             ValidateObject(box);
+            if (box.DropSoundEvents is { } boxSounds) SupplyBoxSoundEvents.Validate(boxSounds);
             if (!Key(box.Key) || box.Loot is null || box.Loot.Count is < 1 or > 128)
                 throw new InvalidDataException("Invalid box key or loot count.");
             Model(box.Model); Model(box.ParachuteModel, true);
@@ -76,6 +78,7 @@ internal sealed class SupplyBoxDocument
             if (map.Overrides is { } overrides)
             {
                 ValidateObject(overrides);
+                if (overrides.DropSoundEvents is { } mapSounds) SupplyBoxSoundEvents.Validate(mapSounds);
                 if (overrides.ParachuteModel is { } parachute) Model(parachute, true);
             }
             if (map.Radar is { } radar)
@@ -130,6 +133,8 @@ internal sealed class SupplyBoxType
     public string Model { get; set; } = "models/props/crates/cs2_drop_crate_01.vmdl";
     public string ParachuteModel { get; set; } = "";
     [StringLength(128)] public string FallingSound { get; set; } = "";
+    // null наследует список карты/общих правил, пустой список отключает сигнал
+    public List<string>? DropSoundEvents { get; set; }
     [Range(1, 16)] public int Rolls { get; set; } = 1;
     public bool UniqueRewards { get; set; } = true;
     public List<SupplyBoxLoot> Loot { get; set; } = [new()];

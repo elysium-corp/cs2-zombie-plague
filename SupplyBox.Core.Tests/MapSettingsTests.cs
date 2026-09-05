@@ -15,7 +15,7 @@ public sealed class MapSettingsTests
             new() { Name = "zm_b" }
         ] };
         document.Validate();
-        Assert.Equal(2, document.SchemaVersion);
+        Assert.Equal(3, document.SchemaVersion);
         var a = document.ResolveSettings("ZM_A");
         Assert.Equal(20, a.ChanceDrop);
         Assert.Equal(12, a.RespawnTimeBySeconds);
@@ -45,7 +45,7 @@ public sealed class MapSettingsTests
     }
 
     [Fact]
-    public void InGamePointEditRoundTripPreservesRadarAndEveryOverride()
+    public void FallbackRoundTripPreservesRadarAndEveryOverride()
     {
         var document = new SupplyBoxDocument { Maps = [new() { Name = "zm_gorodok_cs2_v1",
             Radar = new() { ImageId = new string('a', 64), ImageName = "radar.png", OverviewName = "zm_gorodok_cs2_v1", Calibrated = true, PosX = -3000, PosY = 3000, Scale = 11.719 },
@@ -100,7 +100,8 @@ public sealed class MapSettingsTests
         document.Maps[0].Overrides = null;
         document.Maps[0].Radar = new() { ImageId = "https://external/image.svg" };
         Assert.Throws<InvalidDataException>(document.Validate);
-        document.SchemaVersion = 3;
+        document.Maps[0].Radar = null;
+        document.SchemaVersion = 4;
         Assert.Throws<InvalidDataException>(document.Validate);
     }
 }

@@ -49,13 +49,11 @@ internal sealed class SupplyBoxModule(ISwiftlyCore core) : BaseModule(core)
         AddSingleton<SupplyBoxRepository>(service);
         AddSingleton<SupplyBoxMapConfigService>(service);
         AddSingleton<SupplyBoxRewardService>(service);
-        AddSingleton<SupplyBoxMenuService>(service);
-        AddSingleton<SupplyBoxEditService>(service);
+        AddSingleton<SupplyBoxDropSoundService>(service);
     }
 
     private void BuildTransients(ServiceCollection service)
     {
         AddTransient<SupplyBoxEntity>(service);
-        AddTransient<SupplyBoxEntityTemplate>(service);
     }
 }

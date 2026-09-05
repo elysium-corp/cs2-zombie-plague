@@ -34,7 +34,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <EmbeddedResource Include="src/Database/schema.sql" LogicalName="SupplyBox.schema.sql" />
       <ProjectReference Include="../Economy.Api/Economy.Api.csproj" />
       <ProjectReference Include="../CustomEquipment.Api/CustomEquipment.Api.csproj" />
       <ProjectReference Include="..\Common.Di\Common.Di.csproj" />

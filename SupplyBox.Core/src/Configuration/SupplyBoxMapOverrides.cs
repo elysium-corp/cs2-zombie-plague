@@ -33,6 +33,7 @@ internal sealed class SupplyBoxMapOverrides
     [Range(1, 1000)] public int? ArmorCap { get; set; }
     public string? ParachuteModel { get; set; }
     [StringLength(128)] public string? ParachuteSound { get; set; }
+    public List<string>? DropSoundEvents { get; set; }
 
     // Отдельный объект не позволяет настройкам карты менять общий снимок.
     public static SupplyBoxConfig Resolve(SupplyBoxConfig global, SupplyBoxMap? map) => new()
@@ -56,7 +57,6 @@ internal sealed class SupplyBoxMapOverrides
         AllowNemesisRound = map?.Overrides?.AllowNemesisRound ?? global.AllowNemesisRound,
         HumansCanCollect = map?.Overrides?.HumansCanCollect ?? global.HumansCanCollect,
         ZombiesCanCollect = map?.Overrides?.ZombiesCanCollect ?? global.ZombiesCanCollect,
-        AutoDiscoverSpawnPoints = global.AutoDiscoverSpawnPoints,
         DropHeight = map?.Overrides?.DropHeight ?? global.DropHeight,
         FallSpeed = map?.Overrides?.FallSpeed ?? global.FallSpeed,
         PickupRadius = map?.Overrides?.PickupRadius ?? global.PickupRadius,
@@ -68,6 +68,7 @@ internal sealed class SupplyBoxMapOverrides
         SupplyBoxModel = global.SupplyBoxModel,
         ParachuteModel = map?.Overrides?.ParachuteModel ?? global.ParachuteModel,
         ParachuteSound = map?.Overrides?.ParachuteSound ?? global.ParachuteSound,
+        DropSoundEvents = [.. (map?.Overrides?.DropSoundEvents ?? global.DropSoundEvents)],
     };
 }
 
