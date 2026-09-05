@@ -1,131 +1,229 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using SupplyBox.Configuration;
+using SupplyBox.Database;
 using SupplyBox.Data.Configs;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Natives;
 
 namespace SupplyBox.Services;
 
-internal sealed class SupplyBoxMapConfigService(ISwiftlyCore core) : IDisposable
+internal sealed class SupplyBoxMapConfigService(ISwiftlyCore core, SupplyBoxRepository repository)
+    : IOptions<SupplyBoxConfig>, IDisposable
 {
-    internal const int MaximumConfigBytes = 1_048_576;
+    internal const int MaximumConfigBytes = SupplyBoxDocument.MaximumConfigBytes;
     internal const int MaximumPoints = 512;
-    private readonly JsonSerializerOptions _json = new() { WriteIndented = true, PropertyNameCaseInsensitive = true, IncludeFields = true };
-    private readonly Lock _state = new();
-    private readonly SemaphoreSlim _io = new(1, 1);
+    private readonly SemaphoreSlim _gate = new(1, 1);
     private readonly CancellationTokenSource _shutdown = new();
     private readonly HashSet<Task> _tasks = [];
-    private List<SupplyBoxEntityConfig> _points = [];
-    private string? _path;
-    private long _generation;
-    private long _version;
+    private SupplyBoxSnapshot _snapshot = new(0, new());
     private int _disposed;
+    public SupplyBoxConfig Value => Current.Document.Settings;
+    public SupplyBoxSnapshot Current => Volatile.Read(ref _snapshot);
+    public string MapName { get; private set; } = "";
+    public string Source { get; private set; } = "loading";
+    public bool DatabaseAvailable { get; private set; }
 
-    public IReadOnlyList<SupplyBoxEntityConfig> GetSnapshot()
-    {
-        lock (_state) return _points.Select(Clone).ToArray();
-    }
+    public SupplyBoxMap? GetMap() => Current.Document.Maps.FirstOrDefault(map =>
+        string.Equals(map.Name, MapName, StringComparison.OrdinalIgnoreCase));
 
     public void LoadConfig(string mapName)
     {
-        if (Volatile.Read(ref _disposed) != 0) return;
-        var safeName = new string(mapName.Where(character => char.IsLetterOrDigit(character) || character is '_' or '-').Take(128).ToArray());
-        if (safeName.Length == 0) throw new ArgumentException("Invalid map name.", nameof(mapName));
-        var path = Path.Combine(core.PluginPath, "SupplyBox", safeName + ".json");
-        var generation = Interlocked.Increment(ref _generation);
-        lock (_state) { _path = path; _points = []; _version = 0; }
-        Track(Task.Run(() => LoadAsync(path, generation, _shutdown.Token)));
+        MapName = mapName;
+        Track(RefreshAsync());
     }
 
-    public bool TryAdd(Vector position, Vector rotation)
-    {
-        List<SupplyBoxEntityConfig> snapshot;
-        string path;
-        long generation;
-        long version;
-        lock (_state)
+    public void Refresh() => Track(RefreshAsync());
+
+    public IReadOnlyList<SupplyBoxEntityConfig> GetSnapshot() => GetMap()?.Points
+        .Select(point => new SupplyBoxEntityConfig
         {
-            if (_path is null || _points.Count >= MaximumPoints) return false;
-            var used = _points.Select(point => point.Index).ToHashSet();
-            var index = Enumerable.Range(1, MaximumPoints).First(value => !used.Contains(value));
-            _points.Add(new SupplyBoxEntityConfig { Index = index, Position = position, Rotation = rotation });
-            snapshot = _points.Select(Clone).ToList();
-            path = _path; generation = _generation; version = ++_version;
-        }
-        QueueSave(path, snapshot, generation, version);
-        return true;
-    }
+            Index = point.Id, Position = new((float)point.X, (float)point.Y, (float)point.Z),
+            Rotation = new((float)point.Pitch, (float)point.Yaw, (float)point.Roll)
+        }).ToArray() ?? [];
 
-    public bool TryRemove(int index)
+    private async Task RefreshAsync()
     {
-        List<SupplyBoxEntityConfig> snapshot;
-        string path;
-        long generation;
-        long version;
-        lock (_state)
-        {
-            if (_path is null || _points.RemoveAll(point => point.Index == index) == 0) return false;
-            snapshot = _points.Select(Clone).ToList();
-            path = _path; generation = _generation; version = ++_version;
-        }
-        QueueSave(path, snapshot, generation, version);
-        return true;
-    }
-
-    private async Task LoadAsync(string path, long generation, CancellationToken token)
-    {
+        var token = _shutdown.Token;
         try
         {
-            await _io.WaitAsync(token).ConfigureAwait(false);
+            await _gate.WaitAsync(token).ConfigureAwait(false);
             try
             {
-                Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-                MapSupplyBoxEntityConfig config;
-                if (!File.Exists(path)) config = new();
-                else
-                {
-                    if (new FileInfo(path).Length > MaximumConfigBytes) throw new InvalidDataException("SupplyBox map config exceeds 1 MiB.");
-                    await using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 16_384, true);
-                    config = await JsonSerializer.DeserializeAsync<MapSupplyBoxEntityConfig>(stream, _json, token).ConfigureAwait(false) ?? new();
-                }
-                config.SupplyBoxes ??= [];
-                if (config.SupplyBoxes.Count > MaximumPoints || config.SupplyBoxes.Any(point => point.Index <= 0) || config.SupplyBoxes.Select(point => point.Index).Distinct().Count() != config.SupplyBoxes.Count)
-                    throw new InvalidDataException("SupplyBox map config contains invalid or duplicate points.");
-                lock (_state) if (generation == _generation) _points = config.SupplyBoxes.Select(Clone).ToList();
-                if (!File.Exists(path)) QueueSave(path, [], generation, 0);
-            }
-            finally { _io.Release(); }
-        }
-        catch (OperationCanceledException) when (token.IsCancellationRequested) { }
-        catch (Exception exception) { if (!token.IsCancellationRequested) core.Logger.LogError(exception, "Failed to load SupplyBox config {Path}.", path); }
-    }
-
-    private void QueueSave(string path, List<SupplyBoxEntityConfig> points, long generation, long version) =>
-        Track(Task.Run(() => SaveAsync(path, points, generation, version, _shutdown.Token)));
-
-    private async Task SaveAsync(string path, List<SupplyBoxEntityConfig> points, long generation, long version, CancellationToken token)
-    {
-        try
-        {
-            await _io.WaitAsync(token).ConfigureAwait(false);
-            try
-            {
-                lock (_state) if (generation != _generation || version != _version) return;
-                var temporary = path + ".tmp";
+                var fallback = await ReadFallbackAsync(token).ConfigureAwait(false);
                 try
                 {
-                    Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-                    await using (var stream = new FileStream(temporary, FileMode.Create, FileAccess.Write, FileShare.None, 16_384, FileOptions.Asynchronous | FileOptions.WriteThrough))
-                        await JsonSerializer.SerializeAsync(stream, new MapSupplyBoxEntityConfig { SupplyBoxes = points }, _json, token).ConfigureAwait(false);
-                    token.ThrowIfCancellationRequested();
-                    File.Move(temporary, path, true);
+                    await repository.InitializeAsync(fallback ?? new(), token).ConfigureAwait(false);
+                    var loaded = await repository.ReadAsync(token).ConfigureAwait(false);
+                    if (!loaded.LegacyImported)
+                    {
+                        ImportLegacyMaps(loaded.Document);
+                        if (!await repository.SaveAsync(loaded with { LegacyImported = true }, token).ConfigureAwait(false))
+                            throw new InvalidOperationException("SupplyBox changed during legacy import; reload will retry.");
+                        loaded = await repository.ReadAsync(token).ConfigureAwait(false);
+                    }
+                    Publish(loaded, "database");
+                    DatabaseAvailable = true;
                 }
-                finally { if (File.Exists(temporary)) File.Delete(temporary); }
+                catch (Exception exception) when (!token.IsCancellationRequested)
+                {
+                    DatabaseAvailable = false;
+                    if (fallback is not null) Publish(new(0, fallback), "fallback");
+                    else if (Source == "loading") Publish(new(0, new()), "defaults");
+                    else Publish(Current, "memory");
+                    core.Logger.LogWarning(exception, "[SupplyBox] PostgreSQL unavailable; using {Source}. No files will be written.", Source);
+                }
             }
-            finally { _io.Release(); }
+            finally { _gate.Release(); }
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested) { }
-        catch (Exception exception) { if (!token.IsCancellationRequested) core.Logger.LogError(exception, "Failed to save SupplyBox config {Path}.", path); }
+        catch (Exception exception) { if (!token.IsCancellationRequested) core.Logger.LogError(exception, "[SupplyBox] Reload failed; previous snapshot retained."); }
+    }
+
+    public Task<bool> AddAsync(Vector position, Vector rotation)
+    {
+        var mapName = MapName;
+        return ChangeAsync(document =>
+        {
+            var map = document.Maps.FirstOrDefault(item => string.Equals(item.Name, mapName, StringComparison.OrdinalIgnoreCase));
+            if (map is null) { map = new() { Name = mapName }; document.Maps.Add(map); }
+            if (map.Points.Count >= MaximumPoints) return false;
+            var id = Enumerable.Range(1, int.MaxValue).First(id => map.Points.All(point => point.Id != id));
+            map.Points.Add(new() { Id = id, Name = $"Точка {id}", X = position.X, Y = position.Y,
+                Z = position.Z, Pitch = rotation.X, Yaw = rotation.Y, Roll = rotation.Z });
+            return true;
+        });
+    }
+
+    public Task<bool> RemoveAsync(int index)
+    {
+        var mapName = MapName;
+        return ChangeAsync(document => document.Maps.FirstOrDefault(map => string.Equals(map.Name, mapName, StringComparison.OrdinalIgnoreCase))?.Points.RemoveAll(point => point.Id == index) > 0);
+    }
+
+    public void DiscoverPoints(string mapName, IReadOnlyList<SupplyBoxPoint> points)
+    {
+        if (points.Count == 0 || !Value.AutoDiscoverSpawnPoints || Current.Document.Maps.Any(map => string.Equals(map.Name, mapName, StringComparison.OrdinalIgnoreCase))) return;
+        if (DatabaseAvailable)
+        {
+            Track(ChangeAsync(document =>
+            {
+                if (document.Maps.Any(map => string.Equals(map.Name, mapName, StringComparison.OrdinalIgnoreCase))) return false;
+                document.Maps.Add(new() { Name = mapName, Points = points.ToList() });
+                return true;
+            }));
+        }
+        else
+        {
+            var snapshot = Current;
+            var document = snapshot.Document.Clone();
+            document.Maps.Add(new() { Name = mapName, Points = points.ToList() });
+            Publish(snapshot with { Document = document }, Source);
+        }
+    }
+
+    private Task<bool> ChangeAsync(Func<SupplyBoxDocument, bool> change)
+    {
+        var task = ChangeCoreAsync(change);
+        Track(task);
+        return task;
+    }
+
+    private async Task<bool> ChangeCoreAsync(Func<SupplyBoxDocument, bool> change)
+    {
+        if (Volatile.Read(ref _disposed) != 0) return false;
+        var token = _shutdown.Token;
+        try
+        {
+            await _gate.WaitAsync(token).ConfigureAwait(false);
+            try
+            {
+                for (var attempt = 0; attempt < 3; attempt++)
+                {
+                    var snapshot = await repository.ReadAsync(token).ConfigureAwait(false);
+                    if (!change(snapshot.Document)) return false;
+                    if (!await repository.SaveAsync(snapshot, token).ConfigureAwait(false)) continue;
+                    Publish(snapshot with { Version = snapshot.Version + 1 }, "database");
+                    DatabaseAvailable = true;
+                    return true;
+                }
+            }
+            finally { _gate.Release(); }
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested) { }
+        catch (Exception exception)
+        {
+            if (!token.IsCancellationRequested)
+                core.Logger.LogError(exception, "[SupplyBox] Point was NOT saved. Database writes are required for editing.");
+        }
+        return false;
+    }
+
+    private async Task<SupplyBoxDocument?> ReadFallbackAsync(CancellationToken token)
+    {
+        var path = Path.Combine(core.Configuration.BasePath, "supply_box.json");
+        if (!File.Exists(path)) return null;
+        try
+        {
+            if (new FileInfo(path).Length > MaximumConfigBytes) throw new InvalidDataException("SupplyBox fallback exceeds 8 MiB.");
+            var json = await File.ReadAllTextAsync(path, token).ConfigureAwait(false);
+            using var parsed = JsonDocument.Parse(json, new() { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true });
+            if (parsed.RootElement.TryGetProperty("SupplyBox", out var legacy))
+            {
+                var document = new SupplyBoxDocument
+                {
+                    Settings = legacy.Deserialize<SupplyBoxConfig>(SupplyBoxDocument.Json) ?? new()
+                };
+                ImportLegacyMaps(document);
+                document.Validate();
+                return document;
+            }
+            return SupplyBoxDocument.Parse(json);
+        }
+        catch (Exception exception) when (!token.IsCancellationRequested)
+        {
+            core.Logger.LogWarning(exception, "[SupplyBox] Invalid fallback ignored; database loading continues.");
+            return null;
+        }
+    }
+
+    private void ImportLegacyMaps(SupplyBoxDocument document)
+    {
+        var directory = Path.Combine(core.PluginPath, "SupplyBox");
+        if (!Directory.Exists(directory)) return;
+        foreach (var path in Directory.EnumerateFiles(directory, "*.json").Take(512))
+        {
+            var name = Path.GetFileNameWithoutExtension(path);
+            if (document.Maps.Any(map => string.Equals(map.Name, name, StringComparison.OrdinalIgnoreCase))) continue;
+            try
+            {
+                if (new FileInfo(path).Length > 1_048_576) throw new InvalidDataException("Legacy map exceeds 1 MiB.");
+                using var json = JsonDocument.Parse(File.ReadAllText(path));
+                var map = new SupplyBoxMap { Name = name };
+                foreach (var point in json.RootElement.GetProperty("SupplyBoxes").EnumerateArray())
+                {
+                    var position = point.GetProperty("Position"); var rotation = point.GetProperty("Rotation");
+                    var id = point.GetProperty("Index").GetInt32();
+                    map.Points.Add(new() { Id = id, Name = $"Точка {id}", X = position.GetProperty("X").GetDouble(),
+                        Y = position.GetProperty("Y").GetDouble(), Z = position.GetProperty("Z").GetDouble(),
+                        Pitch = rotation.GetProperty("X").GetDouble(), Yaw = rotation.GetProperty("Y").GetDouble(), Roll = rotation.GetProperty("Z").GetDouble() });
+                }
+                // Старый плагин автоматически создавал пустые файлы для каждой карты.
+                // Они не обозначают намеренное отключение карты в новой конфигурации.
+                if (map.Points.Count == 0) continue;
+                var candidate = document.Clone(); candidate.Maps.Add(map); candidate.Validate();
+                document.Maps.Add(map);
+            }
+            catch (Exception exception) { core.Logger.LogWarning(exception, "[SupplyBox] Could not import legacy map {Map}; original file retained.", name); }
+        }
+    }
+
+    private void Publish(SupplyBoxSnapshot snapshot, string source)
+    {
+        if (Volatile.Read(ref _disposed) != 0) return;
+        Volatile.Write(ref _snapshot, snapshot);
+        Source = source;
     }
 
     private void Track(Task task)
@@ -139,10 +237,7 @@ internal sealed class SupplyBoxMapConfigService(ISwiftlyCore core) : IDisposable
         if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
         _shutdown.Cancel();
         Task[] tasks; lock (_tasks) tasks = _tasks.ToArray();
-        var completed = Task.WhenAll(tasks).Wait(TimeSpan.FromSeconds(2));
-        _shutdown.Dispose();
-        if (completed) _io.Dispose();
+        try { Task.WhenAll(tasks).Wait(TimeSpan.FromSeconds(2)); } catch (AggregateException) { }
+        // Токен и семафор могут ещё использоваться завершающимся запросом PostgreSQL.
     }
-
-    private static SupplyBoxEntityConfig Clone(SupplyBoxEntityConfig point) => new() { Index = point.Index, Position = point.Position, Rotation = point.Rotation };
 }

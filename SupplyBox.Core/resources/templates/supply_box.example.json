@@ -1,0 +1,61 @@
+{
+  "SchemaVersion": 1,
+  "Settings": {
+    "Enabled": true,
+    "FirstDropDelaySeconds": 30,
+    "RespawnTimeBySeconds": 120,
+    "TimeSpreadBySeconds": 30,
+    "MaxCountTogether": 2,
+    "ChanceDrop": 100,
+    "BoxesPerWave": 1,
+    "MaxDropsPerRound": 0,
+    "MaxDropsPerMap": 0,
+    "StartFromRound": 1,
+    "EveryNthRound": 1,
+    "MinPlayers": 1,
+    "MinAliveHumans": 1,
+    "MinAliveZombies": 0,
+    "CountBots": false,
+    "AllowSurvivorRound": false,
+    "AllowNemesisRound": false,
+    "HumansCanCollect": true,
+    "ZombiesCanCollect": false,
+    "AutoDiscoverSpawnPoints": true,
+    "DropHeight": 600,
+    "FallSpeed": 160,
+    "PickupRadius": 60,
+    "LifetimeSeconds": 180,
+    "MaxCollectionsPerPlayerPerRound": 0,
+    "PlayerCooldownSeconds": 0,
+    "HealthCap": 100,
+    "ArmorCap": 100,
+    "SupplyBoxModel": "models/props/crates/cs2_drop_crate_01.vmdl",
+    "ParachuteModel": "",
+    "ParachuteSound": ""
+  },
+  "BoxTypes": [
+    {
+      "Key": "standard",
+      "Name": "Припасы",
+      "Enabled": true,
+      "Weight": 100,
+      "Model": "models/props/crates/cs2_drop_crate_01.vmdl",
+      "ParachuteModel": "",
+      "FallingSound": "",
+      "Rolls": 1,
+      "UniqueRewards": true,
+      "Loot": [
+        {
+          "Enabled": true,
+          "Name": "Игровые деньги",
+          "Kind": "money",
+          "ItemKey": "",
+          "Weight": 100,
+          "MinAmount": 100,
+          "MaxAmount": 300
+        }
+      ]
+    }
+  ],
+  "Maps": []
+}

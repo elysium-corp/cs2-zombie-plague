@@ -3,6 +3,10 @@ using Common.Hooks;
 using Common.Hooks.Abstractions;
 using Common.Di.Utils;
 using Localization.Api;
+using Economy.Api;
+using CustomEquipment.Api;
+using Microsoft.Extensions.Options;
+using SupplyBox.Database;
 using Microsoft.Extensions.DependencyInjection;
 using SupplyBox.Api.Events;
 using SupplyBox.Data.Configs;
@@ -18,8 +22,10 @@ internal sealed class SupplyBoxModule(ISwiftlyCore core) : BaseModule(core)
     {
         var service = new ServiceCollection();
 
-        service.AddSwiftly(core);
+        service.AddSwiftly(Core);
         service.AddSharedInterface<ILocalizationApi>();
+        service.AddSharedInterface<IEconomyApi>();
+        service.AddSharedInterface<ICustomEquipmentApi>();
 
         BuildConfigs(service);
         BuildSingletons(service);
@@ -30,11 +36,7 @@ internal sealed class SupplyBoxModule(ISwiftlyCore core) : BaseModule(core)
 
     private void BuildConfigs(ServiceCollection service)
     {
-        AddConfig<SupplyBoxConfig>(
-            service: service,
-            name: "supply_box.json",
-            section: "SupplyBox"
-        );
+        service.AddSingleton<IOptions<SupplyBoxConfig>>(provider => provider.GetRequiredService<SupplyBoxMapConfigService>());
     }
 
     private void BuildSingletons(ServiceCollection service)
@@ -44,7 +46,9 @@ internal sealed class SupplyBoxModule(ISwiftlyCore core) : BaseModule(core)
         AddSingleton<IHookPublisher>(service, provider => provider.GetRequiredService<HookService>());
         AddSingleton<ISupplyBoxEvents, SupplyBoxEvents>(service);
 
+        AddSingleton<SupplyBoxRepository>(service);
         AddSingleton<SupplyBoxMapConfigService>(service);
+        AddSingleton<SupplyBoxRewardService>(service);
         AddSingleton<SupplyBoxMenuService>(service);
         AddSingleton<SupplyBoxEditService>(service);
     }

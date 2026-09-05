@@ -1,250 +1,148 @@
-﻿using Common.Hooks;
+using Common.Hooks;
 using Common.Hooks.Abstractions;
 using Microsoft.Extensions.Options;
 using SupplyBox.Api.Events.Contexts;
+using SupplyBox.Configuration;
 using SupplyBox.Data.Configs;
-using SupplyBox.Utils;
+using SupplyBox.Services;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.ProtobufDefinitions;
 using SwiftlyS2.Shared.SchemaDefinitions;
 using SwiftlyS2.Shared.Sounds;
-using ZombiePlague.Api;
 
 namespace SupplyBox.Data.Entity;
 
-public sealed class SupplyBoxEntity : ISupplyBoxEntity, IDisposable
+internal sealed class SupplyBoxEntity(ISwiftlyCore core, IHookPublisher hooks,
+    IOptions<SupplyBoxConfig> options, SupplyBoxRewardService rewards) : ISupplyBoxEntity, IDisposable
 {
-    private readonly ISwiftlyCore _core;
-    private readonly IZombiePlagueApi _api;
-    private readonly IHookPublisher _hooks;
-    private readonly string _parachuteSound;
-    private readonly CBaseModelEntity? _entityParachute;
-
-    private CancellationTokenSource? _pickUpThinker;
-    private CancellationTokenSource? _dropThinker;
-    private SupplyBoxEntityConfig? _data;
-    private uint _soundGuid;
+    private readonly SupplyBoxConfig _settings = options.Value;
+    private CDynamicProp? _parachute;
+    private CancellationTokenSource? _thinker;
+    private SupplyBoxType? _type;
+    private Vector _target;
+    private long _lastTick;
+    private long _landedAt;
+    private long _nextPickup;
+    private uint _sound;
+    private bool _collecting;
     private int _disposed;
-
-    public CDynamicProp? Entity { get; }
+    public CDynamicProp? Entity { get; private set; }
     public int Index { get; private set; }
+    public bool IsAlive => _disposed == 0 && Entity is { IsValidEntity: true };
 
-    public SupplyBoxEntity(
-        ISwiftlyCore core,
-        IHookPublisher hooks,
-        IOptions<SupplyBoxConfig> config)
+    public bool Spawn(SupplyBoxPoint point, SupplyBoxType type)
     {
-        _core = core;
-        _hooks = hooks;
-        _api = SupplyBox.ZombiePlagueApi;
-
-        var boxModel = config.Value.SupplyBoxModel;
-        var parachuteModel = config.Value.ParachuteModel;
-        _parachuteSound = config.Value.ParachuteSound;
-
+        _type = type;
+        Index = point.Id;
+        _target = new((float)point.X, (float)point.Y, (float)point.Z);
+        var angles = new QAngle((float)point.Pitch, (float)point.Yaw, (float)point.Roll);
         Entity = core.EntitySystem.CreateEntity<CDynamicProp>();
-        _entityParachute = core.EntitySystem.CreateEntity<CBaseModelEntity>();
-
-        core.Scheduler.NextWorldUpdate(() =>
-        {
-            if (Volatile.Read(ref _disposed) != 0) return;
-            Entity.SetModel(boxModel);
-
-            _entityParachute.SetModel(parachuteModel);
-            _entityParachute.SetScale(0.9f);
-            _entityParachute.AcceptInput<string>(
-                "SetParent",
-                "!activator",
-                activator: Entity,
-                caller: _entityParachute);
-        });
-    }
-
-    public void Spawn(SupplyBoxEntityConfig config)
-    {
-        if (Entity == null)
-        {
-            return;
-        }
-
-        _data = config;
-        Index = config.Index;
-
+        if (Entity is null) return false;
+        Entity.SetModel(type.Model);
         Entity.DispatchSpawn();
-        Entity.Teleport(_data.Position + new Vector(0, 0, 1000), ToQAngles(_data.Rotation), null);
-
-        if (_entityParachute != null)
+        Entity.Teleport(_target + new Vector(0, 0, _settings.DropHeight), angles, null);
+        var parachuteModel = type.ParachuteModel.Length > 0 ? type.ParachuteModel : _settings.ParachuteModel;
+        if (parachuteModel.Length > 0 && _settings.DropHeight > 0)
         {
-            _soundGuid = PlaySound(_parachuteSound);
-            _entityParachute.DispatchSpawn();
-            _entityParachute.Teleport(Entity.AbsOrigin + new Vector(-10, -5, -40), Entity.AbsRotation, null);
-        }
-
-        SetThinkers();
-    }
-
-    private void SetThinkers()
-    {
-        _dropThinker = _core.Scheduler.RepeatBySeconds(0.03f, DropThinker);
-        _pickUpThinker = _core.Scheduler.RepeatBySeconds(0.05f, PickUpThinker);
-    }
-
-    private void DropThinker()
-    {
-        if (Entity == null || !Entity.IsValidEntity || _data == null)
-        {
-            _dropThinker?.Cancel();
-            return;
-        }
-
-        var entityPosition = Entity.AbsOrigin!.Value;
-
-        if (entityPosition.Z > _data.Position.Z)
-        {
-            Entity.Teleport(Entity.AbsOrigin + new Vector(0, 0, -4), Entity.AbsRotation, null);
-            return;
-        }
-
-        StopSound();
-        _dropThinker?.Cancel();
-        _entityParachute?.Despawn();
-
-        var context = new SupplyBoxLandedContext(this);
-        _hooks.Dispatch(ref context);
-    }
-
-    private void PickUpThinker()
-    {
-        if (Entity == null || !Entity.IsValidEntity)
-        {
-            _pickUpThinker?.Cancel();
-            return;
-        }
-
-        var playersAround = MathAlgorithm.FindAllPlayersInSphere(50f, Entity.AbsOrigin!.Value);
-
-        foreach (var player in playersAround)
-        {
-            if (CanPickUp(player) && TryPickUp(player))
+            _parachute = core.EntitySystem.CreateEntity<CDynamicProp>();
+            if (_parachute is not null)
             {
-                return;
+                _parachute.SetModel(parachuteModel);
+                _parachute.DispatchSpawn();
+                _parachute.Teleport(Entity.AbsOrigin + new Vector(0, 0, 30), angles, null);
+                _parachute.AcceptInput<string>("SetParent", "!activator", activator: Entity, caller: _parachute);
             }
         }
-    }
-
-    private bool CanPickUp(IPlayer player)
-    {
-        return player.IsValid &&
-               player.IsAlive &&
-               !_api.IsInfected(player);
-    }
-
-    private bool TryPickUp(IPlayer player)
-    {
-        var preContext = new SupplyBoxCollectingContext(player, this);
-
-        if (!_hooks.DispatchCancellable(ref preContext))
+        var sound = type.FallingSound.Length > 0 ? type.FallingSound : _settings.ParachuteSound;
+        if (sound.Length > 0 && _settings.DropHeight > 0)
         {
-            DispatchCollectionRejected(player, SupplyBoxCollectionRejectionReason.Cancelled);
-            return false;
+            using var soundEvent = new SoundEvent { Name = sound, Volume = 1.0f, SourceEntityIndex = (int)Entity.Index };
+            soundEvent.Recipients.AddAllPlayers(); _sound = soundEvent.Emit();
         }
-
-        if (!ReferenceEquals(preContext.SupplyBox, this))
-        {
-            DispatchCollectionRejected(preContext.Player, SupplyBoxCollectionRejectionReason.InvalidSupplyBox);
-            return false;
-        }
-
-        if (!CanPickUp(preContext.Player))
-        {
-            DispatchCollectionRejected(preContext.Player, SupplyBoxCollectionRejectionReason.InvalidPlayer);
-            return false;
-        }
-
-        if (!Destroy())
-        {
-            DispatchCollectionRejected(preContext.Player, SupplyBoxCollectionRejectionReason.DestructionCancelled);
-            return false;
-        }
-
-        var postContext = new SupplyBoxCollectedContext(preContext.Player, this);
-        _hooks.Dispatch(ref postContext);
-
+        _lastTick = Environment.TickCount64;
+        _thinker = core.Scheduler.RepeatBySeconds(0.05f, Think);
         return true;
     }
 
-    private bool Destroy()
+    private void Think()
     {
-        var preContext = new SupplyBoxDestroyingContext(this);
-
-        if (!_hooks.DispatchCancellable(ref preContext))
+        if (!IsAlive || Entity?.AbsOrigin is not { } position) { Dispose(); return; }
+        var now = Environment.TickCount64;
+        if (_landedAt == 0)
         {
-            return false;
+            var delta = Math.Clamp((now - _lastTick) / 1000f, 0, 0.25f);
+            _lastTick = now;
+            var z = Math.Max(_target.Z, position.Z - _settings.FallSpeed * delta);
+            Entity.Teleport(new Vector(_target.X, _target.Y, z), null, null);
+            if (z > _target.Z) return;
+            _landedAt = now;
+            StopSound();
+            if (_parachute is { IsValidEntity: true }) _parachute.Despawn();
+            _parachute = null;
+            var landed = new SupplyBoxLandedContext(this); hooks.Dispatch(ref landed);
+            if (!IsAlive) return;
         }
+        if (_settings.LifetimeSeconds > 0 && now - _landedAt >= _settings.LifetimeSeconds * 1000L) { Dispose(); return; }
+        if (now < _nextPickup) return;
+        _nextPickup = now + 200;
+        foreach (var player in core.PlayerManager.GetAlive())
+        {
+            if (!CanCollect(player) || player.PlayerPawn?.AbsOrigin is not { } origin) continue;
+            var delta = origin - _target;
+            if (delta.X * delta.X + delta.Y * delta.Y + delta.Z * delta.Z > _settings.PickupRadius * _settings.PickupRadius) continue;
+            if (TryCollect(player)) return;
+        }
+    }
 
-        CleanupEntities();
+    private bool CanCollect(IPlayer player) => player.IsValid && player.IsAlive
+        && player.PlayerPawn is { IsValid: true }
+        && (SupplyBox.ZombiePlagueApi.IsInfected(player) ? _settings.ZombiesCanCollect : _settings.HumansCanCollect)
+        && rewards.CanCollect(player, _settings);
 
-        var postContext = new SupplyBoxDestroyedContext(this);
-        _hooks.Dispatch(ref postContext);
+    private bool TryCollect(IPlayer player)
+    {
+        if (_collecting || !IsAlive) return false;
+        _collecting = true;
+        try
+        {
+            var collecting = new SupplyBoxCollectingContext(player, this);
+            if (!hooks.DispatchCancellable(ref collecting)) return Reject(player, SupplyBoxCollectionRejectionReason.Cancelled);
+            if (!ReferenceEquals(collecting.SupplyBox, this)) return Reject(player, SupplyBoxCollectionRejectionReason.InvalidSupplyBox);
+            player = collecting.Player;
+            if (!IsAlive || !CanCollect(player)) return Reject(player, SupplyBoxCollectionRejectionReason.InvalidPlayer);
+            var destroying = new SupplyBoxDestroyingContext(this);
+            if (!hooks.DispatchCancellable(ref destroying)) return Reject(player, SupplyBoxCollectionRejectionReason.DestructionCancelled);
+            // Ящик остаётся на карте, если ни одну доступную награду выдать не удалось.
+            if (!IsAlive || !rewards.TryGrant(player, _type!, _settings)) return Reject(player, SupplyBoxCollectionRejectionReason.RewardUnavailable);
+            Dispose();
+            var collected = new SupplyBoxCollectedContext(player, this); hooks.Dispatch(ref collected);
+            return true;
+        }
+        finally { _collecting = false; }
+    }
 
-        return true;
+    private bool Reject(IPlayer player, SupplyBoxCollectionRejectionReason reason)
+    {
+        var rejected = new SupplyBoxCollectionRejectedContext(player, this, reason); hooks.Dispatch(ref rejected);
+        return false;
     }
 
     public void Dispose()
     {
         if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
-        CleanupEntities();
-    }
-
-    private void CleanupEntities()
-    {
-        _dropThinker?.Cancel();
-        _dropThinker = null;
-        _pickUpThinker?.Cancel();
-        _pickUpThinker = null;
+        _thinker?.Cancel(); _thinker = null;
         StopSound();
-
         if (Entity is { IsValidEntity: true }) Entity.Despawn();
-        if (_entityParachute is { IsValidEntity: true }) _entityParachute.Despawn();
-    }
-
-    private void DispatchCollectionRejected(
-        IPlayer player,
-        SupplyBoxCollectionRejectionReason reason
-    )
-    {
-        var context = new SupplyBoxCollectionRejectedContext(player, this, reason);
-        _hooks.Dispatch(ref context);
-    }
-
-    private static QAngle ToQAngles(Vector rotation)
-    {
-        return new QAngle(rotation.X, rotation.Y, rotation.Z);
-    }
-
-    private uint PlaySound(string soundName)
-    {
-        using var soundEvent = new SoundEvent
-        {
-            Volume = 1.7f,
-            Name = soundName,
-            SourceEntityIndex = (int)Entity!.Index
-        };
-
-        soundEvent.Recipients.AddAllPlayers();
-        return soundEvent.Emit();
+        if (_parachute is { IsValidEntity: true }) _parachute.Despawn();
+        var destroyed = new SupplyBoxDestroyedContext(this); hooks.Dispatch(ref destroyed);
     }
 
     private void StopSound()
     {
-        if (_soundGuid == 0) return;
-
-        using var stop = _core.NetMessage.Create<CMsgSosStopSoundEvent>();
-        stop.SoundeventGuid = unchecked((int)_soundGuid);
-        stop.SendToAllPlayers();
-
-        _soundGuid = 0;
+        if (_sound == 0) return;
+        using var stop = core.NetMessage.Create<CMsgSosStopSoundEvent>();
+        stop.SoundeventGuid = unchecked((int)_sound); stop.SendToAllPlayers(); _sound = 0;
     }
 }

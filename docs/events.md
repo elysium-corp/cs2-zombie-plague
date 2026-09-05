@@ -183,15 +183,15 @@ api.Events.Players.Infected.Unhook(OnPlayerInfected);
 
 | Событие | Контекст и параметры | Когда вызывается | Частота | Нагрузка | Риск и ограничения |
 |---|---|---|---|---|---|
-| `Events.Spawning` | `SupplyBoxSpawningContext`<br>`ActiveSupplyBoxes: IReadOnlyCollection<ISupplyBoxEntity>`<br>cancellable | `SupplyBox.SpawnSupplyBox`, после проверок режима/шанса/лимита и до выбора точки | Раунд | Низкая | Высокий: отмена пропускает текущую попытку создания |
+| `Events.Spawning` | `SupplyBoxSpawningContext`<br>`ActiveSupplyBoxes: IReadOnlyCollection<ISupplyBoxEntity>`<br>cancellable | `SupplyBox.TryDrop`, после проверок режима, шанса, лимита и выбора точки | Раунд | Низкая | Высокий: отмена пропускает текущую попытку создания |
 | `Events.Spawned` | `SupplyBoxSpawnedContext`<br>`SupplyBox: ISupplyBoxEntity` | После создания сущности и добавления в список активных ящиков | Раунд | Низкая | Средний: ящик ещё спускается |
 | `Events.SpawnRejected` | `SupplyBoxSpawnRejectedContext`<br>`Reason: SupplyBoxSpawnRejectionReason` | На всех ожидаемых ветках отказа: режим, лимит, шанс, отмена, отсутствие точки | Раунд | Низкая | Низкий: полезно для диагностики конфигурации |
-| `Events.Landed` | `SupplyBoxLandedContext`<br>`SupplyBox: ISupplyBoxEntity` | Один раз в `DropThinker`, когда ящик достиг целевой высоты | Раунд | Низкая | Средний: callback выполняется из scheduler игрового потока |
-| `Events.Collecting` | `SupplyBoxCollectingContext`<br>`Player: IPlayer` (mutable)<br>`SupplyBox: ISupplyBoxEntity` (mutable)<br>cancellable | При контакте допустимого игрока с ящиком, до удаления сущностей | Игрок | Средняя | Высокий: проверка близости идёт каждые 0,05 с, но событие вызывается только для кандидата на сбор |
-| `Events.Collected` | `SupplyBoxCollectedContext`<br>`Player: IPlayer`<br>`SupplyBox: ISupplyBoxEntity` | После удаления сущностей и остановки thinkers | Игрок | Низкая | Средний: внутренний подписчик удаляет ящик из active-list |
-| `Events.CollectionRejected` | `SupplyBoxCollectionRejectedContext`<br>`Player: IPlayer`<br>`SupplyBox: ISupplyBoxEntity`<br>`Reason: SupplyBoxCollectionRejectionReason` | При отмене, неверной подмене, недействительном игроке или отмене уничтожения | Редко | Низкая | Низкий: ящик остаётся доступным |
-| `Events.Destroying` | `SupplyBoxDestroyingContext`<br>`SupplyBox: ISupplyBoxEntity`<br>cancellable | Перед `Despawn` ящика/парашюта и отменой thinkers | Игрок | Низкая | Высокий: отмена прерывает сбор и сохраняет сущности |
-| `Events.Destroyed` | `SupplyBoxDestroyedContext`<br>`SupplyBox: ISupplyBoxEntity` | После `Despawn` и отмены thinkers | Игрок | Низкая | Средний: `Collected` отправляется сразу после него |
+| `Events.Landed` | `SupplyBoxLandedContext`<br>`SupplyBox: ISupplyBoxEntity` | Один раз в `SupplyBoxEntity.Think`, когда ящик достиг целевой высоты | Раунд | Низкая | Средний: callback выполняется из scheduler игрового потока |
+| `Events.Collecting` | `SupplyBoxCollectingContext`<br>`Player: IPlayer` (mutable)<br>`SupplyBox: ISupplyBoxEntity` (mutable)<br>cancellable | При контакте допустимого игрока с ящиком, до удаления сущностей | Игрок | Средняя | Высокий: проверка близости идёт каждые 0,2 с после приземления, но событие вызывается только для кандидата на сбор |
+| `Events.Collected` | `SupplyBoxCollectedContext`<br>`Player: IPlayer`<br>`SupplyBox: ISupplyBoxEntity` | После удаления сущностей и остановки thinkers | Игрок | Низкая | Средний: выдача награды уже завершена; повторно выдавать её не следует |
+| `Events.CollectionRejected` | `SupplyBoxCollectionRejectedContext`<br>`Player: IPlayer`<br>`SupplyBox: ISupplyBoxEntity`<br>`Reason: SupplyBoxCollectionRejectionReason` | При отмене, неверной подмене, недействительном игроке, отмене уничтожения или отсутствии доступной награды | Редко | Низкая | Низкий: ящик остаётся доступным |
+| `Events.Destroying` | `SupplyBoxDestroyingContext`<br>`SupplyBox: ISupplyBoxEntity`<br>cancellable | Перед выдачей награды при подборе; очистка по времени жизни, концу раунда и выгрузке не отменяется | Игрок | Низкая | Высокий: отмена прерывает сбор и сохраняет сущности |
+| `Events.Destroyed` | `SupplyBoxDestroyedContext`<br>`SupplyBox: ISupplyBoxEntity` | После `Despawn` и отмены thinkers | Игрок | Низкая | Средний: `Collected` следует только при успешном подборе; очистка и истечение времени жизни также вызывают Destroyed |
 
 ## Economy.Api
 

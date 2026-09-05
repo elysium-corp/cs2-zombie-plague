@@ -12,7 +12,7 @@ public interface ISupplyBoxEvents
     /// <remarks>
     /// <list type="table">
     /// <listheader><term>Характеристика</term><description>Значение</description></listheader>
-    /// <item><term>Когда</term><description>`SupplyBox.SpawnSupplyBox`, после проверок режима/шанса/лимита и до выбора точки</description></item>
+    /// <item><term>Когда</term><description>`SupplyBox.TryDrop`, после проверок режима, шанса, лимита и выбора точки</description></item>
     /// <item><term>Частота</term><description>Раунд</description></item>
     /// <item><term>Нагрузка</term><description>Низкая</description></item>
     /// <item><term>Риск</term><description>Высокий: отмена пропускает текущую попытку создания</description></item>
@@ -51,7 +51,7 @@ public interface ISupplyBoxEvents
     /// <remarks>
     /// <list type="table">
     /// <listheader><term>Характеристика</term><description>Значение</description></listheader>
-    /// <item><term>Когда</term><description>Один раз в `DropThinker`, когда ящик достиг целевой высоты</description></item>
+    /// <item><term>Когда</term><description>Один раз в `SupplyBoxEntity.Think`, когда ящик достиг целевой высоты</description></item>
     /// <item><term>Частота</term><description>Раунд</description></item>
     /// <item><term>Нагрузка</term><description>Низкая</description></item>
     /// <item><term>Риск</term><description>Средний: callback выполняется из scheduler игрового потока</description></item>
@@ -67,7 +67,7 @@ public interface ISupplyBoxEvents
     /// <item><term>Когда</term><description>При контакте допустимого игрока с ящиком, до удаления сущностей</description></item>
     /// <item><term>Частота</term><description>Игрок</description></item>
     /// <item><term>Нагрузка</term><description>Средняя</description></item>
-    /// <item><term>Риск</term><description>Высокий: проверка близости идёт каждые 0,05 с, но событие вызывается только для кандидата на сбор</description></item>
+    /// <item><term>Риск</term><description>Высокий: проверка близости идёт каждые 0,2 с после приземления, но событие вызывается только для кандидата на сбор</description></item>
     /// <item><term>Поток</term><description>Игровой поток</description></item>
     /// </list>
     /// </remarks>
@@ -80,7 +80,7 @@ public interface ISupplyBoxEvents
     /// <item><term>Когда</term><description>После удаления сущностей и остановки thinkers</description></item>
     /// <item><term>Частота</term><description>Игрок</description></item>
     /// <item><term>Нагрузка</term><description>Низкая</description></item>
-    /// <item><term>Риск</term><description>Средний: внутренний подписчик удаляет ящик из active-list</description></item>
+    /// <item><term>Риск</term><description>Средний: выдача награды уже завершена; повторно выдавать её не следует</description></item>
     /// <item><term>Поток</term><description>Игровой поток</description></item>
     /// </list>
     /// </remarks>
@@ -90,7 +90,7 @@ public interface ISupplyBoxEvents
     /// <remarks>
     /// <list type="table">
     /// <listheader><term>Характеристика</term><description>Значение</description></listheader>
-    /// <item><term>Когда</term><description>При отмене, неверной подмене, недействительном игроке или отмене уничтожения</description></item>
+    /// <item><term>Когда</term><description>При отмене, неверной подмене, недействительном игроке, отмене уничтожения или отсутствии доступной награды</description></item>
     /// <item><term>Частота</term><description>Редко</description></item>
     /// <item><term>Нагрузка</term><description>Низкая</description></item>
     /// <item><term>Риск</term><description>Низкий: ящик остаётся доступным</description></item>
@@ -103,7 +103,7 @@ public interface ISupplyBoxEvents
     /// <remarks>
     /// <list type="table">
     /// <listheader><term>Характеристика</term><description>Значение</description></listheader>
-    /// <item><term>Когда</term><description>Перед `Despawn` ящика/парашюта и отменой thinkers</description></item>
+    /// <item><term>Когда</term><description>Перед выдачей награды при подборе; очистка по времени жизни, концу раунда и выгрузке не отменяется</description></item>
     /// <item><term>Частота</term><description>Игрок</description></item>
     /// <item><term>Нагрузка</term><description>Низкая</description></item>
     /// <item><term>Риск</term><description>Высокий: отмена прерывает сбор и сохраняет сущности</description></item>
@@ -119,7 +119,7 @@ public interface ISupplyBoxEvents
     /// <item><term>Когда</term><description>После `Despawn` и отмены thinkers</description></item>
     /// <item><term>Частота</term><description>Игрок</description></item>
     /// <item><term>Нагрузка</term><description>Низкая</description></item>
-    /// <item><term>Риск</term><description>Средний: `Collected` отправляется сразу после него</description></item>
+    /// <item><term>Риск</term><description>Средний: `Collected` следует только при успешном подборе; очистка и истечение времени жизни также вызывают Destroyed</description></item>
     /// <item><term>Поток</term><description>Игровой поток</description></item>
     /// </list>
     /// </remarks>
