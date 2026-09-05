@@ -74,8 +74,7 @@ public sealed class CustomEquipmentDbContext(DbContextOptions<CustomEquipmentDbC
     {
         var sounds = modelBuilder.Entity<WeaponSoundEntity>();
 
-        sounds.HasIndex(x => x.EventName).IsUnique();
-        sounds.HasIndex(x => new { x.WeaponId, x.Trigger }).IsUnique();
+        sounds.HasIndex(x => new { x.WeaponId, x.Trigger, x.EventName }).IsUnique();
 
         sounds.Property(x => x.SoundType).HasDefaultValue("csgo_mega");
         sounds.Property(x => x.Volume).HasDefaultValue(1.0f);

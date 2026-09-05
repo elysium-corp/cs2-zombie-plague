@@ -113,11 +113,7 @@ internal sealed class WeaponSoundController(
         }
 
         var weapon = equipmentService.GetActiveItem<WeaponItemBase>(player);
-        var sound = weapon?.Sounds.FirstOrDefault(candidate =>
-            string.Equals(candidate.Trigger, trigger, StringComparison.OrdinalIgnoreCase)
-        );
-
-        if (weapon is null || sound is null)
+        if (weapon is null)
         {
             return HookResult.Continue;
         }
@@ -126,6 +122,12 @@ internal sealed class WeaponSoundController(
         var tick = core.Engine.GlobalVars.TickCount;
 
         if (_lastEmitTicks.TryGetValue(emitKey, out var lastTick) && lastTick == tick)
+        {
+            return HookResult.Continue;
+        }
+
+        var sound = WeaponSoundSelector.Select(weapon.Sounds, trigger, Random.Shared);
+        if (sound is null)
         {
             return HookResult.Continue;
         }

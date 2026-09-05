@@ -33,7 +33,8 @@ public sealed class ShopInputTests
             () => throw new InvalidOperationException("Денежные операции не ожидались."),
             () => equipment, null!,
             () => throw new InvalidOperationException("Сообщения в чат не ожидались."),
-            NullLogger<ShopPurchaseService>.Instance);
+            NullLogger<ShopPurchaseService>.Instance,
+            null!);
 
         Assert.False(service.TryPurchaseActiveWeaponAmmo(player));
         Assert.Equal(0, weaponLookups);
