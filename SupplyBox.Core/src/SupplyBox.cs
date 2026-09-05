@@ -26,7 +26,7 @@ using ZombiePlague.Api.Events.Contexts.Round;
 
 namespace SupplyBox;
 
-[PluginMetadata(Id = "SupplyBox.Core", Version = "1.0.0", Name = "[ZP] SupplyBox",
+[PluginMetadata(Id = "SupplyBox.Core", Version = "1.0.1", Name = "[ZP] SupplyBox",
     Author = "illusion & fdrinv", Description = "Database-managed supply drops with Flute CMS integration")]
 internal sealed class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxModule>(core)
 {
@@ -75,7 +75,12 @@ internal sealed class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxModule>(cor
         ZombiePlagueApi.Events.Rounds.Started.Hook(OnRoundStarted);
         Core.Event.OnMapLoad += OnMapLoad;
         Core.Event.OnMapUnload += OnMapUnload;
-        _maps.Value.LoadConfig(Core.Engine.GlobalVars.MapName.Value);
+        // Shared API уже готовы, но при старте сервера первая карта ещё не загружена.
+        // Существующую карту подхватываем при reload; иначе ждём OnMapLoad.
+        if (!SupplyBoxMapBootstrap.TryLoadCurrentMap(
+                () => Core.Engine.GlobalVars.MapName.Value,
+                _maps.Value.LoadConfig))
+            _lastStatus = "waiting_for_map";
         _refreshTimer = Core.Scheduler.RepeatBySeconds(30, () => _maps.Value.Refresh());
         _commands.Add(Core.Command.RegisterCommand("supply", context =>
         {

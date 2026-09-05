@@ -1,6 +1,8 @@
-# SupplyBox 1.0
+# SupplyBox 1.0.1
 
 Ящики снабжения для Zombie Plague: реальные награды, настройки в PostgreSQL и редактор Flute CMS `ElysiumSupplyBox`.
+
+Версия 1.0.1 исправляет остановку запуска SwiftlyS2 с `GlobalVars is null.`: до первой карты плагин ждёт `OnMapLoad`, а при reload на работающей карте сразу загружает её точки. `supply_status` показывает `waiting_for_map`, пока карта недоступна.
 
 ## Установка
 
