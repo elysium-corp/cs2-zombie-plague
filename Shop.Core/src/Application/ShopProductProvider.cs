@@ -1,5 +1,7 @@
 using System.Text.Json;
 using CustomEquipment.Api;
+using CustomEquipment.Api.Data.Contracts;
+using CustomEquipment.Api.Enums;
 using Shop.Api.Data;
 using Shop.Core.Data;
 using SwiftlyS2.Shared.Players;
@@ -12,6 +14,29 @@ internal sealed class ShopProductProvider(Func<ICustomEquipmentApi> equipmentApi
     private const string CustomEquipmentProvider = "custom_equipment";
     private const string BuiltinProvider = "builtin";
     private const string ArmorItem = "armor";
+
+    public ItemRarity? GetRarity(ShopOfferDefinition offer)
+    {
+        if (offer.Contract.ProviderKey == StandardWeaponCatalog.ProviderKey)
+        {
+            return StandardWeaponCatalog.Weapons.ContainsKey(offer.Contract.ItemKey)
+                ? ItemRarity.Common
+                : null;
+        }
+
+        if (offer.Contract.ProviderKey != CustomEquipmentProvider ||
+            !equipmentApi().TryGetRegisteredItem(offer.Contract.ItemKey, out var item))
+        {
+            return null;
+        }
+
+        return item switch
+        {
+            IHasRarity rarityItem => rarityItem.Rarity,
+            IShopItem legacyShopItem => legacyShopItem.Rarity,
+            _ => null
+        };
+    }
 
     public bool IsAvailable(IPlayer player, ShopOfferDefinition offer)
     {

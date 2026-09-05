@@ -1,6 +1,4 @@
 using System.Runtime.CompilerServices;
-using CustomEquipment.Api;
-using CustomEquipment.Api.Data.Contracts;
 using Economy.Api;
 using Economy.Api.Events;
 using Localization.Api;
@@ -25,7 +23,7 @@ internal sealed class ShopMenu(
     ShopSnapshotCache cache,
     ShopAccessEvaluator access,
     ShopPurchaseService purchases,
-    Func<ICustomEquipmentApi> equipmentApi,
+    ShopProductProvider products,
     Func<ILocalizationApi> localizationApi,
     Func<IEconomyApi> economyApi,
     Func<IZombiePlagueApi> zombiePlagueApi) : MenuBase(core), IDisposable
@@ -299,9 +297,7 @@ internal sealed class ShopMenu(
             Text = ShopMenuText.Offer(
                 Localize(player, offer.Contract.DisplayNameKey),
                 price,
-                offer.Contract.ProviderKey == "custom_equipment" &&
-                equipmentApi().TryGetRegisteredItem(offer.Contract.ItemKey, out var item) &&
-                item is IShopItem shopItem ? shopItem.Rarity : null),
+                products.GetRarity(offer)),
             Comment = OfferComment(player, offer, availability),
             Enabled = availability.Allowed
         };

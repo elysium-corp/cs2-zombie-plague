@@ -7,7 +7,7 @@ using CustomEquipment.Data.Equipments.Models;
 namespace CustomEquipment.Data.DatabaseWeapons;
 
 internal sealed class DatabaseWeaponItem(DatabaseWeaponDefinition definition)
-    : WeaponItemBase, ILocalizedShopItem
+    : WeaponItemBase, ILocalizedShopItem, IHasRarity
 {
     public override string InheritorName => definition.InheritorName;
 
