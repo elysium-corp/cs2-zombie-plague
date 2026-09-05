@@ -8,11 +8,13 @@ using Microsoft.Extensions.Logging;
 using Shop.Api.Data;
 using Shop.Api.Events;
 using Shop.Core.Data;
+using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Players;
 
 namespace Shop.Core.Application;
 
 internal sealed class ShopPurchaseService(
+    ISwiftlyCore core,
     ShopSnapshotCache cache,
     ShopAccessEvaluator access,
     ShopProductProvider products,
@@ -109,6 +111,7 @@ internal sealed class ShopPurchaseService(
     public bool TryPurchaseActiveWeaponAmmo(IPlayer player)
     {
         if (!player.IsValid || !player.IsAlive ||
+            core.MenusAPI.GetCurrentMenu(player) is not null ||
             !equipmentApi().TryGetActiveWeapon(player, out var weapon))
         {
             return false;
@@ -127,20 +130,20 @@ internal sealed class ShopPurchaseService(
         var availability = access.EvaluateAmmo(player, offer);
         if (!availability.Allowed)
         {
-            Reject(player, offer.Contract, availability.Reason, availability.RemainingCooldown);
+            Reject(player, offer.Contract, availability.Reason, availability.RemainingCooldown, notifyPlayer: false);
             return false;
         }
 
         if (!equipmentApi().CanRefillActiveWeapon(player, offer.Contract.ItemKey))
         {
-            Reject(player, offer.Contract, ShopAvailabilityReason.AmmoFull);
+            Reject(player, offer.Contract, ShopAvailabilityReason.AmmoFull, notifyPlayer: false);
             return false;
         }
 
         var charge = Charge(player, offer.Contract, ammoPrice);
         if (!charge.Success)
         {
-            Reject(player, offer.Contract, charge.FailureReason);
+            Reject(player, offer.Contract, charge.FailureReason, notifyPlayer: false);
             return false;
         }
 
@@ -169,7 +172,7 @@ internal sealed class ShopPurchaseService(
             var reason = TryRefund(player, offer.Contract, charge)
                 ? ShopAvailabilityReason.AmmoFull
                 : ShopAvailabilityReason.RefundFailed;
-            Reject(player, offer.Contract, reason);
+            Reject(player, offer.Contract, reason, notifyPlayer: false);
             return false;
         }
 
@@ -263,12 +266,13 @@ internal sealed class ShopPurchaseService(
         IPlayer player,
         ShopOffer? offer,
         ShopAvailabilityReason reason,
-        TimeSpan cooldown = default)
+        TimeSpan cooldown = default,
+        bool notifyPlayer = true)
     {
         var context = new ShopPurchaseRejectedContext(player, offer, reason);
         hooks.Dispatch(ref context);
 
-        if (!player.IsValid)
+        if (!notifyPlayer || !player.IsValid)
         {
             return;
         }

@@ -138,7 +138,7 @@ internal abstract class BaseActiveAbility(
 
     private void TryUse()
     {
-        if (!IsEnabled)
+        if (!IsEnabled || core.MenusAPI.GetCurrentMenu(Caster) is not null)
         {
             return;
         }
