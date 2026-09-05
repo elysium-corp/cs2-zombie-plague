@@ -20,6 +20,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\Localization.Api\Localization.Api.csproj" Private="true" />
         <ProjectReference Include="..\ZombiePlague.Core\ZombiePlague.Core.csproj">
             <Private>true</Private>
         </ProjectReference>

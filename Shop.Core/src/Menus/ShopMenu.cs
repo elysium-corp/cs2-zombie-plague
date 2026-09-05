@@ -1,4 +1,6 @@
 using System.Runtime.CompilerServices;
+using CustomEquipment.Api;
+using CustomEquipment.Api.Data.Contracts;
 using Economy.Api;
 using Economy.Api.Events;
 using Localization.Api;
@@ -23,6 +25,7 @@ internal sealed class ShopMenu(
     ShopSnapshotCache cache,
     ShopAccessEvaluator access,
     ShopPurchaseService purchases,
+    Func<ICustomEquipmentApi> equipmentApi,
     Func<ILocalizationApi> localizationApi,
     Func<IEconomyApi> economyApi,
     Func<IZombiePlagueApi> zombiePlagueApi) : MenuBase(core), IDisposable
@@ -176,7 +179,7 @@ internal sealed class ShopMenu(
     {
         var title = StorefrontTitle(player);
         return design
-            .SetMenuTitle(WithBalance(player, title))
+            .SetMenuTitle(title)
             .Design.SetCommentVisible()
             .Design.SetMenuFooterVisible(false)
             .Design.EnableAutoAdjustVisibleItems();
@@ -254,7 +257,7 @@ internal sealed class ShopMenu(
         }
 
         _screens[player.PlayerID] = categoryId;
-        var title = WithBalance(player, Localize(player, category.DisplayNameKey));
+        var title = Localize(player, category.DisplayNameKey);
         var builder = Core.MenusAPI.CreateBuilder()
             .Design.SetMenuTitle(title)
             .Design.SetCommentVisible()
@@ -293,7 +296,12 @@ internal sealed class ShopMenu(
             ?? "Shop.Menu.Price";
         var option = new ButtonMenuOption
         {
-            Text = $"{Localize(player, offer.Contract.DisplayNameKey)} [{price}]",
+            Text = ShopMenuText.Offer(
+                Localize(player, offer.Contract.DisplayNameKey),
+                price,
+                offer.Contract.ProviderKey == "custom_equipment" &&
+                equipmentApi().TryGetRegisteredItem(offer.Contract.ItemKey, out var item) &&
+                item is IShopItem shopItem ? shopItem.Rarity : null),
             Comment = OfferComment(player, offer, availability),
             Enabled = availability.Allowed
         };
@@ -405,17 +413,6 @@ internal sealed class ShopMenu(
         return cache.Current.Storefronts.TryGetValue(shopType, out var storefront)
             ? Localize(player, storefront.TitleKey)
             : Localize(player, shopType == ShopType.Human ? "Shop.Human.Title" : "Shop.Zombie.Title");
-    }
-
-    private string WithBalance(IPlayer player, string title)
-    {
-        var balanceValue = economyApi().GetBalance(player);
-        var balance = localizationApi().FormatForPlayer(
-            player,
-            "Shop.Menu.Balance",
-            new Dictionary<string, object?> { ["balance"] = balanceValue })
-            ?? "Shop.Menu.Balance";
-        return $"{title} · {balance}";
     }
 
     private string Localize(IPlayer player, string key) =>
