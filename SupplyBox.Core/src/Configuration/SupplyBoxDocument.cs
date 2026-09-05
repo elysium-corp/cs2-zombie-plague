@@ -166,6 +166,7 @@ internal sealed class SupplyBoxPoint
     public bool Enabled { get; set; } = true;
     [Range(-32768d, 32768d)] public double X { get; set; }
     [Range(-32768d, 32768d)] public double Y { get; set; }
+    // Ноль включает посадку по столкновению; остальные значения задают конечный origin ящика.
     [Range(-32768d, 32768d)] public double Z { get; set; }
     [Range(-360d, 360d)] public double Pitch { get; set; }
     [Range(-360d, 360d)] public double Yaw { get; set; }

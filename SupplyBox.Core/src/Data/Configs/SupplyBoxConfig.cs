@@ -24,6 +24,7 @@ public class SupplyBoxConfig : ISupplyBoxConfig
     public bool HumansCanCollect { get; set; } = true;
     public bool ZombiesCanCollect { get; set; } = false;
     public bool AutoDiscoverSpawnPoints { get; set; } = true;
+    // При Z точки = 0 это абсолютная высота старта; иначе — расстояние над заданным Z.
     [Range(0, 4096)] public int DropHeight { get; set; } = 600;
     [Range(10, 1000)] public int FallSpeed { get; set; } = 160;
     [Range(16, 256)] public int PickupRadius { get; set; } = 60;
