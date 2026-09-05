@@ -10,7 +10,7 @@ namespace SupplyBox.Configuration;
 internal sealed class SupplyBoxDocument
 {
     internal const int MaximumConfigBytes = 8_388_608;
-    public int SchemaVersion { get; set; } = 1;
+    public int SchemaVersion { get; set; } = 2;
     public SupplyBoxConfig Settings { get; set; } = new();
     public List<SupplyBoxType> BoxTypes { get; set; } = [new()];
     public List<SupplyBoxMap> Maps { get; set; } = [];
@@ -24,6 +24,13 @@ internal sealed class SupplyBoxDocument
         WriteIndented = true
     };
 
+    public SupplyBoxConfig ResolveSettings(string mapName) => SupplyBoxMapOverrides.Resolve(Settings,
+        Maps.FirstOrDefault(map => string.Equals(map.Name, mapName, StringComparison.OrdinalIgnoreCase)));
+
+    public IEnumerable<SupplyBoxType> AvailableTypes(SupplyBoxMap map) => BoxTypes.Where(type =>
+        type.Enabled && type.Loot.Any(loot => loot.Enabled)
+        && (map.AllowedBoxTypes is null || map.AllowedBoxTypes.Contains(type.Key)));
+
     public SupplyBoxDocument Clone() => Parse(JsonSerializer.Serialize(this, Json));
 
     public static SupplyBoxDocument Parse(string json)
@@ -36,8 +43,9 @@ internal sealed class SupplyBoxDocument
 
     public void Validate()
     {
-        if (SchemaVersion != 1 || Settings is null || Maps is null || BoxTypes is null)
+        if (SchemaVersion is not (1 or 2) || Settings is null || Maps is null || BoxTypes is null)
             throw new InvalidDataException("Unsupported or incomplete SupplyBox configuration.");
+        SchemaVersion = 2;
         ValidateObject(Settings);
         if (BoxTypes.Count is < 1 or > 64 || Maps.Count > 512)
             throw new InvalidDataException("SupplyBox supports 1–64 box types and up to 512 maps.");
@@ -65,6 +73,24 @@ internal sealed class SupplyBoxDocument
             if (!Regex.IsMatch(map.Name, @"^[A-Za-z0-9_/-]{1,128}$") || map.Name.Contains("..")
                 || map.Points is null || map.Points.Count > 512)
                 throw new InvalidDataException("Invalid map or point count.");
+            if (map.Overrides is { } overrides)
+            {
+                ValidateObject(overrides);
+                if (overrides.ParachuteModel is { } parachute) Model(parachute, true);
+            }
+            if (map.Radar is { } radar)
+            {
+                ValidateObject(radar);
+                if ((radar.ImageId != "" && !Regex.IsMatch(radar.ImageId, @"^[a-f0-9]{64}$"))
+                    || radar.Rotation % 90 != 0)
+                    throw new InvalidDataException("Invalid radar image or rotation.");
+            }
+            if (map.AllowedBoxTypes is { } allowed)
+            {
+                Unique(allowed, "allowed box key");
+                if (allowed.Count > 64 || allowed.Any(key => !BoxTypes.Any(box => box.Key == key)))
+                    throw new InvalidDataException("Map references an unknown box type.");
+            }
             Unique(map.Points.Select(point => point.Id.ToString()), "point ID");
             foreach (var point in map.Points)
             {
@@ -126,6 +152,10 @@ internal sealed class SupplyBoxMap
     public bool Enabled { get; set; } = true;
     [Range(0, 100)] public int? ChanceDrop { get; set; }
     [Range(1, 32)] public int? MaxCountTogether { get; set; }
+    public SupplyBoxRadar? Radar { get; set; }
+    public SupplyBoxMapOverrides? Overrides { get; set; }
+    public List<string>? AllowedBoxTypes { get; set; }
+    [Range(-32768d, 32768d)] public double DefaultPointZ { get; set; }
     public List<SupplyBoxPoint> Points { get; set; } = [];
 }
 

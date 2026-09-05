@@ -26,7 +26,7 @@ using ZombiePlague.Api.Events.Contexts.Round;
 
 namespace SupplyBox;
 
-[PluginMetadata(Id = "SupplyBox.Core", Version = "1.0.1", Name = "[ZP] SupplyBox",
+[PluginMetadata(Id = "SupplyBox.Core", Version = "1.1.0", Name = "[ZP] SupplyBox",
     Author = "illusion & fdrinv", Description = "Database-managed supply drops with Flute CMS integration")]
 internal sealed class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxModule>(core)
 {
@@ -120,6 +120,7 @@ internal sealed class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxModule>(cor
         args.AddItem("models/props/crates/cs2_drop_crate_01.vmdl");
         var document = _maps.Value.Current.Document;
         foreach (var model in document.BoxTypes.SelectMany(box => new[] { box.Model, box.ParachuteModel })
+                     .Concat(document.Maps.Select(map => map.Overrides?.ParachuteModel ?? ""))
                      .Append(document.Settings.SupplyBoxModel).Append(document.Settings.ParachuteModel)
                      .Where(model => model.Length > 0).Distinct()) args.AddItem(model);
     }
@@ -171,8 +172,8 @@ internal sealed class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxModule>(cor
         _boxes.RemoveAll(box => !box.IsAlive);
         if (service.Source == "loading") { _lastStatus = "loading"; return; }
         var document = service.Current.Document;
-        var settings = document.Settings;
-        var map = service.GetMap();
+        var map = document.Maps.FirstOrDefault(item => string.Equals(item.Name, service.MapName, StringComparison.OrdinalIgnoreCase));
+        var settings = SupplyBoxMapOverrides.Resolve(document.Settings, map);
         if (map is null && settings.AutoDiscoverSpawnPoints)
         {
             var positions = Core.EntitySystem.GetAllEntitiesByDesignerName<CBaseEntity>("info_player_counterterrorist")
@@ -192,13 +193,13 @@ internal sealed class SupplyBox(ISwiftlyCore core) : Plugin<SupplyBoxModule>(cor
             players.Count(player => player.IsAlive && !ZombiePlagueApi.IsInfected(player)),
             players.Count(player => player.IsAlive && ZombiePlagueApi.IsInfected(player))))
         { Reject("player_conditions"); return; }
-        if (Random.Shared.Next(100) >= (map.ChanceDrop ?? settings.ChanceDrop))
+        if (Random.Shared.Next(100) >= settings.ChanceDrop)
         { Reject("chance_missed", SupplyBoxSpawnRejectionReason.ChanceMissed); return; }
         for (var count = 0; count < settings.BoxesPerWave; count++)
         {
             if (SupplyBoxRules.LimitReached(settings, map, _boxes.Count, _roundDrops, _mapDrops))
             { Reject("drop_limit", SupplyBoxSpawnRejectionReason.ActiveLimitReached); return; }
-            var types = document.BoxTypes.Where(type => type.Enabled && type.Loot.Any(loot => loot.Enabled)).ToArray();
+            var types = document.AvailableTypes(map).ToArray();
             var points = map.Points.Where(point => point.Enabled && _boxes.All(box => box.Index != point.Id)
                 && types.Any(type => point.BoxType == "" || type.Key == point.BoxType)).ToArray();
             if (points.Length == 0) { Reject("no_available_points", SupplyBoxSpawnRejectionReason.SpawnPointUnavailable); return; }

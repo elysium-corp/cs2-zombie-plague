@@ -21,3 +21,13 @@ FROM supply_box.configuration c CROSS JOIN LATERAL jsonb_array_elements(c.data->
 CREATE OR REPLACE VIEW supply_box.loot AS
 SELECT b.key AS box_key, r AS data
 FROM supply_box.box_types b CROSS JOIN LATERAL jsonb_array_elements(b.data->'Loot') r;
+
+CREATE TABLE IF NOT EXISTS supply_box.radar_images (
+    id varchar(64) PRIMARY KEY CHECK (id ~ '^[a-f0-9]{64}$'),
+    data bytea NOT NULL CHECK (octet_length(data) BETWEEN 1 AND 8388608),
+    mime varchar(32) NOT NULL CHECK (mime IN ('image/png', 'image/jpeg', 'image/webp')),
+    file_name varchar(255) NOT NULL,
+    width integer NOT NULL CHECK (width BETWEEN 64 AND 8192),
+    height integer NOT NULL CHECK (height = width),
+    created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
