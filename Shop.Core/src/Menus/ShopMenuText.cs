@@ -21,6 +21,6 @@ internal static class ShopMenuText
         };
         var text = WebUtility.HtmlEncode(name);
         var label = color is null ? text : $"<font color='{color}'>{text}</font>";
-        return $"{label} [{WebUtility.HtmlEncode(price)}]";
+        return $"{label} [<font color='#FFFF00'>{WebUtility.HtmlEncode(price)}</font>]";
     }
 }

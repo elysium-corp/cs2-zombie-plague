@@ -25,7 +25,7 @@ public interface IManagedGameplayItem
 /// Базовая реализация встроенной гранаты с параметрами из runtime-каталога.
 /// </summary>
 public abstract class ManagedGrenadeItemBase
-    : GrenadeItemBase, ILocalizedShopItem, IManagedGameplayItem
+    : GrenadeItemBase, ILocalizedShopItem, IManagedGameplayItem, IHasRarity
 {
     private readonly GameplayItemCatalog _catalog;
     private readonly string _implementationKey;
@@ -67,7 +67,7 @@ public abstract class ManagedGrenadeItemBase
 internal abstract class ManagedEquipmentItemBase(
     GameplayItemCatalog catalog,
     string implementationKey
-) : EquipmentItemBase, ILocalizedShopItem, IManagedGameplayItem
+) : EquipmentItemBase, ILocalizedShopItem, IManagedGameplayItem, IHasRarity
 {
     protected GameplayItemDefinition Definition => catalog.Get(implementationKey);
 

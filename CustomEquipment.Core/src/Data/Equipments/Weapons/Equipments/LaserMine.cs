@@ -9,7 +9,7 @@ namespace CustomEquipment.Data.Equipments.Weapons.Equipments;
 /// <summary>
 /// Представляет переносимую лазерную мину с параметрами из PostgreSQL-каталога.
 /// </summary>
-public sealed class LaserMine : EquipmentItemBase, ILocalizedShopItem, IManagedGameplayItem
+public sealed class LaserMine : EquipmentItemBase, ILocalizedShopItem, IManagedGameplayItem, IHasRarity
 {
     private readonly GameplayItemCatalog _catalog;
 
