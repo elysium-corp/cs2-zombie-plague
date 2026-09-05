@@ -6,7 +6,8 @@
 
 ## Установка и обновление
 
-1. Соберите сервер через `pwsh scripts/build-package.ps1 -Configuration Release` и установите весь `dist/Release/plugins/SupplyBox.Core`, включая `Npgsql.dll`, Economy.Api и CustomEquipment.Api — на сервере должны работать Economy, CustomEquipment, Localization и ZombiePlague
+1. Соберите сервер через `pwsh scripts/build-package.ps1 -Configuration Release` и установите весь `dist/Release/plugins/SupplyBox.Core`, включая `Npgsql.dll` — на сервере должны работать Economy, CustomEquipment, Localization и ZombiePlague
+   API Economy и CustomEquipment загружаются из `resources/exports` соответствующих плагинов
 2. Подключение SwiftlyS2 `elysium_zp_server_1` должно вести в PostgreSQL игрового сервера — плагину достаточно чтения `supply_box.configuration`, реквизиты остаются в подключениях SwiftlyS2
 3. Установите модуль сайта `app/Modules/ElysiumSupplyBox` версии 1.2.0 и выберите подключение к той же БД
 4. При первой установке нажмите «Подготовить БД» в `/admin/elysium-supply-box` — схема и начальная конфигурация создаются только сайтом
