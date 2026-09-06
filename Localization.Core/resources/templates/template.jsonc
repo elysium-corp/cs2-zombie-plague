@@ -1,8 +1,8 @@
 {
   "schemaVersion": 4,
-  "version": 8,
-  "generatedAt": "2026-09-05T05:39:14Z",
-  "checksum": "sha256:a38a65b9263e4abc5f1b840cd0a25b94fe9c8e71c3eb38a33c8db10c9e1a6a41",
+  "version": 9,
+  "generatedAt": "2026-09-06T12:00:00Z",
+  "checksum": "sha256:41c2db4e3dbf4466513fcd75347f909c5a1c30ee3a986e6a8ab0c0f46f1d2190",
   "serverFallbackLanguage": "ru",
   "languages": [
     "ru",
@@ -1053,6 +1053,94 @@
     "Shop.Weapon.Negev.Name": {
       "ru": "Negev",
       "en": "Negev"
+    },
+    "Menu.Main.Item.HClass.Title": {
+      "ru": "Выбрать класс человека",
+      "en": "Select human class"
+    },
+    "Menu.HClass.Title": {
+      "ru": "Классы людей",
+      "en": "Human classes"
+    },
+    "Menu.HClass.Selected": {
+      "ru": "{class} [выбран]",
+      "en": "{class} [selected]"
+    },
+    "Menu.HClass.SelectionSuccess": {
+      "ru": "Вы выбрали класс человека: {class}",
+      "en": "Human class selected: {class}"
+    },
+    "ZombiePlague.HClass.Human.Mercenary.Name": {
+      "ru": "Наёмник",
+      "en": "Mercenary"
+    },
+    "ZombiePlague.HClass.Human.Mercenary.Description": {
+      "ru": "Обычный человек",
+      "en": "Regular human"
+    },
+    "ZombiePlague.HClass.Human.Survivor.Name": {
+      "ru": "Выживший",
+      "en": "Survivor"
+    },
+    "ZombiePlague.HClass.Human.Survivor.Description": {
+      "ru": "Специальный человеческий класс для режима Survivor",
+      "en": "Special human class for Survivor mode"
+    },
+    "ZombiePlague.Ability.Heal.Name": {
+      "ru": "Лечение",
+      "en": "Heal"
+    },
+    "ZombiePlague.Ability.Heal.Description": {
+      "ru": "Лечит другого живого союзника под прицелом, до его максимального HP — человек лечит человека, зомби лечит зомби",
+      "en": "Heals another living ally under the crosshair, up to their maximum health"
+    },
+    "ZombiePlague.Ability.Leap.Name": {
+      "ru": "Прыжок вперёд",
+      "en": "Leap"
+    },
+    "ZombiePlague.Ability.Leap.Description": {
+      "ru": "Толкает владельца вперёд и вверх в направлении взгляда",
+      "en": "Propels the caster forward and upward in their view direction"
+    },
+    "ZombiePlague.Ability.Blind.Name": {
+      "ru": "Ослепление",
+      "en": "Blind"
+    },
+    "ZombiePlague.Ability.Blind.Description": {
+      "ru": "Ослепляет противников в радиусе действия",
+      "en": "Blinds enemies within range"
+    },
+    "ZombiePlague.Ability.Charge.Name": {
+      "ru": "Рывок",
+      "en": "Charge"
+    },
+    "ZombiePlague.Ability.Charge.Description": {
+      "ru": "Временно разгоняет владельца до заданной скорости, затем возвращает исходную",
+      "en": "Temporarily accelerates the caster, then restores their speed"
+    },
+    "ZombiePlague.Ability.Trap.Name": {
+      "ru": "Ловушка",
+      "en": "Trap"
+    },
+    "ZombiePlague.Ability.Trap.Description": {
+      "ru": "Ставит ловушку на земле, которая действует на противников",
+      "en": "Places a ground trap affecting enemies"
+    },
+    "ZombiePlague.Ability.Catch.Name": {
+      "ru": "Притягивание",
+      "en": "Catch"
+    },
+    "ZombiePlague.Ability.Catch.Description": {
+      "ru": "Захватывает противника под прицелом и притягивает к владельцу",
+      "en": "Grabs an enemy under the crosshair and pulls them toward the caster"
+    },
+    "ZombiePlague.Ability.Double.Jump.Name": {
+      "ru": "Двойной прыжок",
+      "en": "Double Jump"
+    },
+    "ZombiePlague.Ability.Double.Jump.Description": {
+      "ru": "Позволяет выполнить дополнительный прыжок в воздухе",
+      "en": "Allows an additional jump in the air"
     }
   }
 }

@@ -9,41 +9,38 @@ using SwiftlyS2.Shared.Menus;
 using SwiftlyS2.Shared.Players;
 using ZombiePlague.Api.Data.Store;
 using ZombiePlague.Api.Menus;
-using ZombiePlague.Core.Config.Zombie;
 using ZombiePlague.Core.Catalog;
-using ZombiePlague.Core.Data.Entities.Registrator;
 
 namespace ZombiePlague.Core.Menus;
 
-internal sealed class ZClassMenu(
+internal sealed class HClassMenu(
     ISwiftlyCore core,
     IMenuExtensionDispatcher extensionDispatcher,
-    IZClassRegistrator zClassRegistrator,
+    ZombieCatalogService catalog,
     IPlayerRepository playerRepository,
     IMetricsService metrics,
     Func<ILocalizationApi> localization
 ) : DynamicOptionsMenu(core, extensionDispatcher)
 {
-    public override string Id => ZombiePlagueMenuIds.ZClass;
+    public override string Id => ZombiePlagueMenuIds.HClass;
 
     protected override MenuTeamAccess AllowedTeams => MenuTeamAccess.All;
 
     protected override IReadOnlyCollection<string> Commands { get; } =
     [
-        "class",
-        "zclass",
-        "ясдфыы",
-        "сдфыы"
+        "hclass",
+        "humanclass",
+        "рсдфыы"
     ];
 
-    private const string ZClassMenuTitle = "Menu.ZClass.Title";
-    private const string ZClassSelected = "Menu.ZClass.Selected";
-    private const string ZClassSelectionSuccess = "Menu.ZClass.SelectionSuccess";
+    private const string HClassMenuTitle = "Menu.HClass.Title";
+    private const string HClassSelected = "Menu.HClass.Selected";
+    private const string HClassSelectionSuccess = "Menu.HClass.SelectionSuccess";
 
     protected override IMenuBuilderAPI ConfigureDesign(IPlayer player, IMenuDesignAPI design)
     {
         return design
-            .SetMenuTitle(localization().GetForPlayer(player, ZClassMenuTitle) ?? ZClassMenuTitle)
+            .SetMenuTitle(localization().GetForPlayer(player, HClassMenuTitle) ?? HClassMenuTitle)
             .Design.SetMenuFooterVisible(false)
             .Design.SetMenuTitleItemCountVisible()
             .Design.SetMaxVisibleItems()
@@ -52,11 +49,11 @@ internal sealed class ZClassMenu(
 
     protected override void BuildOptions(IPlayer player, MenuOptionsCollection options)
     {
-        var currentZClass = playerRepository.GetZClassId(player);
+        var currentZClass = playerRepository.GetHClassId(player);
 
-        var zClasses = zClassRegistrator
-            .GetAllEnabled()
-            .Where(zClass => zClass is not ZombieClassDefinition { Kind: "nemesis" });
+        var zClasses = catalog.Current.Document.Classes
+            .Where(item => item.Enabled && item.Kind == "human")
+            .OrderBy(item => item.SortOrder).ThenBy(item => item.InternalName);
 
         foreach (var zClass in zClasses)
         {
@@ -64,7 +61,7 @@ internal sealed class ZClassMenu(
         }
     }
 
-    private ButtonMenuOption BuildZClassOption(IPlayer player, string currentZClass, IZClassConfig zClass)
+    private ButtonMenuOption BuildZClassOption(IPlayer player, string currentZClass, ZombieClassDefinition zClass)
     {
         var isSelected = zClass.InternalName == currentZClass;
         var className = LocalizeClassField(player, zClass, "Name", zClass.DisplayName);
@@ -72,7 +69,7 @@ internal sealed class ZClassMenu(
         var displayName = isSelected
             ? localization().GetForPlayer(
                   player,
-                  ZClassSelected,
+                  HClassSelected,
                   new Dictionary<string, string> { ["class"] = className })
               ?? className
             : className;
@@ -89,13 +86,12 @@ internal sealed class ZClassMenu(
             var player = args.Player;
 
             // Открытое меню могло пережить синхронизацию и удаление класса
-            if (!zClassRegistrator.GetAllEnabled().Any(item => item.InternalName == zClass.InternalName &&
-                    item is not ZombieClassDefinition { Kind: "nemesis" }))
+            if (!catalog.Current.Document.Classes.Any(item => item.InternalName == zClass.InternalName && item.Enabled && item.Kind == "human"))
             {
                 core.MenusAPI.CloseActiveMenu(player);
                 return ValueTask.CompletedTask;
             }
-            playerRepository.SetZClassId(player, zClass.InternalName);
+            playerRepository.SetHClassId(player, zClass.InternalName);
 
             if (player.IsAuthorized && !player.IsFakeClient)
             {
@@ -106,14 +102,14 @@ internal sealed class ZClassMenu(
                     {
                         class_id = zClass.InternalName,
                         class_name = zClass.InternalName,
-                        class_type = "zombie"
+                        class_type = "human"
                     }
                 );
             }
 
             var message = localization().GetForPlayer(
                 player,
-                ZClassSelectionSuccess,
+                HClassSelectionSuccess,
                 new Dictionary<string, string> { ["class"] = className });
 
             if (message is not null)
@@ -131,13 +127,11 @@ internal sealed class ZClassMenu(
 
     private string LocalizeClassField(
         IPlayer player,
-        IZClassConfig zClass,
+        ZombieClassDefinition zClass,
         string field,
         string fallback)
     {
-        var key = zClass is ZombieClassDefinition definition
-            ? field == "Name" ? definition.DisplayNameKey : definition.DescriptionKey
-            : $"ZombiePlague.ZClass.{LocalizationKey.Canonicalize(zClass.InternalName)}.{field}";
+        var key = field == "Name" ? zClass.DisplayNameKey : zClass.DescriptionKey;
         return localization().GetForPlayer(player, key) ?? key;
     }
 }

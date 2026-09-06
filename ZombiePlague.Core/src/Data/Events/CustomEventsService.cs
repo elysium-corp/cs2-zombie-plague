@@ -40,7 +40,9 @@ public class CustomEventsService(ISwiftlyCore core) : ICustomEventService
             {
                 @event.UserId = victim.UserID;
                 @event.Attacker = attacker.UserID;
-                @event.Weapon = "biohazard";
+                // FireAsync отправляет уведомление клиентам, учёт заражения идёт через PlayerInfectedContext
+                // Штатный ключ ножа не требует отсутствующего ресурса equipment/biohazard.vsvg
+                @event.Weapon = "knife";
                 @event.Assister = -1;
             });
         }

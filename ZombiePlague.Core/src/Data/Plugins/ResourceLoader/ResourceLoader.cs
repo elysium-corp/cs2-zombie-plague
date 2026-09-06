@@ -27,7 +27,14 @@ internal sealed class ResourceLoader(ISwiftlyCore core) : IResourceLoader
         }
 
         var config = LoadConfig();
-        _resourcesToPrecache = config.PrecacheResources ?? [];
+        var resources = config.PrecacheResources ?? [];
+        // VSVG из Panorama не распознаётся игровым manifest и вызывает предупреждение на каждой карте
+        _resourcesToPrecache = resources
+            .Where(resource => resource.Item?.TrimEnd().EndsWith(".vsvg", StringComparison.OrdinalIgnoreCase) != true)
+            .ToList();
+        if (_resourcesToPrecache.Count != resources.Count)
+            core.Logger.LogWarning("[ResourceLoader] Пропущено {Count} VSVG-записей в {Path}: "
+                + "удалите иконки Panorama из списка игрового precache", resources.Count - _resourcesToPrecache.Count, GetConfigPath());
 
         core.Event.OnPrecacheResource += OnPrecacheResources;
         _isInitialized = true;

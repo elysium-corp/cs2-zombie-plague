@@ -8,7 +8,7 @@
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
         <PublishDir>$(OutputPath)publish/ZombiePlague.Core</PublishDir>
         <AssemblyName>ZombiePlague.Core</AssemblyName>
-        <PluginVersion>0.2.0</PluginVersion>
+        <PluginVersion>0.3.0</PluginVersion>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)' == 'Migrations'">
@@ -54,6 +54,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <EmbeddedResource Include="src/Catalog/*.sql" />
         <Compile Remove="examples\**\*.cs" />
     </ItemGroup>
 

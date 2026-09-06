@@ -7,7 +7,7 @@ internal sealed class ZombieCatalogLifecycle(ISwiftlyCore core, ZombieCatalogSer
 {
     private readonly List<Guid> _commands = [];
     private bool _started;
-    private bool _precacheRefreshed;
+    private Task? _mapRefresh;
 
     public void Start()
     {
@@ -27,24 +27,24 @@ internal sealed class ZombieCatalogLifecycle(ISwiftlyCore core, ZombieCatalogSer
         {
             var state = catalog.Current;
             context.Reply($"ZombieCatalog: source={state.Source}, version={state.Version}, classes={state.Document.Classes.Count}, abilities={state.Document.Abilities.Count}, pending_resources={catalog.PendingResourceVersion?.ToString() ?? "none"}");
+            if (ZombieCatalogDiagnostics.NeedsInitialization(state.DatabaseError))
+                context.Reply(ZombieCatalogDiagnostics.InitializationHelp);
         }, registerRaw: true, permission: "zombie_plague.admin.classes"));
     }
 
     private void OnPrecache(IOnPrecacheResourceEvent args)
     {
         // На этапе загрузки карты ждём ограниченный тайм-аутом запрос, чтобы новые модели попали в её manifest
-        catalog.RefreshAsync().GetAwaiter().GetResult();
-        _precacheRefreshed = true;
+        RefreshForMap().GetAwaiter().GetResult();
         foreach (var resource in catalog.PrepareResourcesForMap()) args.AddItem(resource);
     }
 
-    private void OnMapLoad(IOnMapLoadEvent args)
-    {
-        if (!_precacheRefreshed) _ = catalog.RefreshAsync();
-        _precacheRefreshed = false;
-    }
+    private void OnMapLoad(IOnMapLoadEvent args) => _ = RefreshForMap();
 
-    private void OnMapUnload(IOnMapUnloadEvent args) => _precacheRefreshed = false;
+    // OnMapLoad может прийти раньше precache: оба события используют один запрос, даже если он уже завершился
+    private Task RefreshForMap() => _mapRefresh ??= catalog.RefreshAsync();
+
+    private void OnMapUnload(IOnMapUnloadEvent args) => _mapRefresh = null;
 
     public void Dispose()
     {
