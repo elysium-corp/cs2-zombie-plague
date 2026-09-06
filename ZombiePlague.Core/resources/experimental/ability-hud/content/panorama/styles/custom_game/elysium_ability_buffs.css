@@ -1,0 +1,44 @@
+/* Эксперимент Elysium — только поддерживаемые элементы Panorama, без клиентского JavaScript */
+.ElysiumBuffCanvas { width: 100%; height: 100%; }
+.AbilityBuffs {
+    horizontal-align: center;
+    vertical-align: bottom;
+    margin-bottom: 150px;
+    flow-children: right;
+    padding: 10px 12px 8px 14px;
+    background-color: gradient(linear, 0% 0%, 100% 100%, from(#0c171cec), to(#111a20dc));
+    border: 1px solid #85dcb132;
+    border-radius: 8px;
+    visibility: collapse;
+}
+.AbilityBuffs.Shown { visibility: visible; }
+.BuffBrand { width: 78px; vertical-align: center; flow-children: down; margin-right: 12px; }
+.BrandTitle { font-family: Stratum2, sans-serif; font-size: 16px; font-weight: bold; letter-spacing: 2px; color: #9eefbb; }
+.BrandSide { font-family: Stratum2, sans-serif; font-size: 12px; letter-spacing: 1px; color: #93a49e; margin-top: 3px; }
+.BuffRow { flow-children: right; vertical-align: center; }
+.Buff { width: 64px; margin-right: 7px; flow-children: down; visibility: collapse; }
+.Buff.Shown { visibility: visible; }
+.BuffTile { width: 58px; height: 58px; horizontal-align: center; border: 1px solid #8cdfb16b; border-radius: 7px; background-color: #153029df; }
+.BuffIcon { width: 38px; height: 38px; horizontal-align: center; vertical-align: center; wash-color: #b9ffd1; visibility: collapse; }
+.BuffCountdown { horizontal-align: center; vertical-align: center; font-family: Stratum2, sans-serif; font-size: 28px; font-weight: bold; color: #ffda87; text-shadow: 0px 2px 3px 3 #000000; visibility: collapse; }
+.BuffHotkey { height: 15px; horizontal-align: center; margin-top: 3px; font-family: Stratum2, sans-serif; font-size: 10px; color: #b0c1b8; }
+.BuffName { width: 64px; height: 30px; text-align: center; font-family: Stratum2, sans-serif; font-size: 11px; color: #d5e4dc; text-overflow: ellipsis; visibility: collapse; }
+.ShowNames .BuffName { visibility: visible; }
+.ReadyMark { width: 14px; height: 3px; border-radius: 2px; horizontal-align: center; vertical-align: bottom; margin-bottom: 3px; background-color: #83edab; }
+.Cooling .BuffTile { background-color: #162027ed; border-color: #71858b55; }
+.Cooling .BuffIcon { wash-color: #788b91; opacity: 0.22; }
+.Cooling .BuffCountdown { visibility: visible; }
+.Cooling .ReadyMark { visibility: collapse; }
+.Passive .BuffTile { border-color: #8dcbe966; background-color: #173039de; }
+.Passive .BuffIcon { wash-color: #b5e9ff; }
+.Passive .ReadyMark { background-color: #84cdef; }
+.BuffOverflow { visibility: collapse; vertical-align: center; font-family: Stratum2, sans-serif; font-size: 18px; color: #a8bbb2; padding: 0px 5px; }
+.BuffOverflow.Shown { visibility: visible; }
+.Kind_heal .Icon_heal { visibility: visible; }
+.Kind_leap .Icon_leap { visibility: visible; }
+.Kind_blind .Icon_blind { visibility: visible; }
+.Kind_charge .Icon_charge { visibility: visible; }
+.Kind_catch .Icon_catch { visibility: visible; }
+.Kind_trap .Icon_trap { visibility: visible; }
+.Kind_double_jump .Icon_double_jump { visibility: visible; }
+.Kind_generic .Icon_generic { visibility: visible; }

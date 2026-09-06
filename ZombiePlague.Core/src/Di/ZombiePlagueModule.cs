@@ -16,6 +16,7 @@ using ZombiePlague.Api.Events;
 using ZombiePlague.Core.Api;
 using ZombiePlague.Core.Api.Events;
 using ZombiePlague.Core.Catalog;
+using ZombiePlague.Core.Experimental.AbilityHud;
 using ZombiePlague.Core.Config.Core;
 using ZombiePlague.Core.Config.Human;
 using ZombiePlague.Core.Config.Round;
@@ -75,6 +76,7 @@ public sealed class ZombiePlagueModule(ISwiftlyCore core) : BaseModule(core)
             name: "core.json",
             section: "CoreConfig"
         );
+        AddConfig<AbilityHudConfig>(service, "ability_hud.json", "AbilityHud", reloadOnChange: false);
         AddConfig<HClassConfig>(
             service: service,
             name: "human_class.json",
@@ -108,6 +110,7 @@ public sealed class ZombiePlagueModule(ISwiftlyCore core) : BaseModule(core)
 
         AddSingleton<ZombieCatalogRepository>(service);
         AddSingleton<ZombieCatalogService>(service);
+        AddSingleton<AbilityHudService>(service);
         AddSingleton<ZombieCatalogLifecycle>(service);
         AddSingleton<AbilityFactory>(service);
         AddSingleton<IAbilityFactory>(service, provider => provider.GetRequiredService<AbilityFactory>());

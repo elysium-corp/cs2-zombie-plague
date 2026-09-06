@@ -101,3 +101,8 @@ dotnet test CS2ZombiePlague.sln --configuration Release --no-build --no-restore
 ```
 
 Тесты каталога проверяют загрузку и восстановление БД, перечитывание fallback, отмену, миграцию старых настроек, валидацию, уникальность персональных назначений, объединение способностей, стороны и отложенный precache ресурсов
+
+## Экспериментальный HUD способностей
+
+В ветке `experiment/ability-buff-hud` доступна панель иконок через `custom_hud_layout`, выключенная по умолчанию
+[Установка Panorama-ресурсов и запуск эксперимента](resources/experimental/ability-hud/README.md)

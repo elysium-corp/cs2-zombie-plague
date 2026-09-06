@@ -8,7 +8,7 @@
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
         <PublishDir>$(OutputPath)publish/ZombiePlague.Core</PublishDir>
         <AssemblyName>ZombiePlague.Core</AssemblyName>
-        <PluginVersion>0.2.0</PluginVersion>
+        <PluginVersion>0.2.1-hud.1</PluginVersion>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)' == 'Migrations'">
@@ -48,7 +48,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Content Include="resources/gamedata/**/*;resources/templates/**/*;resources/translations/**/*">
+        <Content Include="resources/gamedata/**/*;resources/templates/**/*;resources/translations/**/*;resources/experimental/**/*">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
     </ItemGroup>

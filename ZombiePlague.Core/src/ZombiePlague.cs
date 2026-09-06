@@ -10,6 +10,7 @@ using SwiftlyS2.Shared;
 using ZombiePlague.Api;
 using ZombiePlague.Core.Api;
 using ZombiePlague.Core.Catalog;
+using ZombiePlague.Core.Experimental.AbilityHud;
 using ZombiePlague.Core.Data.Coordinators.Contracts;
 using ZombiePlague.Core.Data.Plugins.ResourceLoader;
 using ZombiePlague.Core.Database;
@@ -31,6 +32,7 @@ namespace ZombiePlague.Core;
 public sealed partial class ZombiePlague(ISwiftlyCore core) : Plugin<ZombiePlagueModule>(core)
 {
     private readonly Lazy<IResourceLoader> _resourceLoader = GetRequiredServiceLazy<IResourceLoader>();
+    private readonly Lazy<AbilityHudService> _abilityHud = GetRequiredServiceLazy<AbilityHudService>();
     private readonly Lazy<ZombieCatalogLifecycle> _catalog = GetRequiredServiceLazy<ZombieCatalogLifecycle>();
     private readonly Lazy<IZombiePlagueCoordinator> _coordinator = GetRequiredServiceLazy<IZombiePlagueCoordinator>();
     private readonly Lazy<ZombiePlagueApi> _api = GetRequiredServiceLazy<ZombiePlagueApi>();
@@ -86,8 +88,11 @@ public sealed partial class ZombiePlague(ISwiftlyCore core) : Plugin<ZombiePlagu
         _coordinator.Value.Start();
     }
 
+    protected override void OnReady() => _abilityHud.Value.Start();
+
     protected override void OnUnload()
     {
+        if (_abilityHud.IsValueCreated) _abilityHud.Value.Dispose();
         if (_catalog.IsValueCreated) _catalog.Value.Dispose();
         EffectService.Release(Core);
         _adminExtension.Value.Uninitialize();

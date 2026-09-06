@@ -1,4 +1,4 @@
-﻿using Localization.Api;
+using Localization.Api;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.GameHooks;
@@ -12,7 +12,7 @@ internal abstract class BaseActiveAbility(
     ISwiftlyCore core,
     IAbilityConfig config,
     Func<ILocalizationApi> localization)
-    : IActiveAbility, ICooldownRestricted, IParticleRestricted, ISoundPlayable
+    : IActiveAbility, ICooldownRestricted, IParticleRestricted, ISoundPlayable, IPresentedAbility
 {
     protected IPlayer Caster { get; private set; } = null!;
 
@@ -20,7 +20,11 @@ internal abstract class BaseActiveAbility(
 
     protected bool IsEnabled => config.Enable;
 
+    public AbilityPresentation? Presentation { get; set; }
+
     public bool IsActive { get; set; }
+
+    public float RemainingCooldown => IsActive ? Math.Max(0, Cooldown - _cooldownElapsedTime) : 0;
 
     public abstract KeyKind? Key { get; }
 

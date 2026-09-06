@@ -1,0 +1,203 @@
+<root>
+    <styles><include src="s2r://panorama/styles/custom_game/elysium_ability_buffs.vcss_c" /></styles>
+    <Panel class="ElysiumBuffCanvas" hittest="false" hittestchildren="false">
+        <Panel id="AbilityBuffs" class="AbilityBuffs" hittest="false" hittestchildren="false">
+            <Panel class="BuffBrand"><Label class="BrandTitle" text="ELYSIUM" /><Label id="Side" class="BrandSide" text="{s:value}" /></Panel>
+            <Panel class="BuffRow">
+                <Panel id="Buff0" class="Buff">
+                    <Panel class="BuffTile">
+                        <Image class="BuffIcon Icon_heal" src="file://{images}/custom_game/elysium/abilities/heal.svg" />
+                        <Image class="BuffIcon Icon_leap" src="file://{images}/custom_game/elysium/abilities/leap.svg" />
+                        <Image class="BuffIcon Icon_blind" src="file://{images}/custom_game/elysium/abilities/blind.svg" />
+                        <Image class="BuffIcon Icon_charge" src="file://{images}/custom_game/elysium/abilities/charge.svg" />
+                        <Image class="BuffIcon Icon_catch" src="file://{images}/custom_game/elysium/abilities/catch.svg" />
+                        <Image class="BuffIcon Icon_trap" src="file://{images}/custom_game/elysium/abilities/trap.svg" />
+                        <Image class="BuffIcon Icon_double_jump" src="file://{images}/custom_game/elysium/abilities/double_jump.svg" />
+                        <Image class="BuffIcon Icon_generic" src="file://{images}/custom_game/elysium/abilities/generic.svg" />
+                        <Label id="Buff0Time" class="BuffCountdown" text="{s:value}" />
+                        <Panel class="ReadyMark" />
+                    </Panel>
+                    <Label id="Buff0Key" class="BuffHotkey" text="{s:value}" />
+                    <Label id="Buff0Name" class="BuffName" text="{s:value}" />
+                </Panel>
+                <Panel id="Buff1" class="Buff">
+                    <Panel class="BuffTile">
+                        <Image class="BuffIcon Icon_heal" src="file://{images}/custom_game/elysium/abilities/heal.svg" />
+                        <Image class="BuffIcon Icon_leap" src="file://{images}/custom_game/elysium/abilities/leap.svg" />
+                        <Image class="BuffIcon Icon_blind" src="file://{images}/custom_game/elysium/abilities/blind.svg" />
+                        <Image class="BuffIcon Icon_charge" src="file://{images}/custom_game/elysium/abilities/charge.svg" />
+                        <Image class="BuffIcon Icon_catch" src="file://{images}/custom_game/elysium/abilities/catch.svg" />
+                        <Image class="BuffIcon Icon_trap" src="file://{images}/custom_game/elysium/abilities/trap.svg" />
+                        <Image class="BuffIcon Icon_double_jump" src="file://{images}/custom_game/elysium/abilities/double_jump.svg" />
+                        <Image class="BuffIcon Icon_generic" src="file://{images}/custom_game/elysium/abilities/generic.svg" />
+                        <Label id="Buff1Time" class="BuffCountdown" text="{s:value}" />
+                        <Panel class="ReadyMark" />
+                    </Panel>
+                    <Label id="Buff1Key" class="BuffHotkey" text="{s:value}" />
+                    <Label id="Buff1Name" class="BuffName" text="{s:value}" />
+                </Panel>
+                <Panel id="Buff2" class="Buff">
+                    <Panel class="BuffTile">
+                        <Image class="BuffIcon Icon_heal" src="file://{images}/custom_game/elysium/abilities/heal.svg" />
+                        <Image class="BuffIcon Icon_leap" src="file://{images}/custom_game/elysium/abilities/leap.svg" />
+                        <Image class="BuffIcon Icon_blind" src="file://{images}/custom_game/elysium/abilities/blind.svg" />
+                        <Image class="BuffIcon Icon_charge" src="file://{images}/custom_game/elysium/abilities/charge.svg" />
+                        <Image class="BuffIcon Icon_catch" src="file://{images}/custom_game/elysium/abilities/catch.svg" />
+                        <Image class="BuffIcon Icon_trap" src="file://{images}/custom_game/elysium/abilities/trap.svg" />
+                        <Image class="BuffIcon Icon_double_jump" src="file://{images}/custom_game/elysium/abilities/double_jump.svg" />
+                        <Image class="BuffIcon Icon_generic" src="file://{images}/custom_game/elysium/abilities/generic.svg" />
+                        <Label id="Buff2Time" class="BuffCountdown" text="{s:value}" />
+                        <Panel class="ReadyMark" />
+                    </Panel>
+                    <Label id="Buff2Key" class="BuffHotkey" text="{s:value}" />
+                    <Label id="Buff2Name" class="BuffName" text="{s:value}" />
+                </Panel>
+                <Panel id="Buff3" class="Buff">
+                    <Panel class="BuffTile">
+                        <Image class="BuffIcon Icon_heal" src="file://{images}/custom_game/elysium/abilities/heal.svg" />
+                        <Image class="BuffIcon Icon_leap" src="file://{images}/custom_game/elysium/abilities/leap.svg" />
+                        <Image class="BuffIcon Icon_blind" src="file://{images}/custom_game/elysium/abilities/blind.svg" />
+                        <Image class="BuffIcon Icon_charge" src="file://{images}/custom_game/elysium/abilities/charge.svg" />
+                        <Image class="BuffIcon Icon_catch" src="file://{images}/custom_game/elysium/abilities/catch.svg" />
+                        <Image class="BuffIcon Icon_trap" src="file://{images}/custom_game/elysium/abilities/trap.svg" />
+                        <Image class="BuffIcon Icon_double_jump" src="file://{images}/custom_game/elysium/abilities/double_jump.svg" />
+                        <Image class="BuffIcon Icon_generic" src="file://{images}/custom_game/elysium/abilities/generic.svg" />
+                        <Label id="Buff3Time" class="BuffCountdown" text="{s:value}" />
+                        <Panel class="ReadyMark" />
+                    </Panel>
+                    <Label id="Buff3Key" class="BuffHotkey" text="{s:value}" />
+                    <Label id="Buff3Name" class="BuffName" text="{s:value}" />
+                </Panel>
+                <Panel id="Buff4" class="Buff">
+                    <Panel class="BuffTile">
+                        <Image class="BuffIcon Icon_heal" src="file://{images}/custom_game/elysium/abilities/heal.svg" />
+                        <Image class="BuffIcon Icon_leap" src="file://{images}/custom_game/elysium/abilities/leap.svg" />
+                        <Image class="BuffIcon Icon_blind" src="file://{images}/custom_game/elysium/abilities/blind.svg" />
+                        <Image class="BuffIcon Icon_charge" src="file://{images}/custom_game/elysium/abilities/charge.svg" />
+                        <Image class="BuffIcon Icon_catch" src="file://{images}/custom_game/elysium/abilities/catch.svg" />
+                        <Image class="BuffIcon Icon_trap" src="file://{images}/custom_game/elysium/abilities/trap.svg" />
+                        <Image class="BuffIcon Icon_double_jump" src="file://{images}/custom_game/elysium/abilities/double_jump.svg" />
+                        <Image class="BuffIcon Icon_generic" src="file://{images}/custom_game/elysium/abilities/generic.svg" />
+                        <Label id="Buff4Time" class="BuffCountdown" text="{s:value}" />
+                        <Panel class="ReadyMark" />
+                    </Panel>
+                    <Label id="Buff4Key" class="BuffHotkey" text="{s:value}" />
+                    <Label id="Buff4Name" class="BuffName" text="{s:value}" />
+                </Panel>
+                <Panel id="Buff5" class="Buff">
+                    <Panel class="BuffTile">
+                        <Image class="BuffIcon Icon_heal" src="file://{images}/custom_game/elysium/abilities/heal.svg" />
+                        <Image class="BuffIcon Icon_leap" src="file://{images}/custom_game/elysium/abilities/leap.svg" />
+                        <Image class="BuffIcon Icon_blind" src="file://{images}/custom_game/elysium/abilities/blind.svg" />
+                        <Image class="BuffIcon Icon_charge" src="file://{images}/custom_game/elysium/abilities/charge.svg" />
+                        <Image class="BuffIcon Icon_catch" src="file://{images}/custom_game/elysium/abilities/catch.svg" />
+                        <Image class="BuffIcon Icon_trap" src="file://{images}/custom_game/elysium/abilities/trap.svg" />
+                        <Image class="BuffIcon Icon_double_jump" src="file://{images}/custom_game/elysium/abilities/double_jump.svg" />
+                        <Image class="BuffIcon Icon_generic" src="file://{images}/custom_game/elysium/abilities/generic.svg" />
+                        <Label id="Buff5Time" class="BuffCountdown" text="{s:value}" />
+                        <Panel class="ReadyMark" />
+                    </Panel>
+                    <Label id="Buff5Key" class="BuffHotkey" text="{s:value}" />
+                    <Label id="Buff5Name" class="BuffName" text="{s:value}" />
+                </Panel>
+                <Panel id="Buff6" class="Buff">
+                    <Panel class="BuffTile">
+                        <Image class="BuffIcon Icon_heal" src="file://{images}/custom_game/elysium/abilities/heal.svg" />
+                        <Image class="BuffIcon Icon_leap" src="file://{images}/custom_game/elysium/abilities/leap.svg" />
+                        <Image class="BuffIcon Icon_blind" src="file://{images}/custom_game/elysium/abilities/blind.svg" />
+                        <Image class="BuffIcon Icon_charge" src="file://{images}/custom_game/elysium/abilities/charge.svg" />
+                        <Image class="BuffIcon Icon_catch" src="file://{images}/custom_game/elysium/abilities/catch.svg" />
+                        <Image class="BuffIcon Icon_trap" src="file://{images}/custom_game/elysium/abilities/trap.svg" />
+                        <Image class="BuffIcon Icon_double_jump" src="file://{images}/custom_game/elysium/abilities/double_jump.svg" />
+                        <Image class="BuffIcon Icon_generic" src="file://{images}/custom_game/elysium/abilities/generic.svg" />
+                        <Label id="Buff6Time" class="BuffCountdown" text="{s:value}" />
+                        <Panel class="ReadyMark" />
+                    </Panel>
+                    <Label id="Buff6Key" class="BuffHotkey" text="{s:value}" />
+                    <Label id="Buff6Name" class="BuffName" text="{s:value}" />
+                </Panel>
+                <Panel id="Buff7" class="Buff">
+                    <Panel class="BuffTile">
+                        <Image class="BuffIcon Icon_heal" src="file://{images}/custom_game/elysium/abilities/heal.svg" />
+                        <Image class="BuffIcon Icon_leap" src="file://{images}/custom_game/elysium/abilities/leap.svg" />
+                        <Image class="BuffIcon Icon_blind" src="file://{images}/custom_game/elysium/abilities/blind.svg" />
+                        <Image class="BuffIcon Icon_charge" src="file://{images}/custom_game/elysium/abilities/charge.svg" />
+                        <Image class="BuffIcon Icon_catch" src="file://{images}/custom_game/elysium/abilities/catch.svg" />
+                        <Image class="BuffIcon Icon_trap" src="file://{images}/custom_game/elysium/abilities/trap.svg" />
+                        <Image class="BuffIcon Icon_double_jump" src="file://{images}/custom_game/elysium/abilities/double_jump.svg" />
+                        <Image class="BuffIcon Icon_generic" src="file://{images}/custom_game/elysium/abilities/generic.svg" />
+                        <Label id="Buff7Time" class="BuffCountdown" text="{s:value}" />
+                        <Panel class="ReadyMark" />
+                    </Panel>
+                    <Label id="Buff7Key" class="BuffHotkey" text="{s:value}" />
+                    <Label id="Buff7Name" class="BuffName" text="{s:value}" />
+                </Panel>
+                <Panel id="Buff8" class="Buff">
+                    <Panel class="BuffTile">
+                        <Image class="BuffIcon Icon_heal" src="file://{images}/custom_game/elysium/abilities/heal.svg" />
+                        <Image class="BuffIcon Icon_leap" src="file://{images}/custom_game/elysium/abilities/leap.svg" />
+                        <Image class="BuffIcon Icon_blind" src="file://{images}/custom_game/elysium/abilities/blind.svg" />
+                        <Image class="BuffIcon Icon_charge" src="file://{images}/custom_game/elysium/abilities/charge.svg" />
+                        <Image class="BuffIcon Icon_catch" src="file://{images}/custom_game/elysium/abilities/catch.svg" />
+                        <Image class="BuffIcon Icon_trap" src="file://{images}/custom_game/elysium/abilities/trap.svg" />
+                        <Image class="BuffIcon Icon_double_jump" src="file://{images}/custom_game/elysium/abilities/double_jump.svg" />
+                        <Image class="BuffIcon Icon_generic" src="file://{images}/custom_game/elysium/abilities/generic.svg" />
+                        <Label id="Buff8Time" class="BuffCountdown" text="{s:value}" />
+                        <Panel class="ReadyMark" />
+                    </Panel>
+                    <Label id="Buff8Key" class="BuffHotkey" text="{s:value}" />
+                    <Label id="Buff8Name" class="BuffName" text="{s:value}" />
+                </Panel>
+                <Panel id="Buff9" class="Buff">
+                    <Panel class="BuffTile">
+                        <Image class="BuffIcon Icon_heal" src="file://{images}/custom_game/elysium/abilities/heal.svg" />
+                        <Image class="BuffIcon Icon_leap" src="file://{images}/custom_game/elysium/abilities/leap.svg" />
+                        <Image class="BuffIcon Icon_blind" src="file://{images}/custom_game/elysium/abilities/blind.svg" />
+                        <Image class="BuffIcon Icon_charge" src="file://{images}/custom_game/elysium/abilities/charge.svg" />
+                        <Image class="BuffIcon Icon_catch" src="file://{images}/custom_game/elysium/abilities/catch.svg" />
+                        <Image class="BuffIcon Icon_trap" src="file://{images}/custom_game/elysium/abilities/trap.svg" />
+                        <Image class="BuffIcon Icon_double_jump" src="file://{images}/custom_game/elysium/abilities/double_jump.svg" />
+                        <Image class="BuffIcon Icon_generic" src="file://{images}/custom_game/elysium/abilities/generic.svg" />
+                        <Label id="Buff9Time" class="BuffCountdown" text="{s:value}" />
+                        <Panel class="ReadyMark" />
+                    </Panel>
+                    <Label id="Buff9Key" class="BuffHotkey" text="{s:value}" />
+                    <Label id="Buff9Name" class="BuffName" text="{s:value}" />
+                </Panel>
+                <Panel id="Buff10" class="Buff">
+                    <Panel class="BuffTile">
+                        <Image class="BuffIcon Icon_heal" src="file://{images}/custom_game/elysium/abilities/heal.svg" />
+                        <Image class="BuffIcon Icon_leap" src="file://{images}/custom_game/elysium/abilities/leap.svg" />
+                        <Image class="BuffIcon Icon_blind" src="file://{images}/custom_game/elysium/abilities/blind.svg" />
+                        <Image class="BuffIcon Icon_charge" src="file://{images}/custom_game/elysium/abilities/charge.svg" />
+                        <Image class="BuffIcon Icon_catch" src="file://{images}/custom_game/elysium/abilities/catch.svg" />
+                        <Image class="BuffIcon Icon_trap" src="file://{images}/custom_game/elysium/abilities/trap.svg" />
+                        <Image class="BuffIcon Icon_double_jump" src="file://{images}/custom_game/elysium/abilities/double_jump.svg" />
+                        <Image class="BuffIcon Icon_generic" src="file://{images}/custom_game/elysium/abilities/generic.svg" />
+                        <Label id="Buff10Time" class="BuffCountdown" text="{s:value}" />
+                        <Panel class="ReadyMark" />
+                    </Panel>
+                    <Label id="Buff10Key" class="BuffHotkey" text="{s:value}" />
+                    <Label id="Buff10Name" class="BuffName" text="{s:value}" />
+                </Panel>
+                <Panel id="Buff11" class="Buff">
+                    <Panel class="BuffTile">
+                        <Image class="BuffIcon Icon_heal" src="file://{images}/custom_game/elysium/abilities/heal.svg" />
+                        <Image class="BuffIcon Icon_leap" src="file://{images}/custom_game/elysium/abilities/leap.svg" />
+                        <Image class="BuffIcon Icon_blind" src="file://{images}/custom_game/elysium/abilities/blind.svg" />
+                        <Image class="BuffIcon Icon_charge" src="file://{images}/custom_game/elysium/abilities/charge.svg" />
+                        <Image class="BuffIcon Icon_catch" src="file://{images}/custom_game/elysium/abilities/catch.svg" />
+                        <Image class="BuffIcon Icon_trap" src="file://{images}/custom_game/elysium/abilities/trap.svg" />
+                        <Image class="BuffIcon Icon_double_jump" src="file://{images}/custom_game/elysium/abilities/double_jump.svg" />
+                        <Image class="BuffIcon Icon_generic" src="file://{images}/custom_game/elysium/abilities/generic.svg" />
+                        <Label id="Buff11Time" class="BuffCountdown" text="{s:value}" />
+                        <Panel class="ReadyMark" />
+                    </Panel>
+                    <Label id="Buff11Key" class="BuffHotkey" text="{s:value}" />
+                    <Label id="Buff11Name" class="BuffName" text="{s:value}" />
+                </Panel>
+                <Label id="Overflow" class="BuffOverflow" text="{s:value}" />
+            </Panel>
+        </Panel>
+    </Panel>
+</root>
