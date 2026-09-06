@@ -1,8 +1,8 @@
 {
   "schemaVersion": 4,
-  "version": 9,
-  "generatedAt": "2026-09-06T12:00:00Z",
-  "checksum": "sha256:41c2db4e3dbf4466513fcd75347f909c5a1c30ee3a986e6a8ab0c0f46f1d2190",
+  "version": 10,
+  "generatedAt": "2026-09-06T13:42:37Z",
+  "checksum": "sha256:12fe48a9c51ca79845ddbfda23e7505d15897930f042d5f4997362c5a0478c4b",
   "serverFallbackLanguage": "ru",
   "languages": [
     "ru",
@@ -1141,6 +1141,74 @@
     "ZombiePlague.Ability.Double.Jump.Description": {
       "ru": "Позволяет выполнить дополнительный прыжок в воздухе",
       "en": "Allows an additional jump in the air"
+    },
+    "Menu.AbilityHud.Title": {
+      "ru": "Панель способностей",
+      "en": "Ability HUD"
+    },
+    "Menu.AbilityHud.Scale": {
+      "ru": "Размер",
+      "en": "Size"
+    },
+    "Menu.AbilityHud.Position": {
+      "ru": "Положение",
+      "en": "Position"
+    },
+    "Menu.AbilityHud.PreviewHint": {
+      "ru": "Предпросмотр виден у живого игрока с назначенными способностями",
+      "en": "Preview is visible while alive with assigned abilities"
+    },
+    "Menu.AbilityHud.Reset": {
+      "ru": "Сбросить расположение и размер",
+      "en": "Reset position and size"
+    },
+    "Menu.AbilityHud.Done": {
+      "ru": "Готово",
+      "en": "Done"
+    },
+    "Menu.AbilityHud.Disabled": {
+      "ru": "Панель способностей отключена на сервере",
+      "en": "Ability HUD is disabled on this server"
+    },
+    "Menu.AbilityHud.Unavailable": {
+      "ru": "Настройки игрока ещё загружаются — попробуйте чуть позже",
+      "en": "Player settings are still loading; please try again shortly"
+    },
+    "Menu.AbilityHud.Position.Top.Left": {
+      "ru": "Сверху слева",
+      "en": "Top left"
+    },
+    "Menu.AbilityHud.Position.Top.Center": {
+      "ru": "Сверху по центру",
+      "en": "Top center"
+    },
+    "Menu.AbilityHud.Position.Top.Right": {
+      "ru": "Сверху справа",
+      "en": "Top right"
+    },
+    "Menu.AbilityHud.Position.Middle.Left": {
+      "ru": "Посередине слева",
+      "en": "Middle left"
+    },
+    "Menu.AbilityHud.Position.Middle.Center": {
+      "ru": "В центре экрана",
+      "en": "Screen center"
+    },
+    "Menu.AbilityHud.Position.Middle.Right": {
+      "ru": "Посередине справа",
+      "en": "Middle right"
+    },
+    "Menu.AbilityHud.Position.Bottom.Left": {
+      "ru": "Снизу слева",
+      "en": "Bottom left"
+    },
+    "Menu.AbilityHud.Position.Bottom.Center": {
+      "ru": "Снизу по центру",
+      "en": "Bottom center"
+    },
+    "Menu.AbilityHud.Position.Bottom.Right": {
+      "ru": "Снизу справа",
+      "en": "Bottom right"
     }
   }
 }

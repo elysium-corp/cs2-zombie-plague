@@ -19,6 +19,8 @@ public sealed class ZombiePlagueDbContext(DbContextOptions<ZombiePlagueDbContext
         var player = modelBuilder.Entity<PlayerEntity>();
         player.Property(entity => entity.ZombieClassId).HasDefaultValue(PlayerPreferences.DefaultZombieClassId);
         player.Property(entity => entity.HumanClassId).HasDefaultValue(PlayerPreferences.DefaultHumanClassId);
+        player.Property(entity => entity.AbilityHudScale).HasDefaultValue(AbilityHudPreferences.DefaultScale);
+        player.Property(entity => entity.AbilityHudPosition).HasDefaultValue(AbilityHudPreferences.DefaultPosition);
         player.Property(entity => entity.UpdatedAtUtc).HasDefaultValueSql("CURRENT_TIMESTAMP");
     }
 }

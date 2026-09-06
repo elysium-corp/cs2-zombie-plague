@@ -1,3 +1,5 @@
+using ZombiePlague.Core.Store.Data;
+
 namespace ZombiePlague.Core.Experimental.AbilityHud;
 
 internal interface IAbilityHudSink
@@ -15,6 +17,22 @@ internal sealed class AbilityHudPresenter(IAbilityHudSink sink)
     public void Render(int playerId, AbilityHudFrame frame)
     {
         _frames.TryGetValue(playerId, out var previous);
+        var oldAppearance = previous?.Appearance.Normalize() ?? AbilityHudPreferences.Default;
+        var appearance = frame.Appearance.Normalize();
+        if (oldAppearance.ScalePercent != appearance.ScalePercent)
+        {
+            if (oldAppearance.ScalePercent != AbilityHudPreferences.DefaultScale)
+                sink.SetClass(playerId, "AbilityBuffs", "Scale" + oldAppearance.ScalePercent, false);
+            if (appearance.ScalePercent != AbilityHudPreferences.DefaultScale)
+                sink.SetClass(playerId, "AbilityBuffs", "Scale" + appearance.ScalePercent, true);
+        }
+        if (oldAppearance.Position != appearance.Position)
+        {
+            if (oldAppearance.Position != AbilityHudPreferences.DefaultPosition)
+                sink.SetClass(playerId, "AbilityBuffs", "Position_" + oldAppearance.Position, false);
+            if (appearance.Position != AbilityHudPreferences.DefaultPosition)
+                sink.SetClass(playerId, "AbilityBuffs", "Position_" + appearance.Position, true);
+        }
         for (var slot = 0; slot < Math.Max(previous?.Icons.Length ?? 0, frame.Icons.Length); slot++)
         {
             var oldIcon = previous?.Icons.ElementAtOrDefault(slot);

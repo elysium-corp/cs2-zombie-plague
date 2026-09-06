@@ -9,10 +9,9 @@ using ZombiePlague.Core.Database;
 
 namespace ZombiePlague.Core.Database.Migrations;
 
-[DbContext(typeof(ZombiePlagueDbContext))]
-partial class ZombiePlagueDbContextModelSnapshot : ModelSnapshot
+partial class AddAbilityHudPreferences
 {
-    protected override void BuildModel(ModelBuilder modelBuilder)
+    protected override void BuildTargetModel(ModelBuilder modelBuilder)
     {
 #pragma warning disable 612, 618
         modelBuilder

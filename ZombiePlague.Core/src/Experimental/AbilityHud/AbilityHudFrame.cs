@@ -4,6 +4,7 @@ using ZombiePlague.Core.Data.Abilities.Contracts;
 using ZombiePlague.Core.Data.Entities;
 using ZombiePlague.Core.Data.Entities.Human;
 using ZombiePlague.Core.Data.Entities.Zombie;
+using ZombiePlague.Core.Store.Data;
 
 namespace ZombiePlague.Core.Experimental.AbilityHud;
 
@@ -11,6 +12,7 @@ internal sealed record AbilityHudIcon(string Key, string Name, string Kind, bool
 
 internal sealed record AbilityHudFrame(AbilityHudIcon[] Icons, bool ShowNames)
 {
+    public AbilityHudPreferences Appearance { get; init; } = AbilityHudPreferences.Default;
     // Каталог допускает 16 способностей класса и 32 личных: показываем весь допустимый набор
     public const int SlotCount = 48;
     public const int IconsPerRow = 8;

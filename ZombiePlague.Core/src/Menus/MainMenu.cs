@@ -7,6 +7,7 @@ using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Menus;
 using SwiftlyS2.Shared.Players;
 using ZombiePlague.Api.Menus;
+using ZombiePlague.Core.Experimental.AbilityHud;
 
 namespace ZombiePlague.Core.Menus;
 
@@ -15,6 +16,8 @@ internal sealed class MainMenu(
     IMenuExtensionDispatcher extensionDispatcher,
     ZClassMenu zClassMenu,
     HClassMenu hClassMenu,
+    AbilityHudMenu abilityHudMenu,
+    AbilityHudService abilityHud,
     Func<ILocalizationApi> localization
 ) : DynamicOptionsMenu(core, extensionDispatcher)
 {
@@ -55,6 +58,16 @@ internal sealed class MainMenu(
             return ValueTask.CompletedTask;
         };
         options.Add(humanButton, 2);
+        if (abilityHud.IsRunning)
+        {
+            var hudButton = new ButtonMenuOption(localization().GetForPlayerOrKey(player, "Menu.AbilityHud.Title"));
+            hudButton.Click += (_, args) =>
+            {
+                core.Scheduler.NextTickAsync(() => abilityHudMenu.Open(args.Player));
+                return ValueTask.CompletedTask;
+            };
+            options.Add(hudButton, 3);
+        }
     }
     
     private ButtonMenuOption BuildZClassItem(IPlayer player)

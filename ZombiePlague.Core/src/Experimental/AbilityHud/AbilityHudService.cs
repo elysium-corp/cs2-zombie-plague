@@ -9,8 +9,9 @@ using ZombiePlague.Core.Data.Managers.Contracts;
 namespace ZombiePlague.Core.Experimental.AbilityHud;
 
 internal sealed class AbilityHudService(ISwiftlyCore core, IPlayerManager players, IOptions<AbilityHudConfig> options,
-    Func<ILocalizationApi> localization) : IDisposable
+    Func<ILocalizationApi> localization, AbilityHudSettings settings) : IDisposable
 {
+    public bool IsRunning => !_disposed && _wanted && _presenter is not null;
     private CustomHudRuntime? _runtime;
     private AbilityHudPresenter? _presenter;
     private CancellationTokenSource? _timer;
@@ -80,14 +81,17 @@ internal sealed class AbilityHudService(ISwiftlyCore core, IPlayerManager player
             {
                 if (!player.IsValid || player.IsFakeClient) continue;
                 seen.Add(player.PlayerID);
-                if (!player.IsAlive || (_config.HideWhenMenuOpen && core.MenusAPI.GetCurrentMenu(player) is not null)
+                if (!player.IsAlive || AbilityHudSettings.ShouldHideForMenu(core.MenusAPI.GetCurrentMenu(player), _config.HideWhenMenuOpen)
                     || !players.TryGetRole(player, out var role))
                 {
                     _presenter.Render(player.PlayerID, AbilityHudFrame.Empty);
                     continue;
                 }
                 _presenter.Render(player.PlayerID, AbilityHudFrame.ForRole(role,
-                    key => localization().GetForPlayerOrKey(player, key), _config.ShowNames));
+                    key => localization().GetForPlayerOrKey(player, key), _config.ShowNames) with
+                {
+                    Appearance = settings.Get(player.SteamID)
+                });
             }
             foreach (var playerId in _presenter.PlayerIds.Where(id => !seen.Contains(id)).ToArray()) _presenter.Clear(playerId);
         }

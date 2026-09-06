@@ -8,7 +8,7 @@
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
         <PublishDir>$(OutputPath)publish/ZombiePlague.Core</PublishDir>
         <AssemblyName>ZombiePlague.Core</AssemblyName>
-        <PluginVersion>0.3.1-hud.2</PluginVersion>
+        <PluginVersion>0.3.1-hud.3</PluginVersion>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)' == 'Migrations'">

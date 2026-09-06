@@ -12,6 +12,17 @@
     visibility: collapse;
 }
 .AbilityBuffs.Shown { visibility: visible; }
+/* Стандартные 100% и положение снизу по центру задаёт базовый класс */
+.AbilityBuffs.Scale50 { ui-scale: 50%; }
+.AbilityBuffs.Scale75 { ui-scale: 75%; }
+.AbilityBuffs.Position_top_left { horizontal-align: left; vertical-align: top; margin: 72px 24px 0px 24px; }
+.AbilityBuffs.Position_top_center { horizontal-align: center; vertical-align: top; margin: 72px 24px 0px 24px; }
+.AbilityBuffs.Position_top_right { horizontal-align: right; vertical-align: top; margin: 72px 24px 0px 24px; }
+.AbilityBuffs.Position_middle_left { horizontal-align: left; vertical-align: center; margin: 0px 24px 0px 24px; }
+.AbilityBuffs.Position_middle_center { horizontal-align: center; vertical-align: center; margin: 0px 24px 0px 24px; }
+.AbilityBuffs.Position_middle_right { horizontal-align: right; vertical-align: center; margin: 0px 24px 0px 24px; }
+.AbilityBuffs.Position_bottom_left { horizontal-align: left; vertical-align: bottom; margin: 0px 24px 150px 24px; }
+.AbilityBuffs.Position_bottom_right { horizontal-align: right; vertical-align: bottom; margin: 0px 24px 150px 24px; }
 .BuffRow { flow-children: right; horizontal-align: center; visibility: collapse; }
 .BuffRow.Shown { visibility: visible; }
 .Buff { width: 64px; margin: 3px 3px 0px 3px; flow-children: down; visibility: collapse; }

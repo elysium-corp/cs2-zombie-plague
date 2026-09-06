@@ -190,7 +190,7 @@ public sealed class AbilityHudTests
     public void PanoramaHasEveryServerTargetAndEveryIconWithoutScriptsOrInput()
     {
         var content = Path.Combine(AppContext.BaseDirectory, "ability-hud", "content", "panorama");
-        var xml = XDocument.Load(Path.Combine(content, "layout", "custom_game", "elysium_ability_buffs_v2.xml"));
+        var xml = XDocument.Load(Path.Combine(content, "layout", "custom_game", Path.GetFileName(CustomHudRuntime.Layout)));
         var ids = xml.Descendants().Attributes("id").Select(value => value.Value).ToArray();
         Assert.Equal(ids.Length, ids.Distinct().Count());
         Assert.Contains("AbilityBuffs", ids);
