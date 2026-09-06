@@ -1,9 +1,14 @@
+using System.Diagnostics;
 using Localization.Api;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Commands;
 using SwiftlyS2.Shared.Events;
+using SwiftlyS2.Shared.Players;
+using ZombiePlague.Core.Data.Abilities.Contracts;
+using ZombiePlague.Core.Data.Entities.Human;
+using ZombiePlague.Core.Data.Entities.Zombie;
 using ZombiePlague.Core.Data.Managers.Contracts;
 
 namespace ZombiePlague.Core.Experimental.AbilityHud;
@@ -22,6 +27,8 @@ internal sealed class AbilityHudService(ISwiftlyCore core, IPlayerManager player
     private bool _wanted;
     private int _generation;
     private string _status = "выключен";
+    private long _ticks;
+    private long _lastTickTimestamp;
 
     public void Start()
     {
@@ -42,10 +49,67 @@ internal sealed class AbilityHudService(ISwiftlyCore core, IPlayerManager player
         {
             case "on": _wanted = true; QueueStart(); break;
             case "off": _wanted = false; Stop(); _status = "выключен"; break;
+            case "debug":
+                ReplyStatus(context, diagnostic: true);
+                ReplyDiagnostics(context);
+                if (context.IsSentByPlayer) context.Reply("Ability HUD: диагностика отправлена в консоль игры (~)");
+                return;
             case null or "status": break;
-            default: context.Reply("zp_ability_hud on | off | status"); return;
+            default: context.Reply("zp_ability_hud on | off | status | debug"); return;
         }
-        context.Reply($"Ability HUD: {_status}; requested={_wanted}; api={CustomHudRuntime.HasRequiredApi}; players={_presenter?.PlayerCount ?? 0}");
+        ReplyStatus(context);
+    }
+
+    private void ReplyStatus(ICommandContext context, bool diagnostic = false)
+    {
+        var connected = core.PlayerManager.GetAllPlayers().Count(player => player.IsValid && !player.IsFakeClient);
+        var tracked = players.GetAllPlayers().Count(player => player.IsValid && !player.IsFakeClient);
+        var age = _ticks == 0 ? "never" : ((long)Stopwatch.GetElapsedTime(_lastTickTimestamp).TotalMilliseconds).ToString();
+        Reply($"Ability HUD: {_status}; requested={_wanted}; api={CustomHudRuntime.HasRequiredApi}");
+        Reply($"Ability HUD: connected={connected}; tracked={tracked}; recipients={_presenter?.PlayerCount ?? 0}; ticks={_ticks}; last_tick_ms={age}");
+        void Reply(string message)
+        {
+            if (diagnostic) ReplyDiagnostic(context, message);
+            else context.Reply(message);
+        }
+    }
+
+    private void ReplyDiagnostics(ICommandContext context)
+    {
+        // Проверяем также клиентов без роли ZombiePlague: основной цикл пока не включает их в свой обход
+        var tracked = players.GetAllPlayers().Where(player => player.IsValid && !player.IsFakeClient).ToArray();
+        var connected = core.PlayerManager.GetAllPlayers().Where(player => player.IsValid && !player.IsFakeClient
+            && (!context.IsSentByPlayer || player.PlayerID == context.Sender?.PlayerID)).ToArray();
+        if (connected.Length == 0) ReplyDiagnostic(context, "Ability HUD debug: подходящих подключённых игроков нет");
+        foreach (var client in connected)
+        {
+            var player = tracked.FirstOrDefault(owner => owner.PlayerID == client.PlayerID && owner.SteamID == client.SteamID) ?? client;
+            players.TryGetRole(player, out var role);
+            var menu = core.MenusAPI.GetCurrentMenu(player);
+            var frame = AbilityHudFrame.ForPlayer(player, role, menu, _config,
+                key => localization().GetForPlayerOrKey(player, key), out var visibility);
+            var abilities = AbilityHudFrame.AbilitiesForRole(role);
+            var roleName = role switch { IHuman => "human", IZombie => "zombie", null => "none", _ => role.GetType().Name };
+            var className = role switch { IZombie zombie => zombie.ZClass.InternalName, IHuman human => human.HClass.GetType().Name, _ => "none" };
+            var ids = abilities.Select(ability => ability is IPresentedAbility { Presentation: { } info }
+                ? info.Key : "missing:" + ability.GetType().Name).ToArray();
+            var missing = abilities.Count(ability => ability is not IPresentedAbility { Presentation: not null });
+            var menuName = menu is null ? "none" : ReferenceEquals(menu.Tag, AbilityHudSettings.PreviewMenuTag) ? "hud_preview" : "other";
+            var appearance = settings.Get(player.SteamID);
+            ReplyDiagnostic(context, $"Ability HUD debug: slot={player.PlayerID}; steam={player.SteamID}; alive={player.IsAlive}; role={roleName}; class={className}");
+            ReplyDiagnostic(context, $"Ability HUD debug: slot={player.PlayerID}; reason={visibility}; abilities={abilities.Count}; missing_metadata={missing}; menu={menuName}; eligible_icons={frame.Icons.Length}; sent_icons={_presenter?.GetIconCount(player.PlayerID) ?? 0}");
+            ReplyDiagnostic(context, $"Ability HUD debug: slot={player.PlayerID}; scale={appearance.ScalePercent}; position={appearance.Position}");
+            foreach (var group in ids.Chunk(4))
+                ReplyDiagnostic(context, $"Ability HUD debug: slot={player.PlayerID}; ids=[{string.Join(",", group)}]");
+        }
+        ReplyDiagnostic(context, "Ready означает готовность набора на сервере; получение и отрисовку Panorama клиентом сервер не подтверждает");
+    }
+
+    private static void ReplyDiagnostic(ICommandContext context, string message)
+    {
+        // Полный отчёт отправляем в консоль: чат обрезает длинные списки и мешает игре
+        if (context.IsSentByPlayer) context.Sender?.SendMessage(MessageType.Console, message + Environment.NewLine);
+        else context.Reply(message);
     }
 
     private void QueueStart()
@@ -81,19 +145,17 @@ internal sealed class AbilityHudService(ISwiftlyCore core, IPlayerManager player
             {
                 if (!player.IsValid || player.IsFakeClient) continue;
                 seen.Add(player.PlayerID);
-                if (!player.IsAlive || AbilityHudSettings.ShouldHideForMenu(core.MenusAPI.GetCurrentMenu(player), _config.HideWhenMenuOpen)
-                    || !players.TryGetRole(player, out var role))
-                {
-                    _presenter.Render(player.PlayerID, AbilityHudFrame.Empty);
-                    continue;
-                }
-                _presenter.Render(player.PlayerID, AbilityHudFrame.ForRole(role,
-                    key => localization().GetForPlayerOrKey(player, key), _config.ShowNames) with
-                {
-                    Appearance = settings.Get(player.SteamID)
-                });
+                players.TryGetRole(player, out var role);
+                var frame = AbilityHudFrame.ForPlayer(player, role, core.MenusAPI.GetCurrentMenu(player), _config,
+                    key => localization().GetForPlayerOrKey(player, key), out var visibility);
+                // Скрытая панель сбрасывает персональные стили так же, как до добавления диагностики
+                if (visibility is AbilityHudVisibility.Ready or AbilityHudVisibility.NoAbilities or AbilityHudVisibility.MissingPresentation)
+                    frame = frame with { Appearance = settings.Get(player.SteamID) };
+                _presenter.Render(player.PlayerID, frame);
             }
             foreach (var playerId in _presenter.PlayerIds.Where(id => !seen.Contains(id)).ToArray()) _presenter.Clear(playerId);
+            _ticks++;
+            _lastTickTimestamp = Stopwatch.GetTimestamp();
         }
         catch (Exception error) { Fault(error); }
     }
@@ -121,6 +183,8 @@ internal sealed class AbilityHudService(ISwiftlyCore core, IPlayerManager player
         _timer?.Cancel();
         _timer?.Dispose();
         _timer = null;
+        _ticks = 0;
+        _lastTickTimestamp = 0;
         _presenter = null;
         var runtime = _runtime;
         _runtime = null;

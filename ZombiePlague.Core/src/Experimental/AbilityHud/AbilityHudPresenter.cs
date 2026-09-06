@@ -13,6 +13,7 @@ internal sealed class AbilityHudPresenter(IAbilityHudSink sink)
     private readonly Dictionary<int, AbilityHudFrame> _frames = [];
     public IEnumerable<int> PlayerIds => _frames.Keys;
     public int PlayerCount => _frames.Values.Count(frame => frame.Icons.Length > 0);
+    public int GetIconCount(int playerId) => _frames.GetValueOrDefault(playerId)?.Icons.Length ?? 0;
 
     public void Render(int playerId, AbilityHudFrame frame)
     {

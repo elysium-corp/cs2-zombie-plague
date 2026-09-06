@@ -1,5 +1,7 @@
 using System.Globalization;
 using System.Text;
+using SwiftlyS2.Shared.Menus;
+using SwiftlyS2.Shared.Players;
 using ZombiePlague.Core.Data.Abilities.Contracts;
 using ZombiePlague.Core.Data.Entities;
 using ZombiePlague.Core.Data.Entities.Human;
@@ -7,6 +9,11 @@ using ZombiePlague.Core.Data.Entities.Zombie;
 using ZombiePlague.Core.Store.Data;
 
 namespace ZombiePlague.Core.Experimental.AbilityHud;
+
+internal enum AbilityHudVisibility
+{
+    Ready, InvalidPlayer, Bot, Dead, MenuOpen, MissingRole, NoAbilities, MissingPresentation
+}
 
 internal sealed record AbilityHudIcon(string Key, string Name, string Kind, bool Passive, string State, string Countdown, string Hotkey);
 
@@ -21,12 +28,34 @@ internal sealed record AbilityHudFrame(AbilityHudIcon[] Icons, bool ShowNames)
     public static readonly string[] Kinds = ["heal", "leap", "blind", "charge", "trap", "catch", "double_jump", "generic"];
     public static readonly AbilityHudFrame Empty = new([], false);
 
-    public static AbilityHudFrame ForRole(IPlayerRole role, Func<string, string> localize, bool showNames) => Create(role switch
+    internal static IReadOnlyList<IAbility> AbilitiesForRole(IPlayerRole? role) => role switch
     {
         IHuman human => human.HClass.Abilities,
         IZombie zombie => zombie.ZClass.Abilities,
         _ => []
-    }, localize, showNames);
+    };
+
+    public static AbilityHudFrame ForRole(IPlayerRole role, Func<string, string> localize, bool showNames) =>
+        Create(AbilitiesForRole(role), localize, showNames);
+
+    // Отрисовка и ручная диагностика используют одну проверку, чтобы причины скрытия не расходились
+    internal static AbilityHudFrame ForPlayer(IPlayer player, IPlayerRole? role, IMenuAPI? menu,
+        AbilityHudConfig config, Func<string, string> localize, out AbilityHudVisibility visibility)
+    {
+        visibility = !player.IsValid ? AbilityHudVisibility.InvalidPlayer
+            : player.IsFakeClient ? AbilityHudVisibility.Bot
+            : !player.IsAlive ? AbilityHudVisibility.Dead
+            : AbilityHudSettings.ShouldHideForMenu(menu, config.HideWhenMenuOpen) ? AbilityHudVisibility.MenuOpen
+            : role is null ? AbilityHudVisibility.MissingRole
+            : AbilityHudVisibility.Ready;
+        if (visibility != AbilityHudVisibility.Ready) return Empty;
+
+        var abilities = AbilitiesForRole(role);
+        var frame = Create(abilities, localize, config.ShowNames);
+        if (frame.Icons.Length == 0)
+            visibility = abilities.Count == 0 ? AbilityHudVisibility.NoAbilities : AbilityHudVisibility.MissingPresentation;
+        return frame;
+    }
 
     public static AbilityHudFrame Create(IEnumerable<IAbility> abilities, Func<string, string> localize, bool showNames)
     {
