@@ -1,7 +1,7 @@
 <root>
-    <styles><include src="s2r://panorama/styles/custom_game/elysium_ability_buffs_v3.vcss_c" /></styles>
-    <Panel class="ElysiumBuffCanvas" hittest="false" hittestchildren="false">
-        <Panel id="AbilityBuffs" class="AbilityBuffs" hittest="false" hittestchildren="false">
+    <styles><include src="s2r://panorama/styles/custom_game/elysium_ability_buffs_v4.vcss_c" /></styles>
+    <Panel class="ElysiumBuffCanvas" hittest="false">
+        <Panel id="AbilityBuffs" class="AbilityBuffs" hittest="false">
             <Panel id="BuffRow0" class="BuffRow">
                 <Panel id="Buff0" class="Buff">
                     <Panel class="BuffTile">

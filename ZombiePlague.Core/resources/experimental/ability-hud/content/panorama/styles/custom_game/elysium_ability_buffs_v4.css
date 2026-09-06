@@ -1,4 +1,4 @@
-/* Эксперимент Elysium — только поддерживаемые элементы Panorama, без клиентского JavaScript */
+/* Эксперимент Elysium, ресурсы v4 — только поддерживаемые элементы Panorama, без клиентского JavaScript */
 .ElysiumBuffCanvas { width: 100%; height: 100%; }
 .AbilityBuffs {
     horizontal-align: center;

@@ -187,10 +187,40 @@ public sealed class AbilityHudTests
     }
 
     [Fact]
+    public void RuntimeRequestsTheCompiledLayoutCheckedByPreflight()
+    {
+        Assert.EndsWith(".vxml_c", CustomHudRuntime.Layout);
+        Assert.Contains(CustomHudRuntime.Layout, CustomHudRuntime.MissingResources(_ => false));
+    }
+
+    [Fact]
+    public void PanoramaUsesOnlyAttributesAcceptedByTheCustomHudValidator()
+    {
+        var content = Path.Combine(AppContext.BaseDirectory, "ability-hud", "content", "panorama");
+        var xml = XDocument.Load(Path.Combine(content, "layout", "custom_game", Path.GetFileName(CustomHudRuntime.SourceLayout)));
+        // Custom HUD имеет более узкий набор атрибутов, чем обычная Panorama
+        // В частности, hittestchildren отклоняет весь layout, хотя XML остаётся синтаксически корректным
+        var allowed = new Dictionary<string, string[]>
+        {
+            ["root"] = [], ["styles"] = [], ["include"] = ["src"],
+            ["Panel"] = ["id", "class", "hittest"],
+            ["Label"] = ["id", "class", "hittest", "text"],
+            ["Image"] = ["id", "class", "hittest", "src", "texturewidth", "textureheight"],
+            ["Button"] = ["id", "class"]
+        };
+        Assert.All(xml.Descendants(), node =>
+        {
+            Assert.True(allowed.TryGetValue(node.Name.ToString(), out var attributes), node.Name.ToString());
+            Assert.All(node.Attributes(), attribute => Assert.Contains(attribute.Name.ToString(), attributes!));
+        });
+        Assert.Null(Assert.Single(xml.Root!.Elements("Panel")).Attribute("id"));
+    }
+
+    [Fact]
     public void PanoramaHasEveryServerTargetAndEveryIconWithoutScriptsOrInput()
     {
         var content = Path.Combine(AppContext.BaseDirectory, "ability-hud", "content", "panorama");
-        var xml = XDocument.Load(Path.Combine(content, "layout", "custom_game", Path.GetFileName(CustomHudRuntime.Layout)));
+        var xml = XDocument.Load(Path.Combine(content, "layout", "custom_game", Path.GetFileName(CustomHudRuntime.SourceLayout)));
         var ids = xml.Descendants().Attributes("id").Select(value => value.Value).ToArray();
         Assert.Equal(ids.Length, ids.Distinct().Count());
         Assert.Contains("AbilityBuffs", ids);

@@ -6,9 +6,11 @@ namespace ZombiePlague.Core.Experimental.AbilityHud;
 
 internal sealed class CustomHudRuntime : IAbilityHudSink, IDisposable
 {
-    public const string Layout = "panorama/layout/custom_game/elysium_ability_buffs_v3.xml";
-    public const string CompiledLayout = "panorama/layout/custom_game/elysium_ability_buffs_v3.vxml_c";
-    public const string CompiledStyle = "panorama/styles/custom_game/elysium_ability_buffs_v3.vcss_c";
+    public const string SourceLayout = "panorama/layout/custom_game/elysium_ability_buffs_v4.xml";
+    public const string CompiledLayout = "panorama/layout/custom_game/elysium_ability_buffs_v4.vxml_c";
+    public const string CompiledStyle = "panorama/styles/custom_game/elysium_ability_buffs_v4.vcss_c";
+    // Динамическая сущность запрашивает тот же скомпилированный ресурс, который проверяет preflight
+    public const string Layout = CompiledLayout;
     private readonly CCSCustomHudLayout _entity;
     private readonly Action<CCSCustomHudLayout, int, string, string, string> _text;
     private readonly Action<CCSCustomHudLayout, int, string, string, EHudPanelClassStatus_t> _class;
@@ -48,7 +50,7 @@ internal sealed class CustomHudRuntime : IAbilityHudSink, IDisposable
             throw new NotSupportedException("В SwiftlyS2 отсутствует Custom HUD API — нужен runtime с SetHasClassForPlayer и SetDialogVariableStringForPlayer");
         var missing = MissingResources(path => core.GameFileSystem.FileExists(path, "GAME"));
         if (missing.Length > 0)
-            throw new FileNotFoundException("HUD v3: в GAME отсутствуют " + string.Join(", ", missing)
+            throw new FileNotFoundException("HUD v4: в GAME отсутствуют " + string.Join(", ", missing)
                 + ". Скомпилируйте ресурсы и смонтируйте обновлённый addon/VPK у сервера и клиента");
         return new(core,
             Find("SetDialogVariableStringForPlayer", typeof(int), typeof(string), typeof(string), typeof(string))!

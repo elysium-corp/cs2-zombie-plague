@@ -1,7 +1,21 @@
 # Ability HUD — эксперимент
 
-Ветка `experiment/ability-buff-hud`, PR #87, версия ядра `0.3.1-hud.4`, база `develop`
+Ветка `experiment/ability-buff-hud`, PR #87, версия ядра `0.3.1-hud.5`, база `develop`
 Эксперимент выключен по умолчанию и совместим с общим каталогом классов людей и зомби
+
+## Обновление с hud.4 и ресурсов v3
+
+Исправлены два препятствия загрузке: из XML удалён атрибут `hittestchildren`, запрещённый валидатором Custom HUD, а динамическая сущность теперь запрашивает явный скомпилированный ресурс `.vxml_c`
+Прежний `reason=Ready; sent_icons=2` подтверждает подготовку набора на сервере, но не успешную загрузку этого XML клиентом
+
+1. Обновить `ZombiePlague.Core` до `0.3.1-hud.5`
+2. Скопировать новые исходники Panorama из пакета плагина в свой addon и скомпилировать **layout и CSS v4** по инструкции ниже
+3. Собрать и доставить обновлённый VPK серверу и клиентам, сохранив восемь иконок
+4. Полностью перезапустить CS2 на клиенте и сервер, затем выполнить `zp_ability_hud on`
+
+Имена новых файлов: `elysium_ability_buffs_v4.vxml_c` и `elysium_ability_buffs_v4.vcss_c`
+Нужна компиляция исправленного XML: переименование готовых файлов v3 сохраняет запрещённый атрибут внутри ресурса
+Версия `Localization.Core` и изображения для этого обновления остаются прежними
 
 ## Правило отображения
 
@@ -69,7 +83,7 @@ HUD не вызывает `Use`, не запускает таймеры спос
 - Актуальный CS2 с сущностью `custom_hud_layout`
 - SwiftlyS2 с публичными `SetDialogVariableStringForPlayer`, `SetHasClassForPlayer`, `SetInputCaptureEnabled`
 - `Localization.Core` версии `1.5.4-hud.1` и зависимости `ZombiePlague.Core` из этой ветки
-- Скомпилированные Panorama-ресурсы v3, доступные **и серверу, и клиенту** через смонтированный игровой addon
+- Скомпилированные Panorama-ресурсы v4, доступные **и серверу, и клиенту** через смонтированный игровой addon
 
 Закреплённый в `develop` SDK SwiftlyS2 `1.4.9` содержит необходимые методы — для HUD не требуется отдельное повышение версии SDK
 Runtime сервера тоже должен предоставлять эти методы
@@ -110,8 +124,8 @@ $hudSource = Join-Path $cs2Path 'content/csgo_addons/elysium_dev/panorama'
 $resourceCompiler = Join-Path $cs2Path 'game/bin/win64/resourcecompiler.exe'
 $hudInputs = @(
     'images/custom_game/elysium/abilities/*.svg'
-    'styles/custom_game/elysium_ability_buffs_v3.css'
-    'layout/custom_game/elysium_ability_buffs_v3.xml'
+    'styles/custom_game/elysium_ability_buffs_v4.css'
+    'layout/custom_game/elysium_ability_buffs_v4.xml'
 )
 foreach ($hudInput in $hudInputs) {
     & $resourceCompiler -i (Join-Path $hudSource $hudInput) -r
@@ -124,8 +138,8 @@ foreach ($hudInput in $hudInputs) {
 
 | Исходник внутри addon | Результат внутри addon |
 | --- | --- |
-| `panorama/layout/custom_game/elysium_ability_buffs_v3.xml` | `panorama/layout/custom_game/elysium_ability_buffs_v3.vxml_c` |
-| `panorama/styles/custom_game/elysium_ability_buffs_v3.css` | `panorama/styles/custom_game/elysium_ability_buffs_v3.vcss_c` |
+| `panorama/layout/custom_game/elysium_ability_buffs_v4.xml` | `panorama/layout/custom_game/elysium_ability_buffs_v4.vxml_c` |
+| `panorama/styles/custom_game/elysium_ability_buffs_v4.css` | `panorama/styles/custom_game/elysium_ability_buffs_v4.vcss_c` |
 | `panorama/images/custom_game/elysium/abilities/*.svg` | `panorama/images/custom_game/elysium/abilities/*.vsvg_c` |
 
 Нужны все восемь иконок: `heal`, `leap`, `blind`, `charge`, `trap`, `catch`, `double_jump`, `generic`
@@ -134,8 +148,14 @@ SVG — векторные ресурсы VSVG, а не VTex
 Иконки входят в исходники эксперимента; внешние изображения и шрифты не требуются
 XML использует Panel, Image, Label и CSS, без клиентского JavaScript и захвата мыши
 
-Имена layout и CSS получили суффикс `_v3`, чтобы старый VPK без стилей персонального размера и положения не проходил проверку новой версии плагина
-При обновлении первой версии эксперимента нужно пересобрать addon, одной замены DLL недостаточно
+Имена layout и CSS получили суффикс `_v4`, чтобы VPK со старым XML не проходил проверку новой версии плагина
+При обновлении прежних версий эксперимента нужно пересобрать addon, одной замены DLL недостаточно
+
+Custom HUD допускает ограниченный набор атрибутов: `Panel` — `id`, `class`, `hittest`; `Label` дополнительно `text`; `Image` дополнительно `src`, `texturewidth`, `textureheight`
+Атрибуты обычной Panorama, включая `hittestchildren`, `style` и обработчики событий, могут отклонить весь layout
+Проверка `PanoramaUsesOnlyAttributesAcceptedByTheCustomHudValidator` сверяет фактический XML с этим списком
+Ограничения сверены с [валидатором инструментов Panorama](https://github.com/Kxnrl/vsc-panorama-ext/blob/b4b7afe9ccd01d9787ed583ec8b83a925faab2fe/src/core/mode.ts) и [разбором валидатора движка](https://github.com/Wend4r/s2r-skills/blob/82fd9c366dec51edf19b801a102dce86fd695950/custom-hud-layout/references/internals.md)
+Динамическая сущность использует `.vxml_c`; отличие от исходного имени подтверждено [проверкой загрузки в CS2](https://github.com/laper32/PanoramaLayout/blob/828a89adac8631545fc9928d0134cf25dc1c38eb/docs/custom-hud-build-2000891-retest.zh-CN.md)
 
 ## 3. Доставить и смонтировать addon
 
@@ -213,10 +233,14 @@ zp_ability_hud debug
 Если `ticks` остаётся нулём через несколько секунд активной игры, диагностика ещё не подтверждает работу повторяющегося таймера
 Если `ticks` растёт, а `recipients=0`, причины по игрокам объясняют, почему набор не попадает в панель
 
-Перед запуском сервер проверяет наличие layout, CSS и всех восьми иконок v3 в смонтированной файловой системе `GAME`
+Перед запуском сервер проверяет наличие layout и CSS v4, а также всех восьми иконок в смонтированной файловой системе `GAME`
 При нехватке файлов `status` и лог содержат конкретные пути
 Если сервер пишет `работает`, а панели нет, сначала проверить `debug`, затем наличие тех же ресурсов у клиента и ошибки загрузки Panorama в клиентской консоли
 Серверная проверка не подтверждает наличие или успешный разбор ресурсов на клиенте
+
+При `Ready` и непустом `sent_icons` открыть консоль **игры** и сохранить строки с `[custom_hud]`, `elysium_ability_buffs`, `disallowed`, `Failed to load` или `invalid resource name` после повторного включения HUD
+Команда клиента `dev_report_info_hud_layout` показывает ограничения формата, её вывод полезен при несовпадении списка разрешённых атрибутов с текущей версией CS2
+Наличие файла внутри VPK в просмотрщике само по себе не подтверждает его монтирование и загрузку игровым клиентом
 
 ```text
 zp_ability_hud off
