@@ -1,8 +1,8 @@
 {
   "schemaVersion": 4,
-  "version": 9,
-  "generatedAt": "2026-09-06T12:00:00Z",
-  "checksum": "sha256:41c2db4e3dbf4466513fcd75347f909c5a1c30ee3a986e6a8ab0c0f46f1d2190",
+  "version": 10,
+  "generatedAt": "2026-09-06T13:00:00Z",
+  "checksum": "sha256:df69ff566d5ebe433574249f1d51aae729871160a5027d6cedc25fa197eb25b5",
   "serverFallbackLanguage": "ru",
   "languages": [
     "ru",
@@ -827,7 +827,7 @@
       "en": "Ability ready in {seconds} sec."
     },
     "ZombiePlague.ZClass.Zombie.Cleric.Name": {
-      "ru": "Клирик",
+      "ru": "Клерик",
       "en": "Cleric"
     },
     "ZombiePlague.ZClass.Zombie.Cleric.Description": {

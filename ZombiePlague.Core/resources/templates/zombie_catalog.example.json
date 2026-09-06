@@ -6,7 +6,7 @@
     {
       "Enabled": true,
       "InternalName": "zombie_cleric",
-      "DisplayName": "Клирик",
+      "DisplayName": "Клерик",
       "Model": "characters/models/nozb1/zombie_stalker_player_model/zombie_stalker_player_model.vmdl",
       "Description": "Лечит зомби",
       "Health": 3500,
