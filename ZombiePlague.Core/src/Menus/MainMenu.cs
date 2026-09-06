@@ -14,6 +14,7 @@ internal sealed class MainMenu(
     ISwiftlyCore core,
     IMenuExtensionDispatcher extensionDispatcher,
     ZClassMenu zClassMenu,
+    HClassMenu hClassMenu,
     Func<ILocalizationApi> localization
 ) : DynamicOptionsMenu(core, extensionDispatcher)
 {
@@ -46,6 +47,14 @@ internal sealed class MainMenu(
         var zClassButton = BuildZClassItem(player);
 
         options.Add(zClassButton, 1);
+        const string humanTitle = "Menu.Main.Item.HClass.Title";
+        var humanButton = new ButtonMenuOption(localization().GetForPlayer(player, humanTitle) ?? humanTitle);
+        humanButton.Click += (_, args) =>
+        {
+            core.Scheduler.NextTickAsync(() => hClassMenu.Open(args.Player));
+            return ValueTask.CompletedTask;
+        };
+        options.Add(humanButton, 2);
     }
     
     private ButtonMenuOption BuildZClassItem(IPlayer player)

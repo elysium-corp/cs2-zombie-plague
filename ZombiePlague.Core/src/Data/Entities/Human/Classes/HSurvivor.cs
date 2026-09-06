@@ -1,20 +1,6 @@
 using ZombiePlague.Core.Config.Human;
 using ZombiePlague.Core.Data.Abilities.Contracts;
-using ZombiePlague.Core.Catalog;
 
 namespace ZombiePlague.Core.Data.Entities.Human.Classes;
 
-internal sealed class HSurvivor(HumanSurvivor config, IAbilityFactory abilityFactory, ulong steamId = 0) : IHClass
-{
-    public string Model { get; set; } = config.Model;
-
-    public int Health { get; set; } = config.Health;
-
-    public int Armor { get; set; } = config.Armor;
-
-    public float Speed { get; set; } = config.Speed;
-
-    public int Gravity { get; set; } = config.Gravity;
-
-    public List<IAbility> Abilities { get; set; } = abilityFactory.CreateFromStrings(config.Abilities, steamId, AbilitySide.Human);
-}
+internal sealed class HSurvivor(IHClassConfig config, List<IAbility> abilities) : HMercenary(config, abilities);

@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Localization.Api;
+using ZombiePlague.Core.Config.Human;
 
 namespace ZombiePlague.Core.Catalog;
 
@@ -16,7 +17,7 @@ internal static class LegacyZombieCatalog
             ?? throw new InvalidDataException("Отсутствует ZClassConfig");
         var abilities = Read(abilityPath)["AbilityConfig"]?.AsObject()
             ?? throw new InvalidDataException("Отсутствует AbilityConfig");
-        var document = new ZombieCatalogDocument();
+        var document = new ZombieCatalogDocument { FormatVersion = 1 };
         foreach (var pair in classes)
         {
             var item = pair.Value.Deserialize<ZombieClassDefinition>(ZombieCatalogDocument.JsonOptions)
@@ -41,8 +42,17 @@ internal static class LegacyZombieCatalog
         }
         document.DefaultClass = document.Classes.First(item => item.Enabled && item.Kind == "zombie").InternalName;
         document.NemesisClass = document.Classes.First(item => item.Enabled && item.Kind == "nemesis").InternalName;
+        CatalogUpgrade.Apply(document, ReadHumans(directory));
         document.Validate();
         return document;
+    }
+
+    public static HClassConfig ReadHumans(string directory)
+    {
+        var path = Path.Combine(directory, "human_class.json");
+        if (!File.Exists(path)) return new();
+        return Read(path)["HClassConfig"]?.Deserialize<HClassConfig>(ZombieCatalogDocument.JsonOptions)
+            ?? throw new InvalidDataException("Отсутствует HClassConfig");
     }
 
     private static JsonNode Read(string path)
