@@ -1,12 +1,12 @@
 {
-  "FormatVersion": 1,
+  "FormatVersion": 2,
   "DefaultClass": "zombie_cleric",
   "NemesisClass": "zombie_nemesis",
   "Classes": [
     {
       "Enabled": true,
       "InternalName": "zombie_cleric",
-      "DisplayName": "Cleric",
+      "DisplayName": "Клирик",
       "Model": "characters/models/nozb1/zombie_stalker_player_model/zombie_stalker_player_model.vmdl",
       "Description": "Лечит зомби",
       "Health": 3500,
@@ -26,14 +26,15 @@
       "SortOrder": 0,
       "PreviewModel": "",
       "DisplayNameKey": "ZombiePlague.ZClass.Zombie.Cleric.Name",
-      "DescriptionKey": "ZombiePlague.ZClass.Zombie.Cleric.Description"
+      "DescriptionKey": "ZombiePlague.ZClass.Zombie.Cleric.Description",
+      "Armor": 0
     },
     {
       "Enabled": true,
       "InternalName": "zombie_hunter",
-      "DisplayName": "Hunter",
+      "DisplayName": "Охотник",
       "Model": "characters/models/kolka/2025/lurker/lurker.vmdl",
-      "Description": "Ставит ловушки",
+      "Description": "Устанавливает ловушки",
       "Health": 3700,
       "Speed": 280.0,
       "Knockback": 0.9,
@@ -51,12 +52,13 @@
       "SortOrder": 1,
       "PreviewModel": "",
       "DisplayNameKey": "ZombiePlague.ZClass.Zombie.Hunter.Name",
-      "DescriptionKey": "ZombiePlague.ZClass.Zombie.Hunter.Description"
+      "DescriptionKey": "ZombiePlague.ZClass.Zombie.Hunter.Description",
+      "Armor": 0
     },
     {
       "Enabled": true,
       "InternalName": "zombie_assassin",
-      "DisplayName": "Assassin",
+      "DisplayName": "Ассасин",
       "Model": "characters/models/nozb1/zhunter_player_model/zhunter_player_model.vmdl",
       "Description": "Ускоряется",
       "Health": 3200,
@@ -76,14 +78,15 @@
       "SortOrder": 2,
       "PreviewModel": "",
       "DisplayNameKey": "ZombiePlague.ZClass.Zombie.Assassin.Name",
-      "DescriptionKey": "ZombiePlague.ZClass.Zombie.Assassin.Description"
+      "DescriptionKey": "ZombiePlague.ZClass.Zombie.Assassin.Description",
+      "Armor": 0
     },
     {
       "Enabled": true,
       "InternalName": "zombie_heavy",
-      "DisplayName": "Heavy",
+      "DisplayName": "Тяжёлый",
       "Model": "characters/models/nozb1/chris_walker_player_model/chris_walker_player_model.vmdl",
-      "Description": "Ослепляет",
+      "Description": "Ослепляет людей",
       "Health": 5200,
       "Speed": 250.0,
       "Knockback": 0.9,
@@ -101,14 +104,15 @@
       "SortOrder": 3,
       "PreviewModel": "",
       "DisplayNameKey": "ZombiePlague.ZClass.Zombie.Heavy.Name",
-      "DescriptionKey": "ZombiePlague.ZClass.Zombie.Heavy.Description"
+      "DescriptionKey": "ZombiePlague.ZClass.Zombie.Heavy.Description",
+      "Armor": 0
     },
     {
       "Enabled": true,
       "InternalName": "zombie_smoker",
-      "DisplayName": "Smoker",
+      "DisplayName": "Курильщик",
       "Model": "characters/models/nozb1/jason_player_model/jason_player_model.vmdl",
-      "Description": "Притягивает",
+      "Description": "Притягивает людей",
       "Health": 3250,
       "Speed": 270.0,
       "Knockback": 0.9,
@@ -126,14 +130,15 @@
       "SortOrder": 4,
       "PreviewModel": "",
       "DisplayNameKey": "ZombiePlague.ZClass.Zombie.Smoker.Name",
-      "DescriptionKey": "ZombiePlague.ZClass.Zombie.Smoker.Description"
+      "DescriptionKey": "ZombiePlague.ZClass.Zombie.Smoker.Description",
+      "Armor": 0
     },
     {
       "Enabled": true,
       "InternalName": "zombie_nemesis",
-      "DisplayName": "Nemesis",
+      "DisplayName": "Немезида",
       "Model": "characters/models/nozb1/nemesis_player_model/nemesis_player_model.vmdl",
-      "Description": "Убивает",
+      "Description": "Убивает одним ударом",
       "Health": 5000,
       "Speed": 300.0,
       "Knockback": 1.0,
@@ -150,14 +155,59 @@
       "SortOrder": 5,
       "PreviewModel": "",
       "DisplayNameKey": "ZombiePlague.ZClass.Zombie.Nemesis.Name",
-      "DescriptionKey": "ZombiePlague.ZClass.Zombie.Nemesis.Description"
+      "DescriptionKey": "ZombiePlague.ZClass.Zombie.Nemesis.Description",
+      "Armor": 0
+    },
+    {
+      "InternalName": "human_mercenary",
+      "Enabled": true,
+      "Kind": "human",
+      "DisplayName": "Наёмник",
+      "Description": "Обычный человек",
+      "DisplayNameKey": "ZombiePlague.HClass.Human.Mercenary.Name",
+      "DescriptionKey": "ZombiePlague.HClass.Human.Mercenary.Description",
+      "Model": "",
+      "Health": 100,
+      "Armor": 0,
+      "Speed": 250.0,
+      "Knockback": 0.0,
+      "Gravity": 800,
+      "InfectionSound": "",
+      "HurtSounds": [],
+      "Abilities": [
+        "double_jump"
+      ],
+      "SortOrder": 6,
+      "PreviewModel": ""
+    },
+    {
+      "InternalName": "human_survivor",
+      "Enabled": true,
+      "Kind": "survivor",
+      "DisplayName": "Выживший",
+      "Description": "Специальный человеческий класс для режима Survivor",
+      "DisplayNameKey": "ZombiePlague.HClass.Human.Survivor.Name",
+      "DescriptionKey": "ZombiePlague.HClass.Human.Survivor.Description",
+      "Model": "characters/models/nozb1/nanosuit_player_model/nanosuit_player_model.vmdl",
+      "Health": 500,
+      "Armor": 0,
+      "Speed": 250.0,
+      "Knockback": 0.0,
+      "Gravity": 800,
+      "InfectionSound": "",
+      "HurtSounds": [],
+      "Abilities": [
+        "leap"
+      ],
+      "SortOrder": 7,
+      "PreviewModel": ""
     }
   ],
   "Abilities": [
     {
       "InternalName": "heal",
       "DisplayName": "Лечение",
-      "Description": "",
+      "Description": "Лечит другого живого союзника под прицелом, до его максимального HP — человек лечит человека, зомби лечит зомби",
       "Kind": "heal",
       "Enabled": true,
       "Parameters": {
@@ -179,12 +229,14 @@
         "BlueColorEffectAfterAbilityOnTarget": 0,
         "AlphaEffectAfterAbilityOnTarget": 80
       },
-      "Side": "zombie"
+      "Side": "zombie",
+      "DisplayNameKey": "ZombiePlague.Ability.Heal.Name",
+      "DescriptionKey": "ZombiePlague.Ability.Heal.Description"
     },
     {
       "InternalName": "leap",
-      "DisplayName": "Дальний прыжок",
-      "Description": "",
+      "DisplayName": "Прыжок вперёд",
+      "Description": "Толкает владельца вперёд и вверх в направлении взгляда",
       "Kind": "leap",
       "Enabled": true,
       "Parameters": {
@@ -192,12 +244,14 @@
         "LeapDistance": 550.0,
         "LeapBoost": 350.0
       },
-      "Side": "both"
+      "Side": "both",
+      "DisplayNameKey": "ZombiePlague.Ability.Leap.Name",
+      "DescriptionKey": "ZombiePlague.Ability.Leap.Description"
     },
     {
       "InternalName": "blind",
       "DisplayName": "Ослепление",
-      "Description": "",
+      "Description": "Ослепляет противников в радиусе действия",
       "Kind": "blind",
       "Enabled": true,
       "Parameters": {
@@ -216,12 +270,14 @@
         "BlueColorEffectAfterAbilityOnAttacker": 0,
         "AlphaEffectAfterAbilityOnAttacker": 255
       },
-      "Side": "zombie"
+      "Side": "zombie",
+      "DisplayNameKey": "ZombiePlague.Ability.Blind.Name",
+      "DescriptionKey": "ZombiePlague.Ability.Blind.Description"
     },
     {
       "InternalName": "charge",
       "DisplayName": "Рывок",
-      "Description": "",
+      "Description": "Временно разгоняет владельца до заданной скорости, затем возвращает исходную",
       "Kind": "charge",
       "Enabled": true,
       "Parameters": {
@@ -236,12 +292,14 @@
         "ChargeTime": 3,
         "SpeedUpdatePerTimeTick": 0.05
       },
-      "Side": "zombie"
+      "Side": "zombie",
+      "DisplayNameKey": "ZombiePlague.Ability.Charge.Name",
+      "DescriptionKey": "ZombiePlague.Ability.Charge.Description"
     },
     {
       "InternalName": "trap",
       "DisplayName": "Ловушка",
-      "Description": "",
+      "Description": "Ставит ловушку на земле, которая действует на противников",
       "Kind": "trap",
       "Enabled": true,
       "Parameters": {
@@ -254,12 +312,14 @@
         "EffectDuration": 5.0,
         "TriggerRadius": 100.0
       },
-      "Side": "zombie"
+      "Side": "zombie",
+      "DisplayNameKey": "ZombiePlague.Ability.Trap.Name",
+      "DescriptionKey": "ZombiePlague.Ability.Trap.Description"
     },
     {
       "InternalName": "catch",
       "DisplayName": "Притягивание",
-      "Description": "",
+      "Description": "Захватывает противника под прицелом и притягивает к владельцу",
       "Kind": "catch",
       "Enabled": true,
       "Parameters": {
@@ -276,19 +336,25 @@
         "MissSound": "ZombiePlagueAbility.Zombie.Smoker.smoker_miss",
         "ShotSound": "ZombiePlagueAbility.Zombie.Smoker.smoker_drag1"
       },
-      "Side": "zombie"
+      "Side": "zombie",
+      "DisplayNameKey": "ZombiePlague.Ability.Catch.Name",
+      "DescriptionKey": "ZombiePlague.Ability.Catch.Description"
     },
     {
       "InternalName": "double_jump",
       "DisplayName": "Двойной прыжок",
-      "Description": "",
+      "Description": "Позволяет выполнить дополнительный прыжок в воздухе",
       "Kind": "double_jump",
       "Enabled": true,
       "Parameters": {
         "BaseJumpUnits": 54.0
       },
-      "Side": "human"
+      "Side": "human",
+      "DisplayNameKey": "ZombiePlague.Ability.Double.Jump.Name",
+      "DescriptionKey": "ZombiePlague.Ability.Double.Jump.Description"
     }
   ],
-  "PlayerAbilities": []
+  "PlayerAbilities": [],
+  "DefaultHumanClass": "human_mercenary",
+  "SurvivorClass": "human_survivor"
 }

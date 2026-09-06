@@ -20,7 +20,7 @@ public sealed class ZombieCatalogTests
     {
         var document = Example();
         var copy = ZombieCatalogDocument.Parse(JsonSerializer.Serialize(document, ZombieCatalogDocument.JsonOptions));
-        Assert.Equal(6, copy.Classes.Count);
+        Assert.Equal(8, copy.Classes.Count);
         Assert.Equal(7, copy.Abilities.Count);
         Assert.Contains(copy.Resources(), path => path.EndsWith(".vmdl"));
         Assert.Contains(copy.Resources(), path => path.EndsWith(".vpcf"));
@@ -32,7 +32,7 @@ public sealed class ZombieCatalogTests
         var document = Example();
         document.Abilities.Add(new()
         {
-            InternalName = "medic_elite", Kind = "heal", DisplayName = "Медик",
+            InternalName = "medic_elite", Kind = "heal", DisplayNameKey = "ZombiePlague.Ability.Elite.Name", DescriptionKey = "ZombiePlague.Ability.Elite.Description",
             Parameters = JsonSerializer.SerializeToElement(new { HealAmount = 1750, CooldownTime = 42 })
         });
         document.Classes[0].Abilities = ["medic_elite", "leap"];
@@ -279,7 +279,7 @@ public sealed class ZombieCatalogTests
         {
             var document = Example();
             var classes = new JsonObject();
-            foreach (var definition in document.Classes)
+            foreach (var definition in document.Classes.Where(item => item.Kind is "zombie" or "nemesis"))
             {
                 var item = JsonSerializer.SerializeToNode(definition)!.AsObject();
                 foreach (var field in new[] { "Kind", "SortOrder", "PreviewModel", "DisplayNameKey", "DescriptionKey" }) item.Remove(field);

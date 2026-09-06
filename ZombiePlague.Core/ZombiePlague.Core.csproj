@@ -8,7 +8,7 @@
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
         <PublishDir>$(OutputPath)publish/ZombiePlague.Core</PublishDir>
         <AssemblyName>ZombiePlague.Core</AssemblyName>
-        <PluginVersion>0.2.1-hud.1</PluginVersion>
+        <PluginVersion>0.3.1-hud.2</PluginVersion>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)' == 'Migrations'">
@@ -41,7 +41,7 @@
             <ExcludeAssets Condition="'$(Configuration)' != 'Migrations'">runtime</ExcludeAssets>
         </PackageReference>
 
-        <PackageReference Include="SwiftlyS2.CS2" Version="1.4.6-beta.8" PrivateAssets="all">
+        <PackageReference Include="SwiftlyS2.CS2" Version="1.4.9" PrivateAssets="all">
             <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <ExcludeAssets Condition="'$(Configuration)' != 'Migrations'">runtime</ExcludeAssets>
         </PackageReference>
@@ -54,6 +54,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <EmbeddedResource Include="src/Catalog/*.sql" />
         <Compile Remove="examples\**\*.cs" />
     </ItemGroup>
 
@@ -77,15 +78,11 @@
     </ItemGroup>
 
     <ItemGroup>
-        <VersionFileLines Include="namespace $(AssemblyName).Generated {&#x0D;&#x0A;%09internal static class BuildInfo {&#x0D;&#x0A;%09%09internal const string Version = %22$(PluginVersion)%22%3B&#x0D;&#x0A;%09}&#x0D;&#x0A;}" />
+        <VersionFileLines Include="namespace $(AssemblyName).Generated {&#xD;&#xA;%09internal static class BuildInfo {&#xD;&#xA;%09%09internal const string Version = %22$(PluginVersion)%22%3B&#xD;&#xA;%09}&#xD;&#xA;}" />
     </ItemGroup>
 
     <Target Name="GenerateVersionFile" BeforeTargets="CoreCompile">
-        <WriteLinesToFile
-                File="$(IntermediateOutputPath)BuildInfo.cs"
-                Lines="@(VersionFileLines)"
-                Overwrite="true"
-                WriteOnlyWhenDifferent="true" />
+        <WriteLinesToFile File="$(IntermediateOutputPath)BuildInfo.cs" Lines="@(VersionFileLines)" Overwrite="true" WriteOnlyWhenDifferent="true" />
 
         <ItemGroup>
             <Compile Include="$(IntermediateOutputPath)BuildInfo.cs" />

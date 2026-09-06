@@ -35,7 +35,7 @@ internal sealed class AbilityFactory(
             _ => throw new NotSupportedException($"Неизвестная механика {definition.Kind}")
         };
         if (ability is IPresentedAbility presented)
-            presented.Presentation = new(definition.InternalName, definition.DisplayName, definition.Kind);
+            presented.Presentation = new(definition.InternalName, definition.DisplayNameKey, definition.Kind);
         return ability;
     }
 

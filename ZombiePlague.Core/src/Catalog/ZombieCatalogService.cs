@@ -72,8 +72,7 @@ internal sealed class ZombieCatalogService(ISwiftlyCore core, ZombieCatalogRepos
                     Volatile.Write(ref _state, state);
                 }
                 if (state.DatabaseError is not null)
-                    core.Logger.LogWarning(state.DatabaseError,
-                        "[ZombieCatalog] БД недоступна — источник {Source}, повтор при старте карты или zp_classes_reload", state.Source);
+                    ZombieCatalogDiagnostics.LogDatabaseFailure(core.Logger, state.DatabaseError, state.Source);
                 else
                     core.Logger.LogInformation("[ZombieCatalog] Загружена версия {Version}: классов {Classes}, способностей {Abilities}",
                         state.Version, state.Document.Classes.Count, state.Document.Abilities.Count);
@@ -89,25 +88,7 @@ internal sealed class ZombieCatalogService(ISwiftlyCore core, ZombieCatalogRepos
         }
     }
 
-    private async Task<ZombieCatalogDocument> ReadFallbackAsync(CancellationToken token)
-    {
-        var path = Path.Combine(core.Configuration.BasePath, "zombie_catalog.json");
-        if (!File.Exists(path))
-        {
-            Directory.CreateDirectory(core.Configuration.BasePath);
-            var legacy = LegacyZombieCatalog.TryRead(core.Configuration.BasePath);
-            if (legacy is not null)
-            {
-                await File.WriteAllTextAsync(path, System.Text.Json.JsonSerializer.Serialize(legacy, ZombieCatalogDocument.JsonOptions), token)
-                    .ConfigureAwait(false);
-                return legacy;
-            }
-            File.Copy(Path.Combine(core.PluginPath, "resources", "templates", "zombie_catalog.example.json"), path, false);
-        }
-        if (new FileInfo(path).Length > ZombieCatalogDocument.MaximumBytes)
-            throw new InvalidDataException("Fallback классов превышает 2 МБ");
-        return ZombieCatalogDocument.Parse(await File.ReadAllTextAsync(path, token).ConfigureAwait(false));
-    }
+    private Task<ZombieCatalogDocument> ReadFallbackAsync(CancellationToken token) => CatalogFallback.ReadAsync(core, token);
 
     public void Dispose()
     {

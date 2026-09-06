@@ -6,6 +6,7 @@ namespace ZombiePlague.Core.Data.Entities.Registrator;
 internal sealed class ZClassRegistrator(ZombieCatalogService catalog) : IZClassRegistrator
 {
     public IEnumerable<IZClassConfig> GetAll() => catalog.Current.Document.Classes
+        .Where(item => item.Kind is "zombie" or "nemesis")
         .OrderBy(item => item.SortOrder).ThenBy(item => item.InternalName, StringComparer.Ordinal).ToArray();
 
     public IEnumerable<IZClassConfig> GetAllEnabled() => GetAll().Where(item => item.Enabled).ToArray();

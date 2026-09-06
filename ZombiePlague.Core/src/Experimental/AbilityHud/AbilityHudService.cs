@@ -1,16 +1,15 @@
+using Localization.Api;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Commands;
 using SwiftlyS2.Shared.Events;
-using ZombiePlague.Core.Data.Abilities.Contracts;
-using ZombiePlague.Core.Data.Entities.Human;
-using ZombiePlague.Core.Data.Entities.Zombie;
 using ZombiePlague.Core.Data.Managers.Contracts;
 
 namespace ZombiePlague.Core.Experimental.AbilityHud;
 
-internal sealed class AbilityHudService(ISwiftlyCore core, IPlayerManager players, IOptions<AbilityHudConfig> options) : IDisposable
+internal sealed class AbilityHudService(ISwiftlyCore core, IPlayerManager players, IOptions<AbilityHudConfig> options,
+    Func<ILocalizationApi> localization) : IDisposable
 {
     private CustomHudRuntime? _runtime;
     private AbilityHudPresenter? _presenter;
@@ -64,7 +63,7 @@ internal sealed class AbilityHudService(ISwiftlyCore core, IPlayerManager player
                 // Таймер SwiftlyS2 выполняется по игровым тикам, вызовы HUD остаются на игровом потоке
                 _timer = core.Scheduler.DelayAndRepeatBySeconds(_config.RefreshSeconds, _config.RefreshSeconds, Tick);
                 _status = "работает";
-                core.Logger.LogInformation("[AbilityHud] Эксперимент включён, период {Interval} с, максимум {Count} иконок", _config.RefreshSeconds, _config.MaximumIcons);
+                core.Logger.LogInformation("[AbilityHud] Эксперимент включён: способности текущей роли, период {Interval} с", _config.RefreshSeconds);
             }
             catch (Exception error) { Fault(error); }
         });
@@ -87,13 +86,8 @@ internal sealed class AbilityHudService(ISwiftlyCore core, IPlayerManager player
                     _presenter.Render(player.PlayerID, AbilityHudFrame.Empty);
                     continue;
                 }
-                var abilities = role switch
-                {
-                    IHuman human => human.HClass.Abilities,
-                    IZombie zombie => zombie.ZClass.Abilities,
-                    _ => new List<IAbility>()
-                };
-                _presenter.Render(player.PlayerID, AbilityHudFrame.Create(abilities, _config.MaximumIcons, role is IHuman, _config.ShowNames));
+                _presenter.Render(player.PlayerID, AbilityHudFrame.ForRole(role,
+                    key => localization().GetForPlayerOrKey(player, key), _config.ShowNames));
             }
             foreach (var playerId in _presenter.PlayerIds.Where(id => !seen.Contains(id)).ToArray()) _presenter.Clear(playerId);
         }

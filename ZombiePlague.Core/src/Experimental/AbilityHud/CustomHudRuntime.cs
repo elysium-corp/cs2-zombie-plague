@@ -6,8 +6,9 @@ namespace ZombiePlague.Core.Experimental.AbilityHud;
 
 internal sealed class CustomHudRuntime : IAbilityHudSink, IDisposable
 {
-    public const string Layout = "panorama/layout/custom_game/elysium_ability_buffs.xml";
-    public const string CompiledLayout = "panorama/layout/custom_game/elysium_ability_buffs.vxml_c";
+    public const string Layout = "panorama/layout/custom_game/elysium_ability_buffs_v2.xml";
+    public const string CompiledLayout = "panorama/layout/custom_game/elysium_ability_buffs_v2.vxml_c";
+    public const string CompiledStyle = "panorama/styles/custom_game/elysium_ability_buffs_v2.vcss_c";
     private readonly CCSCustomHudLayout _entity;
     private readonly Action<CCSCustomHudLayout, int, string, string, string> _text;
     private readonly Action<CCSCustomHudLayout, int, string, string, EHudPanelClassStatus_t> _class;
@@ -33,8 +34,8 @@ internal sealed class CustomHudRuntime : IAbilityHudSink, IDisposable
 
     public bool IsValid => !_disposed && _entity.IsValidEntity;
 
-    // Проверяем публичные методы runtime: SDK 1.4.6-beta.8 содержит сущность, но ещё не содержит эти методы
-    // Делегаты связываются один раз; эксперимент не требует менять SDK остальных плагинов
+    // SDK 1.4.9 уже содержит API; проверка даёт понятную причину при устаревшем runtime сервера
+    // Делегаты связываются один раз, вне обновления состояний игроков
     public static bool HasRequiredApi => Find("SetDialogVariableStringForPlayer", typeof(int), typeof(string), typeof(string), typeof(string)) is not null
         && Find("SetHasClassForPlayer", typeof(int), typeof(string), typeof(string), typeof(EHudPanelClassStatus_t)) is not null
         && Find("SetInputCaptureEnabled", typeof(bool)) is not null;
@@ -45,8 +46,10 @@ internal sealed class CustomHudRuntime : IAbilityHudSink, IDisposable
     {
         if (!HasRequiredApi)
             throw new NotSupportedException("В SwiftlyS2 отсутствует Custom HUD API — нужен runtime с SetHasClassForPlayer и SetDialogVariableStringForPlayer");
-        if (!core.GameFileSystem.FileExists(CompiledLayout, "GAME"))
-            throw new FileNotFoundException("Не найден скомпилированный HUD — установите Panorama-ресурсы в addon/VPK", CompiledLayout);
+        var missing = MissingResources(path => core.GameFileSystem.FileExists(path, "GAME"));
+        if (missing.Length > 0)
+            throw new FileNotFoundException("HUD v2: в GAME отсутствуют " + string.Join(", ", missing)
+                + ". Скомпилируйте ресурсы и смонтируйте обновлённый addon/VPK у сервера и клиента");
         return new(core,
             Find("SetDialogVariableStringForPlayer", typeof(int), typeof(string), typeof(string), typeof(string))!
                 .CreateDelegate<Action<CCSCustomHudLayout, int, string, string, string>>(),
@@ -54,6 +57,10 @@ internal sealed class CustomHudRuntime : IAbilityHudSink, IDisposable
                 .CreateDelegate<Action<CCSCustomHudLayout, int, string, string, EHudPanelClassStatus_t>>(),
             Find("SetInputCaptureEnabled", typeof(bool))!.CreateDelegate<Action<CCSCustomHudLayout, bool>>());
     }
+
+    internal static string[] MissingResources(Func<string, bool> exists) => new[] { CompiledLayout, CompiledStyle }
+        .Concat(AbilityHudFrame.Kinds.Select(kind => $"panorama/images/custom_game/elysium/abilities/{kind}.vsvg_c"))
+        .Where(path => !exists(path)).ToArray();
 
     public void SetClass(int playerId, string panel, string name, bool enabled) => _class(_entity, playerId, panel, name,
         enabled ? EHudPanelClassStatus_t.k_eHudPanelClassStatus_HasClass : EHudPanelClassStatus_t.k_eHudPanelClassStatus_DoesNotHaveClass);

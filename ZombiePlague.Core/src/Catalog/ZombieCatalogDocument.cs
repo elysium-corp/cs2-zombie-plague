@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using ZombiePlague.Core.Config.Zombie;
+using ZombiePlague.Core.Config.Human;
 
 namespace ZombiePlague.Core.Catalog;
 
@@ -17,26 +18,29 @@ internal sealed class ZombieCatalogDocument
         WriteIndented = true
     };
 
-    public int FormatVersion { get; set; } = 1;
+    public int FormatVersion { get; set; } = 2;
     public string DefaultClass { get; set; } = "";
     public string NemesisClass { get; set; } = "";
+    public string DefaultHumanClass { get; set; } = "";
+    public string SurvivorClass { get; set; } = "";
     public List<ZombieClassDefinition> Classes { get; set; } = [];
     public List<ZombieAbilityDefinition> Abilities { get; set; } = [];
     public List<PlayerAbilityAssignment> PlayerAbilities { get; set; } = [];
 
-    public static ZombieCatalogDocument Parse(string json)
+    public static ZombieCatalogDocument Parse(string json, HClassConfig? humans = null)
     {
         if (System.Text.Encoding.UTF8.GetByteCount(json) > MaximumBytes)
             throw new InvalidDataException("Каталог классов превышает 2 МБ");
         var document = JsonSerializer.Deserialize<ZombieCatalogDocument>(json, JsonOptions)
             ?? throw new InvalidDataException("Каталог классов пуст");
+        CatalogUpgrade.Apply(document, humans ?? new HClassConfig());
         document.Validate();
         return document;
     }
 
     public void Validate()
     {
-        Require(FormatVersion == 1, "Неизвестная версия формата каталога");
+        Require(FormatVersion == 2, "Неизвестная версия формата каталога");
         Require(Classes is { Count: > 0 and <= 256 } && Abilities is { Count: <= 256 }, "Некорректный размер каталога");
         var abilities = new Dictionary<string, ZombieAbilityDefinition>(StringComparer.Ordinal);
         foreach (var ability in Abilities)
@@ -44,7 +48,8 @@ internal sealed class ZombieCatalogDocument
             Require(ability is not null, "Пустая способность");
             Key(ability.InternalName);
             Require(abilities.TryAdd(ability.InternalName, ability), "Повтор ключа способности");
-            Text(ability.DisplayName, 160, false); Text(ability.Description, 2000);
+            Text(ability.DisplayName, 160); Text(ability.Description, 2000);
+            LocalizationKey(ability.DisplayNameKey); LocalizationKey(ability.DescriptionKey);
             Require(ability.Side is "both" or "human" or "zombie", "Неизвестная сторона способности");
             _ = AbilityParameters.Parse(ability);
         }
@@ -55,11 +60,12 @@ internal sealed class ZombieCatalogDocument
             Require(item is not null, "Пустой класс");
             Key(item.InternalName);
             Require(classes.TryAdd(item.InternalName, item), "Повтор ключа класса");
-            Require(item.Kind is "zombie" or "nemesis", "Неизвестный тип класса");
-            Text(item.DisplayName, 160, false); Text(item.Description, 2000);
-            Text(item.DisplayNameKey, 160); Text(item.DescriptionKey, 160);
+            Require(item.Kind is "zombie" or "nemesis" or "human" or "survivor", "Неизвестный тип класса");
+            Text(item.DisplayName, 160); Text(item.Description, 2000);
+            LocalizationKey(item.DisplayNameKey); LocalizationKey(item.DescriptionKey);
             Text(item.PreviewModel, 2048);
-            Resource(item.Model, ".vmdl");
+            if (item.Kind is "zombie" or "nemesis" || item.Model != "") Resource(item.Model, ".vmdl");
+            Require(item.Armor is >= 0 and <= 1_000_000, "Броня вне диапазона");
             Require(item.Health is >= 1 and <= 1_000_000, "Здоровье вне диапазона");
             Range(item.Speed, 1, 2000, "Скорость");
             Range(item.Knockback, 0, 10, "Отдача");
@@ -91,6 +97,10 @@ internal sealed class ZombieCatalogDocument
             "Нужен включённый обычный класс по умолчанию");
         Require(classes.TryGetValue(NemesisClass, out var boss) && boss is { Enabled: true, Kind: "nemesis" },
             "Нужен включённый класс Nemesis");
+        Require(classes.TryGetValue(DefaultHumanClass, out var human) && human is { Enabled: true, Kind: "human" },
+            "Нужен включённый обычный класс человека по умолчанию");
+        Require(classes.TryGetValue(SurvivorClass, out var survivor) && survivor is { Enabled: true, Kind: "survivor" },
+            "Нужен включённый класс Survivor");
     }
 
     public IEnumerable<string> Resources() => Classes.Select(item => item.Model)
@@ -100,6 +110,9 @@ internal sealed class ZombieCatalogDocument
     {
         if (!condition) throw new InvalidDataException(message);
     }
+
+    internal static void LocalizationKey(string value) => Require(value is { Length: <= 160 } &&
+        Regex.IsMatch(value, "^[A-Z][A-Za-z0-9]*(?:\\.[A-Z][A-Za-z0-9]*)+$"), "Нужен ключ локализации, например ZombiePlague.Class.Medic.Name");
 
     internal static void Key(string value) => Require(value is not null && Regex.IsMatch(value, "^[a-z][a-z0-9_]{0,63}$"), "Некорректный ключ каталога");
     internal static void Text(string value, int maximum, bool empty = true) =>
@@ -114,7 +127,7 @@ internal sealed class ZombieCatalogDocument
     }
 }
 
-internal sealed class ZombieClassDefinition : IZClassConfig
+internal sealed class ZombieClassDefinition : IZClassConfig, IHClassConfig
 {
     public string InternalName { get; set; } = "";
     public bool Enabled { get; set; } = true;
@@ -125,6 +138,7 @@ internal sealed class ZombieClassDefinition : IZClassConfig
     public string DescriptionKey { get; set; } = "";
     public string Model { get; set; } = "";
     public int Health { get; set; }
+    public int Armor { get; set; }
     public float Speed { get; set; }
     public float Knockback { get; set; }
     public int Gravity { get; set; }
@@ -140,6 +154,8 @@ internal sealed class ZombieAbilityDefinition
     public string InternalName { get; set; } = "";
     public string DisplayName { get; set; } = "";
     public string Description { get; set; } = "";
+    public string DisplayNameKey { get; set; } = "";
+    public string DescriptionKey { get; set; } = "";
     public string Kind { get; set; } = "";
     public bool Enabled { get; set; } = true;
     public string Side { get; set; } = "both";

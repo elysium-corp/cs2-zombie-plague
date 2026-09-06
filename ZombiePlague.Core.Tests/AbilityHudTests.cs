@@ -17,17 +17,17 @@ public sealed class AbilityHudTests
     {
         var definition = new ZombieAbilityDefinition
         {
-            InternalName = "elite_heal", DisplayName = "Лечение элиты", Kind = "heal",
+            InternalName = "elite_heal", DisplayNameKey = "Ability.EliteHeal.Name", DisplayName = "Старое текстовое поле", Kind = "heal",
             Parameters = JsonSerializer.SerializeToElement(new { HealAmount = 2000 })
         };
         var factory = new AbilityFactory(null!, null!, () => throw new InvalidOperationException());
         var first = factory.Create(definition);
-        definition.DisplayName = "Новое имя после reload";
+        definition.DisplayNameKey = "Ability.OtherHeal.Name";
         definition.InternalName = "other_heal";
         var second = factory.Create(definition);
-        var frame = AbilityHudFrame.Create([first, first, second], 8, false, false);
+        var frame = AbilityHudFrame.Create([first, first, second], key => key, true);
         Assert.Equal(2, frame.Icons.Length);
-        Assert.Equal("Лечение элиты", frame.Icons[0].Name);
+        Assert.Equal("Ability.EliteHeal.Name", frame.Icons[0].Name);
         Assert.Equal("elite_heal", frame.Icons[0].Key);
         Assert.Equal("other_heal", frame.Icons[1].Key);
         Assert.All(frame.Icons, icon => Assert.Equal("heal", icon.Kind));
@@ -37,34 +37,76 @@ public sealed class AbilityHudTests
     public void FrameReadsActualCooldownWithoutUsingOrMutatingTheAbility()
     {
         var ability = new ProbeAbility { Presentation = new("heal", "Лечение", "heal"), IsActive = true };
-        var frame = AbilityHudFrame.Create([ability], 8, false, false);
+        var frame = AbilityHudFrame.Create([ability], key => key, false);
         Assert.Equal("Cooling", frame.Icons[0].State);
         Assert.Equal("13", frame.Icons[0].Countdown);
         Assert.Equal("E", frame.Icons[0].Hotkey);
         Assert.True(ability.IsActive);
         Assert.Equal(0, ability.Uses);
         ability.ResetCooldown();
-        frame = AbilityHudFrame.Create([ability], 8, false, false);
+        frame = AbilityHudFrame.Create([ability], key => key, false);
         Assert.Equal("Ready", frame.Icons[0].State);
         Assert.Empty(frame.Icons[0].Countdown);
     }
 
     [Fact]
-    public void PassiveBuffIsStableAndOverflowDoesNotChangeTheOwnedSet()
+    public void PassiveCooldownKeepsPassiveMarkerAndNeverMovesTheIcon()
     {
-        var passive = new DoubleJump(null!, new())
+        var passive = new ProbePassive
         {
             Presentation = new("double_jump", "Двойной прыжок", "double_jump"), IsActive = true
         };
-        var active = new ProbeAbility { Presentation = new("leap", "Прыжок", "leap") };
-        var frame = AbilityHudFrame.Create([passive, active], 1, true, false);
-        Assert.Single(frame.Icons);
-        Assert.Equal(1, frame.Overflow);
-        Assert.Equal("Passive", frame.Icons[0].State);
-        Assert.Empty(frame.Icons[0].Countdown);
-        Assert.Empty(frame.Icons[0].Hotkey);
-        Assert.Equal("CTRL+SPACE", AbilityHudFrame.Create([active], 12, true, true).Icons[0].Hotkey);
+        var active = new Leap(null!, new(), () => throw new InvalidOperationException())
+        {
+            Presentation = new("leap", "Прыжок", "leap")
+        };
+        var frame = AbilityHudFrame.Create([passive, active], key => key, true);
+        Assert.Equal("CTRL+SPACE", frame.Icons[0].Hotkey);
+        Assert.True(frame.Icons[1].Passive);
+        Assert.Equal("Cooling", frame.Icons[1].State);
+        Assert.Equal("13", frame.Icons[1].Countdown);
+        Assert.Equal("∞", frame.Icons[1].Hotkey);
         Assert.True(passive.IsActive);
+        Assert.Equal(0, passive.Uses);
+        passive.ResetCooldown();
+        var ready = AbilityHudFrame.Create([passive, active], key => key, true);
+        Assert.Equal(frame.Icons.Select(icon => icon.Key), ready.Icons.Select(icon => icon.Key));
+        Assert.True(ready.Icons[1].Passive);
+        Assert.Equal("Ready", ready.Icons[1].State);
+        Assert.Empty(ready.Icons[1].Countdown);
+    }
+
+    [Fact]
+    public void NamesFollowEachPlayersLocalizationAndRefreshWithoutCatalogReload()
+    {
+        var ability = new ProbeAbility { Presentation = new("heal", "Ability.Heal.Name", "heal") };
+        var russian = "Исцеление";
+        string Russian(string key) { Assert.Equal("Ability.Heal.Name", key); return russian; }
+        var sink = new RecordingSink();
+        var presenter = new AbilityHudPresenter(sink);
+        presenter.Render(1, AbilityHudFrame.Create([ability], Russian, true));
+        presenter.Render(2, AbilityHudFrame.Create([ability], _ => "Heal", true));
+        Assert.Contains("T:1:Buff0Name:Исцеление", sink.Calls);
+        Assert.Contains("T:2:Buff0Name:Heal", sink.Calls);
+        russian = "Восстановление";
+        sink.Calls.Clear();
+        presenter.Render(1, AbilityHudFrame.Create([ability], Russian, true));
+        Assert.Equal(["T:1:Buff0Name:Восстановление"], sink.Calls);
+        Assert.Empty(AbilityHudFrame.Create([ability], _ => throw new InvalidOperationException(), false).Icons[0].Name);
+    }
+
+    [Fact]
+    public void PassiveAndCoolingClassesCoexistAndPassiveIsRemovedWhenSlotChanges()
+    {
+        var sink = new RecordingSink();
+        var presenter = new AbilityHudPresenter(sink);
+        presenter.Render(1, new([Icon("double_jump", "Cooling", "9", true)], true));
+        Assert.Contains("C:1:Buff0:Passive:True", sink.Calls);
+        Assert.Contains("C:1:Buff0:Cooling:True", sink.Calls);
+        sink.Calls.Clear();
+        presenter.Render(1, new([Icon("charge", "Cooling", "9")], true));
+        Assert.Contains("C:1:Buff0:Passive:False", sink.Calls);
+        Assert.DoesNotContain("C:1:Buff0:Cooling:False", sink.Calls);
     }
 
     [Fact]
@@ -72,7 +114,7 @@ public sealed class AbilityHudTests
     {
         var sink = new RecordingSink();
         var presenter = new AbilityHudPresenter(sink);
-        var first = new AbilityHudFrame([Icon("heal", "Ready", "")], 0, false, false);
+        var first = new AbilityHudFrame([Icon("heal", "Ready", "")], false);
         presenter.Render(1, first);
         Assert.Equal("C:1:AbilityBuffs:Shown:True", sink.Calls[^1]);
         sink.Calls.Clear();
@@ -93,9 +135,9 @@ public sealed class AbilityHudTests
     {
         var sink = new RecordingSink();
         var presenter = new AbilityHudPresenter(sink);
-        presenter.Render(4, new([Icon("heal", "Cooling", "9"), Icon("leap", "Ready", "")], 0, false, true));
+        presenter.Render(4, new([Icon("heal", "Cooling", "9"), Icon("leap", "Ready", "")], true));
         sink.Calls.Clear();
-        presenter.Render(4, new([Icon("double_jump", "Passive", "")], 0, true, true));
+        presenter.Render(4, new([Icon("double_jump", "Ready", "", true)], true));
         Assert.Contains("C:4:Buff0:Kind_heal:False", sink.Calls);
         Assert.Contains("C:4:Buff0:Kind_double_jump:True", sink.Calls);
         Assert.Contains("C:4:Buff1:Shown:False", sink.Calls);
@@ -103,7 +145,7 @@ public sealed class AbilityHudTests
         Assert.DoesNotContain(4, presenter.PlayerIds);
         Assert.Equal("C:4:AbilityBuffs:Shown:False", sink.Calls[^1]);
         sink.Calls.Clear();
-        presenter.Render(4, new([Icon("catch", "Ready", "")], 0, false, false));
+        presenter.Render(4, new([Icon("catch", "Ready", "")], false));
         Assert.Contains("C:4:Buff0:Kind_catch:True", sink.Calls);
         Assert.Equal("C:4:AbilityBuffs:Shown:True", sink.Calls[^1]);
     }
@@ -120,35 +162,48 @@ public sealed class AbilityHudTests
     }
 
     [Fact]
-    public void OldSdkCanLoadExperimentWithoutNativeHudMethods()
+    public void PinnedSdkContainsHudApiAndExperimentRemainsOptIn()
     {
         Assert.False(new AbilityHudConfig().Enabled);
-        Assert.False(CustomHudRuntime.HasRequiredApi);
+        Assert.True(CustomHudRuntime.HasRequiredApi);
     }
 
     [Fact]
-    public void ConfigRejectsUnboundedTimersAndMoreIconsThanTheLayoutSupports()
+    public void ConfigRejectsUnboundedTimers()
     {
         Assert.Throws<InvalidDataException>(() => new AbilityHudConfig { RefreshSeconds = 0 }.Validate());
         Assert.Throws<InvalidDataException>(() => new AbilityHudConfig { RefreshSeconds = float.NaN }.Validate());
-        Assert.Throws<InvalidDataException>(() => new AbilityHudConfig { MaximumIcons = 13 }.Validate());
+    }
+
+    [Fact]
+    public void PreflightReportsMissingStyleAndImagesEvenWhenLayoutExists()
+    {
+        var missing = CustomHudRuntime.MissingResources(path => path == CustomHudRuntime.CompiledLayout);
+        Assert.Contains(CustomHudRuntime.CompiledStyle, missing);
+        Assert.Equal(9, missing.Length);
+        Assert.All(missing.Skip(1), path => Assert.EndsWith(".vsvg_c", path));
+        Assert.Empty(CustomHudRuntime.MissingResources(_ => true));
+        Assert.Contains(CustomHudRuntime.CompiledLayout, CustomHudRuntime.MissingResources(_ => false));
     }
 
     [Fact]
     public void PanoramaHasEveryServerTargetAndEveryIconWithoutScriptsOrInput()
     {
         var content = Path.Combine(AppContext.BaseDirectory, "ability-hud", "content", "panorama");
-        var xml = XDocument.Load(Path.Combine(content, "layout", "custom_game", "elysium_ability_buffs.xml"));
+        var xml = XDocument.Load(Path.Combine(content, "layout", "custom_game", "elysium_ability_buffs_v2.xml"));
         var ids = xml.Descendants().Attributes("id").Select(value => value.Value).ToArray();
         Assert.Equal(ids.Length, ids.Distinct().Count());
         Assert.Contains("AbilityBuffs", ids);
-        Assert.Contains("Side", ids);
-        Assert.Contains("Overflow", ids);
+        Assert.DoesNotContain("Side", ids);
+        Assert.DoesNotContain("Overflow", ids);
         Assert.DoesNotContain(xml.Descendants(), node => node.Name.LocalName is "scripts" or "Button");
+        Assert.Contains("s2r://" + CustomHudRuntime.CompiledStyle, xml.Descendants("include").Attributes("src").Select(value => value.Value));
+        for (var row = 0; row < AbilityHudFrame.MaximumRows; row++) Assert.Contains("BuffRow" + row, ids);
         for (var slot = 0; slot < AbilityHudFrame.SlotCount; slot++)
         {
             foreach (var suffix in new[] { "", "Name", "Time", "Key" }) Assert.Contains("Buff" + slot + suffix, ids);
             var panel = xml.Descendants("Panel").Single(node => (string?)node.Attribute("id") == "Buff" + slot);
+            Assert.Equal("BuffRow" + slot / AbilityHudFrame.IconsPerRow, (string?)panel.Parent?.Attribute("id"));
             Assert.Equal(AbilityHudFrame.Kinds.Length, panel.Descendants("Image").Count());
         }
         foreach (var src in xml.Descendants("Image").Attributes("src").Select(value => value.Value).Distinct())
@@ -160,7 +215,7 @@ public sealed class AbilityHudTests
         }
     }
 
-    private static AbilityHudIcon Icon(string kind, string state, string countdown) => new(kind, kind, kind, state, countdown, "");
+    private static AbilityHudIcon Icon(string kind, string state, string countdown, bool passive = false) => new(kind, kind, kind, passive, state, countdown, passive ? "∞" : "E");
 
     private sealed class RecordingSink : IAbilityHudSink
     {
@@ -173,6 +228,13 @@ public sealed class AbilityHudTests
     {
         public int Uses { get; private set; }
         public override KeyKind? Key => KeyKind.E;
+        public override float Cooldown => 12.3f;
+        public override void Use() => Uses++;
+    }
+
+    private sealed class ProbePassive() : BasePassiveAbility(null!, new DoubleJumpConfig())
+    {
+        public int Uses { get; private set; }
         public override float Cooldown => 12.3f;
         public override void Use() => Uses++;
     }

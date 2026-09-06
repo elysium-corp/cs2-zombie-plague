@@ -34,3 +34,6 @@ CREATE TABLE IF NOT EXISTS zombie_plague.player_abilities (
     PRIMARY KEY (steam_id, ability_key),
     UNIQUE (steam_id, sort_order)
 );
+ALTER TABLE zombie_plague.class_catalog_settings ADD COLUMN IF NOT EXISTS format_version integer NOT NULL DEFAULT 1;
+ALTER TABLE zombie_plague.class_catalog_settings ADD COLUMN IF NOT EXISTS default_human_class varchar(64) NOT NULL DEFAULT '';
+ALTER TABLE zombie_plague.class_catalog_settings ADD COLUMN IF NOT EXISTS survivor_class varchar(64) NOT NULL DEFAULT '';

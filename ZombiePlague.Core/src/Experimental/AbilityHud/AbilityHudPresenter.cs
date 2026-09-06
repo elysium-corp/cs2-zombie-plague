@@ -10,7 +10,7 @@ internal sealed class AbilityHudPresenter(IAbilityHudSink sink)
 {
     private readonly Dictionary<int, AbilityHudFrame> _frames = [];
     public IEnumerable<int> PlayerIds => _frames.Keys;
-    public int PlayerCount => _frames.Count;
+    public int PlayerCount => _frames.Values.Count(frame => frame.Icons.Length > 0);
 
     public void Render(int playerId, AbilityHudFrame frame)
     {
@@ -31,17 +31,18 @@ internal sealed class AbilityHudPresenter(IAbilityHudSink sink)
                 if (oldIcon is not null) sink.SetClass(playerId, panel, oldIcon.State, false);
                 if (icon is not null) sink.SetClass(playerId, panel, icon.State, true);
             }
+            if ((oldIcon?.Passive ?? false) != (icon?.Passive ?? false))
+                sink.SetClass(playerId, panel, "Passive", icon?.Passive ?? false);
             if (oldIcon?.Name != icon?.Name) sink.SetText(playerId, panel + "Name", icon?.Name ?? "");
             if (oldIcon?.Countdown != icon?.Countdown) sink.SetText(playerId, panel + "Time", icon?.Countdown ?? "");
             if (oldIcon?.Hotkey != icon?.Hotkey) sink.SetText(playerId, panel + "Key", icon?.Hotkey ?? "");
             if ((oldIcon is null) != (icon is null)) sink.SetClass(playerId, panel, "Shown", icon is not null);
         }
-        if (previous?.Overflow != frame.Overflow)
+        for (var row = 0; row < AbilityHudFrame.MaximumRows; row++)
         {
-            sink.SetText(playerId, "Overflow", frame.Overflow > 0 ? "+" + frame.Overflow : "");
-            sink.SetClass(playerId, "Overflow", "Shown", frame.Overflow > 0);
+            if ((row < (previous?.RowCount ?? 0)) != (row < frame.RowCount))
+                sink.SetClass(playerId, "BuffRow" + row, "Shown", row < frame.RowCount);
         }
-        if (previous?.Human != frame.Human) sink.SetText(playerId, "Side", frame.Human ? "ЛЮДИ" : "ЗОМБИ");
         if (previous?.ShowNames != frame.ShowNames) sink.SetClass(playerId, "AbilityBuffs", "ShowNames", frame.ShowNames);
         // Показ корня идёт последним, после заполнения всех иконок персонального набора
         if (previous is null || (previous.Icons.Length > 0) != (frame.Icons.Length > 0))

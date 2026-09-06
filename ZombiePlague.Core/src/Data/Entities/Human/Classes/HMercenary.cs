@@ -1,10 +1,9 @@
 using ZombiePlague.Core.Config.Human;
 using ZombiePlague.Core.Data.Abilities.Contracts;
-using ZombiePlague.Core.Catalog;
 
 namespace ZombiePlague.Core.Data.Entities.Human.Classes;
 
-internal sealed class HMercenary(HumanMercenary config, IAbilityFactory abilityFactory, ulong steamId = 0) : IHClass
+internal class HMercenary(IHClassConfig config, List<IAbility> abilities) : IHClass
 {
     public string Model { get; set; } = config.Model;
 
@@ -16,5 +15,5 @@ internal sealed class HMercenary(HumanMercenary config, IAbilityFactory abilityF
 
     public int Gravity { get; set; } = config.Gravity;
 
-    public List<IAbility> Abilities { get; set; } = abilityFactory.CreateFromStrings(config.Abilities, steamId, AbilitySide.Human);
+    public List<IAbility> Abilities { get; set; } = abilities;
 }
