@@ -1,4 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Players;
 using ZombiePlague.Api.Data.Store;
@@ -15,7 +15,7 @@ internal sealed class HumanController(ISwiftlyCore core, IPlayerRepository playe
         human = null;
 
         var classId = playerRepository.GetHClassId(player);
-        var hClass = hClassFactory.CreateOrDefault(classId);
+        var hClass = hClassFactory.CreateOrDefault(classId, player.SteamID);
 
         human = Human.Create(core, player, hClass);
 
@@ -31,7 +31,7 @@ internal sealed class HumanController(ISwiftlyCore core, IPlayerRepository playe
             return false;
         }
 
-        var survivorClass = hClassFactory.Create<HSurvivor>();
+        var survivorClass = hClassFactory.Create<HSurvivor>(player.SteamID);
 
         survivor = Human.Create(core, player, survivorClass);
 

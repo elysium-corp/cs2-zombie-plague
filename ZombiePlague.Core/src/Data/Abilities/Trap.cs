@@ -161,7 +161,7 @@ internal sealed class TrapEntity(ISwiftlyCore core, TrapConfig config, IPlayer c
             return;
         }
 
-        if (!caster.IsValid || !caster.IsZombie())
+        if (!caster.IsValid || !caster.IsAlive)
         {
             Despawn();
             return;
@@ -171,7 +171,8 @@ internal sealed class TrapEntity(ISwiftlyCore core, TrapConfig config, IPlayer c
             config.TriggerRadius,
             Entity.AbsOrigin.Value
         ).Where(foundPlayer =>
-            foundPlayer.IsValid && foundPlayer.PlayerID != caster.PlayerID && !foundPlayer.IsZombie()).ToList();
+            foundPlayer.IsValid && foundPlayer.IsAlive && foundPlayer.PlayerID != caster.PlayerID &&
+            foundPlayer.Controller.Team != caster.Controller.Team).ToList();
 
         if (foundPlayers.Any())
         {

@@ -1,51 +1,42 @@
-﻿using Localization.Api;
-using Microsoft.Extensions.Options;
+using Localization.Api;
 using SwiftlyS2.Shared;
+using ZombiePlague.Core.Catalog;
 using ZombiePlague.Core.Config.Ability;
 using ZombiePlague.Core.Data.Abilities.Contracts;
 
 namespace ZombiePlague.Core.Data.Abilities;
 
-internal class AbilityFactory(
+internal sealed class AbilityFactory(
     ISwiftlyCore core,
-    IOptions<AbilityConfig> config,
+    ZombieCatalogService catalog,
     Func<ILocalizationApi> localization) : IAbilityFactory
 {
-    public IAbility Create<T>() where T : IAbility
-    {
-        return typeof(T) switch
-        {
-            var t when t == typeof(Heal) => new Heal(core, config.Value.Heal, localization),
-            var t when t == typeof(Leap) => new Leap(core, config.Value.Leap, localization),
-            var t when t == typeof(Blind) => new Blind(core, config.Value.Blind),
-            var t when t == typeof(Charge) => new Charge(core, config.Value.Charge, localization),
-            var t when t == typeof(Trap) => new Trap(core, config.Value.Trap, localization),
-            var t when t == typeof(Catch) => new Catch(core, config.Value.Catch, localization),
-            var t when t == typeof(DoubleJump) => new DoubleJump(core, config.Value.DoubleJump),
-            _ => throw new NotSupportedException("ZAbilityFactory: type T hasn't supported!")
-        };
-    }
+    public IAbility Create<T>() where T : IAbility => CreateByName(typeof(T) == typeof(DoubleJump)
+        ? "double_jump" : typeof(T).Name.ToLowerInvariant());
 
     public IAbility CreateByName(string abilityName)
     {
-        return abilityName.ToLowerInvariant() switch
-        {
-            "heal" => Create<Heal>(),
-            "leap" => Create<Leap>(),
-            "blind" => Create<Blind>(),
-            "charge" => Create<Charge>(),
-            "trap" => Create<Trap>(),
-            "catch" => Create<Catch>(),
-            "double_jump" => Create<DoubleJump>(),
-            
-            _ => throw new NotSupportedException($"Ability '{abilityName}' is not supported.")
-        };
+        var definition = catalog.Current.Document.Abilities.FirstOrDefault(item => item.InternalName == abilityName)
+            ?? throw new NotSupportedException($"Способность {abilityName} отсутствует в каталоге");
+        return Create(definition);
     }
 
-    public List<IAbility> CreateFromStrings(List<string> abilities)
+    internal IAbility Create(ZombieAbilityDefinition definition) => AbilityParameters.Parse(definition) switch
     {
-        return abilities
-            .Select(CreateByName)
-            .ToList();
+        HealConfig config => new Heal(core, config, localization),
+        LeapConfig config => new Leap(core, config, localization),
+        BlindConfig config => new Blind(core, config),
+        ChargeConfig config => new Charge(core, config, localization),
+        TrapConfig config => new Trap(core, config, localization),
+        CatchConfig config => new Catch(core, config, localization),
+        DoubleJumpConfig config => new DoubleJump(core, config),
+        _ => throw new NotSupportedException($"Неизвестная механика {definition.Kind}")
+    };
+
+    public List<IAbility> CreateFromStrings(List<string> abilities, ulong steamId = 0, AbilitySide side = AbilitySide.Zombie)
+    {
+        var snapshot = catalog.Current;
+        // Удалённая способность в старом human_class.json не должна ломать создание игрока
+        return snapshot.ResolveAbilities(abilities, steamId, side).Select(Create).ToList();
     }
 }

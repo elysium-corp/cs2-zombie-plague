@@ -26,4 +26,9 @@
         </ProjectReference>
     </ItemGroup>
 
+    <ItemGroup>
+        <None Include="../ZombiePlague.Core/resources/templates/zombie_catalog.example.json"
+              Link="zombie_catalog.example.json" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+
 </Project>

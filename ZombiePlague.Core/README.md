@@ -1,36 +1,103 @@
-<div align="center">
-  <img src="https://pan.samyyc.dev/s/VYmMXE" />
-  <h2><strong>[ZP] MoneySystem</strong></h2>
-  <h3>Manages money on the server</h3>
-</div>
+# ZombiePlague.Core
 
-<p align="center">
-  <img src="https://img.shields.io/badge/build-passing-brightgreen" alt="Build Status">
-  <img src="https://img.shields.io/github/downloads/illusion & fdrinv/ZPCore/total" alt="Downloads">
-  <img src="https://img.shields.io/github/stars/illusion & fdrinv/ZPCore?style=flat&logo=github" alt="Stars">
-  <img src="https://img.shields.io/github/license/illusion & fdrinv/ZPCore" alt="License">
-</p>
+Ядро Zombie Plague для CS2 и SwiftlyS2 — классы, роли, заражение, режимы и способности
 
-## Getting Started (delete me)
+## Каталог классов и способностей
 
-1. **Edit `PluginMetadata` Attribute**  
-   - Set your plugin's `Id`, `Name`, `Version`, `Author` and `Description`.
-2. **Edit `ZPCore.csproj`**  
-   - Set the `<AssemblyName>` property to match your plugin's main class name.
-   - Add any additional dependencies as needed.
-3. **Implement your plugin logic** in C#.
-   - Place your main plugin class in the root of the project.
-   - Use the SwiftlyS2 managed API to interact with the game and core.
-4. **Add resources**  
-   - Place any required files in the `gamedata`, `templates`, or `translations` folders as needed.
+Начиная с 0.2.0, классы зомби, способности и персональные назначения читаются из PostgreSQL через подключение SwiftlyS2 `elysium_zp_server_1`
+Админка `ElysiumZombieClasses` использует подключение к той же игровой БД из реестра `ElysiumEquipments`
 
-## Building
+Каталог загружается целиком одним SELECT: определения классов, способности, связи, назначения SteamID64 и версия
+Сервер валидирует весь снимок до его замены, поэтому частичное сохранение не меняет игру
 
-- Open the project in your preferred .NET IDE (e.g., Visual Studio, Rider, VS Code).
-- Build the project. The output DLL and resources will be placed in the `build/` directory.
-- The publish process will also create a zip file for easy distribution.
+| Триггер | Действие |
+|---|---|
+| Загрузка плагина | Загрузить БД или fallback до запуска игрового координатора |
+| Начало карты | Обновить каталог до precache моделей и частиц |
+| `zp_classes_reload` | Обновить классы, способности и персональные назначения |
+| `zp_abilities_reload` | То же обновление полного каталога |
+| `zp_classes_status` | Показать источник, версию, число записей и ожидание новых ресурсов |
 
-## Publishing
+Команды требуют `zombie_plague.admin.classes` и доступны из серверной консоли
+Периодического опроса БД и слежения за изменениями fallback нет
+Параллельные команды объединяются в один выполняющийся запрос, выгрузка отменяет и завершает его
+Подключение и SQL ограничены тайм-аутами по 5 секунд
 
-- Use the `dotnet publish -c Release` command to build and package your plugin.
-- Distribute the generated zip file or the contents of the `build/publish` directory.
+При ошибке БД сервер заново читает `configs/ZombiePlague.Core/zombie_catalog.json` относительно SwiftlyS2
+Если оба источника недоступны или не проходят проверку, сохраняется последний рабочий снимок в памяти
+При первом запуске без единого рабочего источника плагин не запускает игровой координатор и пишет ошибку
+
+Новый снимок используется при следующем создании роли, включая заражение, начало раунда и пересоздание обычного зомби при респавне
+Существующие роли сохраняют свой набор до пересоздания
+Если reload добавляет ещё не зарегистрированные модели или частицы, полный снимок ожидает precache следующей карты — `pending_resources` виден в статусе
+При горячей загрузке плагина посреди карты новые игровые ресурсы требуют смены карты
+
+## Персональные способности и стороны
+
+В `PlayerAbilities` хранится одна запись на SteamID64 со списком ключей способностей
+SteamID64 передаётся строкой, чтобы JavaScript не округлял идентификатор
+
+```json
+{
+  "SteamId": "76561198000000001",
+  "DisplayName": "Ник игрока",
+  "Enabled": true,
+  "Abilities": ["heal", "double_jump"]
+}
+```
+
+При создании роли сервер объединяет список класса и личный список игрока по `InternalName`, отбрасывает выключенные и недоступные для текущей стороны способности, затем создаёт объекты
+Совпавший ключ даёт ровно один экземпляр, одну подписку на ввод и один cooldown
+У разных игроков и вновь создаваемых ролей собственные объекты способностей
+Снятие личного назначения не снимает ту же способность, если она осталась у класса
+
+| `Side` способности | Доступ |
+|---|---|
+| `human` | Люди, включая Survivor |
+| `zombie` | Зомби, включая Nemesis |
+| `both` | Обе стороны |
+
+Ограничение одинаково действует на способности класса и личные назначения
+Неактивная на текущей стороне личная способность сохраняет назначение и станет доступна после подходящего превращения
+В старом экспорте без `Side` используется `both`
+В базовом каталоге Leap доступен обеим сторонам, Double Jump людям, остальные способности зомби — это сохраняет штатные наборы Survivor и обычных классов
+
+`InternalName` определяет уникальность способности, а `Kind` — её серверную механику
+Поддерживаются `heal`, `leap`, `blind`, `charge`, `trap`, `catch`, `double_jump`
+Можно создавать несколько записей одной механики с разными ключами и параметрами
+Они считаются разными способностями; активные способности на E срабатывают вместе
+Новая механика требует реализации в плагине и описания параметров в веб-модуле
+Ловушка работает против противоположной команды и поддерживает назначение обеим сторонам
+
+Классы людей сохраняются в `human_class.json`, их поле `Abilities` ссылается на общий каталог
+Удалённые ключи в старом human-конфиге пропускаются при создании роли
+
+## Установка и перенос
+
+1. Установить веб-модуль `ElysiumZombieClasses` и открыть **Elysium → Классы зомби**
+2. Выбрать игровой сервер и импортировать текущую пару `zombie_class.json` + `ability.json` либо готовый `zombie_catalog.json`
+3. Для нового сервера можно создать базовый каталог — эта операция создаёт таблицы, повторное выполнение не перезаписывает существующие данные
+4. Сохранить, скачать fallback и установить его в `configs/ZombiePlague.Core/zombie_catalog.json`
+5. Установить пакет `ZombiePlague.Core` версии 0.2.0 и сменить карту
+6. Проверить источник командой `zp_classes_status`
+
+DDL находится в `src/Catalog/schema.sql`, совпадает с веб-модулем и выполняется админкой при инициализации
+Игровому подключению для каталога достаточно `USAGE` схемы `zombie_plague` и `SELECT` таблиц каталога
+Остальные права, нужные существующим настройкам игроков и миграциям, остаются отдельными
+
+При недоступной БД и отсутствующем `zombie_catalog.json` плагин один раз преобразует старые `zombie_class.json` и `ability.json`, сохраняя значения и ключи, и записывает новый fallback
+Исходные файлы не перезаписываются
+Если старых файлов вообще нет, копируется `resources/templates/zombie_catalog.example.json`
+Повреждённая или неполная пара старых конфигов не заменяется молча стандартными значениями
+
+3D-превью хранится как URL GLB для сайта, игровая модель остаётся путём VMDL в установленном addon
+Для новых классов используются название и описание из БД, необязательные ключи локализации позволяют подключить переводы
+
+## Проверка и сборка
+
+```powershell
+pwsh ./scripts/build-package.ps1 -Configuration Release
+dotnet test CS2ZombiePlague.sln --configuration Release --no-build --no-restore
+```
+
+Тесты каталога проверяют загрузку и восстановление БД, перечитывание fallback, отмену, миграцию старых настроек, валидацию, уникальность персональных назначений, объединение способностей, стороны и отложенный precache ресурсов

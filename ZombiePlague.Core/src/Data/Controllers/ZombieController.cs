@@ -17,7 +17,7 @@ internal sealed class ZombieController(
         if (!player.IsValid) return null;
 
         var classId = playerRepository.GetZClassId(player);
-        var zClass = zClassFactory.CreateOrDefault(classId);
+        var zClass = zClassFactory.CreateOrDefault(classId, player.SteamID);
 
         return Zombie.Create(core, player, zClass);
     }
@@ -26,7 +26,7 @@ internal sealed class ZombieController(
     {
         if (!player.IsValid) return null;
 
-        var zClass = zClassFactory.Create<ZNemesis>();
+        var zClass = zClassFactory.Create<ZNemesis>(player.SteamID);
 
         return Zombie.Create(core, player, zClass);
     }

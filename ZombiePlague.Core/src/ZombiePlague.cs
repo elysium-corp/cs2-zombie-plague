@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using SwiftlyS2.Shared;
 using ZombiePlague.Api;
 using ZombiePlague.Core.Api;
+using ZombiePlague.Core.Catalog;
 using ZombiePlague.Core.Data.Coordinators.Contracts;
 using ZombiePlague.Core.Data.Plugins.ResourceLoader;
 using ZombiePlague.Core.Database;
@@ -30,6 +31,7 @@ namespace ZombiePlague.Core;
 public sealed partial class ZombiePlague(ISwiftlyCore core) : Plugin<ZombiePlagueModule>(core)
 {
     private readonly Lazy<IResourceLoader> _resourceLoader = GetRequiredServiceLazy<IResourceLoader>();
+    private readonly Lazy<ZombieCatalogLifecycle> _catalog = GetRequiredServiceLazy<ZombieCatalogLifecycle>();
     private readonly Lazy<IZombiePlagueCoordinator> _coordinator = GetRequiredServiceLazy<IZombiePlagueCoordinator>();
     private readonly Lazy<ZombiePlagueApi> _api = GetRequiredServiceLazy<ZombiePlagueApi>();
     private readonly Lazy<MenuExtensionDispatcherProxy> _menuApiBridge = GetRequiredServiceLazy<MenuExtensionDispatcherProxy>();
@@ -79,13 +81,14 @@ public sealed partial class ZombiePlague(ISwiftlyCore core) : Plugin<ZombiePlagu
     protected override void OnStart()
     {
         TryMigrateDatabase();
-        
+        _catalog.Value.Start();
         _resourceLoader.Value.Initialize();
         _coordinator.Value.Start();
     }
 
     protected override void OnUnload()
     {
+        if (_catalog.IsValueCreated) _catalog.Value.Dispose();
         EffectService.Release(Core);
         _adminExtension.Value.Uninitialize();
         _metricsApiBridge.Value.Uninitialize();

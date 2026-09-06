@@ -1,28 +1,14 @@
-﻿using Microsoft.Extensions.Options;
+using ZombiePlague.Core.Catalog;
 using ZombiePlague.Core.Config.Zombie;
 
 namespace ZombiePlague.Core.Data.Entities.Registrator;
 
-internal class ZClassRegistrator(IOptions<ZClassConfig> config) : IZClassRegistrator
+internal sealed class ZClassRegistrator(ZombieCatalogService catalog) : IZClassRegistrator
 {
-    private readonly List<IZClassConfig> _zClasses = [];
-    
-    public IEnumerable<IZClassConfig> GetAll()
-    {
-        return _zClasses;
-    }
+    public IEnumerable<IZClassConfig> GetAll() => catalog.Current.Document.Classes
+        .OrderBy(item => item.SortOrder).ThenBy(item => item.InternalName, StringComparer.Ordinal).ToArray();
 
-    public IEnumerable<IZClassConfig> GetAllEnabled()
-    {
-        return _zClasses.Where(zClass => zClass.Enabled).ToList();
-    }
+    public IEnumerable<IZClassConfig> GetAllEnabled() => GetAll().Where(item => item.Enabled).ToArray();
 
-    public void Register()
-    {
-        _zClasses.Clear();
-
-        var rounds = config.Value.GetAll();
-        
-        _zClasses.AddRange(rounds);
-    }
+    public void Register() { }
 }
