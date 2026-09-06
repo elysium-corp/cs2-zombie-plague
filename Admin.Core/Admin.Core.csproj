@@ -9,18 +9,18 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.3"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.3" />
 
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.3">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
 
-        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.3"/>
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.3" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Admin.Api\Admin.Api.csproj"/>
+        <ProjectReference Include="..\Admin.Api\Admin.Api.csproj" />
         <ProjectReference Include="..\Common.Database\Common.Database.csproj">
             <Private>true</Private>
         </ProjectReference>
@@ -32,7 +32,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="SwiftlyS2.CS2" Version="1.4.6-beta.8" />
+        <PackageReference Include="SwiftlyS2.CS2" Version="1.4.9" />
     </ItemGroup>
 
 </Project>
