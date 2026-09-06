@@ -1,4 +1,6 @@
-﻿namespace ZombiePlague.Core.Data.Abilities.Contracts;
+using ZombiePlague.Core.Catalog;
+
+namespace ZombiePlague.Core.Data.Abilities.Contracts;
 
 internal interface IAbilityFactory
 {
@@ -6,5 +8,5 @@ internal interface IAbilityFactory
 
     public IAbility CreateByName(string abilityName);
 
-    public List<IAbility> CreateFromStrings(List<string> abilities);
+    public List<IAbility> CreateFromStrings(List<string> abilities, ulong steamId = 0, AbilitySide side = AbilitySide.Zombie);
 }

@@ -1,0 +1,294 @@
+{
+  "FormatVersion": 1,
+  "DefaultClass": "zombie_cleric",
+  "NemesisClass": "zombie_nemesis",
+  "Classes": [
+    {
+      "Enabled": true,
+      "InternalName": "zombie_cleric",
+      "DisplayName": "Cleric",
+      "Model": "characters/models/nozb1/zombie_stalker_player_model/zombie_stalker_player_model.vmdl",
+      "Description": "Лечит зомби",
+      "Health": 3500,
+      "Speed": 280.0,
+      "Knockback": 0.9,
+      "Gravity": 600,
+      "InfectionSound": "ZombiePlagueAbility.Infection.infection1",
+      "HurtSounds": [
+        "ZombiePlagueSounds.zombie_pain_cleric_pain_01",
+        "ZombiePlagueSounds.zombie_pain_cleric_pain_02"
+      ],
+      "Abilities": [
+        "heal",
+        "leap"
+      ],
+      "Kind": "zombie",
+      "SortOrder": 0,
+      "PreviewModel": "",
+      "DisplayNameKey": "ZombiePlague.ZClass.Zombie.Cleric.Name",
+      "DescriptionKey": "ZombiePlague.ZClass.Zombie.Cleric.Description"
+    },
+    {
+      "Enabled": true,
+      "InternalName": "zombie_hunter",
+      "DisplayName": "Hunter",
+      "Model": "characters/models/kolka/2025/lurker/lurker.vmdl",
+      "Description": "Ставит ловушки",
+      "Health": 3700,
+      "Speed": 280.0,
+      "Knockback": 0.9,
+      "Gravity": 600,
+      "InfectionSound": "ZombiePlagueAbility.Infection.infection2",
+      "HurtSounds": [
+        "ZombiePlagueSounds.zombie_pain_hunter_01",
+        "ZombiePlagueSounds.zombie_pain_hunter_02"
+      ],
+      "Abilities": [
+        "trap",
+        "leap"
+      ],
+      "Kind": "zombie",
+      "SortOrder": 1,
+      "PreviewModel": "",
+      "DisplayNameKey": "ZombiePlague.ZClass.Zombie.Hunter.Name",
+      "DescriptionKey": "ZombiePlague.ZClass.Zombie.Hunter.Description"
+    },
+    {
+      "Enabled": true,
+      "InternalName": "zombie_assassin",
+      "DisplayName": "Assassin",
+      "Model": "characters/models/nozb1/zhunter_player_model/zhunter_player_model.vmdl",
+      "Description": "Ускоряется",
+      "Health": 3200,
+      "Speed": 280.0,
+      "Knockback": 0.9,
+      "Gravity": 600,
+      "InfectionSound": "ZombiePlagueAbility.Infection.infection3",
+      "HurtSounds": [
+        "ZombiePlagueSounds.zombie_pain_assassin_01",
+        "ZombiePlagueSounds.zombie_pain_assassin_02"
+      ],
+      "Abilities": [
+        "charge",
+        "leap"
+      ],
+      "Kind": "zombie",
+      "SortOrder": 2,
+      "PreviewModel": "",
+      "DisplayNameKey": "ZombiePlague.ZClass.Zombie.Assassin.Name",
+      "DescriptionKey": "ZombiePlague.ZClass.Zombie.Assassin.Description"
+    },
+    {
+      "Enabled": true,
+      "InternalName": "zombie_heavy",
+      "DisplayName": "Heavy",
+      "Model": "characters/models/nozb1/chris_walker_player_model/chris_walker_player_model.vmdl",
+      "Description": "Ослепляет",
+      "Health": 5200,
+      "Speed": 250.0,
+      "Knockback": 0.9,
+      "Gravity": 700,
+      "InfectionSound": "ZombiePlagueAbility.Infection.infection1",
+      "HurtSounds": [
+        "ZombiePlagueSounds.zombie_pain_heavy_01",
+        "ZombiePlagueSounds.zombie_pain_heavy_02"
+      ],
+      "Abilities": [
+        "blind",
+        "leap"
+      ],
+      "Kind": "zombie",
+      "SortOrder": 3,
+      "PreviewModel": "",
+      "DisplayNameKey": "ZombiePlague.ZClass.Zombie.Heavy.Name",
+      "DescriptionKey": "ZombiePlague.ZClass.Zombie.Heavy.Description"
+    },
+    {
+      "Enabled": true,
+      "InternalName": "zombie_smoker",
+      "DisplayName": "Smoker",
+      "Model": "characters/models/nozb1/jason_player_model/jason_player_model.vmdl",
+      "Description": "Притягивает",
+      "Health": 3250,
+      "Speed": 270.0,
+      "Knockback": 0.9,
+      "Gravity": 800,
+      "InfectionSound": "ZombiePlagueAbility.Infection.infection2",
+      "HurtSounds": [
+        "ZombiePlagueSounds.zombie_pain_smoker_01",
+        "ZombiePlagueSounds.zombie_pain_smoker_02"
+      ],
+      "Abilities": [
+        "catch",
+        "leap"
+      ],
+      "Kind": "zombie",
+      "SortOrder": 4,
+      "PreviewModel": "",
+      "DisplayNameKey": "ZombiePlague.ZClass.Zombie.Smoker.Name",
+      "DescriptionKey": "ZombiePlague.ZClass.Zombie.Smoker.Description"
+    },
+    {
+      "Enabled": true,
+      "InternalName": "zombie_nemesis",
+      "DisplayName": "Nemesis",
+      "Model": "characters/models/nozb1/nemesis_player_model/nemesis_player_model.vmdl",
+      "Description": "Убивает",
+      "Health": 5000,
+      "Speed": 300.0,
+      "Knockback": 1.0,
+      "Gravity": 400,
+      "InfectionSound": "",
+      "HurtSounds": [
+        "ZombiePlagueSounds.zombie_pain_nemesis_01",
+        "ZombiePlagueSounds.zombie_pain_nemesis_02"
+      ],
+      "Abilities": [
+        "leap"
+      ],
+      "Kind": "nemesis",
+      "SortOrder": 5,
+      "PreviewModel": "",
+      "DisplayNameKey": "ZombiePlague.ZClass.Zombie.Nemesis.Name",
+      "DescriptionKey": "ZombiePlague.ZClass.Zombie.Nemesis.Description"
+    }
+  ],
+  "Abilities": [
+    {
+      "InternalName": "heal",
+      "DisplayName": "Лечение",
+      "Description": "",
+      "Kind": "heal",
+      "Enabled": true,
+      "Parameters": {
+        "MaxHealDistance": 350.0,
+        "HealAmount": 500,
+        "CooldownTime": 20.0,
+        "ParticleEffectNames": [
+          "particles/kolka/part2.vpcf"
+        ],
+        "DurationParticleEffect": 2.0,
+        "SoundEffectNames": [
+          "ZombiePlagueAbility.zombie_healing_1"
+        ],
+        "HasScreenEffectAfterAbilityOnTarget": true,
+        "DurationEffectAfterAbilityOnTarget": 200,
+        "HoldTimeEffectAfterAbilityOnTarget": 75,
+        "RedColorEffectAfterAbilityOnTarget": 0,
+        "GreenColorEffectAfterAbilityOnTarget": 255,
+        "BlueColorEffectAfterAbilityOnTarget": 0,
+        "AlphaEffectAfterAbilityOnTarget": 80
+      },
+      "Side": "zombie"
+    },
+    {
+      "InternalName": "leap",
+      "DisplayName": "Дальний прыжок",
+      "Description": "",
+      "Kind": "leap",
+      "Enabled": true,
+      "Parameters": {
+        "CooldownTime": 10.0,
+        "LeapDistance": 550.0,
+        "LeapBoost": 350.0
+      },
+      "Side": "both"
+    },
+    {
+      "InternalName": "blind",
+      "DisplayName": "Ослепление",
+      "Description": "",
+      "Kind": "blind",
+      "Enabled": true,
+      "Parameters": {
+        "CooldownTime": 50.0,
+        "ParticleEffectNames": [
+          ""
+        ],
+        "DurationParticleEffect": 2.0,
+        "SoundEffectNames": [
+          ""
+        ],
+        "DurationEffectAfterAbilityOnAttacker": 300,
+        "HoldTimeEffectAfterAbilityOnAttacker": 2000,
+        "RedColorEffectAfterAbilityOnAttacker": 0,
+        "GreenColorEffectAfterAbilityOnAttacker": 0,
+        "BlueColorEffectAfterAbilityOnAttacker": 0,
+        "AlphaEffectAfterAbilityOnAttacker": 255
+      },
+      "Side": "zombie"
+    },
+    {
+      "InternalName": "charge",
+      "DisplayName": "Рывок",
+      "Description": "",
+      "Kind": "charge",
+      "Enabled": true,
+      "Parameters": {
+        "CooldownTime": 20.0,
+        "ParticleEffectNames": [
+          ""
+        ],
+        "SoundEffectNames": [
+          "ZombiePlagueAbility.zombie_pressure"
+        ],
+        "MaxSpeed": 550.0,
+        "ChargeTime": 3,
+        "SpeedUpdatePerTimeTick": 0.05
+      },
+      "Side": "zombie"
+    },
+    {
+      "InternalName": "trap",
+      "DisplayName": "Ловушка",
+      "Description": "",
+      "Kind": "trap",
+      "Enabled": true,
+      "Parameters": {
+        "CooldownTime": 20.0,
+        "ParticleEffectName": "particles/kolka/part7.vpcf",
+        "SoundEffectNames": [
+          "ZombiePlagueAbility.zombie_trap_cathed"
+        ],
+        "LiveDuration": 20.0,
+        "EffectDuration": 5.0,
+        "TriggerRadius": 100.0
+      },
+      "Side": "zombie"
+    },
+    {
+      "InternalName": "catch",
+      "DisplayName": "Притягивание",
+      "Description": "",
+      "Kind": "catch",
+      "Enabled": true,
+      "Parameters": {
+        "CooldownTime": 20.0,
+        "SoundEffectNames": [
+          "ZombiePlagueAbility.zombie_trap_cathed"
+        ],
+        "Strength": 100.0,
+        "MaxDistance": 1000.0,
+        "BeamWidth": 0.5,
+        "RedColorEffect": 255,
+        "GreenColorEffect": 255,
+        "BlueColorEffect": 0,
+        "MissSound": "ZombiePlagueAbility.Zombie.Smoker.smoker_miss",
+        "ShotSound": "ZombiePlagueAbility.Zombie.Smoker.smoker_drag1"
+      },
+      "Side": "zombie"
+    },
+    {
+      "InternalName": "double_jump",
+      "DisplayName": "Двойной прыжок",
+      "Description": "",
+      "Kind": "double_jump",
+      "Enabled": true,
+      "Parameters": {
+        "BaseJumpUnits": 54.0
+      },
+      "Side": "human"
+    }
+  ],
+  "PlayerAbilities": []
+}

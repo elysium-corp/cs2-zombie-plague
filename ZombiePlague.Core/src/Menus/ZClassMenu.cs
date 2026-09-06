@@ -1,4 +1,4 @@
-﻿using Menu.Api.Data;
+using Menu.Api.Data;
 using Menu.Api.Data.Contracts;
 using Menu.Api.Extensions;
 using Localization.Api;
@@ -10,6 +10,7 @@ using SwiftlyS2.Shared.Players;
 using ZombiePlague.Api.Data.Store;
 using ZombiePlague.Api.Menus;
 using ZombiePlague.Core.Config.Zombie;
+using ZombiePlague.Core.Catalog;
 using ZombiePlague.Core.Data.Entities.Registrator;
 
 namespace ZombiePlague.Core.Menus;
@@ -55,7 +56,7 @@ internal sealed class ZClassMenu(
 
         var zClasses = zClassRegistrator
             .GetAllEnabled()
-            .Where(zClass => zClass is not ZombieNemesis);
+            .Where(zClass => zClass is not ZombieClassDefinition { Kind: "nemesis" });
 
         foreach (var zClass in zClasses)
         {
@@ -87,6 +88,13 @@ internal sealed class ZClassMenu(
         {
             var player = args.Player;
 
+            // Открытое меню могло пережить синхронизацию и удаление класса
+            if (!zClassRegistrator.GetAllEnabled().Any(item => item.InternalName == zClass.InternalName &&
+                    item is not ZombieClassDefinition { Kind: "nemesis" }))
+            {
+                core.MenusAPI.CloseActiveMenu(player);
+                return ValueTask.CompletedTask;
+            }
             playerRepository.SetZClassId(player, zClass.InternalName);
 
             if (player.IsAuthorized && !player.IsFakeClient)
@@ -127,9 +135,9 @@ internal sealed class ZClassMenu(
         string field,
         string fallback)
     {
-        return localization().GetForPlayer(
-                   player,
-                   $"ZombiePlague.ZClass.{LocalizationKey.Canonicalize(zClass.InternalName)}.{field}")
-               ?? fallback;
+        var key = zClass is ZombieClassDefinition definition
+            ? field == "Name" ? definition.DisplayNameKey : definition.DescriptionKey
+            : $"ZombiePlague.ZClass.{LocalizationKey.Canonicalize(zClass.InternalName)}.{field}";
+        return string.IsNullOrWhiteSpace(key) ? fallback : localization().GetForPlayer(player, key) ?? fallback;
     }
 }

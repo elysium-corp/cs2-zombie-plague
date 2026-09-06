@@ -15,11 +15,10 @@ using ZombiePlague.Api.Data.Store;
 using ZombiePlague.Api.Events;
 using ZombiePlague.Core.Api;
 using ZombiePlague.Core.Api.Events;
-using ZombiePlague.Core.Config.Ability;
+using ZombiePlague.Core.Catalog;
 using ZombiePlague.Core.Config.Core;
 using ZombiePlague.Core.Config.Human;
 using ZombiePlague.Core.Config.Round;
-using ZombiePlague.Core.Config.Zombie;
 using ZombiePlague.Core.Data.Abilities;
 using ZombiePlague.Core.Data.Abilities.Contracts;
 using ZombiePlague.Core.Data.Controllers;
@@ -76,20 +75,10 @@ public sealed class ZombiePlagueModule(ISwiftlyCore core) : BaseModule(core)
             name: "core.json",
             section: "CoreConfig"
         );
-        AddConfig<ZClassConfig>(
-            service: service,
-            name: "zombie_class.json",
-            section: "ZClassConfig"
-        );
         AddConfig<HClassConfig>(
             service: service,
             name: "human_class.json",
             section: "HClassConfig"
-        );
-        AddConfig<AbilityConfig>(
-            service: service,
-            name: "ability.json",
-            section: "AbilityConfig"
         );
         AddConfig<RoundConfig>(
             service: service,
@@ -117,7 +106,11 @@ public sealed class ZombiePlagueModule(ISwiftlyCore core) : BaseModule(core)
         AddSingleton<IPlayerPersistenceService, PlayerPersistenceService>(service);
         AddSingleton<IPlayerPreferencesCoordinator, PlayerPreferencesCoordinator>(service);
 
-        AddSingleton<IAbilityFactory, AbilityFactory>(service);
+        AddSingleton<ZombieCatalogRepository>(service);
+        AddSingleton<ZombieCatalogService>(service);
+        AddSingleton<ZombieCatalogLifecycle>(service);
+        AddSingleton<AbilityFactory>(service);
+        AddSingleton<IAbilityFactory>(service, provider => provider.GetRequiredService<AbilityFactory>());
         AddSingleton<IHClassFactory, HClassFactory>(service);
         AddSingleton<IZClassFactory, ZClassFactory>(service);
 
