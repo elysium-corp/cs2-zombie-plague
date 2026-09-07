@@ -1,6 +1,6 @@
 # Elysium Custom HUD
 
-`CustomHud.Core 1.0.0` предоставляет `CustomHud.Api.ICustomHudApi` другим плагинам
+`CustomHud.Core 1.0.1` предоставляет `CustomHud.Api.ICustomHudApi` другим плагинам
 HUD сообщений использует собственную сущность и сосуществует с меню SwiftlyS2 и панелью способностей
 
 ## Вызов из плагина
