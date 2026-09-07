@@ -61,6 +61,8 @@ internal sealed class Infection(
         {
             timer.Cancel();
         }
+
+        PlayWinnerSound();
     }
     
     public override bool CanStart()

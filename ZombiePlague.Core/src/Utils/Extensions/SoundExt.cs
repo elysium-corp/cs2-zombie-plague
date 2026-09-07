@@ -44,6 +44,8 @@ public static class SoundExt
     /// <param name="volume">Громкость воспроизведения.</param>
     public static void PlayAt(IPlayer source, string soundName, float volume)
     {
+        if (!source.IsValid || !source.IsAlive) return;
+
         using var sound = new SoundEvent
         {
             Name = soundName,
@@ -53,7 +55,7 @@ public static class SoundExt
         sound.Recipients.AddAllPlayers();
         sound.Emit();
     }
-    
+
     /// <summary>
     /// Воспроизводит позиционный звук, привязанный к конкретному игроку (например, использование способностей).
     /// </summary>
