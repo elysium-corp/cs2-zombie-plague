@@ -16,7 +16,7 @@ internal abstract class RoundBase(
     Func<ILocalizationApi> localization) : IRound
 {
     public abstract string Id { get; }
-    
+
     public abstract string Name { get; }
 
     protected IPlayerManager PlayerManager { get; } = playerManager;
@@ -40,6 +40,9 @@ internal abstract class RoundBase(
     private bool _isRoundEnded;
     private bool _cleanupCompleted = true;
 
+    private Team? _roundWinner;
+    protected Team? RoundWinner => _roundWinner;
+
     protected abstract bool OnStart();
 
     protected abstract void OnEnd();
@@ -48,11 +51,12 @@ internal abstract class RoundBase(
     {
         TryStart();
     }
-    
+
     public bool TryStart()
     {
         _isRoundEnded = false;
         _cleanupCompleted = false;
+        _roundWinner = null;
 
         if (OnStart())
         {
@@ -69,7 +73,7 @@ internal abstract class RoundBase(
         if (_cleanupCompleted) return;
         _cleanupCompleted = true;
         _isRoundEnded = true;
-        
+
         OnEnd();
     }
 
@@ -97,7 +101,7 @@ internal abstract class RoundBase(
             _ => null
         };
     }
-    
+
     public virtual bool TryRespawnPlayer(IPlayer player)
     {
         return false;
@@ -116,6 +120,8 @@ internal abstract class RoundBase(
         {
             return;
         }
+
+        _roundWinner = winner.Value;
 
         var reason = winner.Value switch
         {

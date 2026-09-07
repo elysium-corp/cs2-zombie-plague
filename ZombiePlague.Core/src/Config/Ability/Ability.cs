@@ -92,7 +92,7 @@ public sealed class BlindConfig : IAbilityConfig
     public float DurationParticleEffect { get; set; } = 2.0f;
 
     // Путь к звуковому эффекту способности
-    public List<string> SoundEffectNames { get; set; } = [""];
+    public List<string> SoundEffectNames { get; set; } = ["ZombiePlagueAbility.zombie_blind_impact"];
 
     // Время когда эффект будет появляться и потухать (200 мс тратится на появление эффекта и 200 мс на растворение) 
     public uint DurationEffectAfterAbilityOnAttacker { get; set; } = 300;

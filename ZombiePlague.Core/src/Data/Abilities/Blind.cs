@@ -15,10 +15,7 @@ internal sealed class Blind(ISwiftlyCore core, BlindConfig config) : BasePassive
 
     public override void Hook()
     {
-        if (!IsEnabled || _abilityCallbackGuid != Guid.Empty)
-        {
-            return;
-        }
+        if (!IsEnabled || _abilityCallbackGuid != Guid.Empty) return;
 
         base.Hook();
         _abilityCallbackGuid = core.GameEvent.HookPost<EventPlayerHurt>(OnPlayerHurtPost);
@@ -37,10 +34,7 @@ internal sealed class Blind(ISwiftlyCore core, BlindConfig config) : BasePassive
 
     public override void Use()
     {
-        if (!IsEnabled || Target == null)
-        {
-            return;
-        }
+        if (!IsEnabled || Target == null) return;
 
         core.NetMessage.SendCUserMessageFade(
             playerId: Target.PlayerID,
@@ -54,6 +48,8 @@ internal sealed class Blind(ISwiftlyCore core, BlindConfig config) : BasePassive
                 a: config.AlphaEffectAfterAbilityOnAttacker
             )
         );
+
+        SoundExt.PlayAt(Target, config.SoundEffectNames.GetRandomString(), 1.0f);
 
         base.Use();
     }

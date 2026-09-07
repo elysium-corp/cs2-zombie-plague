@@ -113,6 +113,20 @@ internal abstract class InfectionBase(
 
         return HookResult.Continue;
     }
+
+    protected void PlayWinnerSound()
+    {
+        if(RoundWinner == null) return;
+        
+        if (RoundWinner == Team.T)
+        {
+            SoundExt.PlayGlobal(coreConfig.Value.ZombieWinSounds.GetRandomString(), coreConfig.Value.WinSoundVolume);
+        }
+        else if(RoundWinner == Team.CT)
+        {
+            SoundExt.PlayGlobal(coreConfig.Value.HumanWinSounds.GetRandomString(), coreConfig.Value.WinSoundVolume);
+        }
+    }
     
     public override bool TryRespawnPlayer(IPlayer player)
     {
