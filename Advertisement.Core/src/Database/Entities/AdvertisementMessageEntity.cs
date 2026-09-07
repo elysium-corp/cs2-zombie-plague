@@ -34,6 +34,21 @@ internal sealed class AdvertisementMessageEntity
     [Column("display_type")]
     public string DisplayType { get; set; } = "chat";
 
+    [MaxLength(191)]
+    [Column("hud_localization_key")]
+    public string? HudLocalizationKey { get; set; }
+
+    [MaxLength(16)]
+    [Column("hud_position")]
+    public string HudPosition { get; set; } = "bottom_left";
+
+    [Column("hud_duration_seconds")]
+    public double HudDurationSeconds { get; set; } = 8;
+
+    [MaxLength(16)]
+    [Column("hud_style")]
+    public string HudStyle { get; set; } = "notice";
+
     [Column("enabled")]
     public bool Enabled { get; set; } = true;
 

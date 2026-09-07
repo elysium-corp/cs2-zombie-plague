@@ -26,6 +26,11 @@ internal sealed class FallbackMessageConfig
     public string Key { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string LocalizationKey { get; set; } = string.Empty;
+    public string? DisplayType { get; set; }
+    public string? HudLocalizationKey { get; set; }
+    public string HudPosition { get; set; } = "bottom_left";
+    public double HudDurationSeconds { get; set; } = 8;
+    public string HudStyle { get; set; } = "notice";
     public string? Tag { get; set; }
     public string Type { get; set; } = "information";
     public bool Enabled { get; set; } = true;

@@ -127,7 +127,10 @@ public sealed class HudRuntimeTests
     public void ResourcesRespectCustomHudWhitelistAndTheNetworkIdLimit()
     {
         var root = Path.Combine(AppContext.BaseDirectory, "content/panorama");
-        var layout = XDocument.Load(Path.Combine(root, "layout/custom_game/elysium_messages_v1.xml"));
+        Assert.EndsWith("_v4.vxml_c", PanoramaHudRuntime.Layout);
+        Assert.EndsWith("_v4.vcss_c", PanoramaHudRuntime.Style);
+        var layout = XDocument.Load(Path.Combine(root, "layout/custom_game/elysium_messages_v4.xml"));
+        Assert.Equal("s2r://" + PanoramaHudRuntime.Style, layout.Descendants("include").Single().Attribute("src")!.Value);
         var allowed = new Dictionary<string, string[]>
         {
             ["root"] = [], ["styles"] = [], ["include"] = ["src"],
@@ -145,7 +148,7 @@ public sealed class HudRuntimeTests
             for (var line = 0; line < HudMarkup.MaximumLines; line++)
                 for (var run = 0; run < HudMarkup.MaximumRuns; run++)
                     Assert.Contains($"Message{(int)position}Line{line}Run{run}", ids);
-        var css = File.ReadAllText(Path.Combine(root, "styles/custom_game/elysium_messages_v1.css"));
+        var css = File.ReadAllText(Path.Combine(root, "styles/custom_game/elysium_messages_v4.css"));
         for (var color = 0; color < HudPalette.Colors.Length; color++)
             Assert.Contains($".MessageRun.C{color} {{ color: #{HudPalette.Colors[color]:X6}; }}", css);
         Assert.True(HudPalette.Colors.Length + 10 < 1024);

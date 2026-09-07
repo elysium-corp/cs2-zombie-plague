@@ -46,6 +46,8 @@ internal sealed record AdvertisementMessage(
     DateTimeOffset? StartsAt,
     DateTimeOffset? EndsAt)
 {
+    public AdvertisementPresentation? Presentation { get; init; }
+
     public bool IsActive(DateTimeOffset now, int playerCount)
     {
         var localTime = TimeOnly.FromDateTime(now.LocalDateTime);
@@ -174,7 +176,13 @@ internal sealed class ConfigAdvertisementProvider(IOptionsMonitor<AdvertisementC
                 DeliveryRuleParser.ParseAudienceType(message.AudienceType),
                 string.IsNullOrWhiteSpace(message.AudienceGroup) ? null : message.AudienceGroup.Trim(),
                 message.MinPlayers, message.MaxPlayers,
-                message.StartsAt, message.EndsAt);
+                message.StartsAt, message.EndsAt)
+            {
+                Presentation = message.DisplayType is null ? null : new(
+                    message.DisplayType,
+                    string.IsNullOrWhiteSpace(message.HudLocalizationKey) ? null : LocalizationKey.Canonicalize(message.HudLocalizationKey),
+                    message.HudPosition, message.HudDurationSeconds, message.HudStyle)
+            };
         }
 
         var settings = new AdvertisementSettings(
@@ -246,7 +254,7 @@ internal sealed class DatabaseAdvertisementProvider(IDbContextFactory<Advertisem
                 entity.ExcludeBotsFromPlayers,
                 entity.ConfigurationVersion));
 
-    private static AdvertisementMessage MapMessage(AdvertisementMessageEntity entity) => new(
+    internal static AdvertisementMessage MapMessage(AdvertisementMessageEntity entity) => new(
         entity.Id, entity.Key, entity.Name, entity.LocalizationKey,
         string.IsNullOrWhiteSpace(entity.TagKey) ? null : entity.TagKey.Trim(),
         entity.Type, entity.Enabled,
@@ -256,5 +264,9 @@ internal sealed class DatabaseAdvertisementProvider(IDbContextFactory<Advertisem
         entity.DailyStartTime, entity.DailyEndTime,
         DeliveryRuleParser.ParseAudienceType(entity.AudienceType),
         string.IsNullOrWhiteSpace(entity.AudienceGroup) ? null : entity.AudienceGroup.Trim(),
-        entity.MinPlayers, entity.MaxPlayers, entity.StartsAt, entity.EndsAt);
+        entity.MinPlayers, entity.MaxPlayers, entity.StartsAt, entity.EndsAt)
+    {
+        Presentation = new(entity.DisplayType, entity.HudLocalizationKey,
+            entity.HudPosition, entity.HudDurationSeconds, entity.HudStyle)
+    };
 }

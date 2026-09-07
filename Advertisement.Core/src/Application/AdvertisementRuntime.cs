@@ -91,9 +91,11 @@ internal sealed class AdvertisementSender(Func<ILocalizationApi> localization, A
             var text = localeOverride is null
                 ? localizationApi.FormatForPlayer(player, message.LocalizationKey, parameters)
                 : localizationApi.FormatForLanguage(localeOverride, message.LocalizationKey, parameters);
-            if (text is null) continue;
 
-            var output = new StringBuilder(text.Length + 48);
+
+            // HTML может появиться после редактирования общего ключа в Localization: в чат он не отправляется.
+            text = AdvertisementChatText.Normalize(text);
+            var output = new StringBuilder((text?.Length ?? 0) + 48);
             if (!string.IsNullOrWhiteSpace(tagKey))
             {
                 var tag = localeOverride is null
@@ -111,16 +113,17 @@ internal sealed class AdvertisementSender(Func<ILocalizationApi> localization, A
                 var escaped = parameters.ToDictionary(item => item.Key,
                     item => item.Value is string value ? (object?)HudText.Escape(value) : item.Value,
                     StringComparer.OrdinalIgnoreCase);
+                var hudKey = message.Presentation?.HudLocalizationKey ?? message.LocalizationKey;
                 var hudText = localeOverride is null
-                    ? localizationApi.FormatForPlayer(player, message.LocalizationKey, escaped)
-                    : localizationApi.FormatForLanguage(localeOverride, message.LocalizationKey, escaped);
+                    ? localizationApi.FormatForPlayer(player, hudKey, escaped)
+                    : localizationApi.FormatForLanguage(localeOverride, hudKey, escaped);
                 if (hudText is null) return string.Empty;
                 var tag = string.IsNullOrWhiteSpace(tagKey) ? null : localeOverride is null
                     ? localizationApi.GetTagForPlayer(player, tagKey)
                     : localizationApi.GetTagForLanguage(localeOverride, tagKey);
                 return tag is null ? hudText : $"[{tag.Color}]&#91;{HudText.Escape(tag.Text)}&#93;[/] {hudText}";
-            });
-            if (!hudOnly) player.SendMessage(MessageType.Chat, output.ToString().Colored());
+            }, message.Presentation);
+            if (!hudOnly && !string.IsNullOrWhiteSpace(text)) player.SendMessage(MessageType.Chat, output.ToString().Colored());
         }
     }
 

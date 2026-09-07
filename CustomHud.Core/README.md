@@ -89,12 +89,15 @@ yellow, gold, orange, purple, lightpurple, pink, gray/grey, silver, mint, muted,
 ## Установка и проверка
 
 Установите `CustomHud.Core` из общего runtime-пакета, сохранив его `resources/exports/CustomHud.Api.dll`
-Обновите вместе с ним `ZombiePlague.Core 0.5.0`, `Advertisement.Core 2.6.0`, `Localization.Core 1.5.5`
+Обновите вместе с ним `ZombiePlague.Core 0.5.0`, `Advertisement.Core 2.7.0`, `Localization.Core 1.5.5`
 Существующий HUD способностей v4 остаётся отдельным ресурсом
+Ресурсы сообщений теперь тоже имеют суффикс `_v4`, чтобы не смешивать их с прежними несовместимыми вариантами HUD
+Суффикс означает редакцию ресурса, а не версию API Panorama; простое переименование старого скомпилированного файла не заменяет пересборку
+Оба layout используют ограниченный набор атрибутов Custom HUD, проверяемый тестами
 
 1. Скопируйте содержимое `resources/hud/messages/content/panorama/` в `content/csgo_addons/<addon>/panorama/` на машине с CS2 Workshop Tools
-2. Скомпилируйте `layout/custom_game/elysium_messages_v1.xml` и `styles/custom_game/elysium_messages_v1.css`
-3. В VPK должны попасть `panorama/layout/custom_game/elysium_messages_v1.vxml_c` и `panorama/styles/custom_game/elysium_messages_v1.vcss_c`
+2. Скомпилируйте `layout/custom_game/elysium_messages_v4.xml` и `styles/custom_game/elysium_messages_v4.css`
+3. В VPK должны попасть `panorama/layout/custom_game/elysium_messages_v4.vxml_c` и `panorama/styles/custom_game/elysium_messages_v4.vcss_c`
 4. Доставьте обновлённый VPK серверу и клиентам, затем смените карту
 5. Выполните `custom_hud status`, затем `custom_hud test TopCenter`
 
@@ -156,3 +159,5 @@ yellow, gold, orange, purple, lightpurple, pink, gray/grey, silver, mint, muted,
 - [SwiftlyS2 Custom HUD](https://swiftlys2.net/docs/development/custom-hud)
 - [Список разрешённых элементов и атрибутов layout](https://github.com/Kxnrl/vsc-panorama-ext/blob/b4b7afe9ccd01d9787ed583ec8b83a925faab2fe/src/core/mode.ts)
 - [Лимиты идентификаторов и устройство Custom HUD](https://github.com/Wend4r/s2r-skills/blob/82fd9c366dec51edf19b801a102dce86fd695950/custom-hud-layout/references/internals.md)
+
+Настройки доставки рекламы из Flute описаны в [Advertisement.Core](../Advertisement.Core/README.md#настройка-через-flute-cms)

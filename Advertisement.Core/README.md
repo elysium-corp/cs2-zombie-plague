@@ -74,3 +74,34 @@ API работает только с памятью и не обращается
 
 Начиная с версии 2.6.0 реклама поддерживает доставку в чат, Custom HUD или оба канала
 Настройки и примеры: [CustomHud.Core](../CustomHud.Core/README.md#реклама)
+
+### Настройка через Flute CMS
+
+`Advertisement.Core 2.7.0` принимает канал и оформление из `advertisement.messages`
+Миграция `20260907220000_AddHudDelivery` сохраняет существующие сообщения в чате и добавляет:
+
+| Поле / поле fallback | Значение |
+| --- | --- |
+| `display_type` / `DisplayType` | `chat`, `hud`, `chat_and_hud` |
+| `localization_key` / `LocalizationKey` | Ключ текста чата, также резерв при недоступном HUD |
+| `hud_localization_key` / `HudLocalizationKey` | Отдельный ключ текста HUD, обязателен для HUD |
+| `hud_position` / `HudPosition` | `top_left`, `top_center`, `top_right`, `middle_left`, `center`, `middle_right`, `bottom_left`, `bottom_center`, `bottom_right` |
+| `hud_duration_seconds` / `HudDurationSeconds` | 0,5–60 секунд, по умолчанию 8 |
+| `hud_style` / `HudStyle` | `notice` или `banner` |
+
+Чат использует `{accent}цвет{/accent}` / `{color:red}цвет{/color}`, HUD — ограниченную HTML-разметку CustomHud.Api
+Например: `<font color='#85dcb1'><b>Привет, {player_name}!</b></font>`
+HTML из изменённого общего ключа удаляется перед отправкой в чат; HTML-сущности не превращаются в управляющие коды чата
+Динамические параметры HUD экранируются перед подстановкой, отдельно от параметров чата
+Ключи и настройки сохраняются в snapshot и в экспортируемом `advertisement.json`; переводы по-прежнему экспортируются через Localization
+
+Настройки CMS имеют приоритет над старым `hud_delivery.json`
+Этот файл используется только для старого fallback без `DisplayType`; чтобы сохранить старое индивидуальное HUD-правило для объявления из БД, перенесите его в CMS
+Если CustomHud.Api недоступен, отклонил сообщение или не найден перевод HUD, отправляется резервный чат
+`chat_and_hud` отправляет каждый канал один раз
+Выбор канала не меняет расписание, аудиторию, права `ads_test` и ключ публичного Advertisement API
+
+Порядок обновления: сервер и EF-миграция → ресурсы `elysium_messages_v4` у сервера и клиентов → ElysiumAdvertisements 2.6.0 в Flute
+До миграции CMS покажет штатное сообщение о недостающей схеме и не будет писать новые поля
+После сохранения выполните `ads_reload`, затем `ads_test <key> [locale]` в игре с permission `advertisement.admin`
+Проверьте оба перевода, расположение, меню и случай отключённого CustomHud.Core

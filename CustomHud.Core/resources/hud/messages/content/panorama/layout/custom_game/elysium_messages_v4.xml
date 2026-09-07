@@ -1,5 +1,5 @@
 <root>
-    <styles><include src="s2r://panorama/styles/custom_game/elysium_messages_v1.vcss_c" /></styles>
+    <styles><include src="s2r://panorama/styles/custom_game/elysium_messages_v4.vcss_c" /></styles>
     <Panel class="ElysiumMessageCanvas" hittest="false">
         <Panel id="Message0" class="Message PositionTopLeft" hittest="false">
             <Panel class="MessageAccent" hittest="false" />

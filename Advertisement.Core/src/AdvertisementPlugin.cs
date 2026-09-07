@@ -19,7 +19,7 @@ namespace Advertisement.Core;
 
 [PluginMetadata(
     Id = "Advertisement.Core",
-    Version = "2.6.0",
+    Version = "2.7.0",
     Name = "Elysium Advertisements",
     Author = "Elysium",
     Description = "Реклама Elysium с общей локализацией через Localization.Core.")]
@@ -83,7 +83,7 @@ internal sealed class AdvertisementPlugin(ISwiftlyCore core) : Plugin<Advertisem
         _scheduler.Value.TryStartFromCurrentMap();
         _currentMapName = _scheduler.Value.CurrentMapName;
         _schedulerTimer = Core.Scheduler.RepeatBySeconds(1f, _scheduler.Value.Tick);
-        Core.Logger.LogInformation("[Advertisement] Advertisement.Core 2.6.0 загружен");
+        Core.Logger.LogInformation("[Advertisement] Advertisement.Core 2.7.0 загружен");
     }
 
     protected override void OnUnload()
