@@ -89,6 +89,7 @@ public sealed class AbilityHudDiagnosticsTests
         Assert.Contains(output, line => line.Contains("slot=1; reason=Ready;") && line.Contains("eligible_icons=1; sent_icons=0"));
         Assert.Contains(output, line => line.Contains("slot=2; reason=MissingRole;"));
         Assert.Contains(output, line => line.Contains("ids=[heal]"));
+        Assert.Contains(output, line => line.Contains("icons=[heal:Kind_heal:Ready]"));
         Assert.Equal(0, fixture.Ability.Uses);
         Assert.False(fixture.Service.IsRunning);
         Assert.Empty(fixture.ClientConsole);

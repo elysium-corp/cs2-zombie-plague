@@ -105,6 +105,8 @@ internal sealed class AbilityHudService(ISwiftlyCore core, IPlayerManager player
             ReplyDiagnostic(context, $"Ability HUD debug: slot={player.PlayerID}; scale={appearance.ScalePercent}; position={appearance.Position}");
             foreach (var group in ids.Chunk(4))
                 ReplyDiagnostic(context, $"Ability HUD debug: slot={player.PlayerID}; ids=[{string.Join(",", group)}]");
+            foreach (var group in frame.Icons.Chunk(4))
+                ReplyDiagnostic(context, $"Ability HUD debug: slot={player.PlayerID}; icons=[{string.Join(",", group.Select(icon => $"{icon.Key}:Kind_{icon.Kind}:{icon.State}"))}]");
         }
         ReplyDiagnostic(context, "Ready означает готовность набора на сервере; получение и отрисовку Panorama клиентом сервер не подтверждает");
     }

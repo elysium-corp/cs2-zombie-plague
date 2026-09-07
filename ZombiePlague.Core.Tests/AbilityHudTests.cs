@@ -12,6 +12,52 @@ namespace ZombiePlague.Core.Tests;
 
 public sealed class AbilityHudTests
 {
+    [Theory]
+    [InlineData("heal")]
+    [InlineData("leap")]
+    [InlineData("blind")]
+    [InlineData("charge")]
+    [InlineData("trap")]
+    [InlineData("catch")]
+    [InlineData("double_jump")]
+    public void EveryCatalogMechanicSelectsItsOwnIcon(string kind)
+    {
+        var document = ZombieCatalogDocument.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "zombie_catalog.example.json")));
+        var definition = document.Abilities.Single(item => item.Kind == kind);
+        var factory = new AbilityFactory(null!, null!, () => throw new InvalidOperationException());
+        var frame = AbilityHudFrame.Create([factory.Create(definition)], key => key, false);
+        var icon = Assert.Single(frame.Icons);
+        Assert.Equal(kind, icon.Kind);
+        Assert.Equal(definition.InternalName, icon.Key);
+        Assert.Equal("Ready", icon.State);
+        var sink = new RecordingSink();
+        new AbilityHudPresenter(sink).Render(1, frame);
+        Assert.Contains($"C:1:Buff0:Kind_{kind}:True", sink.Calls);
+    }
+
+    [Fact]
+    public void AllSvgIconsContainExplicitFilledPathsWithoutStrokeOrArcDependencies()
+    {
+        var directory = Path.Combine(AppContext.BaseDirectory, "ability-hud", "content", "panorama", "images", "custom_game", "elysium", "abilities");
+        foreach (var kind in AbilityHudFrame.Kinds)
+        {
+            var svg = XDocument.Load(Path.Combine(directory, kind + ".svg"));
+            Assert.Equal("0 0 64 64", (string?)svg.Root!.Attribute("viewBox"));
+            Assert.Null(svg.Root.Attribute("stroke"));
+            Assert.NotEmpty(svg.Root.Elements());
+            Assert.All(svg.Root.Elements(), path =>
+            {
+                Assert.Equal("path", path.Name.LocalName);
+                Assert.Equal("#ffffff", (string?)path.Attribute("fill"));
+                Assert.Null(path.Attribute("stroke"));
+                Assert.Null(path.Attribute("style"));
+                var geometry = (string)path.Attribute("d")!;
+                Assert.EndsWith("Z", geometry);
+                Assert.All(geometry.Where(char.IsLetter), command => Assert.Contains(command, "MLCQHVZ"));
+            });
+        }
+    }
+
     [Fact]
     public void CatalogIdentitySurvivesReloadAndDifferentIdsOfSameMechanicStaySeparate()
     {
@@ -242,6 +288,14 @@ public sealed class AbilityHudTests
             Assert.True(File.Exists(path), path);
             var svg = XDocument.Load(path);
             Assert.Equal("svg", svg.Root!.Name.LocalName);
+        }
+        var css = File.ReadAllText(Path.Combine(content, "styles", "custom_game", Path.GetFileNameWithoutExtension(CustomHudRuntime.CompiledStyle) + ".css"));
+        foreach (var kind in AbilityHudFrame.Kinds)
+        {
+            var images = xml.Descendants("Image").Where(node => ((string?)node.Attribute("class"))?.Split(' ').Contains("Icon_" + kind) == true).ToArray();
+            Assert.Equal(AbilityHudFrame.SlotCount, images.Length);
+            Assert.All(images, node => Assert.Equal($"file://{{images}}/custom_game/elysium/abilities/{kind}.svg", (string?)node.Attribute("src")));
+            Assert.Contains($".Kind_{kind} .Icon_{kind} {{ visibility: visible; }}", css);
         }
     }
 
