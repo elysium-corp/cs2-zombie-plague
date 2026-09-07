@@ -8,7 +8,7 @@ using ZombiePlague.Core.Data.Entities.Human;
 using ZombiePlague.Core.Data.Entities.Human.Classes;
 using ZombiePlague.Core.Data.Entities.Zombie;
 using ZombiePlague.Core.Data.Entities.Zombie.Classes;
-using ZombiePlague.Core.Experimental.AbilityHud;
+using ZombiePlague.Core.Hud.AbilityHud;
 
 namespace ZombiePlague.Core.Tests;
 

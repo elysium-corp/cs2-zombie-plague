@@ -1,6 +1,6 @@
 using ZombiePlague.Core.Store.Data;
 
-namespace ZombiePlague.Core.Experimental.AbilityHud;
+namespace ZombiePlague.Core.Hud.AbilityHud;
 
 internal interface IAbilityHudSink
 {

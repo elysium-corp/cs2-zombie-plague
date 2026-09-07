@@ -95,6 +95,8 @@ internal sealed class Plague(
         {
             timer.Cancel();
         }
+        
+        PlayWinnerSound();
     }
     
     public override bool CanStart()

@@ -10,7 +10,7 @@ using SwiftlyS2.Shared;
 using ZombiePlague.Api;
 using ZombiePlague.Core.Api;
 using ZombiePlague.Core.Catalog;
-using ZombiePlague.Core.Experimental.AbilityHud;
+using ZombiePlague.Core.Hud.AbilityHud;
 using ZombiePlague.Core.Data.Coordinators.Contracts;
 using ZombiePlague.Core.Data.Plugins.ResourceLoader;
 using ZombiePlague.Core.Database;

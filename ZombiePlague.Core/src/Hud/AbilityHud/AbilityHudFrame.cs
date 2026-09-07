@@ -1,6 +1,5 @@
 using System.Globalization;
 using System.Text;
-using SwiftlyS2.Shared.Menus;
 using SwiftlyS2.Shared.Players;
 using ZombiePlague.Core.Data.Abilities.Contracts;
 using ZombiePlague.Core.Data.Entities;
@@ -8,11 +7,11 @@ using ZombiePlague.Core.Data.Entities.Human;
 using ZombiePlague.Core.Data.Entities.Zombie;
 using ZombiePlague.Core.Store.Data;
 
-namespace ZombiePlague.Core.Experimental.AbilityHud;
+namespace ZombiePlague.Core.Hud.AbilityHud;
 
 internal enum AbilityHudVisibility
 {
-    Ready, InvalidPlayer, Bot, Dead, MenuOpen, MissingRole, NoAbilities, MissingPresentation
+    Ready, InvalidPlayer, Bot, Dead, MissingRole, NoAbilities, MissingPresentation
 }
 
 internal sealed record AbilityHudIcon(string Key, string Name, string Kind, bool Passive, string State, string Countdown, string Hotkey);
@@ -39,13 +38,12 @@ internal sealed record AbilityHudFrame(AbilityHudIcon[] Icons, bool ShowNames)
         Create(AbilitiesForRole(role), localize, showNames);
 
     // Отрисовка и ручная диагностика используют одну проверку, чтобы причины скрытия не расходились
-    internal static AbilityHudFrame ForPlayer(IPlayer player, IPlayerRole? role, IMenuAPI? menu,
+    internal static AbilityHudFrame ForPlayer(IPlayer player, IPlayerRole? role,
         AbilityHudConfig config, Func<string, string> localize, out AbilityHudVisibility visibility)
     {
         visibility = !player.IsValid ? AbilityHudVisibility.InvalidPlayer
             : player.IsFakeClient ? AbilityHudVisibility.Bot
             : !player.IsAlive ? AbilityHudVisibility.Dead
-            : AbilityHudSettings.ShouldHideForMenu(menu, config.HideWhenMenuOpen) ? AbilityHudVisibility.MenuOpen
             : role is null ? AbilityHudVisibility.MissingRole
             : AbilityHudVisibility.Ready;
         if (visibility != AbilityHudVisibility.Ready) return Empty;

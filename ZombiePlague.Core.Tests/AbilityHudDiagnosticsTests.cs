@@ -13,7 +13,7 @@ using ZombiePlague.Core.Data.Abilities.Contracts;
 using ZombiePlague.Core.Data.Entities;
 using ZombiePlague.Core.Data.Entities.Zombie;
 using ZombiePlague.Core.Data.Entities.Zombie.Classes;
-using ZombiePlague.Core.Experimental.AbilityHud;
+using ZombiePlague.Core.Hud.AbilityHud;
 using ZombiePlague.Core.Store.Data;
 using RoleManager = ZombiePlague.Core.Data.Managers.Contracts.IPlayerManager;
 
@@ -22,29 +22,19 @@ namespace ZombiePlague.Core.Tests;
 public sealed class AbilityHudDiagnosticsTests
 {
     [Fact]
-    public void LiveZombiePreviewAndMenuClosureUseTheSameFramesAsVisibilityDiagnostics()
+    public void LiveZombieDiagnosticsMatchItsRenderedAbilitiesWithoutActivation()
     {
         var player = Player(1);
         var ability = new ProbeAbility { Presentation = new("heal", "Ability.Heal.Name", "heal") };
         var role = Role(player, [ability]);
         var config = new AbilityHudConfig { ShowNames = false };
         var presenter = new AbilityHudPresenter(new NullSink());
-
-        var frame = AbilityHudFrame.ForPlayer(player, role, Menu(null), config, NoLocalization, out var reason);
-        presenter.Render(1, frame);
-        Assert.Equal(AbilityHudVisibility.MenuOpen, reason);
-        Assert.Equal(0, presenter.PlayerCount);
-
-        frame = AbilityHudFrame.ForPlayer(player, role, Menu(AbilityHudSettings.PreviewMenuTag), config, NoLocalization, out reason);
+        var frame = AbilityHudFrame.ForPlayer(player, role, config, NoLocalization, out var reason);
         presenter.Render(1, frame);
         Assert.Equal(AbilityHudVisibility.Ready, reason);
         Assert.Equal(1, presenter.PlayerCount);
         Assert.Equal(1, presenter.GetIconCount(1));
         Assert.Equal("heal", Assert.Single(frame.Icons).Key);
-
-        var closed = AbilityHudFrame.ForPlayer(player, role, null, config, NoLocalization, out reason);
-        Assert.Equal(AbilityHudVisibility.Ready, reason);
-        Assert.Equal(frame.Icons, closed.Icons);
         Assert.Equal(0, ability.Uses);
     }
 
@@ -55,36 +45,36 @@ public sealed class AbilityHudDiagnosticsTests
         var abilities = new List<IAbility>();
         var role = Role(player, abilities);
         var config = new AbilityHudConfig { ShowNames = false };
-        Assert.Empty(AbilityHudFrame.ForPlayer(player, role, null, config, NoLocalization, out var reason).Icons);
+        Assert.Empty(AbilityHudFrame.ForPlayer(player, role, config, NoLocalization, out var reason).Icons);
         Assert.Equal(AbilityHudVisibility.NoAbilities, reason);
 
         var ability = new ProbeAbility();
         abilities.Add(ability);
-        Assert.Empty(AbilityHudFrame.ForPlayer(player, role, null, config, NoLocalization, out reason).Icons);
+        Assert.Empty(AbilityHudFrame.ForPlayer(player, role, config, NoLocalization, out reason).Icons);
         Assert.Equal(AbilityHudVisibility.MissingPresentation, reason);
 
         ability.Presentation = new("heal", "Ability.Heal.Name", "heal");
-        Assert.Single(AbilityHudFrame.ForPlayer(player, role, null, config, NoLocalization, out reason).Icons);
+        Assert.Single(AbilityHudFrame.ForPlayer(player, role, config, NoLocalization, out reason).Icons);
         Assert.Equal(AbilityHudVisibility.Ready, reason);
         Assert.Equal(0, ability.Uses);
     }
 
     [Fact]
-    public void DeathOrMissingRoleClearsRecipientsAndMenuSettingDoesNotHideAnEligibleZombie()
+    public void DeathOrMissingRoleClearsRecipients()
     {
         var player = Player(1);
         var role = Role(player, [new ProbeAbility { Presentation = new("heal", "Heal", "heal") }]);
-        var config = new AbilityHudConfig { ShowNames = false, HideWhenMenuOpen = false };
+        var config = new AbilityHudConfig { ShowNames = false };
         var presenter = new AbilityHudPresenter(new NullSink());
-        presenter.Render(1, AbilityHudFrame.ForPlayer(player, role, Menu(null), config, NoLocalization, out var reason));
+        presenter.Render(1, AbilityHudFrame.ForPlayer(player, role, config, NoLocalization, out var reason));
         Assert.Equal(AbilityHudVisibility.Ready, reason);
         Assert.Equal(1, presenter.PlayerCount);
 
-        presenter.Render(1, AbilityHudFrame.ForPlayer(Player(1, alive: false), role, null, config, NoLocalization, out reason));
+        presenter.Render(1, AbilityHudFrame.ForPlayer(Player(1, alive: false), role, config, NoLocalization, out reason));
         Assert.Equal(AbilityHudVisibility.Dead, reason);
         Assert.Equal(0, presenter.GetIconCount(1));
 
-        presenter.Render(1, AbilityHudFrame.ForPlayer(player, null, null, config, NoLocalization, out reason));
+        presenter.Render(1, AbilityHudFrame.ForPlayer(player, null, config, NoLocalization, out reason));
         Assert.Equal(AbilityHudVisibility.MissingRole, reason);
         Assert.Equal(0, presenter.PlayerCount);
     }
@@ -124,9 +114,6 @@ public sealed class AbilityHudDiagnosticsTests
         var document = ZombieCatalogDocument.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "zombie_catalog.example.json")));
         return Zombie.Create(null!, player, new ZCatalogClass(document.Classes.Single(item => item.InternalName == "zombie_cleric"), abilities));
     }
-
-    private static IMenuAPI Menu(object? tag) => Stub<IMenuAPI>((method, _) => method.Name == "get_Tag"
-        ? tag : throw new InvalidOperationException(method.Name));
 
     private static IPlayer Player(int id, bool alive = true, List<string>? console = null) => Stub<IPlayer>((method, args) =>
     {
@@ -197,9 +184,10 @@ public sealed class AbilityHudDiagnosticsTests
                     || member.Name.StartsWith("remove_", StringComparison.Ordinal) ? null : throw new InvalidOperationException(member.Name)),
                 _ => throw new InvalidOperationException(method.Name)
             });
-            Service = new(core, roles, Options.Create(new AbilityHudConfig { ShowNames = false }),
+            Service = new(core, roles, Options.Create(new AbilityHudConfig { Enabled = false, ShowNames = false }),
                 () => throw new InvalidOperationException("Диагностика не должна обращаться к БД или запускать HUD"),
-                new AbilityHudSettings(new PlayerSessionStore<PlayerPreferences>()));
+                new AbilityHudSettings(new PlayerSessionStore<PlayerPreferences>()),
+                () => throw new InvalidOperationException("Диагностика не должна создавать HUD"));
             Service.Start();
         }
 

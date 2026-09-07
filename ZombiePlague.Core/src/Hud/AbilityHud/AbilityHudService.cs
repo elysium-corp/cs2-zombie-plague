@@ -11,13 +11,14 @@ using ZombiePlague.Core.Data.Entities.Human;
 using ZombiePlague.Core.Data.Entities.Zombie;
 using ZombiePlague.Core.Data.Managers.Contracts;
 
-namespace ZombiePlague.Core.Experimental.AbilityHud;
+namespace ZombiePlague.Core.Hud.AbilityHud;
 
 internal sealed class AbilityHudService(ISwiftlyCore core, IPlayerManager players, IOptions<AbilityHudConfig> options,
-    Func<ILocalizationApi> localization, AbilityHudSettings settings) : IDisposable
+    Func<ILocalizationApi> localization, AbilityHudSettings settings, Func<IAbilityHudRuntime> createRuntime) : IDisposable
 {
+    private const int MaximumEntityRecoveries = 3;
     public bool IsRunning => !_disposed && _wanted && _presenter is not null;
-    private CustomHudRuntime? _runtime;
+    private IAbilityHudRuntime? _runtime;
     private AbilityHudPresenter? _presenter;
     private CancellationTokenSource? _timer;
     private AbilityHudConfig _config = new();
@@ -25,6 +26,9 @@ internal sealed class AbilityHudService(ISwiftlyCore core, IPlayerManager player
     private bool _started;
     private bool _disposed;
     private bool _wanted;
+    private bool _mapUnloading;
+    private int _entityRecoveries;
+    private readonly HashSet<int> _failedPlayers = [];
     private int _generation;
     private string _status = "выключен";
     private long _ticks;
@@ -38,8 +42,8 @@ internal sealed class AbilityHudService(ISwiftlyCore core, IPlayerManager player
         core.Event.OnMapUnload += OnMapUnload;
         core.Event.OnClientDisconnected += OnDisconnect;
         _command = core.Command.RegisterCommand("zp_ability_hud", Command, registerRaw: true, permission: "zombie_plague.admin.classes");
-        try { _config = options.Value; _config.Validate(); _wanted = _config.Enabled; }
-        catch (Exception error) { Fault(error); }
+        try { _config = options.Value; _wanted = _config.Enabled; _config.Validate(); }
+        catch (Exception error) { Fault(error); return; }
         if (_wanted) QueueStart();
     }
 
@@ -86,7 +90,7 @@ internal sealed class AbilityHudService(ISwiftlyCore core, IPlayerManager player
             var player = tracked.FirstOrDefault(owner => owner.PlayerID == client.PlayerID && owner.SteamID == client.SteamID) ?? client;
             players.TryGetRole(player, out var role);
             var menu = core.MenusAPI.GetCurrentMenu(player);
-            var frame = AbilityHudFrame.ForPlayer(player, role, menu, _config,
+            var frame = AbilityHudFrame.ForPlayer(player, role, _config,
                 key => localization().GetForPlayerOrKey(player, key), out var visibility);
             var abilities = AbilityHudFrame.AbilitiesForRole(role);
             var roleName = role switch { IHuman => "human", IZombie => "zombie", null => "none", _ => role.GetType().Name };
@@ -94,7 +98,7 @@ internal sealed class AbilityHudService(ISwiftlyCore core, IPlayerManager player
             var ids = abilities.Select(ability => ability is IPresentedAbility { Presentation: { } info }
                 ? info.Key : "missing:" + ability.GetType().Name).ToArray();
             var missing = abilities.Count(ability => ability is not IPresentedAbility { Presentation: not null });
-            var menuName = menu is null ? "none" : ReferenceEquals(menu.Tag, AbilityHudSettings.PreviewMenuTag) ? "hud_preview" : "other";
+            var menuName = menu is null ? "none" : "open";
             var appearance = settings.Get(player.SteamID);
             ReplyDiagnostic(context, $"Ability HUD debug: slot={player.PlayerID}; steam={player.SteamID}; alive={player.IsAlive}; role={roleName}; class={className}");
             ReplyDiagnostic(context, $"Ability HUD debug: slot={player.PlayerID}; reason={visibility}; abilities={abilities.Count}; missing_metadata={missing}; menu={menuName}; eligible_icons={frame.Icons.Length}; sent_icons={_presenter?.GetIconCount(player.PlayerID) ?? 0}");
@@ -112,9 +116,11 @@ internal sealed class AbilityHudService(ISwiftlyCore core, IPlayerManager player
         else context.Reply(message);
     }
 
-    private void QueueStart()
+    private void QueueStart(bool resetRecovery = true)
     {
         Stop();
+        if (resetRecovery) _entityRecoveries = 0;
+        if (_mapUnloading) { _status = "ожидание загрузки карты"; return; }
         _status = "запуск на следующем кадре";
         var generation = _generation;
         core.Scheduler.NextWorldUpdate(() =>
@@ -123,12 +129,15 @@ internal sealed class AbilityHudService(ISwiftlyCore core, IPlayerManager player
             try
             {
                 _config.Validate();
-                _runtime = CustomHudRuntime.Create(core);
+                _runtime = createRuntime();
                 _presenter = new AbilityHudPresenter(_runtime);
                 // Таймер SwiftlyS2 выполняется по игровым тикам, вызовы HUD остаются на игровом потоке
-                _timer = core.Scheduler.DelayAndRepeatBySeconds(_config.RefreshSeconds, _config.RefreshSeconds, Tick);
+                _timer = core.Scheduler.DelayAndRepeatBySeconds(_config.RefreshSeconds, _config.RefreshSeconds, () =>
+                {
+                    if (generation == _generation) Tick();
+                });
                 _status = "работает";
-                core.Logger.LogInformation("[AbilityHud] Эксперимент включён: способности текущей роли, период {Interval} с", _config.RefreshSeconds);
+                core.Logger.LogInformation("[AbilityHud] Панель включена: способности текущей роли, период {Interval} с", _config.RefreshSeconds);
             }
             catch (Exception error) { Fault(error); }
         });
@@ -139,18 +148,21 @@ internal sealed class AbilityHudService(ISwiftlyCore core, IPlayerManager player
         if (_disposed || !_wanted || _presenter is null || _runtime is null) return;
         try
         {
-            if (!_runtime.IsValid) throw new InvalidOperationException("Сущность HUD удалена — включите эксперимент повторно");
+            if (!_runtime.IsValid)
+            {
+                if (_entityRecoveries >= MaximumEntityRecoveries)
+                    throw new InvalidOperationException("Сущность HUD повторно удаляется — проверьте карту и плагины, затем выполните zp_ability_hud on");
+                _entityRecoveries++;
+                core.Logger.LogWarning("[AbilityHud] Сущность удалена, восстановление {Attempt}/{Maximum}", _entityRecoveries, MaximumEntityRecoveries);
+                QueueStart(resetRecovery: false);
+                return;
+            }
             var seen = new HashSet<int>();
             foreach (var player in players.GetAllPlayers())
             {
                 if (!player.IsValid || player.IsFakeClient) continue;
                 seen.Add(player.PlayerID);
-                players.TryGetRole(player, out var role);
-                var frame = AbilityHudFrame.ForPlayer(player, role, core.MenusAPI.GetCurrentMenu(player), _config,
-                    key => localization().GetForPlayerOrKey(player, key), out var visibility);
-                // Скрытая панель сбрасывает персональные стили так же, как до добавления диагностики
-                if (visibility is AbilityHudVisibility.Ready or AbilityHudVisibility.NoAbilities or AbilityHudVisibility.MissingPresentation)
-                    frame = frame with { Appearance = settings.Get(player.SteamID) };
+                var frame = BuildFrame(player);
                 _presenter.Render(player.PlayerID, frame);
             }
             foreach (var playerId in _presenter.PlayerIds.Where(id => !seen.Contains(id)).ToArray()) _presenter.Clear(playerId);
@@ -160,10 +172,32 @@ internal sealed class AbilityHudService(ISwiftlyCore core, IPlayerManager player
         catch (Exception error) { Fault(error); }
     }
 
-    private void OnMapLoad(IOnMapLoadEvent args) { if (_wanted) QueueStart(); }
-    private void OnMapUnload(IOnMapUnloadEvent args) { Stop(); _status = "карта выгружена"; }
+    private AbilityHudFrame BuildFrame(IPlayer player)
+    {
+        try
+        {
+            players.TryGetRole(player, out var role);
+            var frame = AbilityHudFrame.ForPlayer(player, role, _config,
+                key => localization().GetForPlayerOrKey(player, key), out var visibility);
+            if (visibility is AbilityHudVisibility.Ready or AbilityHudVisibility.NoAbilities or AbilityHudVisibility.MissingPresentation)
+                frame = frame with { Appearance = settings.Get(player.SteamID) };
+            _failedPlayers.Remove(player.PlayerID);
+            return frame;
+        }
+        catch (Exception error)
+        {
+            // Ошибка одной роли скрывает только её панель; повторяющуюся ошибку логируем один раз до восстановления
+            if (_failedPlayers.Add(player.PlayerID))
+                core.Logger.LogWarning(error, "[AbilityHud] Не удалось подготовить панель игрока {PlayerId}", player.PlayerID);
+            return AbilityHudFrame.Empty;
+        }
+    }
+
+    private void OnMapLoad(IOnMapLoadEvent args) { _mapUnloading = false; if (_wanted && !_disposed) QueueStart(); }
+    private void OnMapUnload(IOnMapUnloadEvent args) { _mapUnloading = true; Stop(); _status = "карта выгружена"; }
     private void OnDisconnect(IOnClientDisconnectedEvent args)
     {
+        _failedPlayers.Remove(args.PlayerId);
         if (_presenter is null || _disposed) return;
         try { _presenter.Clear(args.PlayerId); }
         catch (Exception error) { Fault(error); }
@@ -171,10 +205,9 @@ internal sealed class AbilityHudService(ISwiftlyCore core, IPlayerManager player
 
     private void Fault(Exception error)
     {
-        _wanted = false;
         Stop();
         _status = error.Message;
-        core.Logger.LogWarning(error, "[AbilityHud] Эксперимент остановлен: {Reason}", error.Message);
+        core.Logger.LogWarning(error, "[AbilityHud] Панель остановлена: {Reason}. Повторный запуск при загрузке карты или через zp_ability_hud on", error.Message);
     }
 
     private void Stop()
@@ -186,6 +219,7 @@ internal sealed class AbilityHudService(ISwiftlyCore core, IPlayerManager player
         _ticks = 0;
         _lastTickTimestamp = 0;
         _presenter = null;
+        _failedPlayers.Clear();
         var runtime = _runtime;
         _runtime = null;
         try { runtime?.Dispose(); }

@@ -1,13 +1,10 @@
 using Common.Database.Storages;
-using SwiftlyS2.Shared.Menus;
 using ZombiePlague.Core.Store.Data;
 
-namespace ZombiePlague.Core.Experimental.AbilityHud;
+namespace ZombiePlague.Core.Hud.AbilityHud;
 
 internal sealed class AbilityHudSettings(PlayerSessionStore<PlayerPreferences> sessions)
 {
-    internal static readonly object PreviewMenuTag = new();
-
     public bool HasSession(ulong steamId) => sessions.Get(steamId) is not null;
 
     public AbilityHudPreferences Get(ulong steamId) => sessions.Get(steamId)?.Read(data => data.AbilityHud.Normalize())
@@ -31,7 +28,4 @@ internal sealed class AbilityHudSettings(PlayerSessionStore<PlayerPreferences> s
         });
         return true;
     }
-
-    public static bool ShouldHideForMenu(IMenuAPI? menu, bool hideWhenMenuOpen) => hideWhenMenuOpen
-        && menu is not null && !ReferenceEquals(menu.Tag, PreviewMenuTag);
 }

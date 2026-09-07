@@ -1,15 +1,13 @@
-using System.Reflection;
 using Common.Database.Abstractions;
 using Common.Database.Storages;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
-using SwiftlyS2.Shared.Menus;
 using Xunit;
 using ZombiePlague.Core.Data.Service;
 using ZombiePlague.Core.Database;
 using ZombiePlague.Core.Database.Entities;
-using ZombiePlague.Core.Experimental.AbilityHud;
+using ZombiePlague.Core.Hud.AbilityHud;
 using ZombiePlague.Core.Store.Data;
 
 namespace ZombiePlague.Core.Tests;
@@ -117,17 +115,6 @@ public sealed class AbilityHudPreferencesTests
     }
 
     [Fact]
-    public void OnlySettingsMenuAllowsLivePreviewWithHideWhenMenuOpen()
-    {
-        var menu = DispatchProxy.Create<IMenuAPI, MenuStub>();
-        Assert.False(AbilityHudSettings.ShouldHideForMenu(null, true));
-        Assert.True(AbilityHudSettings.ShouldHideForMenu(menu, true));
-        Assert.False(AbilityHudSettings.ShouldHideForMenu(menu, false));
-        menu.Tag = AbilityHudSettings.PreviewMenuTag;
-        Assert.False(AbilityHudSettings.ShouldHideForMenu(menu, true));
-    }
-
-    [Fact]
     public void MigrationMatchesModelAndAddsDefaultsWithoutReplacingClasses()
     {
         using var context = new ZombiePlagueDbContext(new DbContextOptionsBuilder<ZombiePlagueDbContext>()
@@ -179,16 +166,4 @@ public sealed class AbilityHudPreferencesTests
         public Task<bool> DeleteAsync(ulong steamId, CancellationToken cancellationToken = default) => Task.FromResult(_players.Remove(steamId));
     }
 
-    /// <summary>Заглушка метки меню без запуска CS2</summary>
-    public class MenuStub : DispatchProxy
-    {
-        private object? _tag;
-        /// <inheritdoc />
-        protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
-        {
-            if (targetMethod!.Name == "get_Tag") return _tag;
-            if (targetMethod.Name == "set_Tag") { _tag = args![0]; return null; }
-            throw new NotSupportedException(targetMethod.Name);
-        }
-    }
 }

@@ -22,7 +22,7 @@ namespace ZombiePlague.Core.Data.Managers;
 
 internal sealed class RoundManager(
     ISwiftlyCore core,
-    IOptions<ZombiePlagueCoreConfig> coreConfig,
+    IOptions<ZombiePlagueCoreConfig> config,
     IPlayerManager playerManager,
     IRoundRegistrator roundRegistrator,
     IRoundFactory roundFactory,
@@ -49,8 +49,6 @@ internal sealed class RoundManager(
 
     private const int PeriodSecondsPreparationTask = 1;
 
-    private const string RoundStartSoundName = "ZombiePlagueSounds.round_start";
-
     public void Prepare()
     {
         var preContext = new RoundPreparingContext();
@@ -74,7 +72,8 @@ internal sealed class RoundManager(
             return;
         }
 
-        _preparationSoundEvent = SoundExt.PlayGlobal(RoundStartSoundName, 1.5f);
+        _preparationSoundEvent =
+            SoundExt.PlayGlobal(config.Value.PreparationSounds.GetRandomString(), config.Value.PreparationSoundVolume);
 
         var allPlayers = core.PlayerManager.GetAllPlayers();
 
@@ -83,7 +82,7 @@ internal sealed class RoundManager(
             playerManager.TrySetHuman(player);
         }
 
-        _remainingPreparationTime = coreConfig.Value.PreStartDelay;
+        _remainingPreparationTime = config.Value.PreStartDelay;
 
         _countdownSoundPlayed = false;
 
@@ -392,6 +391,7 @@ internal sealed class RoundManager(
         {
             respawn.Cancel();
         }
+
         _preparationRespawns.Clear();
 
         CancelPreparationSounds();
@@ -473,7 +473,7 @@ internal sealed class RoundManager(
 
         return false;
     }
-    
+
     public bool TryRespawnPlayer(IPlayer player)
     {
         if (!player.IsValid || player.IsAlive)
@@ -493,7 +493,7 @@ internal sealed class RoundManager(
 
         return CurrentRound?.TryRespawnPlayer(player) ?? false;
     }
-    
+
     private void ScheduleRespawn(IPlayer? player)
     {
         if (player is not { IsValid: true })
@@ -510,7 +510,7 @@ internal sealed class RoundManager(
         }
 
         CancellationTokenSource? timer = null;
-        timer = core.Scheduler.DelayBySeconds(Math.Max(0.05f, coreConfig.Value.ZombieSpawnDelay), () =>
+        timer = core.Scheduler.DelayBySeconds(Math.Max(0.05f, config.Value.ZombieSpawnDelay), () =>
         {
             if (!_preparationRespawns.TryGetValue(playerId, out var currentTimer) ||
                 !ReferenceEquals(currentTimer, timer)) return;
@@ -565,7 +565,7 @@ internal sealed class RoundManager(
 
     private void PlayCountdownSound()
     {
-        _countdownSoundEvent = SoundExt.PlayGlobal("ZombiePlagueSounds.countdown", 2f);
+        _countdownSoundEvent = SoundExt.PlayGlobal(config.Value.CountdownSound, config.Value.CountdownSoundVolume);
 
         _countdownSoundPlayed = true;
     }

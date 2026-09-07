@@ -6,7 +6,7 @@ using ZombiePlague.Core.Catalog;
 using ZombiePlague.Core.Config.Ability;
 using ZombiePlague.Core.Data.Abilities;
 using ZombiePlague.Core.Data.Abilities.Contracts;
-using ZombiePlague.Core.Experimental.AbilityHud;
+using ZombiePlague.Core.Hud.AbilityHud;
 
 namespace ZombiePlague.Core.Tests;
 
@@ -162,9 +162,9 @@ public sealed class AbilityHudTests
     }
 
     [Fact]
-    public void PinnedSdkContainsHudApiAndExperimentRemainsOptIn()
+    public void PinnedSdkSupportsHudAndNewConfigsEnableItAlongsideMenus()
     {
-        Assert.False(new AbilityHudConfig().Enabled);
+        Assert.True(new AbilityHudConfig().Enabled);
         Assert.True(CustomHudRuntime.HasRequiredApi);
     }
 

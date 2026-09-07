@@ -2,9 +2,9 @@ using System.Reflection;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.SchemaDefinitions;
 
-namespace ZombiePlague.Core.Experimental.AbilityHud;
+namespace ZombiePlague.Core.Hud.AbilityHud;
 
-internal sealed class CustomHudRuntime : IAbilityHudSink, IDisposable
+internal sealed class CustomHudRuntime : IAbilityHudRuntime
 {
     public const string SourceLayout = "panorama/layout/custom_game/elysium_ability_buffs_v4.xml";
     public const string CompiledLayout = "panorama/layout/custom_game/elysium_ability_buffs_v4.vxml_c";

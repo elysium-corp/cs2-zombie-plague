@@ -6,7 +6,7 @@ using SwiftlyS2.Core.Menus.OptionsBase;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Menus;
 using SwiftlyS2.Shared.Players;
-using ZombiePlague.Core.Experimental.AbilityHud;
+using ZombiePlague.Core.Hud.AbilityHud;
 using ZombiePlague.Core.Store.Data;
 
 namespace ZombiePlague.Core.Menus;
@@ -25,13 +25,6 @@ internal sealed class AbilityHudMenu(ISwiftlyCore core, IMenuExtensionDispatcher
         if (error is null) return true;
         player.SendChatAsync(Text(player, error));
         return false;
-    }
-
-    protected override IMenuAPI Build(IPlayer player)
-    {
-        var menu = base.Build(player);
-        menu.Tag = AbilityHudSettings.PreviewMenuTag;
-        return menu;
     }
 
     protected override IMenuBuilderAPI ConfigureDesign(IPlayer player, IMenuDesignAPI design) => design
