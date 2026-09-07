@@ -1,8 +1,8 @@
 {
   "schemaVersion": 4,
-  "version": 10,
-  "generatedAt": "2026-09-06T13:42:37Z",
-  "checksum": "sha256:12fe48a9c51ca79845ddbfda23e7505d15897930f042d5f4997362c5a0478c4b",
+  "version": 11,
+  "generatedAt": "2026-09-07T18:20:00Z",
+  "checksum": "sha256:cc6ba6cb5f28b4fa175bb8fcceb485e0a8cec934d8aa12118ec52e34942eb514",
   "serverFallbackLanguage": "ru",
   "languages": [
     "ru",

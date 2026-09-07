@@ -56,10 +56,10 @@ _hud?.ClearChannel("MyPlugin.Ad");
 
 Разметка разбирается на сервере в отдельные Label и CSS-классы
 Атрибут `html` не используется: он отсутствует в разрешённом наборе Custom HUD
-Цвета выбираются из 230 заранее скомпилированных значений, включая точные цвета Elysium
+Цвета выбираются из 235 заранее скомпилированных значений, включая точные цвета Elysium
 Произвольный `#RGB` / `#RRGGBB` приводится к ближайшему цвету этой палитры
 Именованные цвета: white, black, red, darkred, green, lightgreen, lime, blue, lightblue, cyan,
-yellow, gold, orange, purple, lightpurple, pink, gray/grey, silver, mint, muted, default
+yellow, gold, orange, purple, lightpurple, pink, gray/grey, silver, mint, muted, default, olive, lightyellow, bluegrey, darkblue, magenta, lightred
 
 Для ника или другого внешнего значения используйте `HudText.Escape(value)` **до** подстановки в шаблон
 Для полностью буквального вывода задайте `Format = HudTextFormat.PlainText`

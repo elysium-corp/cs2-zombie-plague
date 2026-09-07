@@ -12,7 +12,9 @@ internal static class HudPalette
         ("blue", 0x5599FF), ("lightblue", 0x99CCFF), ("cyan", 0x55DDFF),
         ("yellow", 0xFFDD55), ("gold", 0xEAC16A), ("orange", 0xFF9955),
         ("purple", 0xAA77FF), ("lightpurple", 0xCCAAFF), ("pink", 0xFF88CC),
-        ("gray", 0xAAAAAA), ("silver", 0xCCCCCC), ("mint", 0x85DCB1), ("muted", 0x9CAFB5)
+        ("gray", 0xAAAAAA), ("silver", 0xCCCCCC), ("mint", 0x85DCB1), ("muted", 0x9CAFB5),
+        ("olive", 0xA5AF62), ("lightyellow", 0xFFF2A6), ("bluegrey", 0x8AAAC2),
+        ("darkblue", 0x3366CC), ("magenta", 0xFF55FF), ("lightred", 0xFF8888)
     ];
 
     internal static readonly int[] Colors = Enumerable.Range(0, 216)

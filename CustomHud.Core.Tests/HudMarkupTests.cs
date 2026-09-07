@@ -82,6 +82,20 @@ public sealed class HudMarkupTests
         Assert.InRange(index, 0, HudPalette.Colors.Length - 1);
     }
 
+    [Theory]
+    [InlineData("olive")]
+    [InlineData("lightyellow")]
+    [InlineData("bluegrey")]
+    [InlineData("darkblue")]
+    [InlineData("magenta")]
+    [InlineData("lightred")]
+    public void ExtendedChatPaletteDoesNotAppearAsLiteralTags(string color)
+    {
+        var run = Assert.Single(Parse($"[{color}]text[/]").Lines[0]);
+        Assert.Equal("text", run.Text);
+        Assert.NotEqual(HudPalette.White, run.Style.Color);
+    }
+
     private static HudDocument Parse(string text) => HudMarkup.Parse(text, HudTextFormat.Markup, HudMessageStyle.Notice);
     private static string Text(HudDocument document) => string.Join("\n", document.Lines.Select(line => string.Concat(line.Select(run => run.Text))));
 }
