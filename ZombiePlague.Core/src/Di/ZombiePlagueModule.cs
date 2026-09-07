@@ -1,4 +1,5 @@
 using Admin.Api;
+using ZombiePlague.Core.Hud;
 using Common.Database;
 using Common.Database.Storages;
 using Common.Database.Utils;
@@ -75,6 +76,7 @@ public sealed class ZombiePlagueModule(ISwiftlyCore core) : BaseModule(core)
             name: "core.json",
             section: "CoreConfig"
         );
+        AddConfig<RoundHudConfig>(service, "round_hud.json", "RoundHud", reloadOnChange: false);
         AddConfig<AbilityHudConfig>(service, "ability_hud.json", "AbilityHud", reloadOnChange: false);
         AddConfig<RoundConfig>(
             service: service,
@@ -91,6 +93,7 @@ public sealed class ZombiePlagueModule(ISwiftlyCore core) : BaseModule(core)
         AddSingleton<ZombiePlaguePlayerEvents>(service);
         AddSingleton<ZombiePlagueClassEvents>(service);
         AddSingleton<ZombiePlagueRoundEvents>(service);
+        AddSingleton<RoundHudNotifications>(service);
         AddSingleton<ZombiePlagueCombatEvents>(service);
         AddSingleton<IZombiePlagueEvents, ZombiePlagueEvents>(service);
 

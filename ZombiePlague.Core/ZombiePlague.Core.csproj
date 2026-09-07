@@ -8,7 +8,7 @@
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
         <PublishDir>$(OutputPath)publish/ZombiePlague.Core</PublishDir>
         <AssemblyName>ZombiePlague.Core</AssemblyName>
-        <PluginVersion>0.4.0</PluginVersion>
+        <PluginVersion>0.5.0</PluginVersion>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)' == 'Migrations'">
@@ -67,6 +67,7 @@
         <ProjectReference Include="..\Common.Effects\Common.Effects.csproj" />
         <ProjectReference Include="..\Common.Hooks\Common.Hooks.csproj" />
         <ProjectReference Include="..\Localization.Api\Localization.Api.csproj" />
+        <ProjectReference Include="..\CustomHud.Api\CustomHud.Api.csproj" />
         <ProjectReference Include="..\Menu.Api\Menu.Api.csproj" />
         <ProjectReference Include="..\Metrics.Api\Metrics.Api.csproj" />
         <ProjectReference Include="..\ZombiePlague.Api\ZombiePlague.Api.csproj" />

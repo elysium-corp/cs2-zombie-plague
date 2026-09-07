@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Globalization;
 using System.Text;
 using Admin.Api;
+using CustomHud.Api;
 using Advertisement.Core.Data;
 using Localization.Api;
 using Microsoft.Extensions.Logging;
@@ -68,7 +69,7 @@ internal sealed class RateLimitedLogger(ILogger logger)
     }
 }
 
-internal sealed class AdvertisementSender(Func<ILocalizationApi> localization)
+internal sealed class AdvertisementSender(Func<ILocalizationApi> localization, AdvertisementHudDelivery hud)
 {
     public void Send(AdvertisementSnapshot snapshot, AdvertisementMessage message, IEnumerable<IPlayer> targets,
         int humans, int bots, string serverName, string mapName, string nextMap, int maxPlayers,
@@ -104,7 +105,22 @@ internal sealed class AdvertisementSender(Func<ILocalizationApi> localization)
                 }
             }
             output.Append(text).Append("[/]");
-            player.SendMessage(MessageType.Chat, output.ToString().Colored());
+            var hudOnly = hud.Send(player, message.Key, () =>
+            {
+                // Значения параметров экранируются до подстановки: ник не может изменить разметку объявления
+                var escaped = parameters.ToDictionary(item => item.Key,
+                    item => item.Value is string value ? (object?)HudText.Escape(value) : item.Value,
+                    StringComparer.OrdinalIgnoreCase);
+                var hudText = localeOverride is null
+                    ? localizationApi.FormatForPlayer(player, message.LocalizationKey, escaped)
+                    : localizationApi.FormatForLanguage(localeOverride, message.LocalizationKey, escaped);
+                if (hudText is null) return string.Empty;
+                var tag = string.IsNullOrWhiteSpace(tagKey) ? null : localeOverride is null
+                    ? localizationApi.GetTagForPlayer(player, tagKey)
+                    : localizationApi.GetTagForLanguage(localeOverride, tagKey);
+                return tag is null ? hudText : $"[{tag.Color}]&#91;{HudText.Escape(tag.Text)}&#93;[/] {hudText}";
+            });
+            if (!hudOnly) player.SendMessage(MessageType.Chat, output.ToString().Colored());
         }
     }
 

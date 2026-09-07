@@ -1,4 +1,6 @@
 using Admin.Api;
+using CustomHud.Api;
+using ZombiePlague.Core.Hud;
 using Common.Database.Migrator;
 using Common.Di;
 using Common.Effects;
@@ -32,6 +34,7 @@ namespace ZombiePlague.Core;
 public sealed partial class ZombiePlague(ISwiftlyCore core) : Plugin<ZombiePlagueModule>(core)
 {
     private readonly Lazy<IResourceLoader> _resourceLoader = GetRequiredServiceLazy<IResourceLoader>();
+    private readonly Lazy<RoundHudNotifications> _roundHud = GetRequiredServiceLazy<RoundHudNotifications>();
     private readonly Lazy<AbilityHudService> _abilityHud = GetRequiredServiceLazy<AbilityHudService>();
     private readonly Lazy<ZombieCatalogLifecycle> _catalog = GetRequiredServiceLazy<ZombieCatalogLifecycle>();
     private readonly Lazy<IZombiePlagueCoordinator> _coordinator = GetRequiredServiceLazy<IZombiePlagueCoordinator>();
@@ -58,6 +61,9 @@ public sealed partial class ZombiePlague(ISwiftlyCore core) : Plugin<ZombiePlagu
 
     protected override void OnSharedInterfacesInjected(IInterfaceManager interfaceManager)
     {
+        interfaceManager.TryGetSharedInterface<ICustomHudApi>(ICustomHudApi.SharedApiKey, out var hudApi);
+        _roundHud.Value.Initialize(hudApi);
+
         var menuApi = interfaceManager.GetSharedInterface<IMenuApi>(IMenuApi.SharedApiKey);
 
         var adminApi = interfaceManager.GetSharedInterface<IAdminApi>(IAdminApi.SharedApiKey);
@@ -88,10 +94,15 @@ public sealed partial class ZombiePlague(ISwiftlyCore core) : Plugin<ZombiePlagu
         _coordinator.Value.Start();
     }
 
-    protected override void OnReady() => _abilityHud.Value.Start();
+    protected override void OnReady()
+    {
+        _abilityHud.Value.Start();
+        _roundHud.Value.Start();
+    }
 
     protected override void OnUnload()
     {
+        if (_roundHud.IsValueCreated) _roundHud.Value.Dispose();
         if (_abilityHud.IsValueCreated) _abilityHud.Value.Dispose();
         if (_catalog.IsValueCreated) _catalog.Value.Dispose();
         EffectService.Release(Core);

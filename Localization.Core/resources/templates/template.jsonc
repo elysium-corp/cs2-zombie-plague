@@ -786,6 +786,10 @@
       "ru": "Следующий раунд: {round}. Условия будут проверены перед запуском.",
       "en": "Next round: {round}. Its conditions will be checked before start."
     },
+    "ZombiePlague.Round.Hud.Started": {
+      "ru": "<font color='muted'>Раунд начался</font><br><b><font color='mint'>{mode}</font></b>",
+      "en": "<font color='muted'>Round started</font><br><b><font color='mint'>{mode}</font></b>"
+    },
     "ZombiePlague.Round.Infection.Name": {
       "ru": "Инфекция",
       "en": "Infection"
