@@ -11,7 +11,8 @@ internal sealed class CommandService(
     ISwiftlyCore core,
     MainMenu mainMenu,
     ZClassMenu zClassMenu,
-    HClassMenu hClassMenu
+    HClassMenu hClassMenu,
+    AbilityHudMenu abilityHudMenu
 ) : ICommandService
 {
     private Guid _commandHook = Guid.Empty;
@@ -23,6 +24,7 @@ internal sealed class CommandService(
         mainMenu.RegisterCommands();
         zClassMenu.RegisterCommands();
         hClassMenu.RegisterCommands();
+        abilityHudMenu.RegisterCommands();
     }
 
     public void Unregister()
@@ -30,6 +32,7 @@ internal sealed class CommandService(
         mainMenu.UnregisterCommands();
         zClassMenu.UnregisterCommands();
         hClassMenu.UnregisterCommands();
+        abilityHudMenu.UnregisterCommands();
         
         core.Command.UnhookClientCommand(_commandHook);
     }

@@ -32,6 +32,13 @@ internal sealed class PlayerEntity : ISteamEntity
     [Column("human_class")]
     public string HumanClassId { get; set; } = PlayerPreferences.DefaultHumanClassId;
 
+    [Column("ability_hud_scale")]
+    public int AbilityHudScale { get; set; } = AbilityHudPreferences.DefaultScale;
+
+    [MaxLength(24)]
+    [Column("ability_hud_position")]
+    public string AbilityHudPosition { get; set; } = AbilityHudPreferences.DefaultPosition;
+
     [Column("updated_at")]
     public DateTime UpdatedAtUtc { get; set; } = DateTime.UtcNow;
 }

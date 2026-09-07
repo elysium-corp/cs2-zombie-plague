@@ -1,4 +1,5 @@
 using Admin.Api;
+using CustomHud.Api;
 using Advertisement.Api;
 using Advertisement.Core.Application;
 using Advertisement.Core.Api;
@@ -18,7 +19,7 @@ namespace Advertisement.Core;
 
 [PluginMetadata(
     Id = "Advertisement.Core",
-    Version = "2.5.0",
+    Version = "2.6.0",
     Name = "Elysium Advertisements",
     Author = "Elysium",
     Description = "Реклама Elysium с общей локализацией через Localization.Core.")]
@@ -28,6 +29,7 @@ internal sealed class AdvertisementPlugin(ISwiftlyCore core) : Plugin<Advertisem
     private readonly CancellationTokenSource _lifetime = new();
     private readonly HashSet<Task> _pendingOperations = [];
     private readonly object _pendingSync = new();
+    private readonly Lazy<AdvertisementHudDelivery> _hud = GetRequiredServiceLazy<AdvertisementHudDelivery>();
     private readonly Lazy<AdvertisementCache> _cache = GetRequiredServiceLazy<AdvertisementCache>();
     private readonly Lazy<AdvertisementCoordinator> _coordinator = GetRequiredServiceLazy<AdvertisementCoordinator>();
     private readonly Lazy<AdvertisementScheduler> _scheduler = GetRequiredServiceLazy<AdvertisementScheduler>();
@@ -53,6 +55,9 @@ internal sealed class AdvertisementPlugin(ISwiftlyCore core) : Plugin<Advertisem
 
     protected override void OnSharedInterfacesInjected(IInterfaceManager interfaceManager)
     {
+        interfaceManager.TryGetSharedInterface<ICustomHudApi>(ICustomHudApi.SharedApiKey, out var hudApi);
+        _hud.Value.Initialize(hudApi);
+
         if (interfaceManager.TryGetSharedInterface<IAdminApi>(IAdminApi.SharedApiKey, out var adminApi))
         {
             _audienceResolver.Value.Initialize(adminApi);
@@ -78,7 +83,7 @@ internal sealed class AdvertisementPlugin(ISwiftlyCore core) : Plugin<Advertisem
         _scheduler.Value.TryStartFromCurrentMap();
         _currentMapName = _scheduler.Value.CurrentMapName;
         _schedulerTimer = Core.Scheduler.RepeatBySeconds(1f, _scheduler.Value.Tick);
-        Core.Logger.LogInformation("[Advertisement] Advertisement.Core 2.5.0 загружен.");
+        Core.Logger.LogInformation("[Advertisement] Advertisement.Core 2.6.0 загружен");
     }
 
     protected override void OnUnload()
@@ -93,6 +98,7 @@ internal sealed class AdvertisementPlugin(ISwiftlyCore core) : Plugin<Advertisem
         _schedulerTimer = null;
         Core.Event.OnMapLoad -= OnMapLoad;
 
+        if (_hud.IsValueCreated) _hud.Value.Dispose();
         _lifetime.Cancel();
         _audienceResolver.Value.Uninitialize();
         _coordinator.Value.Dispose();

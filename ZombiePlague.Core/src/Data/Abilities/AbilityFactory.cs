@@ -21,17 +21,23 @@ internal sealed class AbilityFactory(
         return Create(definition);
     }
 
-    internal IAbility Create(ZombieAbilityDefinition definition) => AbilityParameters.Parse(definition) switch
+    internal IAbility Create(ZombieAbilityDefinition definition)
     {
-        HealConfig config => new Heal(core, config, localization),
-        LeapConfig config => new Leap(core, config, localization),
-        BlindConfig config => new Blind(core, config),
-        ChargeConfig config => new Charge(core, config, localization),
-        TrapConfig config => new Trap(core, config, localization),
-        CatchConfig config => new Catch(core, config, localization),
-        DoubleJumpConfig config => new DoubleJump(core, config),
-        _ => throw new NotSupportedException($"Неизвестная механика {definition.Kind}")
-    };
+        IAbility ability = AbilityParameters.Parse(definition) switch
+        {
+            HealConfig config => new Heal(core, config, localization),
+            LeapConfig config => new Leap(core, config, localization),
+            BlindConfig config => new Blind(core, config),
+            ChargeConfig config => new Charge(core, config, localization),
+            TrapConfig config => new Trap(core, config, localization),
+            CatchConfig config => new Catch(core, config, localization),
+            DoubleJumpConfig config => new DoubleJump(core, config),
+            _ => throw new NotSupportedException($"Неизвестная механика {definition.Kind}")
+        };
+        if (ability is IPresentedAbility presented)
+            presented.Presentation = new(definition.InternalName, definition.DisplayNameKey, definition.Kind);
+        return ability;
+    }
 
     public List<IAbility> CreateFromStrings(List<string> abilities, ulong steamId = 0, AbilitySide side = AbilitySide.Zombie)
     {

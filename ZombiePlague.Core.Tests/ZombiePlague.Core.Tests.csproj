@@ -20,6 +20,8 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="../CustomHud.Api/CustomHud.Api.csproj" Private="true" />
+        <ProjectReference Include="..\Common.Database\Common.Database.csproj" Private="true" />
         <ProjectReference Include="..\Localization.Api\Localization.Api.csproj" Private="true" />
         <ProjectReference Include="..\ZombiePlague.Core\ZombiePlague.Core.csproj">
             <Private>true</Private>
@@ -29,6 +31,8 @@
     <ItemGroup>
         <None Include="../ZombiePlague.Core/resources/templates/zombie_catalog.example.json"
               Link="zombie_catalog.example.json" CopyToOutputDirectory="PreserveNewest" />
+        <None Include="../ZombiePlague.Core/resources/hud/ability-hud/content/**/*"
+              Link="ability-hud/content/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
 
 </Project>

@@ -90,19 +90,7 @@ internal sealed class PlayerPreferencesCoordinator(
                         return false;
                     }
 
-                    session.CompleteLoadMerged(current =>
-                        {
-                            if (current.ZClassId == PlayerPreferences.DefaultZombieClassId)
-                            {
-                                current.ZClassId = loaded.ZClassId;
-                            }
-
-                            if (current.HClassId == PlayerPreferences.DefaultHumanClassId)
-                            {
-                                current.HClassId = loaded.HClassId;
-                            }
-                        }
-                    );
+                    session.CompleteLoadMerged(current => current.MergeLoaded(loaded));
 
                     return true;
                 }
@@ -154,14 +142,7 @@ internal sealed class PlayerPreferencesCoordinator(
 
                 try
                 {
-                    var snapshot = session.CreateSnapshot(data =>
-                        new PlayerPreferences
-                        {
-                            ZClassId = data.ZClassId,
-
-                            HClassId = data.HClassId
-                        }
-                    );
+                    var snapshot = session.CreateSnapshot(data => data.Snapshot());
 
                     if (!snapshot.IsLoaded || !snapshot.IsDirty)
                     {

@@ -1,0 +1,53 @@
+/* HUD способностей Elysium, ресурсы v4 — только поддерживаемые элементы Panorama, без клиентского JavaScript */
+.ElysiumBuffCanvas { width: 100%; height: 100%; }
+.AbilityBuffs {
+    horizontal-align: center;
+    vertical-align: bottom;
+    margin-bottom: 150px;
+    flow-children: down;
+    padding: 10px 9px 8px 9px;
+    background-color: gradient(linear, 0% 0%, 100% 100%, from(#0c171cec), to(#111a20dc));
+    border: 1px solid #85dcb132;
+    border-radius: 8px;
+    visibility: collapse;
+}
+.AbilityBuffs.Shown { visibility: visible; }
+/* Стандартные 100% и положение снизу по центру задаёт базовый класс */
+.AbilityBuffs.Scale50 { ui-scale: 50%; }
+.AbilityBuffs.Scale75 { ui-scale: 75%; }
+.AbilityBuffs.Position_top_left { horizontal-align: left; vertical-align: top; margin: 72px 24px 0px 24px; }
+.AbilityBuffs.Position_top_center { horizontal-align: center; vertical-align: top; margin: 72px 24px 0px 24px; }
+.AbilityBuffs.Position_top_right { horizontal-align: right; vertical-align: top; margin: 72px 24px 0px 24px; }
+.AbilityBuffs.Position_middle_left { horizontal-align: left; vertical-align: center; margin: 0px 24px 0px 24px; }
+.AbilityBuffs.Position_middle_center { horizontal-align: center; vertical-align: center; margin: 0px 24px 0px 24px; }
+.AbilityBuffs.Position_middle_right { horizontal-align: right; vertical-align: center; margin: 0px 24px 0px 24px; }
+.AbilityBuffs.Position_bottom_left { horizontal-align: left; vertical-align: bottom; margin: 0px 24px 150px 24px; }
+.AbilityBuffs.Position_bottom_right { horizontal-align: right; vertical-align: bottom; margin: 0px 24px 150px 24px; }
+.BuffRow { flow-children: right; horizontal-align: center; visibility: collapse; }
+.BuffRow.Shown { visibility: visible; }
+.Buff { width: 64px; margin: 3px 3px 0px 3px; flow-children: down; visibility: collapse; }
+.Buff.Shown { visibility: visible; }
+.BuffTile { width: 58px; height: 58px; horizontal-align: center; border: 1px solid #8cdfb16b; border-radius: 7px; background-color: #153029df; }
+.BuffIcon { width: 38px; height: 38px; horizontal-align: center; vertical-align: center; wash-color: #b9ffd1; visibility: collapse; }
+.BuffCountdown { horizontal-align: center; vertical-align: center; font-family: Stratum2, sans-serif; font-size: 28px; font-weight: bold; color: #ffda87; text-shadow: 0px 2px 3px 3 #000000; visibility: collapse; }
+.BuffHotkey { height: 15px; horizontal-align: center; margin-top: 3px; font-family: Stratum2, sans-serif; font-size: 10px; color: #b0c1b8; }
+.BuffName { width: 64px; height: 30px; text-align: center; font-family: Stratum2, sans-serif; font-size: 11px; color: #d5e4dc; text-overflow: ellipsis; visibility: collapse; }
+.ShowNames .BuffName { visibility: visible; }
+.ReadyMark { width: 14px; height: 3px; border-radius: 2px; horizontal-align: center; vertical-align: bottom; margin-bottom: 3px; background-color: #83edab; }
+.Passive .BuffTile { border-color: #8dcbe966; background-color: #173039de; }
+.Passive .BuffIcon { wash-color: #b5e9ff; }
+.Passive .ReadyMark { background-color: #84cdef; }
+.Passive .BuffHotkey { color: #b5e9ff; font-size: 13px; }
+/* КД перекрывает оформление обоих типов, но сохраняет отметку пассивной способности */
+.Cooling .BuffTile { background-color: #162027ed; border-color: #71858b55; }
+.Cooling .BuffIcon { wash-color: #788b91; opacity: 0.22; }
+.Cooling .BuffCountdown { visibility: visible; }
+.Cooling .ReadyMark { visibility: collapse; }
+.Kind_heal .Icon_heal { visibility: visible; }
+.Kind_leap .Icon_leap { visibility: visible; }
+.Kind_blind .Icon_blind { visibility: visible; }
+.Kind_charge .Icon_charge { visibility: visible; }
+.Kind_catch .Icon_catch { visibility: visible; }
+.Kind_trap .Icon_trap { visibility: visible; }
+.Kind_double_jump .Icon_double_jump { visibility: visible; }
+.Kind_generic .Icon_generic { visibility: visible; }

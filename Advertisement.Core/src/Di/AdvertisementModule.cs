@@ -19,11 +19,14 @@ internal sealed class AdvertisementModule(ISwiftlyCore core) : BaseModule(core)
     {
         var services = new ServiceCollection();
         AddConfig<AdvertisementConfig>(services, "advertisement.json", "AdvertisementConfig");
+        AddConfig<AdvertisementHudConfig>(services, "hud_delivery.json", "AdvertisementHud");
         services.AddSwiftly(Core);
         services.AddSharedInterface<ILocalizationApi>();
 
         AddSingleton<AdvertisementCache>(services);
         AddSingleton<AdminAudienceResolver>(services);
+        AddSingleton<AdvertisementHudDelivery>(services, provider => new AdvertisementHudDelivery(
+            provider.GetRequiredService<Microsoft.Extensions.Options.IOptions<AdvertisementHudConfig>>(), Core.Logger));
         AddSingleton<AdvertisementSender>(services);
         AddSingleton<AdvertisementScheduler>(services);
         AddSingleton<AdvertisementApi>(services);

@@ -1,4 +1,4 @@
-﻿using SwiftlyS2.Shared;
+using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
 using ZombiePlague.Core.Config.Ability;
@@ -6,7 +6,7 @@ using ZombiePlague.Core.Config.Ability;
 namespace ZombiePlague.Core.Data.Abilities.Contracts;
 
 internal abstract class BasePassiveAbility(ISwiftlyCore core, IAbilityConfig config)
-    : IPassiveAbility, ICooldownRestricted, IParticleRestricted, ISoundPlayable
+    : IPassiveAbility, ICooldownRestricted, IParticleRestricted, ISoundPlayable, IPresentedAbility
 {
     protected IPlayer Caster { get; private set; } = null!;
 
@@ -14,7 +14,11 @@ internal abstract class BasePassiveAbility(ISwiftlyCore core, IAbilityConfig con
 
     protected bool IsEnabled => config.Enable;
 
+    public AbilityPresentation? Presentation { get; set; }
+
     public bool IsActive { get; set; }
+
+    public float RemainingCooldown => IsActive ? Math.Max(0, Cooldown - _cooldownElapsedTime) : 0;
 
     public abstract float Cooldown { get; }
     private CancellationTokenSource? _cooldownToken;

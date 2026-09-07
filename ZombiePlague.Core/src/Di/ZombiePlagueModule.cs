@@ -1,4 +1,5 @@
 using Admin.Api;
+using ZombiePlague.Core.Hud;
 using Common.Database;
 using Common.Database.Storages;
 using Common.Database.Utils;
@@ -16,6 +17,7 @@ using ZombiePlague.Api.Events;
 using ZombiePlague.Core.Api;
 using ZombiePlague.Core.Api.Events;
 using ZombiePlague.Core.Catalog;
+using ZombiePlague.Core.Hud.AbilityHud;
 using ZombiePlague.Core.Config.Core;
 using ZombiePlague.Core.Config.Round;
 using ZombiePlague.Core.Data.Abilities;
@@ -74,6 +76,8 @@ public sealed class ZombiePlagueModule(ISwiftlyCore core) : BaseModule(core)
             name: "core.json",
             section: "CoreConfig"
         );
+        AddConfig<RoundHudConfig>(service, "round_hud.json", "RoundHud", reloadOnChange: false);
+        AddConfig<AbilityHudConfig>(service, "ability_hud.json", "AbilityHud", reloadOnChange: false);
         AddConfig<RoundConfig>(
             service: service,
             name: "round.json",
@@ -89,6 +93,7 @@ public sealed class ZombiePlagueModule(ISwiftlyCore core) : BaseModule(core)
         AddSingleton<ZombiePlaguePlayerEvents>(service);
         AddSingleton<ZombiePlagueClassEvents>(service);
         AddSingleton<ZombiePlagueRoundEvents>(service);
+        AddSingleton<RoundHudNotifications>(service);
         AddSingleton<ZombiePlagueCombatEvents>(service);
         AddSingleton<IZombiePlagueEvents, ZombiePlagueEvents>(service);
 
@@ -102,6 +107,9 @@ public sealed class ZombiePlagueModule(ISwiftlyCore core) : BaseModule(core)
 
         AddSingleton<ZombieCatalogRepository>(service);
         AddSingleton<ZombieCatalogService>(service);
+        service.AddSingleton<Func<IAbilityHudRuntime>>(_ => () => CustomHudRuntime.Create(Core));
+        AddSingleton<AbilityHudService>(service);
+        AddSingleton<AbilityHudSettings>(service);
         AddSingleton<ZombieCatalogLifecycle>(service);
         AddSingleton<AbilityFactory>(service);
         AddSingleton<IAbilityFactory>(service, provider => provider.GetRequiredService<AbilityFactory>());
@@ -137,6 +145,7 @@ public sealed class ZombiePlagueModule(ISwiftlyCore core) : BaseModule(core)
         AddSingleton<MainMenu>(service);
         AddSingleton<ZClassMenu>(service);
         AddSingleton<HClassMenu>(service);
+        AddSingleton<AbilityHudMenu>(service);
         
         AddSingleton<InfectMenu>(service);
         AddSingleton<DisinfectMenu>(service);
