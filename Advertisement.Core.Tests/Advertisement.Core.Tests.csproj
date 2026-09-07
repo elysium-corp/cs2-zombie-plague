@@ -23,6 +23,7 @@
 
     <ItemGroup>
         <ProjectReference Include="../CustomHud.Api/CustomHud.Api.csproj" Private="true" />
+        <ProjectReference Include="../Localization.Api/Localization.Api.csproj" Private="true" />
         <ProjectReference Include="..\Advertisement.Core\Advertisement.Core.csproj">
             <Private>true</Private>
         </ProjectReference>
