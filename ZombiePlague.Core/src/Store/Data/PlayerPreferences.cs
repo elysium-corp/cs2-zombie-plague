@@ -11,6 +11,8 @@ internal sealed class PlayerPreferences
 
     public AbilityHudPreferences AbilityHud { get; set; } = AbilityHudPreferences.Default;
 
+    public bool AbilityHudCustomized { get; set; }
+
     // Сброс к стандартному виду до ответа БД тоже считается выбором игрока
     public bool AbilityHudScaleChangedInSession { get; set; }
     public bool AbilityHudPositionChangedInSession { get; set; }
@@ -19,6 +21,7 @@ internal sealed class PlayerPreferences
     {
         if (ZClassId == DefaultZombieClassId) ZClassId = loaded.ZClassId;
         if (HClassId == DefaultHumanClassId) HClassId = loaded.HClassId;
+        if (!AbilityHudScaleChangedInSession && !AbilityHudPositionChangedInSession) AbilityHudCustomized = loaded.AbilityHudCustomized;
         var loadedHud = loaded.AbilityHud.Normalize();
         AbilityHud = new(
             AbilityHudScaleChangedInSession ? AbilityHud.ScalePercent : loadedHud.ScalePercent,
@@ -29,6 +32,7 @@ internal sealed class PlayerPreferences
     {
         ZClassId = ZClassId,
         HClassId = HClassId,
-        AbilityHud = AbilityHud.Normalize()
+        AbilityHud = AbilityHud.Normalize(),
+        AbilityHudCustomized = AbilityHudCustomized
     };
 }

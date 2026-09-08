@@ -1,4 +1,5 @@
-﻿using Common.Di;
+using CustomHud.Api;
+using Common.Di;
 using DamageNotify.Core.Data.Configs;
 using Microsoft.Extensions.DependencyInjection;
 using SwiftlyS2.Shared;
@@ -12,6 +13,7 @@ internal sealed class DamageNotifyModule(ISwiftlyCore core) : BaseModule(core)
     public override (ServiceProvider, ServiceCollection) GetProvider()
     {
         var service = new ServiceCollection();
+        service.AddSingleton<BannerNotificationClient>();
 
         service.AddSwiftly(_core);
         

@@ -33,7 +33,6 @@ internal abstract class BaseActiveAbility(
     private float _cooldownElapsedTime;
 
     public virtual bool IsCooldownNotify => true;
-    private const int CooldownMessageTime = 300;
 
     public CParticleSystem? Particle { get; set; }
 
@@ -149,19 +148,6 @@ internal abstract class BaseActiveAbility(
 
         if (IsActive)
         {
-            if (IsCooldownNotify)
-            {
-                Caster.SendMessage(
-                    MessageType.Alert,
-                    localization().GetForPlayerOrKey(
-                        Caster,
-                        "ZombiePlague.Ability.Cooldown",
-                        new Dictionary<string, string>
-                        {
-                            ["seconds"] = Math.Ceiling(Cooldown - _cooldownElapsedTime).ToString()
-                        }),
-                    CooldownMessageTime);
-            }
 
             return;
         }

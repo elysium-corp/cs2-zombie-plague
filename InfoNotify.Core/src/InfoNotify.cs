@@ -1,3 +1,4 @@
+using CustomHud.Api;
 using Common.Di;
 using Common.Di.Utils;
 using InfoNotify.Core.Data.Configs;
@@ -13,13 +14,15 @@ namespace InfoNotify.Core;
 
 [PluginMetadata(
     Id = "InfoNotify.Core",
-    Version = "0.1.0",
+    Version = "0.2.0",
     Name = "[ZP] InfoNotify",
     Author = "illusion & fdrinv",
     Description = "Print useful information to the chat"
 )]
 internal sealed partial class InfoNotify(ISwiftlyCore core) : Plugin<InfoNotifyModule>(core)
 {
+    private readonly Lazy<BannerNotificationClient> _notifications = GetRequiredServiceLazy<BannerNotificationClient>();
+
     private readonly Lazy<IOptions<InfoNotifyConfig>> _config = GetRequiredServiceLazy<IOptions<InfoNotifyConfig>>();
     private readonly Lazy<Func<ILocalizationApi>> _localization = GetRequiredServiceLazy<Func<ILocalizationApi>>();
     
@@ -34,6 +37,12 @@ internal sealed partial class InfoNotify(ISwiftlyCore core) : Plugin<InfoNotifyM
         BindSharedInterface<ILocalizationApi>(interfaceManager, ILocalizationApi.SharedApiKey);
     }
 
+    protected override void OnSharedInterfacesInjected(IInterfaceManager interfaceManager)
+    {
+        interfaceManager.TryGetSharedInterface<IBannerNotificationApi>(IBannerNotificationApi.SharedApiKey, out var notificationApi);
+        _notifications.Value.Bind(notificationApi);
+    }
+
     protected override void OnReady()
     {
         _guidOnPlayerConnectFullPost = core.GameEvent.HookPre<EventPlayerConnectFull>(OnPlayerConnectFull);
@@ -43,6 +52,7 @@ internal sealed partial class InfoNotify(ISwiftlyCore core) : Plugin<InfoNotifyM
 
     protected override void OnUnload()
     {
+        if (_notifications.IsValueCreated) _notifications.Value.Bind(null);
         StopEventMessagesTimer();
         core.GameEvent.Unhook(_guidOnPlayerConnectFullPost);
         core.GameEvent.Unhook(_guidOnRoundStartPost);
@@ -66,7 +76,7 @@ internal sealed partial class InfoNotify(ISwiftlyCore core) : Plugin<InfoNotifyM
             return HookResult.Continue;
         }
         
-        SendKeysToPlayer(player, playerConnectMessages);
+        SendKeysToPlayer(player, playerConnectMessages, "InfoNotify.Connected");
         
         return HookResult.Continue;
     }
@@ -83,7 +93,7 @@ internal sealed partial class InfoNotify(ISwiftlyCore core) : Plugin<InfoNotifyM
             return HookResult.Continue;
         }
         
-        SendKeysToAll(roundStartMessages);
+        SendKeysToAll(roundStartMessages, "InfoNotify.RoundStart");
         
         return HookResult.Continue;
     }
@@ -99,7 +109,7 @@ internal sealed partial class InfoNotify(ISwiftlyCore core) : Plugin<InfoNotifyM
             return HookResult.Continue;
         }
         
-        SendKeysToAll(roundEndMessages);
+        SendKeysToAll(roundEndMessages, "InfoNotify.RoundEnd");
         
         return HookResult.Continue;
     }
@@ -125,11 +135,11 @@ internal sealed partial class InfoNotify(ISwiftlyCore core) : Plugin<InfoNotifyM
             {
                 if (randomEventMessagesEnable)
                 {
-                    SendChatRandomEventMessages(roundEventMessages);
+                    SendRandomEventMessages(roundEventMessages);
                 }
                 else
                 {
-                    SendChatEventMessages(roundEventMessages);
+                    SendEventMessages(roundEventMessages);
                 }
             });
     }
@@ -140,12 +150,12 @@ internal sealed partial class InfoNotify(ISwiftlyCore core) : Plugin<InfoNotifyM
         _eventMessagesHandler = null;
     }
     
-    private void SendChatEventMessages(List<string> messages)
+    private void SendEventMessages(List<string> messages)
     {
         SendKeysToAll(messages);
     }
     
-    private void SendChatRandomEventMessages(List<string> messages)
+    private void SendRandomEventMessages(List<string> messages)
     {
         var config = _config.Get();
         var randomMessages = messages.Shuffle().ToList();
@@ -157,15 +167,15 @@ internal sealed partial class InfoNotify(ISwiftlyCore core) : Plugin<InfoNotifyM
         }
     }
 
-    private void SendKeysToAll(IEnumerable<string> keys)
+    private void SendKeysToAll(IEnumerable<string> keys, string eventKey = "InfoNotify.Periodic")
     {
         foreach (var key in keys)
         {
-            SendKeyToAll(key);
+            SendKeyToAll(key, eventKey);
         }
     }
 
-    private void SendKeyToAll(string key)
+    private void SendKeyToAll(string key, string eventKey = "InfoNotify.Periodic")
     {
         if (string.IsNullOrWhiteSpace(key))
         {
@@ -175,15 +185,29 @@ internal sealed partial class InfoNotify(ISwiftlyCore core) : Plugin<InfoNotifyM
         foreach (var player in core.PlayerManager.GetAllPlayers()
                      .Where(value => value is { IsAuthorized: true, IsFakeClient: false }))
         {
-            player.SendChat(_localization.Value().GetForPlayerOrKey(player, key));
+            var message = _localization.Value().GetForPlayer(player, key);
+            if (!string.IsNullOrWhiteSpace(message))
+            {
+                // Старые информационные строки могли содержать управляющие цвета чата.
+                message = System.Text.RegularExpressions.Regex.Replace(message,
+                    @"\[(?:default|white|green|lightgreen|red|darkred|gold|yellow|blue|lightblue|grey|gray|orange|purple|olive|lime|bluegrey|darkblue|lightred|lightyellow)\]|[\x01-\x10]", "", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                _notifications.Value.Publish(player, eventKey, new Dictionary<string, object?> { ["message"] = message });
+            }
         }
     }
 
-    private void SendKeysToPlayer(IPlayer player, IEnumerable<string> keys)
+    private void SendKeysToPlayer(IPlayer player, IEnumerable<string> keys, string eventKey = "InfoNotify.Periodic")
     {
         foreach (var key in keys.Where(value => !string.IsNullOrWhiteSpace(value)))
         {
-            player.SendChat(_localization.Value().GetForPlayerOrKey(player, key));
+            var message = _localization.Value().GetForPlayer(player, key);
+            if (!string.IsNullOrWhiteSpace(message))
+            {
+                // Старые информационные строки могли содержать управляющие цвета чата.
+                message = System.Text.RegularExpressions.Regex.Replace(message,
+                    @"\[(?:default|white|green|lightgreen|red|darkred|gold|yellow|blue|lightblue|grey|gray|orange|purple|olive|lime|bluegrey|darkblue|lightred|lightyellow)\]|[\x01-\x10]", "", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                _notifications.Value.Publish(player, eventKey, new Dictionary<string, object?> { ["message"] = message });
+            }
         }
     }
 }

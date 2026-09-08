@@ -22,6 +22,7 @@ internal sealed class PlayerPersistenceService(ISteamEntityStore<PlayerEntity> s
         {
             ZClassId = entity.ZombieClassId,
             HClassId = entity.HumanClassId,
+            AbilityHudCustomized = entity.AbilityHudCustomized,
             AbilityHud = new AbilityHudPreferences(entity.AbilityHudScale, entity.AbilityHudPosition).Normalize()
         };
     }
@@ -41,6 +42,7 @@ internal sealed class PlayerPersistenceService(ISteamEntityStore<PlayerEntity> s
                     preferences.HClassId;
 
                 var hud = preferences.AbilityHud.Normalize();
+                entity.AbilityHudCustomized = preferences.AbilityHudCustomized;
                 entity.AbilityHudScale = hud.ScalePercent;
                 entity.AbilityHudPosition = hud.Position;
 

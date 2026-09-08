@@ -177,6 +177,91 @@ public sealed class CmsHudDeliveryTests
         await transaction.RollbackAsync();
     }
 
+    [Fact]
+    public async Task NotificationMigrationsSeedLocalizedEventsAndProtectConfiguredBindings()
+    {
+        var connectionString = Environment.GetEnvironmentVariable("ADVERTISEMENT_TEST_POSTGRES");
+        if (connectionString is null) return;
+        await using var connection = new NpgsqlConnection(connectionString);
+        await connection.OpenAsync();
+        await using var transaction = await connection.BeginTransactionAsync();
+        async Task Execute(string sql) => await new NpgsqlCommand(sql, connection, transaction).ExecuteNonQueryAsync();
+        async Task<object?> Scalar(string sql) => await new NpgsqlCommand(sql, connection, transaction).ExecuteScalarAsync();
+        await Execute("""
+            CREATE SCHEMA advertisement;
+            CREATE SCHEMA localization;
+            CREATE TABLE localization.entries(id BIGSERIAL PRIMARY KEY, key VARCHAR(191) UNIQUE NOT NULL, description TEXT, parameters JSONB, is_critical BOOLEAN);
+            CREATE TABLE localization.languages(code TEXT PRIMARY KEY);
+            INSERT INTO localization.languages VALUES ('ru'), ('en'), ('de'), ('pl');
+            CREATE TABLE localization.translations(entry_id BIGINT REFERENCES localization.entries(id), language_code TEXT REFERENCES localization.languages(code), text TEXT, PRIMARY KEY(entry_id, language_code));
+            CREATE TABLE localization.settings(configuration_version BIGINT, updated_at TIMESTAMPTZ);
+            INSERT INTO localization.settings VALUES (1, NOW());
+            CREATE TABLE advertisement.settings(configuration_version BIGINT, updated_at TIMESTAMPTZ);
+            INSERT INTO advertisement.settings VALUES (1, NOW());
+            CREATE TABLE advertisement.messages(id BIGINT PRIMARY KEY, localization_key VARCHAR(191) NOT NULL REFERENCES localization.entries(key), display_type VARCHAR(32) NOT NULL DEFAULT 'chat');
+            """);
+        // Выполняем саму миграцию Localization, затем миграции зависимого модуля.
+        var localizationType = Assembly.Load("Localization.Core").GetType("Localization.Core.Database.Migrations.AddNotificationLocalization", true)!;
+        var localizationMigration = (Microsoft.EntityFrameworkCore.Migrations.Migration)Activator.CreateInstance(localizationType, nonPublic: true)!;
+        foreach (var migration in new Microsoft.EntityFrameworkCore.Migrations.Migration[]
+                 { localizationMigration, new AddHudDelivery(), new AddBannerTemplates(), new AddNotificationRules() })
+            foreach (var operation in migration.UpOperations.Cast<SqlOperation>()) await Execute(operation.Sql);
+        Assert.Equal((long)NotificationCatalog.Defaults.Count, await Scalar("SELECT COUNT(*) FROM advertisement.notification_rules"));
+        Assert.Equal((long)NotificationCatalog.Defaults.Count, await Scalar("SELECT COUNT(*) FROM localization.entries"));
+        Assert.Equal("top_left", await Scalar("SELECT settings->>'Position' FROM advertisement.hud_widgets WHERE key = 'ZombiePlague.Abilities'"));
+        var version = (long)(await Scalar("SELECT configuration_version FROM advertisement.settings"))!;
+        await Execute("UPDATE advertisement.hud_widgets SET settings = jsonb_set(settings, '{ScalePercent}', '75')");
+        Assert.Equal(version + 1, await Scalar("SELECT configuration_version FROM advertisement.settings"));
+        await Execute("""
+            INSERT INTO advertisement.banner_templates(key, name, design) VALUES ('Custom.Title', 'Title', '{"SchemaVersion":1,"Variant":"custom","ShowHeader":false,"ShowTitle":true,"ShowDescription":false}');
+            UPDATE advertisement.notification_rules SET template_key = 'Custom.Title', title_key = description_key, description_key = NULL WHERE event_key = 'Game.Round.Started';
+            INSERT INTO advertisement.messages(id, display_type, banner_template_key, banner_title_key) VALUES (1, 'hud', 'Custom.Title', 'Notifications.Game.Round.Started');
+            """);
+        foreach (var invalid in new[]
+        {
+            "DELETE FROM advertisement.banner_templates WHERE key = 'Custom.Title'",
+            "DELETE FROM localization.entries WHERE key = 'Notifications.Game.Round.Started'",
+            "UPDATE advertisement.notification_rules SET description_key = 'Missing.Text'",
+            "UPDATE advertisement.notification_rules SET settings = '[]'",
+            "UPDATE advertisement.hud_widgets SET settings = '[]'",
+            "UPDATE advertisement.messages SET banner_title_key = NULL"
+        })
+        {
+            await Execute("SAVEPOINT rejected_notification");
+            await Assert.ThrowsAsync<PostgresException>(() => Execute(invalid));
+            await Execute("ROLLBACK TO SAVEPOINT rejected_notification");
+        }
+        await Execute("SAVEPOINT rollback_guard");
+        await Assert.ThrowsAsync<PostgresException>(() => Execute(new AddNotificationRules().DownOperations.Cast<SqlOperation>().Single().Sql));
+        await Execute("ROLLBACK TO SAVEPOINT rollback_guard");
+        await Execute("DELETE FROM advertisement.messages");
+        foreach (var operation in new AddNotificationRules().DownOperations.Cast<SqlOperation>()) await Execute(operation.Sql);
+        Assert.Equal((long)NotificationCatalog.Defaults.Count, await Scalar("SELECT COUNT(*) FROM localization.entries"));
+        await transaction.RollbackAsync();
+    }
+
+    [Fact]
+    public void TitleOnlyBannerReachesLocalizedApiWithoutAnUnusedDescription()
+    {
+        HudBannerContent? received = null;
+        var banners = Proxy<ICustomBannerApi>((method, args) => method.Name switch
+        {
+            "get_IsAvailable" => true,
+            "ShowLocalized" => (received = (HudBannerContent)args![2]!) is not null,
+            _ => null
+        });
+        var delivery = Delivery(new Hud());
+        delivery.Initialize(new Hud(), banners);
+        var presentation = new AdvertisementPresentation("hud", null)
+        {
+            Template = new() { Variant = "custom", ShowHeader = false, ShowDescription = false },
+            TitleKey = "Hud.Title", HudLocalizationKey = null
+        };
+        Assert.True(delivery.Send(Proxy<IPlayer>((_, _) => null), "Title", () => throw new Exception("Description must not be requested"), presentation));
+        Assert.Equal("Hud.Title", received?.Title);
+        Assert.Null(received?.Description);
+    }
+
     private static object? Capture(List<string> messages, object?[] args)
     {
         messages.Add(args.OfType<string>().Single());

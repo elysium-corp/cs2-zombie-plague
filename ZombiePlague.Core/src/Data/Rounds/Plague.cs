@@ -1,4 +1,4 @@
-﻿using Common.Hooks.Abstractions;
+using Common.Hooks.Abstractions;
 using Localization.Api;
 using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;
@@ -81,7 +81,6 @@ internal sealed class Plague(
             SoundExt.PlayGlobal(config.MusicSoundName);
         }
 
-        BroadcastLocalized("ZombiePlague.Round.Plague.Started");
 
         return true;
     }

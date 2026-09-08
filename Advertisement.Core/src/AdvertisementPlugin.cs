@@ -1,3 +1,4 @@
+using Economy.Api;
 using Admin.Api;
 using CustomHud.Api;
 using Advertisement.Api;
@@ -19,12 +20,13 @@ namespace Advertisement.Core;
 
 [PluginMetadata(
     Id = "Advertisement.Core",
-    Version = "2.8.0",
+    Version = "3.0.0",
     Name = "Elysium Advertisements",
     Author = "Elysium",
     Description = "Реклама Elysium с общей локализацией через Localization.Core.")]
 internal sealed class AdvertisementPlugin(ISwiftlyCore core) : Plugin<AdvertisementModule>(core)
 {
+    private readonly Lazy<BannerNotificationService> _notifications = GetRequiredServiceLazy<BannerNotificationService>();
     private readonly List<Guid> _commands = [];
     private readonly CancellationTokenSource _lifetime = new();
     private readonly HashSet<Task> _pendingOperations = [];
@@ -43,6 +45,7 @@ internal sealed class AdvertisementPlugin(ISwiftlyCore core) : Plugin<Advertisem
 
     protected override void OnConfigureSharedInterfaces(IInterfaceManager interfaceManager)
     {
+        interfaceManager.AddSharedInterface<IBannerNotificationApi, BannerNotificationService>(IBannerNotificationApi.SharedApiKey, _notifications.Value);
         interfaceManager.AddSharedInterface<IAdvertisementApi, AdvertisementApi>(
             IAdvertisementApi.SharedApiKey,
             _api.Value);
@@ -58,6 +61,8 @@ internal sealed class AdvertisementPlugin(ISwiftlyCore core) : Plugin<Advertisem
         interfaceManager.TryGetSharedInterface<ICustomHudApi>(ICustomHudApi.SharedApiKey, out var hudApi);
         interfaceManager.TryGetSharedInterface<ICustomBannerApi>(ICustomBannerApi.SharedApiKey, out var bannerApi);
         _hud.Value.Initialize(hudApi, bannerApi);
+        interfaceManager.TryGetSharedInterface<IEconomyApi>(IEconomyApi.SharedApiKey, out var economy);
+        _notifications.Value.Initialize(bannerApi, hudApi, economy);
 
         if (interfaceManager.TryGetSharedInterface<IAdminApi>(IAdminApi.SharedApiKey, out var adminApi))
         {
@@ -81,10 +86,11 @@ internal sealed class AdvertisementPlugin(ISwiftlyCore core) : Plugin<Advertisem
 
     protected override void OnReady()
     {
+        _notifications.Value.Start();
         _scheduler.Value.TryStartFromCurrentMap();
         _currentMapName = _scheduler.Value.CurrentMapName;
         _schedulerTimer = Core.Scheduler.RepeatBySeconds(1f, _scheduler.Value.Tick);
-        Core.Logger.LogInformation("[Advertisement] Advertisement.Core 2.8.0 загружен");
+        Core.Logger.LogInformation("[Advertisement] Advertisement.Core 3.0.0 загружен");
     }
 
     protected override void OnUnload()
@@ -99,6 +105,7 @@ internal sealed class AdvertisementPlugin(ISwiftlyCore core) : Plugin<Advertisem
         _schedulerTimer = null;
         Core.Event.OnMapLoad -= OnMapLoad;
 
+        if (_notifications.IsValueCreated) _notifications.Value.Dispose();
         if (_hud.IsValueCreated) _hud.Value.Dispose();
         _lifetime.Cancel();
         _audienceResolver.Value.Uninitialize();
@@ -165,7 +172,7 @@ internal sealed class AdvertisementPlugin(ISwiftlyCore core) : Plugin<Advertisem
         var snapshot = _cache.Value.Current;
         if (snapshot is null)
         {
-            context.Reply("Advertisement.Core 2.5.0\nSnapshot: загружается");
+            context.Reply("Advertisement.Core 3.0.0\nSnapshot: загружается");
             return;
         }
 
@@ -173,7 +180,7 @@ internal sealed class AdvertisementPlugin(ISwiftlyCore core) : Plugin<Advertisem
         var bots = players.Count(player => player.IsFakeClient);
         var count = snapshot.Settings.ExcludeBotsFromPlayers ? players.Length - bots : players.Length;
         context.Reply(
-            $"Advertisement.Core 2.5.0\nSource: {snapshot.Source}\nMessages: {snapshot.Messages.Count}" +
+            $"Advertisement.Core 3.0.0\nSource: {snapshot.Source}\nMessages: {snapshot.Messages.Count}" +
             $"\nActive: {snapshot.ActiveMessageCount(DateTimeOffset.UtcNow, count)}" +
             $"\nLocalization: Localization.Core\nVersion: {snapshot.Settings.ConfigurationVersion}");
     }
@@ -182,10 +189,10 @@ internal sealed class AdvertisementPlugin(ISwiftlyCore core) : Plugin<Advertisem
     {
         var playerId = context.Sender?.PlayerID;
         context.Reply("Advertisement reload started.");
-        Track(ReloadAsync(playerId));
+        Track(ReloadAsync(playerId, context.Sender?.SteamID));
     }
 
-    private async Task ReloadAsync(int? playerId)
+    private async Task ReloadAsync(int? playerId, ulong? steamId)
     {
         var result = await _coordinator.Value.ReloadNowAsync();
         if (_lifetime.IsCancellationRequested)
@@ -202,7 +209,8 @@ internal sealed class AdvertisementPlugin(ISwiftlyCore core) : Plugin<Advertisem
 
             if (playerId is { } id)
             {
-                Core.PlayerManager.GetPlayer(id)?.SendChat($"[Advertisement] {result.Message}");
+                if (Core.PlayerManager.GetPlayer(id) is { IsValid: true } player && player.SteamID == steamId)
+                    _notifications.Value.Publish(player, "Advertisement.Reload.Result", new Dictionary<string, object?> { ["result"] = result.Message });
             }
             else
             {

@@ -7,7 +7,7 @@ using SwiftlyS2.Shared.Plugins;
 
 namespace CustomHud.Core;
 
-[PluginMetadata(Id = "CustomHud.Core", Version = "1.1.1", Name = "Elysium Custom HUD",
+[PluginMetadata(Id = "CustomHud.Core", Version = "1.2.0", Name = "Elysium Custom HUD",
     Author = "Elysium", Description = "Общий API цветных HUD-сообщений и баннеров")]
 internal sealed class CustomHudPlugin(ISwiftlyCore core) : Plugin<CustomHudModule>(core)
 {

@@ -84,7 +84,7 @@ API работает только с памятью и не обращается
 | --- | --- |
 | `display_type` / `DisplayType` | `chat`, `hud`, `chat_and_hud` |
 | `localization_key` / `LocalizationKey` | Ключ текста чата; необязателен в режиме hud |
-| `hud_localization_key` / `HudLocalizationKey` | Отдельный ключ текста HUD, обязателен для HUD |
+| `hud_localization_key` / `HudLocalizationKey` | Ключ описания HUD; необязателен у custom-шаблона с выключенным Description |
 | `hud_position` / `HudPosition` | `top_left`, `top_center`, `top_right`, `middle_left`, `center`, `middle_right`, `bottom_left`, `bottom_center`, `bottom_right` |
 | `hud_duration_seconds` / `HudDurationSeconds` | 0,5–60 секунд, по умолчанию 8 |
 | `hud_style` / `HudStyle` | `notice` или `banner` |
@@ -121,3 +121,9 @@ Snapshot загружает только связанные шаблоны и п
 Fallback встраивает дизайн в `BannerTemplate`, поля в `BannerHeaderKey`/`BannerTitleKey`, значения в `BannerParameters`
 Для внешних плагинов доступен `ICustomBannerApi.ShowLocalized`: можно передать собственный дизайн, ключи и параметры без зависимости от Advertisement.Core
 Удаление используемого шаблона или ключа Localization запрещено. Откат миграции останавливается, если есть HUD-only сообщения без чатового ключа, чтобы не потерять данные и не отправить HTML в чат
+
+## Уведомления плагинов (3.0.0)
+
+Advertisement.Core также предоставляет IBannerNotificationApi и snapshot правил `advertisement.notification_rules` и виджетов `advertisement.hud_widgets`. 51 событие из десяти плагинов настраивается в **Реклама → Баннеры → Плагины**. Меню и постоянный HUD способностей остаются отдельными интерфейсами; уведомление о перезарядке способности удалено.
+
+[Настройка, API, параметры, миграции и fallback](../docs/banner-notifications.md). Перечень общего контекста распространяется и на рекламу, включая `{round}`, `{roundName}`, `{player}`, состояние игрока и режим ZombiePlague. Параметры конкретного события не становятся автоматическими параметрами объявлений.

@@ -1,8 +1,8 @@
 {
   "schemaVersion": 4,
-  "version": 11,
-  "generatedAt": "2026-09-07T18:20:00Z",
-  "checksum": "sha256:cc6ba6cb5f28b4fa175bb8fcceb485e0a8cec934d8aa12118ec52e34942eb514",
+  "version": 12,
+  "generatedAt": "2026-09-08T10:00:00Z",
+  "checksum": "sha256:b65be7086c92e4904f7288b192b6fde1adb78c9c0debed696dd501f77f0ec1ee",
   "serverFallbackLanguage": "ru",
   "languages": [
     "ru",
@@ -116,6 +116,307 @@
         "required": true,
         "description": "Время загрузки snapshot в ISO 8601",
         "example": "2026-09-04T18:35:00.0000000+00:00"
+      }
+    ],
+    "Notifications.Game.Damage.Hit": [
+      {
+        "name": "damage",
+        "type": "integer",
+        "required": true,
+        "description": "Нанесённый урон",
+        "example": "82"
+      },
+      {
+        "name": "victim",
+        "type": "string",
+        "required": true,
+        "description": "Ник пострадавшего",
+        "example": "Zombie"
+      },
+      {
+        "name": "victim_health",
+        "type": "integer",
+        "required": true,
+        "description": "Здоровье пострадавшего после попадания",
+        "example": "750"
+      }
+    ],
+    "Notifications.ZombiePlague.Round.Preparing": [
+      {
+        "name": "seconds",
+        "type": "integer",
+        "required": true,
+        "description": "Оставшееся время",
+        "example": "10"
+      }
+    ],
+    "Notifications.Game.Round.Started": [
+      {
+        "name": "round",
+        "type": "integer",
+        "required": true,
+        "description": "Номер раунда",
+        "example": "7"
+      },
+      {
+        "name": "roundname",
+        "type": "string",
+        "required": true,
+        "description": "Локализованное название текущего режима",
+        "example": "Инфекция"
+      }
+    ],
+    "Notifications.ZombiePlague.Round.Infection.FirstInfected": [
+      {
+        "name": "player",
+        "type": "string",
+        "required": true,
+        "description": "Получатель; в событиях выбора и рейтинга — герой события",
+        "example": "Player"
+      }
+    ],
+    "Notifications.ZombiePlague.Round.Nemesis.Selected": [
+      {
+        "name": "player",
+        "type": "string",
+        "required": true,
+        "description": "Получатель; в событиях выбора и рейтинга — герой события",
+        "example": "Player"
+      }
+    ],
+    "Notifications.ZombiePlague.Round.Survivor.Selected": [
+      {
+        "name": "player",
+        "type": "string",
+        "required": true,
+        "description": "Получатель; в событиях выбора и рейтинга — герой события",
+        "example": "Player"
+      }
+    ],
+    "Notifications.RoundRatingNotify.HumanTop": [
+      {
+        "name": "player",
+        "type": "string",
+        "required": true,
+        "description": "Получатель; в событиях выбора и рейтинга — герой события",
+        "example": "Player"
+      },
+      {
+        "name": "value",
+        "type": "integer",
+        "required": true,
+        "description": "Результат лучшего игрока",
+        "example": "12450"
+      }
+    ],
+    "Notifications.RoundRatingNotify.ZombieTop": [
+      {
+        "name": "player",
+        "type": "string",
+        "required": true,
+        "description": "Получатель; в событиях выбора и рейтинга — герой события",
+        "example": "Player"
+      },
+      {
+        "name": "value",
+        "type": "integer",
+        "required": true,
+        "description": "Результат лучшего игрока",
+        "example": "12450"
+      }
+    ],
+    "Notifications.Statistics.PointsGained": [
+      {
+        "name": "points",
+        "type": "integer",
+        "required": true,
+        "description": "Абсолютное изменение очков",
+        "example": "125"
+      }
+    ],
+    "Notifications.Statistics.PointsLost": [
+      {
+        "name": "points",
+        "type": "integer",
+        "required": true,
+        "description": "Абсолютное изменение очков",
+        "example": "125"
+      }
+    ],
+    "Notifications.Statistics.PointsUnchanged": [],
+    "Notifications.ResetScore.ResetMessage": [],
+    "Notifications.Menu.ZClass.SelectionSuccess": [
+      {
+        "name": "class",
+        "type": "string",
+        "required": true,
+        "description": "Локализованное название выбранного класса",
+        "example": "Охотник"
+      }
+    ],
+    "Notifications.Menu.HClass.SelectionSuccess": [
+      {
+        "name": "class",
+        "type": "string",
+        "required": true,
+        "description": "Локализованное название выбранного класса",
+        "example": "Охотник"
+      }
+    ],
+    "Notifications.Menu.Knife.SelectionSuccess": [
+      {
+        "name": "knife",
+        "type": "string",
+        "required": true,
+        "description": "Название выбранного ножа",
+        "example": "Karambit"
+      }
+    ],
+    "Notifications.Menu.Knife.PermissionRequired": [
+      {
+        "name": "permission",
+        "type": "string",
+        "required": true,
+        "description": "Необходимое право",
+        "example": "vip"
+      }
+    ],
+    "Notifications.Menu.AbilityHud.Disabled": [],
+    "Notifications.Menu.AbilityHud.Unavailable": [],
+    "Notifications.ZombiePlague.Admin.Round.Started": [
+      {
+        "name": "round_name",
+        "type": "string",
+        "required": true,
+        "description": "Локализованное название текущего режима",
+        "example": "Инфекция"
+      }
+    ],
+    "Notifications.ZombiePlague.Admin.Round.NotPreparing": [],
+    "Notifications.ZombiePlague.Admin.Round.CannotStart": [],
+    "Notifications.ZombiePlague.Admin.Round.Cancelled": [],
+    "Notifications.ZombiePlague.Admin.Round.Selection.AutomaticSelected": [],
+    "Notifications.ZombiePlague.Admin.Round.Selection.ConditionsPending": [
+      {
+        "name": "round_name",
+        "type": "string",
+        "required": true,
+        "description": "Локализованное название текущего режима",
+        "example": "Инфекция"
+      }
+    ],
+    "Notifications.ZombiePlague.Admin.Round.Selection.Selected": [
+      {
+        "name": "round_name",
+        "type": "string",
+        "required": true,
+        "description": "Локализованное название текущего режима",
+        "example": "Инфекция"
+      }
+    ],
+    "Notifications.Shop.Errors.ProductUnavailable": [],
+    "Notifications.Shop.Errors.TeamUnavailable": [],
+    "Notifications.Shop.Errors.AccessDenied": [],
+    "Notifications.Shop.Errors.NotEnoughMoney": [],
+    "Notifications.Shop.Errors.RoundLimit": [],
+    "Notifications.Shop.Errors.MapLimit": [],
+    "Notifications.Shop.Errors.Cooldown": [
+      {
+        "name": "seconds",
+        "type": "integer",
+        "required": true,
+        "description": "Оставшееся время",
+        "example": "10"
+      }
+    ],
+    "Notifications.Shop.Errors.InvalidPlayer": [],
+    "Notifications.Shop.Errors.Cancelled": [],
+    "Notifications.Shop.Errors.PaymentRejected": [],
+    "Notifications.Shop.Errors.GrantRejected": [],
+    "Notifications.Shop.Errors.RefundFailed": [],
+    "Notifications.Shop.Errors.AmmoNotConfigured": [],
+    "Notifications.Shop.Errors.AmmoFull": [],
+    "Notifications.Shop.Errors.Unavailable": [],
+    "Notifications.Shop.Admin.Reload.Succeeded": [
+      {
+        "name": "offers",
+        "type": "integer",
+        "required": true,
+        "description": "Количество загруженных товаров",
+        "example": "24"
+      },
+      {
+        "name": "source",
+        "type": "string",
+        "required": true,
+        "description": "Источник загруженных данных",
+        "example": "postgresql"
+      }
+    ],
+    "Notifications.Shop.Admin.Reload.Failed": [],
+    "Notifications.Localization.Menu.Loading": [],
+    "Notifications.Localization.Menu.Changed": [
+      {
+        "name": "language",
+        "type": "string",
+        "required": true,
+        "description": "Язык получателя",
+        "example": "ru"
+      }
+    ],
+    "Notifications.Localization.Menu.Unavailable": [],
+    "Notifications.Localization.Reload.Result": [
+      {
+        "name": "result",
+        "type": "string",
+        "required": true,
+        "description": "Результат перезагрузки модуля",
+        "example": "OK"
+      }
+    ],
+    "Notifications.Advertisement.Reload.Result": [
+      {
+        "name": "result",
+        "type": "string",
+        "required": true,
+        "description": "Результат перезагрузки модуля",
+        "example": "OK"
+      }
+    ],
+    "Notifications.InfoNotify.Connected": [
+      {
+        "name": "message",
+        "type": "string",
+        "required": true,
+        "description": "Текст исходного информационного сообщения",
+        "example": "Добро пожаловать"
+      }
+    ],
+    "Notifications.InfoNotify.RoundStart": [
+      {
+        "name": "message",
+        "type": "string",
+        "required": true,
+        "description": "Текст исходного информационного сообщения",
+        "example": "Добро пожаловать"
+      }
+    ],
+    "Notifications.InfoNotify.RoundEnd": [
+      {
+        "name": "message",
+        "type": "string",
+        "required": true,
+        "description": "Текст исходного информационного сообщения",
+        "example": "Добро пожаловать"
+      }
+    ],
+    "Notifications.InfoNotify.Periodic": [
+      {
+        "name": "message",
+        "type": "string",
+        "required": true,
+        "description": "Текст исходного информационного сообщения",
+        "example": "Добро пожаловать"
       }
     ]
   },
@@ -1213,6 +1514,216 @@
     "Menu.AbilityHud.Position.Bottom.Right": {
       "ru": "Снизу справа",
       "en": "Bottom right"
+    },
+    "Notifications.Game.Damage.Hit": {
+      "ru": "<font color='mint'>{victim}</font> · HP {victim_health}<br><font color='red'>−{damage}</font>",
+      "en": "<font color='mint'>{victim}</font> · HP {victim_health}<br><font color='red'>−{damage}</font>"
+    },
+    "Notifications.ZombiePlague.Round.Preparing": {
+      "ru": "До заражения {seconds} сек.",
+      "en": "Infection begins in {seconds} sec."
+    },
+    "Notifications.Game.Round.Started": {
+      "ru": "Раунд {round} начался<br><b><font color='mint'>{roundName}</font></b>",
+      "en": "Round {round} started<br><b><font color='mint'>{roundName}</font></b>"
+    },
+    "Notifications.ZombiePlague.Round.Infection.FirstInfected": {
+      "ru": "Первый заражённый — {player}",
+      "en": "First infected — {player}"
+    },
+    "Notifications.ZombiePlague.Round.Nemesis.Selected": {
+      "ru": "Немезида — {player}",
+      "en": "Nemesis — {player}"
+    },
+    "Notifications.ZombiePlague.Round.Survivor.Selected": {
+      "ru": "Выживший — {player}",
+      "en": "Survivor — {player}"
+    },
+    "Notifications.RoundRatingNotify.HumanTop": {
+      "ru": "Лучший игрок за людей: {player} — нанёс {value} урона.",
+      "en": "Best human player: {player} — dealt {value} damage."
+    },
+    "Notifications.RoundRatingNotify.ZombieTop": {
+      "ru": "Лучший игрок за зомби: {player} — заразил {value} игроков.",
+      "en": "Best zombie player: {player} — infected {value} players."
+    },
+    "Notifications.Statistics.PointsGained": {
+      "ru": "За прошлый раунд вы получили +{points} очков.",
+      "en": "You gained +{points} points last round."
+    },
+    "Notifications.Statistics.PointsLost": {
+      "ru": "За прошлый раунд вы потеряли {points} очков.",
+      "en": "You lost {points} points last round."
+    },
+    "Notifications.Statistics.PointsUnchanged": {
+      "ru": "За прошлый раунд ваши очки не изменились.",
+      "en": "Your points did not change last round."
+    },
+    "Notifications.ResetScore.ResetMessage": {
+      "ru": "Ваш счёт обнулён!",
+      "en": "Your score has been reset!"
+    },
+    "Notifications.Menu.ZClass.SelectionSuccess": {
+      "ru": "Вы успешно выбрали класс зомби: {class}",
+      "en": "Zombie class selected: {class}"
+    },
+    "Notifications.Menu.HClass.SelectionSuccess": {
+      "ru": "Вы выбрали класс человека: {class}",
+      "en": "Human class selected: {class}"
+    },
+    "Notifications.Menu.Knife.SelectionSuccess": {
+      "ru": "Вы выбрали нож: {knife}",
+      "en": "Knife selected: {knife}"
+    },
+    "Notifications.Menu.Knife.PermissionRequired": {
+      "ru": "Требуется разрешение: {permission}",
+      "en": "Requires permission: {permission}"
+    },
+    "Notifications.Menu.AbilityHud.Disabled": {
+      "ru": "Панель способностей отключена на сервере",
+      "en": "Ability HUD is disabled on this server"
+    },
+    "Notifications.Menu.AbilityHud.Unavailable": {
+      "ru": "Настройки игрока ещё загружаются — попробуйте чуть позже",
+      "en": "Player settings are still loading; please try again shortly"
+    },
+    "Notifications.ZombiePlague.Admin.Round.Started": {
+      "ru": "Запущен раунд: {round_name}",
+      "en": "Round started: {round_name}"
+    },
+    "Notifications.ZombiePlague.Admin.Round.NotPreparing": {
+      "ru": "Подготовка уже завершена",
+      "en": "Preparation has already ended"
+    },
+    "Notifications.ZombiePlague.Admin.Round.CannotStart": {
+      "ru": "Не удалось подобрать раунд для запуска",
+      "en": "No eligible round could be selected"
+    },
+    "Notifications.ZombiePlague.Admin.Round.Cancelled": {
+      "ru": "Запуск раунда отменён",
+      "en": "Round start was cancelled"
+    },
+    "Notifications.ZombiePlague.Admin.Round.Selection.AutomaticSelected": {
+      "ru": "Следующий раунд будет выбран автоматически.",
+      "en": "The next round will be selected automatically."
+    },
+    "Notifications.ZombiePlague.Admin.Round.Selection.ConditionsPending": {
+      "ru": "Следующий раунд: {round_name}. Условия будут проверены перед запуском.",
+      "en": "Next round: {round_name}. Its conditions will be checked before start."
+    },
+    "Notifications.ZombiePlague.Admin.Round.Selection.Selected": {
+      "ru": "Следующий раунд: {round_name}",
+      "en": "Next round: {round_name}"
+    },
+    "Notifications.Shop.Errors.ProductUnavailable": {
+      "ru": "Предмет отсутствует в экипировке сервера",
+      "en": "The item is missing from the server equipment catalog"
+    },
+    "Notifications.Shop.Errors.TeamUnavailable": {
+      "ru": "Товар недоступен для текущей стороны",
+      "en": "The item is unavailable for your current side"
+    },
+    "Notifications.Shop.Errors.AccessDenied": {
+      "ru": "Недостаточно прав для покупки",
+      "en": "You do not have permission to buy this item"
+    },
+    "Notifications.Shop.Errors.NotEnoughMoney": {
+      "ru": "Недостаточно денег",
+      "en": "Not enough money"
+    },
+    "Notifications.Shop.Errors.RoundLimit": {
+      "ru": "Лимит покупок за раунд исчерпан",
+      "en": "The per-round purchase limit has been reached"
+    },
+    "Notifications.Shop.Errors.MapLimit": {
+      "ru": "Лимит покупок за карту исчерпан",
+      "en": "The per-map purchase limit has been reached"
+    },
+    "Notifications.Shop.Errors.Cooldown": {
+      "ru": "Повторная покупка через {seconds} сек.",
+      "en": "Available again in {seconds} sec."
+    },
+    "Notifications.Shop.Errors.InvalidPlayer": {
+      "ru": "Сейчас покупка невозможна",
+      "en": "You cannot buy anything right now"
+    },
+    "Notifications.Shop.Errors.Cancelled": {
+      "ru": "Покупка отменена",
+      "en": "Purchase cancelled"
+    },
+    "Notifications.Shop.Errors.PaymentRejected": {
+      "ru": "Не удалось списать деньги",
+      "en": "Payment was rejected"
+    },
+    "Notifications.Shop.Errors.GrantRejected": {
+      "ru": "Не удалось выдать предмет, деньги возвращены",
+      "en": "The item could not be granted; your money was refunded"
+    },
+    "Notifications.Shop.Errors.RefundFailed": {
+      "ru": "Не удалось выдать предмет и вернуть деньги. Сообщите администратору",
+      "en": "The item and refund both failed. Please contact an administrator"
+    },
+    "Notifications.Shop.Errors.AmmoNotConfigured": {
+      "ru": "Для этого оружия покупка патронов не настроена",
+      "en": "Ammo purchase is not configured for this weapon"
+    },
+    "Notifications.Shop.Errors.AmmoFull": {
+      "ru": "Запас патронов уже заполнен",
+      "en": "Your ammo reserve is already full"
+    },
+    "Notifications.Shop.Errors.Unavailable": {
+      "ru": "Товар сейчас недоступен",
+      "en": "This item is currently unavailable"
+    },
+    "Notifications.Shop.Admin.Reload.Succeeded": {
+      "ru": "Магазин обновлён из {source}. Загружено товаров: {offers}",
+      "en": "Shop reloaded from {source}. Offers loaded: {offers}"
+    },
+    "Notifications.Shop.Admin.Reload.Failed": {
+      "ru": "Не удалось обновить магазин; сохранён предыдущий snapshot",
+      "en": "Shop reload failed; the previous snapshot remains active"
+    },
+    "Notifications.Localization.Menu.Loading": {
+      "ru": "Локализация ещё загружается",
+      "en": "Localization is still loading",
+      "de": "Die Lokalisierung wird noch geladen",
+      "pl": "Lokalizacja wciąż się ładuje"
+    },
+    "Notifications.Localization.Menu.Changed": {
+      "ru": "Язык изменён на {language}",
+      "en": "Language changed to {language}",
+      "de": "Sprache geändert zu {language}",
+      "pl": "Zmieniono język na {language}"
+    },
+    "Notifications.Localization.Menu.Unavailable": {
+      "ru": "Не удалось изменить язык. Попробуйте позже",
+      "en": "Unable to change language. Try again later",
+      "de": "Die Sprache konnte nicht geändert werden. Versuche es später erneut",
+      "pl": "Nie udało się zmienić języka. Spróbuj ponownie później"
+    },
+    "Notifications.Localization.Reload.Result": {
+      "ru": "{result}",
+      "en": "{result}"
+    },
+    "Notifications.Advertisement.Reload.Result": {
+      "ru": "{result}",
+      "en": "{result}"
+    },
+    "Notifications.InfoNotify.Connected": {
+      "ru": "{message}",
+      "en": "{message}"
+    },
+    "Notifications.InfoNotify.RoundStart": {
+      "ru": "{message}",
+      "en": "{message}"
+    },
+    "Notifications.InfoNotify.RoundEnd": {
+      "ru": "{message}",
+      "en": "{message}"
+    },
+    "Notifications.InfoNotify.Periodic": {
+      "ru": "{message}",
+      "en": "{message}"
     }
   }
 }

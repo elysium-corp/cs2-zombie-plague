@@ -1,3 +1,4 @@
+using CustomHud.Api;
 using Common.Hooks;
 using Common.Hooks.Abstractions;
 using CustomEquipment.Api;
@@ -24,7 +25,8 @@ internal sealed class ShopPurchaseService(
     IHookPublisher hooks,
     Func<ILocalizationApi> localizationApi,
     ILogger<ShopPurchaseService> logger,
-    IShopSoundFeedback soundFeedback)
+    IShopSoundFeedback soundFeedback,
+    BannerNotificationClient? notifications = null)
 {
     public IReadOnlyCollection<ShopOffer> GetOffers(ShopType shopType) => cache.Current.Offers
         .Where(offer => offer.ShopType == shopType)
@@ -292,16 +294,12 @@ internal sealed class ShopPurchaseService(
         }
 
         var key = ShopLocalization.AvailabilityKey(reason);
-        var text = reason == ShopAvailabilityReason.CooldownActive
-            ? localizationApi().FormatForPlayer(
-                player,
-                key,
-                new Dictionary<string, object?>
-                {
-                    ["seconds"] = Math.Max(1, (int)Math.Ceiling(cooldown.TotalSeconds))
-                })
-            : localizationApi().GetForPlayer(player, key);
-        player.SendChat(text ?? key);
+        notifications?.Publish(player, key, new Dictionary<string, object?>
+        {
+            ["seconds"] = Math.Max(1, (int)Math.Ceiling(cooldown.TotalSeconds)),
+            ["product"] = offer is null ? "" : localizationApi().GetForPlayer(player, offer.DisplayNameKey) ?? offer.ItemKey,
+            ["product_id"] = offer?.ItemKey ?? "", ["price"] = offer?.Price ?? 0, ["reason"] = reason.ToString()
+        });
     }
 
     private readonly record struct ChargeAttempt(

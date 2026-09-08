@@ -1,3 +1,4 @@
+using Advertisement.Core.Application;
 using CustomHud.Api;
 using System.Collections.Frozen;
 using System.Text.Json;
@@ -93,6 +94,10 @@ internal sealed record AdvertisementSnapshot(
     DateTimeOffset LoadedAt,
     AdvertisementSource Source)
 {
+    public FrozenDictionary<string, BannerNotificationRule> Notifications { get; init; } = NotificationCatalog.Defaults;
+    public FrozenDictionary<string, HudWidgetOptions> Widgets { get; init; } = new Dictionary<string, HudWidgetOptions>
+        { ["ZombiePlague.Abilities"] = new() }.ToFrozenDictionary();
+
     public int ActiveMessageCount(DateTimeOffset now, int playerCount) =>
         Messages.Values.Count(message => message.IsActive(now, playerCount));
 
@@ -196,7 +201,13 @@ internal sealed class ConfigAdvertisementProvider(IOptionsMonitor<AdvertisementC
             ParseOrder(config.OrderMode), config.ExcludeBotsFromPlayers, 0);
 
         return new AdvertisementSnapshot(settings, messages.ToFrozenDictionary(),
-            DateTimeOffset.UtcNow, AdvertisementSource.Config);
+            DateTimeOffset.UtcNow, AdvertisementSource.Config)
+        {
+            Notifications = (config.Notifications ?? NotificationCatalog.Defaults.Values.ToList())
+                .Select(rule => { NotificationCatalog.Validate(rule); return rule; }).ToFrozenDictionary(rule => rule.EventKey),
+            Widgets = (config.Widgets ?? new() { ["ZombiePlague.Abilities"] = new() })
+                .ToFrozenDictionary(pair => pair.Key, pair => NotificationCatalog.ValidateWidget(pair.Value))
+        };
     }
 
     public static AdvertisementOrderMode ParseOrder(string? value) => value?.ToLowerInvariant() switch
@@ -243,7 +254,25 @@ internal sealed class DatabaseAdvertisementProvider(IDbContextFactory<Advertisem
             settings,
             messages.Select(MapMessage).ToFrozenDictionary(x => x.Id),
             DateTimeOffset.UtcNow,
-            AdvertisementSource.Database);
+            AdvertisementSource.Database)
+        {
+            Notifications = (await context.Set<NotificationRuleEntity>().AsNoTracking().Include(x => x.Template).ToListAsync(cancellationToken))
+                .Select(MapNotification).ToFrozenDictionary(rule => rule.EventKey),
+            Widgets = (await context.Set<HudWidgetEntity>().AsNoTracking().ToListAsync(cancellationToken))
+                .ToFrozenDictionary(item => item.Key, item => NotificationCatalog.ValidateWidget(JsonSerializer.Deserialize<HudWidgetOptions>(item.SettingsJson) ?? new()))
+        };
+    }
+
+    internal static BannerNotificationRule MapNotification(NotificationRuleEntity row)
+    {
+        var rule = (JsonSerializer.Deserialize<BannerNotificationRule>(row.SettingsJson) ?? new()) with
+        {
+            EventKey = row.EventKey,
+            Template = JsonSerializer.Deserialize<HudBannerTemplate>(row.Template.DesignJson) ?? new(),
+            Content = new() { Header = row.HeaderKey, Title = row.TitleKey, Description = row.DescriptionKey }
+        };
+        NotificationCatalog.Validate(rule);
+        return rule;
     }
 
     internal static IQueryable<RuntimeSettings> BuildRuntimeSettingsQuery(

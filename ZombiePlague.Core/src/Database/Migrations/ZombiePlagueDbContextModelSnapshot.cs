@@ -31,6 +31,9 @@ partial class ZombiePlagueDbContextModelSnapshot : ModelSnapshot
 
             NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(builder.Property<int>("Id"));
 
+            builder.Property<bool>("AbilityHudCustomized")
+                .ValueGeneratedOnAdd().HasColumnType("boolean").HasColumnName("ability_hud_customized").HasDefaultValue(false);
+
             builder.Property<int>("AbilityHudScale")
                 .ValueGeneratedOnAdd()
                 .HasColumnType("integer")

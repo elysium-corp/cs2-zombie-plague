@@ -1,4 +1,5 @@
-﻿using Common.Hooks.Abstractions;
+using CustomHud.Api;
+using Common.Hooks.Abstractions;
 using Localization.Api;
 using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;
@@ -27,7 +28,8 @@ internal sealed class RoundManager(
     IRoundRegistrator roundRegistrator,
     IRoundFactory roundFactory,
     IHookPublisher hooks,
-    Func<ILocalizationApi> localization
+    Func<ILocalizationApi> localization,
+    BannerNotificationClient? notifications = null
 ) : IRoundManager
 {
     public RoundBase? CurrentRound { get; private set; }
@@ -309,16 +311,8 @@ internal sealed class RoundManager(
         foreach (var player in core.PlayerManager.GetAllPlayers()
                      .Where(value => value is { IsAuthorized: true, IsFakeClient: false }))
         {
-            player.SendMessage(
-                MessageType.Alert,
-                localization().GetForPlayerOrKey(
-                    player,
-                    "ZombiePlague.Round.Preparing",
-                    new Dictionary<string, string>
-                    {
-                        ["seconds"] = _remainingPreparationTime.ToString()
-                    }),
-                1100);
+            notifications?.Publish(player, "ZombiePlague.Round.Preparing",
+                new Dictionary<string, object?> { ["seconds"] = _remainingPreparationTime });
         }
     }
 
@@ -384,6 +378,7 @@ internal sealed class RoundManager(
         _remainingPreparationTime = 0;
         _countdownSoundPlayed = false;
 
+        notifications?.Clear("ZombiePlague.Round.Preparing");
         _preparationTimer?.Cancel();
         _preparationTimer = null;
 

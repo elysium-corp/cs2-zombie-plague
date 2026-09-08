@@ -23,13 +23,16 @@ internal sealed class AdvertisementModule(ISwiftlyCore core) : BaseModule(core)
         services.AddSwiftly(Core);
         services.AddSharedInterface<ILocalizationApi>();
 
+        services.AddSingleton<TimeProvider>(TimeProvider.System);
+        AddSingleton<BannerNotificationService>(services);
         AddSingleton<AdvertisementCache>(services);
         AddSingleton<AdminAudienceResolver>(services);
         AddSingleton<AdvertisementHudDelivery>(services, provider => new AdvertisementHudDelivery(
             provider.GetRequiredService<Microsoft.Extensions.Options.IOptions<AdvertisementHudConfig>>(), Core.Logger));
         AddSingleton<AdvertisementSender>(services, provider => new AdvertisementSender(
             provider.GetRequiredService<Func<ILocalizationApi>>(), provider.GetRequiredService<AdvertisementHudDelivery>(),
-            () => (Core.EntitySystem.GetGameRules()?.TotalRoundsPlayed ?? -1) + 1));
+            () => (Core.EntitySystem.GetGameRules()?.TotalRoundsPlayed ?? -1) + 1,
+            provider.GetRequiredService<BannerNotificationService>().Context));
         AddSingleton<AdvertisementScheduler>(services);
         AddSingleton<AdvertisementApi>(services);
         AddSingleton<ConfigAdvertisementProvider>(services);

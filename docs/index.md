@@ -11,3 +11,5 @@
 ## Custom HUD
 
 Общий API баннеров и рекламы, примеры вызовов и установка ресурсов: [CustomHud.Core](https://github.com/elysium-corp/cs2-zombie-plague/blob/develop/CustomHud.Core/README.md)
+
+[Баннеры плагинов](banner-notifications.md): настройка в CMS, HUD способностей, каталог параметров и интеграция событий.

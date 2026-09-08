@@ -1,4 +1,5 @@
-﻿using Admin.Api;
+using CustomHud.Api;
+using Admin.Api;
 using Localization.Api;
 using Menu.Api.Data;
 using Menu.Api.Data.Contracts;
@@ -19,7 +20,8 @@ internal sealed class RoundMenu(
     IAdminApi adminApi,
     IRoundManager roundManager,
     RoundSelectionMenu roundSelectionMenu,
-    Func<ILocalizationApi> localization
+    Func<ILocalizationApi> localization,
+    BannerNotificationClient? notifications = null
 ) : MenuBase(core)
 {
     private const string AccentColor = "#7DD3FC";
@@ -139,24 +141,24 @@ internal sealed class RoundMenu(
         switch (result)
         {
             case RoundStartResult.Started:
-                _ = player.SendChatAsync(L(player, "ZombiePlague.Admin.Round.Started", new Dictionary<string, string>
+                notifications?.PublishText(player, "ZombiePlague.Admin.Round.Started", new Dictionary<string, string>
                 {
-                    ["round"] = roundManager.CurrentRound is { } round
+                    ["round_name"] = roundManager.CurrentRound is { } round
                         ? RoundName(player, round)
                         : L(player, "ZombiePlague.Admin.Round.State.Unknown")
-                }));
+                });
                 break;
 
             case RoundStartResult.NotPreparing:
-                _ = player.SendChatAsync(L(player, "ZombiePlague.Admin.Round.NotPreparing"));
+                notifications?.Publish(player, "ZombiePlague.Admin.Round.NotPreparing");
                 break;
 
             case RoundStartResult.CannotStart:
-                _ = player.SendChatAsync(L(player, "ZombiePlague.Admin.Round.CannotStart"));
+                notifications?.Publish(player, "ZombiePlague.Admin.Round.CannotStart");
                 break;
 
             case RoundStartResult.Cancelled:
-                _ = player.SendChatAsync(L(player, "ZombiePlague.Admin.Round.Cancelled"));
+                notifications?.Publish(player, "ZombiePlague.Admin.Round.Cancelled");
                 break;
         }
     }

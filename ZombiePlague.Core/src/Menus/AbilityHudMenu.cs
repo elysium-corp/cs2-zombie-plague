@@ -1,3 +1,4 @@
+using CustomHud.Api;
 using Localization.Api;
 using Menu.Api.Data;
 using Menu.Api.Data.Contracts;
@@ -12,7 +13,7 @@ using ZombiePlague.Core.Store.Data;
 namespace ZombiePlague.Core.Menus;
 
 internal sealed class AbilityHudMenu(ISwiftlyCore core, IMenuExtensionDispatcher extensionDispatcher,
-    AbilityHudSettings settings, AbilityHudService hud, Func<ILocalizationApi> localization)
+    AbilityHudSettings settings, AbilityHudService hud, Func<ILocalizationApi> localization, BannerNotificationClient? notifications = null)
     : DynamicOptionsMenu(core, extensionDispatcher)
 {
     public override string Id => "zombie-plague.menu.ability-hud";
@@ -23,7 +24,7 @@ internal sealed class AbilityHudMenu(ISwiftlyCore core, IMenuExtensionDispatcher
         var error = !hud.IsRunning ? "Menu.AbilityHud.Disabled"
             : !settings.HasSession(player.SteamID) ? "Menu.AbilityHud.Unavailable" : null;
         if (error is null) return true;
-        player.SendChatAsync(Text(player, error));
+        notifications?.Publish(player, error);
         return false;
     }
 
@@ -37,22 +38,24 @@ internal sealed class AbilityHudMenu(ISwiftlyCore core, IMenuExtensionDispatcher
         var current = settings.Get(player.SteamID);
         var scale = new SelectorMenuOption<int>(Text(player, "Menu.AbilityHud.Scale"), AbilityHudPreferences.Scales,
             Array.IndexOf(AbilityHudPreferences.Scales, current.ScalePercent), value => value + "%");
-        scale.Comment = Text(player, "Menu.AbilityHud.PreviewHint");
+        scale.Enabled = settings.AllowCustomization;
+        scale.Comment = settings.AllowCustomization ? Text(player, "Menu.AbilityHud.PreviewHint") : string.Empty;
         scale.SelectionChanged += (_, args) => settings.Update(args.Player.SteamID, value => value with { ScalePercent = args.NewValue });
         options.Add(scale);
 
         var position = new SelectorMenuOption<string>(Text(player, "Menu.AbilityHud.Position"), AbilityHudPreferences.Positions,
             Array.IndexOf(AbilityHudPreferences.Positions, current.Position),
             value => Text(player, "Menu.AbilityHud.Position." + value), itemMaxWidth: 18);
+        position.Enabled = settings.AllowCustomization;
         position.SelectionChanged += (_, args) => settings.Update(args.Player.SteamID, value => value with { Position = args.NewValue });
         options.Add(position);
 
-        var reset = new ButtonMenuOption(Text(player, "Menu.AbilityHud.Reset"));
+        var reset = new ButtonMenuOption(Text(player, "Menu.AbilityHud.Reset")) { Enabled = settings.AllowCustomization };
         reset.Click += (_, args) =>
         {
             settings.Reset(args.Player.SteamID);
-            scale.SetSelectedIndex(args.Player, Array.IndexOf(AbilityHudPreferences.Scales, AbilityHudPreferences.DefaultScale));
-            position.SetSelectedIndex(args.Player, Array.IndexOf(AbilityHudPreferences.Positions, AbilityHudPreferences.DefaultPosition));
+            scale.SetSelectedIndex(args.Player, Array.IndexOf(AbilityHudPreferences.Scales, settings.Get(args.Player.SteamID).ScalePercent));
+            position.SetSelectedIndex(args.Player, Array.IndexOf(AbilityHudPreferences.Positions, settings.Get(args.Player.SteamID).Position));
             return ValueTask.CompletedTask;
         };
         options.Add(reset);

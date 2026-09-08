@@ -82,10 +82,10 @@ internal sealed class HudPresenter(IHudRuntime runtime, TimeProvider? clock = nu
             if (a == b) continue;
             var oldStyle = a?.Style ?? HudRunStyle.Default;
             var newStyle = b?.Style ?? HudRunStyle.Default;
-            if (oldStyle.Color != newStyle.Color)
+            if (oldStyle.Color != newStyle.Color || oldStyle.ExplicitColor != newStyle.ExplicitColor)
             {
-                if (oldStyle.Color != HudPalette.White) runtime.SetClass(playerId, panel, "C" + oldStyle.Color, false);
-                if (newStyle.Color != HudPalette.White) runtime.SetClass(playerId, panel, "C" + newStyle.Color, true);
+                if (oldStyle.Color != HudPalette.White || oldStyle.ExplicitColor) runtime.SetClass(playerId, panel, "C" + oldStyle.Color, false);
+                if (newStyle.Color != HudPalette.White || newStyle.ExplicitColor) runtime.SetClass(playerId, panel, "C" + newStyle.Color, true);
             }
             if (oldStyle.Bold != newStyle.Bold) runtime.SetClass(playerId, panel, "Bold", newStyle.Bold);
             if (oldStyle.Italic != newStyle.Italic) runtime.SetClass(playerId, panel, "Italic", newStyle.Italic);

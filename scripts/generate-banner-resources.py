@@ -109,5 +109,41 @@ for name, transform in transforms.items():
     css += f".CustomBanner.Shown.Leaving.Exit_{name} {{ animation-name: banner-out-{name}; }}\n@keyframes 'banner-out-{name}' {{ 0% {{ opacity: 1; transform: translatey(0px); }} 100% {{ opacity: 0; transform: {transform}; }} }}\n"
 for name, keyframes in {'pulse': '0% { opacity: 0.55; } 50% { opacity: 1; } 100% { opacity: 0.55; }', 'spin': '0% { transform: rotatez(0deg); } 100% { transform: rotatez(360deg); }', 'bounce': '0% { transform: translatey(0px); } 50% { transform: translatey(-6px); } 100% { transform: translatey(0px); }', 'shake': '0% { transform: rotatez(-8deg); } 50% { transform: rotatez(8deg); } 100% { transform: rotatez(-8deg); }'}.items():
     css += f".CustomBanner.IconAnimation_{name} .BannerIcon {{ animation-name: banner-icon-{name}; animation-duration: 1.8s; animation-iteration-count: infinite; animation-timing-function: ease-in-out; }}\n@keyframes 'banner-icon-{name}' {{ {keyframes} }}\n"
+# Непрозрачность задаётся альфа-каналом фона; текст и иконка не становятся прозрачными.
+def alpha(color, opacity):
+    rgb = color[:7]
+    original = int(color[7:9], 16) if len(color) == 9 else 255
+    return rgb + format(round(original * opacity / 100), '02x')
+themes = {'glass': '#11242cb8', 'solid': '#15232aff', 'light': '#e9f0f5f5', 'transparent': '#00000000'}
+backgrounds = {'slate': '#15232a', 'black': '#090d12', 'blue': '#10233f', 'purple': '#271735', 'red': '#35121c', 'green': '#112e26', 'gold': '#342a13', 'white': '#eef3f5'}
+for opacity in range(0, 101, 10):
+    for name, color in themes.items():
+        css += f'.CustomBanner.Theme_{name}.Background_theme.BackgroundOpacity_{opacity} {{ background-color: {alpha(color, opacity)}; }}\n'
+    css += f'.CustomBanner.Theme_midnight.Background_theme.BackgroundOpacity_{opacity} {{ background-color: gradient(linear, 0% 0%, 100% 100%, from({alpha("#0c171cf2", opacity)}), to({alpha("#14252ae8", opacity)})); }}\n'
+    css += f'.CustomBanner.Theme_danger.Background_theme.BackgroundOpacity_{opacity} {{ background-color: gradient(linear, 0% 0%, 100% 100%, from({alpha("#320e16f5", opacity)}), to({alpha("#170c16f0", opacity)})); }}\n'
+    for name, color in backgrounds.items():
+        css += f'.CustomBanner.Background_{name}.BackgroundOpacity_{opacity} {{ background-color: {alpha(color, opacity)}; }}\n'
+for name, shadow in {'none': 'none', 'soft': '#00000050 0px 3px 12px 0px', 'strong': '#000000b0 0px 6px 24px 0px'}.items():
+    css += f'.CustomBanner.Shadow_{name} {{ box-shadow: {shadow}; }}\n'
+for width in range(320, 961, 40):
+    css += f'.CustomBanner.WidthPixels_{width} {{ width: {width}px; min-width: {width}px; }}\n'
+for padding in range(0, 41, 4):
+    css += f'.CustomBanner.Padding_{padding} {{ padding: {padding}px; }}\n'
+for gap in range(0, 25, 2):
+    css += f'.CustomBanner.Gap_{gap} .BannerHeader, .CustomBanner.Gap_{gap} .BannerTitle {{ margin-bottom: {gap}px; }}\n'
+for field, limits in {'Header': (10, 24), 'Title': (16, 48), 'Description': (12, 32)}.items():
+    for size in range(limits[0], limits[1] + 1, 2):
+        css += f'.CustomBanner.{field}Size_{size} .Banner{field} .MessageRun {{ font-size: {size}px; }}\n'
+for size in range(24, 97, 8):
+    css += f'.CustomBanner.IconSize_{size} .BannerIcons, .CustomBanner.IconSize_{size} .BannerIcon {{ width: {size}px; height: {size}px; }}\n'
+colors = {'white': '#ffffff', 'muted': '#adc2ce', 'mint': '#85dcb1', 'gold': '#ffd36a', 'red': '#ff4d6d', 'green': '#69d98b', 'blue': '#73a7ff', 'cyan': '#66e0eb', 'purple': '#bda0ff', 'pink': '#ffa3d3', 'black': '#15232a'}
+for field in ['Header', 'Title', 'Description']:
+    for name, color in colors.items():
+        css += f'.CustomBanner.{field}Color_{name} .Banner{field} .MessageRun {{ color: {color}; }}\n'
+# Разметка Localization имеет больший приоритет, чем общий цвет текстового блока.
+for idx, color in re.findall(r'\.MessageRun\.C(\d+) \{ color: (#[A-F0-9]+); \}', css):
+    css += f'.CustomBanner .BannerTexts .MessageLine .MessageRun.C{idx} {{ color: {color}; }}\n'
+css += '.CustomBanner.NoDescription .BannerTitle { margin-bottom: 0px; }\n'
+css += '.CustomBanner.NoDescription.NoTitle .BannerHeader { margin-bottom: 0px; }\n'
 css_path.write_text(css)
 print(f'Generated v4: {len(layout.findall(".//*[@id]"))} panel IDs, {len(icons)} icons')

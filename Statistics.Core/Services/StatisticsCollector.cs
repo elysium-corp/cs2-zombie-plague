@@ -1,3 +1,4 @@
+using CustomHud.Api;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
@@ -21,7 +22,8 @@ internal sealed class StatisticsCollector(
     ISwiftlyCore core,
     PlayerStatisticsService playerStatisticsService,
     IRoundPointsFormulaProvider pointsFormulaProvider,
-    PointsCalculator pointsCalculator
+    PointsCalculator pointsCalculator,
+    BannerNotificationClient? notifications = null
 )
 {
     private const int InfectionDeathWindowSeconds = 5;
@@ -408,23 +410,8 @@ internal sealed class StatisticsCollector(
                 < 0 => "Statistics.PointsLost",
                 _ => "Statistics.PointsUnchanged"
             };
-            var points = Math.Abs(pointsDelta).ToString(CultureInfo.InvariantCulture);
-            var message = GetLocalization().GetForPlayer(
-                player,
-                translationKey,
-                new Dictionary<string, string> { ["points"] = points });
-            if (message is null)
-            {
-                continue;
-            }
-            var color = pointsDelta switch
-            {
-                > 0 => "green",
-                < 0 => "red",
-                _ => "grey"
-            };
-
-            player.SendChat($"[green][Statistics] [{color}]{message}");
+            notifications?.Publish(player, translationKey, new Dictionary<string, object?>
+                { ["points"] = Math.Abs(pointsDelta), ["points_delta"] = pointsDelta });
         }
     }
 

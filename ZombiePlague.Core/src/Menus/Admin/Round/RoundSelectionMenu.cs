@@ -1,4 +1,5 @@
-﻿using Admin.Api;
+using CustomHud.Api;
+using Admin.Api;
 using Localization.Api;
 using Menu.Api.Data;
 using Menu.Api.Data.Contracts;
@@ -20,7 +21,8 @@ internal sealed class RoundSelectionMenu(
     IRoundManager roundManager,
     IRoundRegistrator roundRegistrator,
     IRoundFactory roundFactory,
-    Func<ILocalizationApi> localization
+    Func<ILocalizationApi> localization,
+    BannerNotificationClient? notifications = null
 ) : MenuBase(core)
 {
     private const string AccentColor = "#7DD3FC";
@@ -128,7 +130,7 @@ internal sealed class RoundSelectionMenu(
 
         roundManager.ClearNextRound();
 
-        _ = administrator.SendChatAsync(L(administrator, "ZombiePlague.Admin.Round.Selection.AutomaticSelected"));
+        notifications?.Publish(administrator, "ZombiePlague.Admin.Round.Selection.AutomaticSelected");
     }
 
     private void SelectRound(IPlayer administrator, RoundTarget target)
@@ -143,20 +145,20 @@ internal sealed class RoundSelectionMenu(
 
         if (roundManager.IsPreparing && !round.CanStart())
         {
-            _ = administrator.SendChatAsync(L(
+            notifications?.PublishText(
                 administrator,
                 "ZombiePlague.Admin.Round.Selection.ConditionsPending",
-                new Dictionary<string, string> { ["round"] = RoundName(administrator, round.Id) }
-            ));
+                new Dictionary<string, string> { ["round_name"] = RoundName(administrator, round.Id) }
+            );
 
             return;
         }
 
-        _ = administrator.SendChatAsync(L(
+        notifications?.PublishText(
             administrator,
             "ZombiePlague.Admin.Round.Selection.Selected",
-            new Dictionary<string, string> { ["round"] = RoundName(administrator, round.Id) }
-        ));
+            new Dictionary<string, string> { ["round_name"] = RoundName(administrator, round.Id) }
+        );
     }
 
     private bool CanManageRound(IPlayer administrator)

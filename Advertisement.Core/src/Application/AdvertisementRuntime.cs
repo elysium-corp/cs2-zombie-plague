@@ -69,7 +69,8 @@ internal sealed class RateLimitedLogger(ILogger logger)
     }
 }
 
-internal sealed class AdvertisementSender(Func<ILocalizationApi> localization, AdvertisementHudDelivery hud, Func<int>? round = null)
+internal sealed class AdvertisementSender(Func<ILocalizationApi> localization, AdvertisementHudDelivery hud, Func<int>? round = null,
+    Func<IPlayer, IReadOnlyDictionary<string, object?>>? context = null)
 {
     public void Send(AdvertisementSnapshot snapshot, AdvertisementMessage message, IEnumerable<IPlayer> targets,
         int humans, int bots, string serverName, string mapName, string nextMap, int maxPlayers,
@@ -88,7 +89,13 @@ internal sealed class AdvertisementSender(Func<ILocalizationApi> localization, A
                 maxPlayers,
                 nextMap,
                 now).ToDictionary(item => item.Key, item => item.Value, StringComparer.OrdinalIgnoreCase);
+            parameters["total_players"] = humans + bots;
+            parameters["player"] = player.Name;
             parameters["round"] = round?.Invoke() ?? 0;
+            if (context is not null)
+                foreach (var pair in context(player)) parameters.TryAdd(pair.Key, pair.Value);
+            foreach (var (name, aliases) in NotificationCatalog.Aliases)
+                if (parameters.TryGetValue(name, out var value)) foreach (var alias in aliases) parameters[alias] = value;
             if (message.Presentation is { } presentation)
                 foreach (var (name, value) in presentation.Parameters)
                     parameters.TryAdd(name, value);

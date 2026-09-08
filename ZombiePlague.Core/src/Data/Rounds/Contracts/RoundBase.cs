@@ -1,4 +1,5 @@
-﻿using Localization.Api;
+using CustomHud.Api;
+using Localization.Api;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.GameHooks;
@@ -15,6 +16,8 @@ internal abstract class RoundBase(
     IPlayerManager playerManager,
     Func<ILocalizationApi> localization) : IRound
 {
+    internal BannerNotificationClient? Notifications { get; set; }
+
     public abstract string Id { get; }
 
     public abstract string Name { get; }
@@ -30,10 +33,11 @@ internal abstract class RoundBase(
         foreach (var player in Core.PlayerManager.GetAllPlayers()
                      .Where(value => value is { IsAuthorized: true, IsFakeClient: false }))
         {
-            player.SendMessage(
-                MessageType.Alert,
-                localization().GetForPlayerOrKey(player, key, placeholders),
-                300);
+            var values = placeholders?.ToDictionary(item => item.Key, item => (object?)item.Value)
+                ?? new Dictionary<string, object?>();
+            values["round_id"] = Id;
+            values["round_name"] = localization().GetForPlayer(player, $"ZombiePlague.Round.{LocalizationKey.Canonicalize(Id)}.Name") ?? Name;
+            Notifications?.Publish(player, key, values);
         }
     }
 
