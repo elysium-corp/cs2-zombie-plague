@@ -5,6 +5,7 @@ using CustomEquipment.Api.Enums;
 using CustomEquipment.Giver;
 using CustomEquipment.Registry;
 using CustomEquipment.Services;
+using Moq;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Players;
@@ -93,20 +94,17 @@ public sealed class EquipmentPickupTests
         public Fixture()
         {
             Item = new ProbeItem { AttachedEntity = Weapon };
-            var pawn = Stub<CCSPlayerPawn>((method, _) => method.Name switch
-            {
-                "get_IsValid" => true,
-                "get_Address" => PawnAddress,
-                "get_WeaponServices" => Stub(method.ReturnType, (member, _) =>
-                    member.Name == "get_MyValidWeapons" ? Inventory
-                        : throw new InvalidOperationException(member.Name)),
-                _ => throw new InvalidOperationException(method.Name)
-            });
+            var weapons = new Mock<CCSPlayer_WeaponServices>(MockBehavior.Strict);
+            weapons.Setup(value => value.MyValidWeapons).Returns(Inventory);
+            var pawn = new Mock<CCSPlayerPawn>(MockBehavior.Strict);
+            pawn.Setup(value => value.IsValid).Returns(true);
+            pawn.Setup(value => value.Address).Returns(() => PawnAddress);
+            pawn.Setup(value => value.WeaponServices).Returns(weapons.Object);
             _recipient = Stub<IPlayer>((method, _) => method.Name switch
             {
                 "get_IsValid" => true,
                 "get_IsAlive" => Alive,
-                "get_PlayerPawn" => pawn,
+                "get_PlayerPawn" => pawn.Object,
                 "get_SessionId" => 2UL,
                 _ => throw new InvalidOperationException(method.Name)
             });
@@ -166,10 +164,18 @@ public sealed class EquipmentPickupTests
             Inventory.Add(Weapon);
         }
 
-        public void Pickup() => _gameHandlers[typeof(EventItemPickup)].DynamicInvoke(
-            Stub<EventItemPickup>((_, _) => _recipient));
-        public void Equip() => _gameHandlers[typeof(EventItemEquip)].DynamicInvoke(
-            Stub<EventItemEquip>((_, _) => _recipient));
+        public void Pickup()
+        {
+            var @event = new Mock<EventItemPickup>(MockBehavior.Strict);
+            @event.Setup(value => value.UserIdPlayer).Returns(_recipient);
+            _gameHandlers[typeof(EventItemPickup)].DynamicInvoke(@event.Object);
+        }
+        public void Equip()
+        {
+            var @event = new Mock<EventItemEquip>(MockBehavior.Strict);
+            @event.Setup(value => value.UserIdPlayer).Returns(_recipient);
+            _gameHandlers[typeof(EventItemEquip)].DynamicInvoke(@event.Object);
+        }
         public void Flush()
         {
             while (Updates.TryDequeue(out var callback)) callback();
@@ -189,12 +195,13 @@ public sealed class EquipmentPickupTests
         public override void ReapplyCustomization() => Reapplications++;
     }
 
-    private static CCSWeaponBase Weapon(uint index) => Stub<CCSWeaponBase>((method, _) => method.Name switch
+    private static CCSWeaponBase Weapon(uint index)
     {
-        "get_Index" => index,
-        "get_IsValid" => true,
-        _ => throw new InvalidOperationException(method.Name)
-    });
+        var weapon = new Mock<CCSWeaponBase>(MockBehavior.Strict);
+        weapon.Setup(value => value.Index).Returns(index);
+        weapon.Setup(value => value.IsValid).Returns(true);
+        return weapon.Object;
+    }
 
     private static object? NoopHooks(MethodInfo method, object?[]? _) =>
         method.Name.StartsWith("get_", StringComparison.Ordinal)

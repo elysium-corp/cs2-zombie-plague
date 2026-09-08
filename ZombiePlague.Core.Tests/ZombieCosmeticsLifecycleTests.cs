@@ -1,5 +1,6 @@
 using System.Reflection;
 using Common.Hooks;
+using Moq;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
@@ -88,18 +89,15 @@ public sealed class ZombieCosmeticsLifecycleTests
 
         public Fixture()
         {
-            var pawn = Stub<CCSPlayerPawn>((method, _) => method.Name switch
-            {
-                "get_IsValid" => true,
-                "get_Address" => PawnAddress,
-                _ => throw new InvalidOperationException("Устаревший callback изменяет pawn: " + method.Name)
-            });
+            var pawn = new Mock<CCSPlayerPawn>(MockBehavior.Strict);
+            pawn.Setup(value => value.IsValid).Returns(true);
+            pawn.Setup(value => value.Address).Returns(() => PawnAddress);
             Player = Stub<IPlayer>((method, _) => method.Name switch
             {
                 "get_IsValid" => true,
                 "get_IsAlive" => Alive,
                 "get_SessionId" => 7UL,
-                "get_PlayerPawn" => pawn,
+                "get_PlayerPawn" => pawn.Object,
                 _ => throw new InvalidOperationException(method.Name)
             });
             var core = Stub<ISwiftlyCore>((method, _) => method.Name switch
