@@ -1,6 +1,6 @@
 <root>
     <styles>
-        <include src="s2r://panorama/styles/custom_game/elysium_shop_v1.vcss_c" />
+        <include src="s2r://panorama/styles/custom_game/elysium_shop_v4.vcss_c" />
     </styles>
     <Panel class="ShopViewport">
         <Panel id="ShopRoot" class="ShopRoot">

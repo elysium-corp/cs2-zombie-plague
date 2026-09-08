@@ -28,7 +28,7 @@ def nav(parent, panel, button, text):
 
 root = ET.Element('root')
 styles = ET.SubElement(root, 'styles')
-ET.SubElement(styles, 'include', {'src': 's2r://panorama/styles/custom_game/elysium_shop_v1.vcss_c'})
+ET.SubElement(styles, 'include', {'src': 's2r://panorama/styles/custom_game/elysium_shop_v4.vcss_c'})
 # Компилятор Panorama запрещает id у корневой панели; сервер адресует дочерний ShopRoot.
 viewport = ET.SubElement(root, 'Panel', {'class': 'ShopViewport'})
 screen = ET.SubElement(viewport, 'Panel', {'id': 'ShopRoot', 'class': 'ShopRoot'})
@@ -121,7 +121,7 @@ for name, color in COLORS.items():
 for icon in sorted(set(ICONS)):
     asset = 'kevlar' if icon == 'equipment' else icon
     css += f'.Icon_{icon} {{ background-image: url("s2r://panorama/images/icons/equipment/{asset}.vsvg"); }}\n'
-for file, data in [('layout/custom_game/elysium_shop_v1.xml', xml), ('styles/custom_game/elysium_shop_v1.css', css)]:
+for file, data in [('layout/custom_game/elysium_shop_v4.xml', xml), ('styles/custom_game/elysium_shop_v4.css', css)]:
     path = CONTENT / file
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(data, encoding='utf-8')
