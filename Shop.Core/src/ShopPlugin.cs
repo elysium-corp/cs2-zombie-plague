@@ -95,6 +95,7 @@ internal sealed class ShopPlugin(ISwiftlyCore core) : Plugin<ShopModule>(core)
             ZombiePlagueMenuIds.Main,
             ExtendMainMenu);
         _menu.Value.RebindExternalEvents();
+        _hud.Value.RebindExternalEvents();
     }
 
     protected override void OnStart()

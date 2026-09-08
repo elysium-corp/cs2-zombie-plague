@@ -7,8 +7,11 @@ using Shop.Core.Menus;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Commands;
 using SwiftlyS2.Shared.Events;
+using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Players;
+using ZombiePlague.Api;
+using ZombiePlague.Api.Events.Contexts.Player;
 
 namespace Shop.Core.Hud;
 
@@ -20,6 +23,7 @@ internal sealed class ShopHudMenu(
     ShopPurchaseService purchases,
     ShopHudState state,
     ShopMenu classic,
+    Func<IZombiePlagueApi> zombiePlagueApi,
     ILogger<ShopHudMenu> logger) : IDisposable
 {
     private readonly Dictionary<int, Session> _sessions = [];
@@ -27,6 +31,8 @@ internal sealed class ShopHudMenu(
     private readonly List<Guid> _commands = [];
     private CancellationTokenSource? _timer;
     private Guid _commandHook;
+    private Guid _deathHook;
+    private IZombiePlagueApi? _subscribedZombiePlague;
     private bool _active;
     private string? _failure;
     private double _nextRefresh;
@@ -45,7 +51,36 @@ internal sealed class ShopHudMenu(
         core.Event.OnClientDisconnected += OnDisconnected;
         core.Event.OnMapUnload += OnMapUnload;
         core.Event.OnMapLoad += OnMapLoad;
+        _deathHook = core.GameEvent.HookPost<EventPlayerDeath>(OnPlayerDeath);
+        RebindExternalEvents();
         _timer = core.Scheduler.RepeatBySeconds(0.05f, Tick);
+    }
+
+    public void RebindExternalEvents()
+    {
+        if (!_active) return;
+        var api = zombiePlagueApi();
+        if (ReferenceEquals(_subscribedZombiePlague, api)) return;
+        UnsubscribeZombiePlague();
+        _subscribedZombiePlague = api;
+        var players = api.Events.Players;
+        players.Infected.Hook(OnPlayerInfected);
+        players.Disinfected.Hook(OnPlayerDisinfected);
+        players.Humanized.Hook(OnPlayerHumanized);
+        players.BecameNemesis.Hook(OnPlayerBecameNemesis);
+        players.BecameSurvivor.Hook(OnPlayerBecameSurvivor);
+    }
+
+    private void UnsubscribeZombiePlague()
+    {
+        if (_subscribedZombiePlague is not { } api) return;
+        var players = api.Events.Players;
+        players.Infected.Unhook(OnPlayerInfected);
+        players.Disinfected.Unhook(OnPlayerDisinfected);
+        players.Humanized.Unhook(OnPlayerHumanized);
+        players.BecameNemesis.Unhook(OnPlayerBecameNemesis);
+        players.BecameSurvivor.Unhook(OnPlayerBecameSurvivor);
+        _subscribedZombiePlague = null;
     }
 
     // Внешний API открывает магазин идемпотентно; пользовательские команды переключают его.
@@ -67,7 +102,8 @@ internal sealed class ShopHudMenu(
         try
         {
             Render(player, session);
-            state.Open(player);
+            if (_sessions.TryGetValue(player.PlayerID, out var current) && ReferenceEquals(current, session))
+                state.Open(player);
         }
         catch (Exception error)
         {
@@ -190,12 +226,16 @@ internal sealed class ShopHudMenu(
 
     private void Render(IPlayer player, Session session)
     {
+        // Покупка может синхронно вызвать смерть или смену роли. Её завершающий
+        // refresh не должен заново создавать уже закрытый HUD.
+        if (!_sessions.TryGetValue(player.PlayerID, out var current) || !ReferenceEquals(current, session)) return;
+        if (!catalog.CanOpen(player)) { Close(player.PlayerID); return; }
         var snapshot = cache.Current;
         var view = catalog.Build(player, session.Navigation);
         if (session.View is { } previous && previous.ShopType != view.ShopType)
         {
-            session.Navigation = new();
-            view = catalog.Build(player, session.Navigation);
+            Close(player.PlayerID);
+            return;
         }
         // Новый пул кнопок получает новую сущность. Запоздалый клик со старой страницы
         // не должен приобрести другой предмет, занявший тот же визуальный слот.
@@ -322,6 +362,24 @@ internal sealed class ShopHudMenu(
         if (ev.Key == KeyKind.Esc && ev.Pressed) Close(ev.PlayerId);
     }
 
+    private void CloseForPlayer(IPlayer player)
+    {
+        if (_active && _sessions.TryGetValue(player.PlayerID, out var session) && session.SessionId == player.SessionId)
+            Close(player.PlayerID);
+    }
+
+    private HookResult OnPlayerDeath(EventPlayerDeath ev)
+    {
+        if (ev.UserIdPlayer is { } player) CloseForPlayer(player);
+        return HookResult.Continue;
+    }
+
+    private void OnPlayerInfected(ref PlayerInfectedContext context) => CloseForPlayer(context.Player);
+    private void OnPlayerDisinfected(ref PlayerDisinfectedContext context) => CloseForPlayer(context.Player);
+    private void OnPlayerHumanized(ref PlayerHumanizedContext context) => CloseForPlayer(context.Player);
+    private void OnPlayerBecameNemesis(ref PlayerBecameNemesisContext context) => CloseForPlayer(context.Player);
+    private void OnPlayerBecameSurvivor(ref PlayerBecameSurvivorContext context) => CloseForPlayer(context.Player);
+
     private void OnDisconnected(IOnClientDisconnectedEvent ev) { Close(ev.PlayerId); _native.Remove(ev.PlayerId); }
     private void OnMapUnload(IOnMapUnloadEvent ev) { CloseAll(); _native.Clear(); }
     private void OnMapLoad(IOnMapLoadEvent ev) { _failure = null; _native.Clear(); }
@@ -359,6 +417,9 @@ internal sealed class ShopHudMenu(
         _active = false;
         _timer?.Cancel();
         _timer = null;
+        UnsubscribeZombiePlague();
+        if (_deathHook != Guid.Empty) core.GameEvent.Unhook(_deathHook);
+        _deathHook = Guid.Empty;
         core.Event.OnCustomHudClicked -= OnClicked;
         core.Event.OnClientKeyStateChanged -= OnKey;
         core.Event.OnClientDisconnected -= OnDisconnected;

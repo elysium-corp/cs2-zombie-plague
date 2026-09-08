@@ -1,7 +1,10 @@
 using System.Reflection;
 using System.Xml.Linq;
+using CustomEquipment.Api;
+using CustomEquipment.Api.Data.Contracts;
 using CustomEquipment.Api.Enums;
 using Shop.Api.Data;
+using Shop.Core.Application;
 using Shop.Core.Data;
 using Shop.Core.Hud;
 using SwiftlyS2.Shared.Players;
@@ -20,6 +23,50 @@ public sealed class ShopHudTests
         var view = Project(snapshot, new());
         Assert.Equal(new long[] { 1, 5 }, view.Columns.SelectMany(x => x.Cards).Select(x => x.Offer.Id));
         Assert.Equal("Shop.Hud.Other", view.Columns[1].Title);
+    }
+
+    [Fact]
+    public void CatalogIntersectsShopOffersWithRegisteredEquipmentBeforeBuildingPages()
+    {
+        var items = new Dictionary<string, IItem>
+        {
+            ["plasma"] = new EquipmentItem("plasma", Slot.Primary),
+            ["infection_grenade"] = new EquipmentItem("infection_grenade", Slot.Grenade),
+            ["not_in_shop"] = new EquipmentItem("not_in_shop", Slot.Secondary),
+            ["weapon_ak47"] = new EquipmentItem("weapon_ak47", Slot.Primary)
+        };
+        var api = DispatchProxy.Create<ICustomEquipmentApi, ShopInputTests.InterfaceStub>();
+        ((ShopInputTests.InterfaceStub)(object)api).Handler = (method, arguments) =>
+        {
+            Assert.Equal("TryGetRegisteredItem", method.Name);
+            var found = items.TryGetValue((string)arguments![0]!, out var item);
+            arguments[1] = item;
+            return found;
+        };
+        var products = new ShopProductProvider(() => api);
+        var offers = new[]
+        {
+            Product(1, "custom_equipment", "plasma", 10),
+            Product(2, "custom_equipment", "infection_grenade", 20),
+            Product(3, "custom_equipment", "removed_grenade", 20),
+            Product(4, "cs2_weapon", "weapon_ak47", 30),
+            Product(5, "builtin", "armor", 30),
+            Product(6, "custom_equipment", "removed_weapon", 40)
+        };
+        var snapshot = Snapshot(offers, [Category(10), Category(20), Category(30), Category(40)]);
+        var navigation = new ShopHudNavigation();
+        var view = ShopHudCatalog.Project(snapshot, ShopType.Human, navigation, key => key,
+            products.IsRegisteredEquipment, offer => Card(offer) with { Enabled = false });
+
+        Assert.Equal(new[] { "Category10", "Category20" }, view.Columns.Select(x => x.Title));
+        Assert.Equal(new long[] { 1, 2 }, view.Columns.SelectMany(x => x.Cards).Select(x => x.Offer.Id));
+        Assert.All(view.Columns.SelectMany(x => x.Cards), card => Assert.False(card.Enabled));
+
+        items.Remove("infection_grenade");
+        var updated = ShopHudCatalog.Project(snapshot, ShopType.Human, navigation, key => key,
+            products.IsRegisteredEquipment, Card);
+        Assert.Equal("Category10", Assert.Single(updated.Columns).Title);
+        Assert.False(ShopHudMenu.SameSlots(view, updated));
     }
 
     [Fact]
@@ -166,8 +213,15 @@ public sealed class ShopHudTests
     }
 
     private static ShopHudView Project(ShopSnapshot snapshot, ShopHudNavigation navigation) => ShopHudCatalog.Project(
-        snapshot, ShopType.Human, navigation, key => key,
-        offer => new(offer.Contract, offer.Contract.DisplayNameKey, offer.Contract.Price.ToString(), "", "ak47", ItemRarity.Common, true));
+        snapshot, ShopType.Human, navigation, key => key, _ => true, Card);
+
+    private static ShopHudCard Card(ShopOfferDefinition offer) => new(
+        offer.Contract, offer.Contract.DisplayNameKey, offer.Contract.Price.ToString(), "", "ak47", ItemRarity.Common, true);
+
+    private static ShopOfferDefinition Product(long id, string provider, string item, long category) => Offer(id, category) with
+    {
+        Contract = Offer(id, category).Contract with { ProviderKey = provider, ItemKey = item }
+    };
 
     private static ShopSnapshot Snapshot(IReadOnlyList<ShopOfferDefinition> offers, IReadOnlyList<ShopCategoryDefinition> categories,
         ShopSortMode sortMode = ShopSortMode.Priority) => new(
@@ -177,8 +231,17 @@ public sealed class ShopHudTests
     private static ShopCategoryDefinition Category(long id, bool enabled = true) => new(id, ShopType.Human, "c" + id, "Category" + id, null, enabled, (int)id);
 
     private static ShopOfferDefinition Offer(long id, long? category = 1, bool enabled = true, ShopType type = ShopType.Human) => new(
-        new(id, type, "standard_weapon", "weapon_ak47", "Item" + id, category, 100, null, 0, 0, 0, 0,
+        new(id, type, "custom_equipment", "weapon_ak47", "Item" + id, category, 100, null, 0, 0, 0, 0,
             ShopAccessMode.Everyone, new HashSet<string>(), enabled, (int)id), null, "{}");
+
+    private sealed class EquipmentItem(string name, Slot slot) : IItem
+    {
+        public AccessFlags AccessFlags => AccessFlags.All;
+        public string DisplayName => name;
+        public string InternalName => name;
+        public string SubclassName => string.Empty;
+        public Slot Slot => slot;
+    }
 
     public class PlayerStub : DispatchProxy
     {

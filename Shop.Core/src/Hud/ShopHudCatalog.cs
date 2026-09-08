@@ -40,7 +40,7 @@ internal sealed class ShopHudCatalog(
 
     public ShopHudView Build(IPlayer player, ShopHudNavigation navigation) => Project(
         cache.Current, access.GetShopType(player), navigation, key => Text(player, key),
-        offer => Card(player, offer));
+        products.IsRegisteredEquipment, offer => Card(player, offer));
 
     public string Text(IPlayer player, string key) => localization().GetForPlayer(player, key) ?? key;
 
@@ -53,7 +53,7 @@ internal sealed class ShopHudCatalog(
     {
         var availability = access.Evaluate(player, offer);
         var status = string.Empty;
-        if (!availability.Allowed)
+        if (!availability.Allowed && availability.Reason != ShopAvailabilityReason.InsufficientFunds)
         {
             var key = ShopLocalization.AvailabilityKey(availability.Reason);
             status = availability.Reason == ShopAvailabilityReason.CooldownActive
@@ -68,12 +68,15 @@ internal sealed class ShopHudCatalog(
     }
 
     internal static ShopHudView Project(ShopSnapshot snapshot, ShopType type, ShopHudNavigation navigation,
-        Func<string, string> text, Func<ShopOfferDefinition, ShopHudCard> card)
+        Func<string, string> text, Func<ShopOfferDefinition, bool> isRegisteredEquipment,
+        Func<ShopOfferDefinition, ShopHudCard> card)
     {
         if (!snapshot.Storefronts.TryGetValue(type, out var store) || !store.Enabled)
             return new(type, 0, 1, []);
 
-        var offers = snapshot.Offers.Where(x => x.ShopType == type && x.Enabled).ToArray();
+        // Наличие предмета в CustomEquipment определяет состав каталога, а доступность
+        // покупки — состояние карточки: нехватка денег не должна скрывать товар.
+        var offers = snapshot.Offers.Where(x => x.ShopType == type && x.Enabled && isRegisteredEquipment(x)).ToArray();
         var categories = snapshot.Categories.Where(x => x.ShopType == type && x.Enabled)
             .OrderBy(x => x.SortOrder).ThenBy(x => text(x.DisplayNameKey), StringComparer.CurrentCultureIgnoreCase)
             .Where(x => offers.Any(offer => offer.CategoryId == x.Id))
