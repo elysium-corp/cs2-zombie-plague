@@ -21,6 +21,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="../Admin.Api/Admin.Api.csproj" Private="true" />
         <ProjectReference Include="..\Localization.Api\Localization.Api.csproj">
             <Private>true</Private>
         </ProjectReference>
