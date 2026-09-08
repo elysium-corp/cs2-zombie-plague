@@ -44,6 +44,14 @@ public sealed record HudBannerTemplate
     public string Size { get; init; } = "medium";
     /// <summary>Выравнивание: left, center, right.</summary>
     public string Align { get; init; } = "left";
+    /// <summary>Положение текста рядом с иконкой: top, center, bottom. Для иконки сверху не применяется.</summary>
+    public string VerticalAlign { get; init; } = "center";
+    /// <summary>Выравнивание надзаголовка: inherit использует Align; иначе left, center или right.</summary>
+    public string HeaderAlign { get; init; } = "inherit";
+    /// <summary>Выравнивание заголовка: inherit использует Align; иначе left, center или right.</summary>
+    public string TitleAlign { get; init; } = "inherit";
+    /// <summary>Выравнивание всех строк описания: inherit использует Align; иначе left, center или right.</summary>
+    public string DescriptionAlign { get; init; } = "inherit";
     /// <summary>Граница: none, line, frame.</summary>
     public string Border { get; init; } = "line";
     /// <summary>Углы: square, soft, round.</summary>

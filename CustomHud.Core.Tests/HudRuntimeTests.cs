@@ -187,7 +187,16 @@ public sealed class HudRuntimeTests
         {
             Assert.StartsWith("s2r://panorama/images/", src);
             Assert.EndsWith(".vsvg", src);
-            Assert.True(File.Exists(Path.Combine(root, src["s2r://panorama/".Length..].Replace(".vsvg", ".svg"))));
+            var svg = XDocument.Load(Path.Combine(root, src["s2r://panorama/".Length..].Replace(".vsvg", ".svg")));
+            // Те же явные белые контуры, что у HUD способностей: без наследуемой заливки g и stroke.
+            Assert.NotEmpty(svg.Root!.Elements());
+            Assert.All(svg.Root.Elements(), path =>
+            {
+                Assert.Equal("path", path.Name.LocalName);
+                Assert.Equal("#ffffff", path.Attribute("fill")?.Value);
+                Assert.False(string.IsNullOrWhiteSpace(path.Attribute("d")?.Value));
+                Assert.All(path.Attributes(), attribute => Assert.Contains(attribute.Name.LocalName, new[] { "fill", "d" }));
+            });
         }
     }
 

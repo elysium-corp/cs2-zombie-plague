@@ -19,6 +19,9 @@ internal static class HudBannerDesign
         Choice(template.Width, "small", "medium", "large");
         Choice(template.Size, "small", "medium", "large");
         Choice(template.Align, "left", "center", "right");
+        Choice(template.VerticalAlign, "top", "center", "bottom");
+        foreach (var align in new[] { template.HeaderAlign, template.TitleAlign, template.DescriptionAlign })
+            Choice(align, "inherit", "left", "center", "right");
         Choice(template.Border, "none", "line", "frame");
         Choice(template.Corners, "square", "soft", "round");
         Choice(template.Icon, "none", "info", "warning", "infection", "skull", "shield", "trophy", "star", "gift", "megaphone", "lightning", "clock", "heart");
@@ -97,6 +100,8 @@ internal static class HudBannerDesign
         HudPalette.TryResolve(t.Accent, out var accent);
         var classes = new List<string> { "CustomBanner", "TextWidth_" + ContentWidth(t), "Variant_" + t.Variant, "Theme_" + t.Theme, "A" + accent,
             "Width_" + t.Width, "Size_" + t.Size, "Align_" + t.Align, "Border_" + t.Border,
+            "VerticalAlign_" + t.VerticalAlign, "HeaderAlign_" + t.HeaderAlign,
+            "TitleAlign_" + t.TitleAlign, "DescriptionAlign_" + t.DescriptionAlign,
             "Corners_" + t.Corners, "Icon_" + t.Icon, "IconPosition_" + t.IconPosition,
             "IconAnimation_" + t.IconAnimation, "Enter_" + t.Enter, "Exit_" + t.Exit, "Speed_" + t.Speed,
             "Background_" + t.Background, "BackgroundOpacity_" + t.BackgroundOpacity,
