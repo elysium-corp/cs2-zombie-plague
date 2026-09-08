@@ -140,7 +140,7 @@ internal sealed class BannerNotificationService(ISwiftlyCore core, Advertisement
                     if (pending.PreviousEvent is { } previous && previous != rule.EventKey) _hud?.Hide(player, Channel(previous));
                     _queue.Shown(pending);
                 }
-                else { _queue.Reject(pending); Warn(rule.EventKey, new InvalidOperationException("Localization или HUD не приняли уведомление")); }
+                else { _queue.Defer(pending); Warn(rule.EventKey, new InvalidOperationException("Localization или HUD пока не приняли уведомление; повтор до истечения MaxQueueAgeSeconds")); }
             }
             catch (Exception exception) { _queue.Reject(pending); Warn(rule.EventKey, exception); }
         }

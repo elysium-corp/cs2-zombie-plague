@@ -93,6 +93,15 @@ internal sealed class NotificationQueue(TimeProvider clock)
         if (pending.Rule.Delivery == "stack") slot.Stacked.Add((pending, until));
         else { slot.Active = pending; slot.Until = until; }
     }
+    internal void Defer(Pending pending)
+    {
+        if (!_slots.TryGetValue((pending.PlayerId, pending.Rule.Options.Position), out var slot)
+            || (clock.GetUtcNow() - pending.CreatedAt).TotalSeconds > pending.Rule.MaxQueueAgeSeconds) return;
+        if (pending.Rule.Delivery == "replace" && slot.Waiting.Any(item => item.Rule.EventKey == pending.Rule.EventKey)) return;
+        if (_slots.Where(item => item.Key.Player == pending.PlayerId).Sum(item => item.Value.Waiting.Count) >= 32) return;
+        slot.Waiting.Insert(0, pending with { IsUpdate = false, PreviousEvent = null });
+    }
+
     internal void Reject(Pending pending) { /* Не блокируем область после отказа Localization или HUD. */ }
     internal void ClearEvent(string eventKey)
     {

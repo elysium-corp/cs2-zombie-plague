@@ -109,6 +109,16 @@ public sealed class NotificationQueueTests
     }
 
     [Fact]
+    public void FullHudFromAnotherPluginDefersWithoutRestartingTheQueueAge()
+    {
+        var clock = new Clock(); var queue = new NotificationQueue(clock);
+        queue.Enqueue(1, 11, Rule("info", "stack") with { MaxQueueAgeSeconds = 2 }, new Dictionary<string, object?>());
+        var pending = Assert.Single(queue.Ready()); queue.Defer(pending);
+        clock.Advance(1); var retried = Assert.Single(queue.Ready()); Assert.Equal(pending.CreatedAt, retried.CreatedAt);
+        queue.Defer(retried); clock.Advance(2); Assert.Empty(queue.Ready());
+    }
+
+    [Fact]
     public void CatalogDefaultsAreCompleteAndNeverContainTheRemovedCooldownPopup()
     {
         Assert.DoesNotContain("ZombiePlague.Ability.Cooldown", NotificationCatalog.Defaults.Keys);
