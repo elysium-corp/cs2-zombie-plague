@@ -27,7 +27,8 @@ for name, body in icons.items():
 layout = ET.Element('root')
 styles = ET.SubElement(layout, 'styles')
 ET.SubElement(styles, 'include', src='s2r://panorama/styles/custom_game/elysium_messages_v4_r2.vcss_c')
-canvas = ET.SubElement(layout, 'Panel', id='ElysiumMessageCanvas', attrib={'class': 'ElysiumMessageCanvas', 'hittest': 'false'})
+# Компилятор Panorama запрещает id у корневой панели; сервер адресует дочернюю MessageRegion.
+canvas = ET.SubElement(layout, 'Panel', attrib={'class': 'ElysiumMessageCanvas', 'hittest': 'false'})
 positions = ['TopLeft', 'TopCenter', 'TopRight', 'MiddleLeft', 'Center', 'MiddleRight', 'BottomLeft', 'BottomCenter', 'BottomRight']
 region = ET.SubElement(canvas, 'Panel', id='MessageRegion', attrib={'class': 'MessageRegion'})
 for i in range(3):
@@ -45,6 +46,7 @@ for i in range(3):
         row = ET.SubElement(texts, 'Panel', id=slot+suffix, attrib={'class': 'MessageLine ' + ('Banner'+suffix if suffix in ['Header','Title'] else 'BannerDescription')})
         for n in range(12):
             ET.SubElement(row, 'Label', id=f'{slot}{suffix}Run{n}', attrib={'class': 'MessageRun', 'text': '{s:value}'})
+assert 'id' not in canvas.attrib, 'Panorama root panel must not have an id'
 ET.indent(layout, space='    ')
 (root / 'layout/custom_game/elysium_messages_v4_r2.xml').write_text(ET.tostring(layout, encoding='unicode') + '\n')
 css_path = root / 'styles/custom_game/elysium_messages_v4_r2.css'

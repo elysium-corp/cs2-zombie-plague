@@ -209,6 +209,6 @@ Sound — имя установленного sound event, а не путь, URL
 
 Ресурс остаётся `elysium_messages_v4`, но его содержимое расширено. Обязательно пересоберите и доставьте новый VPK вместе с плагином
 `SchemaVersion = 1` обозначает первую схему JSON-дизайна и не имеет отношения к редакции клиентского layout v4
-Исходник генератора ресурсов: `scripts/generate-banner-resources.py`. Макет содержит 239 уникальных panel IDs на область, меньше лимита 1024
+Исходник генератора ресурсов: `scripts/generate-banner-resources.py`. Макет содержит 238 уникальных panel IDs на область, меньше лимита 1024
 
 Точные настройки доступны и через API: WidthPixels 320–960 (шаг 40), Padding 0–40 (4), Gap 0–24 (2), HeaderSize 10–24 (2), TitleSize 16–48 (2), DescriptionSize 12–32 (2), IconSize 24–96 (8). `null` использует размер темы. Background выбирает theme/slate/black/blue/purple/red/green/gold/white; BackgroundOpacity 0–100 (10) меняет только фон. HeaderColor/TitleColor/DescriptionColor и Shadow управляют цветом блока и тенью. Перечень цветов и других значений находится в XML-документации HudBannerTemplate.
