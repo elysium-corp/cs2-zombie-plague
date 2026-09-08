@@ -28,6 +28,13 @@ internal sealed class AddBannerTemplates : Migration
         CREATE INDEX messages_banner_template_idx ON advertisement.messages(banner_template_key) WHERE banner_template_key IS NOT NULL;
         CREATE INDEX messages_banner_header_idx ON advertisement.messages(banner_header_key) WHERE banner_header_key IS NOT NULL;
         CREATE INDEX messages_banner_title_idx ON advertisement.messages(banner_title_key) WHERE banner_title_key IS NOT NULL;
+        CREATE FUNCTION advertisement.bump_banner_configuration() RETURNS trigger LANGUAGE plpgsql AS $$
+        BEGIN
+            UPDATE advertisement.settings SET configuration_version = configuration_version + 1, updated_at = NOW();
+            RETURN NULL;
+        END $$;
+        CREATE TRIGGER banner_templates_configuration AFTER INSERT OR UPDATE OR DELETE
+            ON advertisement.banner_templates FOR EACH STATEMENT EXECUTE FUNCTION advertisement.bump_banner_configuration();
         UPDATE advertisement.settings SET configuration_version = configuration_version + 1, updated_at = NOW();
         """);
 
@@ -47,5 +54,6 @@ internal sealed class AddBannerTemplates : Migration
             DROP COLUMN banner_parameters,
             ALTER COLUMN localization_key SET NOT NULL;
         DROP TABLE advertisement.banner_templates;
+        DROP FUNCTION advertisement.bump_banner_configuration();
         """);
 }

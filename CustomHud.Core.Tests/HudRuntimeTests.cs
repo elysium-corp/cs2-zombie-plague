@@ -124,6 +124,26 @@ public sealed class HudRuntimeTests
     }
 
     [Fact]
+    public void LocalizedBannerEscapesEachParameterBeforeFormattingAndRejectsMissingFields()
+    {
+        using var fixture = new Fixture();
+        fixture.Start();
+        IReadOnlyDictionary<string, object?>? observed = null;
+        fixture.Service.InitializeLocalization(Stub<Localization.Api.ILocalizationApi>((method, args) =>
+        {
+            if (method.Name != "FormatForPlayer") throw new InvalidOperationException(method.Name);
+            observed = (IReadOnlyDictionary<string, object?>)args![2]!;
+            return args[1] as string == "Missing" ? null : "<b>" + observed["player_name"] + "</b>";
+        }));
+        var parameters = new Dictionary<string, object?> { ["player_name"] = "<b>[red]Player", ["round"] = 7 };
+        Assert.True(fixture.Service.ShowLocalized(fixture.Players[0], new(), new() { Title = "Title", Description = "Description" }, parameters));
+        Assert.Equal("&lt;b&gt;&#91;red&#93;Player", observed!["player_name"]);
+        Assert.Equal(7, observed["round"]);
+        Assert.Equal("<b>[red]Player", parameters["player_name"]);
+        Assert.False(fixture.Service.ShowLocalized(fixture.Players[0], new(), new() { Title = "Missing", Description = "Description" }, parameters));
+    }
+
+    [Fact]
     public void ResourcesRespectCustomHudWhitelistAndTheNetworkIdLimit()
     {
         var root = Path.Combine(AppContext.BaseDirectory, "content/panorama");

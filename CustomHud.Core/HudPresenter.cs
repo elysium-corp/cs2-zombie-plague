@@ -43,7 +43,8 @@ internal sealed class HudPresenter(IHudRuntime runtime, TimeProvider? clock = nu
         {
             var before = old is not null && line < old.Document.Lines.Length ? old.Document.Lines[line] : [];
             var after = message is not null && line < message.Document.Lines.Length ? message.Document.Lines[line] : [];
-            Row(playerId, slot + "Line" + line, before, after);
+            Row(playerId, slot + "Line" + line, before, after,
+                old is not null && line < old.Document.Lines.Length, message is not null && line < message.Document.Lines.Length);
         }
         if (message is null)
         {
@@ -68,9 +69,11 @@ internal sealed class HudPresenter(IHudRuntime runtime, TimeProvider? clock = nu
         }
     }
 
-    private void Row(int playerId, string row, HudRun[] before, HudRun[] after)
+    private void Row(int playerId, string row, HudRun[] before, HudRun[] after, bool? wasVisible = null, bool? visible = null)
     {
-        if ((before.Length > 0) != (after.Length > 0)) runtime.SetClass(playerId, row, "Shown", after.Length > 0);
+        wasVisible ??= before.Length > 0;
+        visible ??= after.Length > 0;
+        if (wasVisible != visible) runtime.SetClass(playerId, row, "Shown", visible.Value);
         for (var run = 0; run < Math.Max(before.Length, after.Length); run++)
         {
             var panel = row + "Run" + run;

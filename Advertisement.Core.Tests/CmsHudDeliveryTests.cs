@@ -128,6 +128,55 @@ public sealed class CmsHudDeliveryTests
         await transaction.RollbackAsync();
     }
 
+    [Fact]
+    public async Task BannerMigrationKeepsHudOnlyWithoutChatAndProtectsReferencesAndRollback()
+    {
+        var connectionString = Environment.GetEnvironmentVariable("ADVERTISEMENT_TEST_POSTGRES");
+        if (connectionString is null) return;
+        await using var connection = new NpgsqlConnection(connectionString);
+        await connection.OpenAsync();
+        await using var transaction = await connection.BeginTransactionAsync();
+        async Task Execute(string sql) => await new NpgsqlCommand(sql, connection, transaction).ExecuteNonQueryAsync();
+        await Execute("""
+            CREATE SCHEMA advertisement;
+            CREATE SCHEMA localization;
+            CREATE TABLE localization.entries(key VARCHAR(191) PRIMARY KEY);
+            INSERT INTO localization.entries VALUES ('Chat.Text'), ('Hud.Text'), ('Hud.Title');
+            CREATE TABLE advertisement.settings(configuration_version BIGINT, updated_at TIMESTAMPTZ);
+            INSERT INTO advertisement.settings VALUES (1, NOW());
+            CREATE TABLE advertisement.messages(id BIGINT PRIMARY KEY, localization_key VARCHAR(191) NOT NULL REFERENCES localization.entries(key), display_type VARCHAR(32) NOT NULL DEFAULT 'chat');
+            INSERT INTO advertisement.messages(id, localization_key) VALUES (1, 'Chat.Text');
+            """);
+        foreach (var operation in new AddHudDelivery().UpOperations.Cast<SqlOperation>()) await Execute(operation.Sql);
+        var migration = new AddBannerTemplates();
+        foreach (var operation in migration.UpOperations.Cast<SqlOperation>()) await Execute(operation.Sql);
+        await Execute("""
+            INSERT INTO advertisement.banner_templates(key, name, design) VALUES ('Round.Start', 'Round', '{"SchemaVersion":1,"Variant":"headline"}');
+            UPDATE advertisement.messages SET display_type = 'hud', localization_key = NULL, hud_localization_key = 'Hud.Text', banner_template_key = 'Round.Start', banner_title_key = 'Hud.Title', banner_parameters = '{"reward":"250"}';
+            """);
+        Assert.Equal(4L, await new NpgsqlCommand("SELECT configuration_version FROM advertisement.settings", connection, transaction).ExecuteScalarAsync());
+        foreach (var invalid in new[]
+        {
+            "DELETE FROM advertisement.banner_templates",
+            "DELETE FROM localization.entries WHERE key = 'Hud.Title'",
+            "UPDATE advertisement.messages SET display_type = 'chat'",
+            "UPDATE advertisement.messages SET banner_parameters = '[]'",
+            "UPDATE advertisement.messages SET banner_template_key = NULL"
+        })
+        {
+            await Execute("SAVEPOINT rejected");
+            await Assert.ThrowsAsync<PostgresException>(() => Execute(invalid));
+            await Execute("ROLLBACK TO SAVEPOINT rejected");
+        }
+        await Execute("SAVEPOINT rollback_guard");
+        await Assert.ThrowsAsync<PostgresException>(() => Execute(migration.DownOperations.Cast<SqlOperation>().Single().Sql));
+        await Execute("ROLLBACK TO SAVEPOINT rollback_guard");
+        await Execute("UPDATE advertisement.messages SET localization_key = 'Chat.Text'");
+        foreach (var operation in migration.DownOperations.Cast<SqlOperation>()) await Execute(operation.Sql);
+        Assert.Equal("hud", await new NpgsqlCommand("SELECT display_type FROM advertisement.messages", connection, transaction).ExecuteScalarAsync());
+        await transaction.RollbackAsync();
+    }
+
     private static object? Capture(List<string> messages, object?[] args)
     {
         messages.Add(args.OfType<string>().Single());

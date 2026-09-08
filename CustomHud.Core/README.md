@@ -89,7 +89,7 @@ yellow, gold, orange, purple, lightpurple, pink, gray/grey, silver, mint, muted,
 ## Установка и проверка
 
 Установите `CustomHud.Core` из общего runtime-пакета, сохранив его `resources/exports/CustomHud.Api.dll`
-Обновите вместе с ним `ZombiePlague.Core 0.5.0`, `Advertisement.Core 2.7.0`, `Localization.Core 1.5.5`
+Обновите вместе с ним `ZombiePlague.Core 0.5.0`, `Advertisement.Core 2.8.0`, `Localization.Core 1.5.5`
 Существующий HUD способностей v4 остаётся отдельным ресурсом
 Ресурсы сообщений теперь тоже имеют суффикс `_v4`, чтобы не смешивать их с прежними несовместимыми вариантами HUD
 Суффикс означает редакцию ресурса, а не версию API Panorama; простое переименование старого скомпилированного файла не заменяет пересборку
@@ -97,7 +97,7 @@ yellow, gold, orange, purple, lightpurple, pink, gray/grey, silver, mint, muted,
 
 1. Скопируйте содержимое `resources/hud/messages/content/panorama/` в `content/csgo_addons/<addon>/panorama/` на машине с CS2 Workshop Tools
 2. Скомпилируйте `layout/custom_game/elysium_messages_v4.xml` и `styles/custom_game/elysium_messages_v4.css`
-3. В VPK должны попасть `panorama/layout/custom_game/elysium_messages_v4.vxml_c` и `panorama/styles/custom_game/elysium_messages_v4.vcss_c`
+3. Упакуйте SVG из `images/custom_game/elysium/banners/` вместе с layout и styles. В VPK должны попасть `panorama/layout/custom_game/elysium_messages_v4.vxml_c` и `panorama/styles/custom_game/elysium_messages_v4.vcss_c`
 4. Доставьте обновлённый VPK серверу и клиентам, затем смените карту
 5. Выполните `custom_hud status`, затем `custom_hud test TopCenter`
 
@@ -149,7 +149,7 @@ yellow, gold, orange, purple, lightpurple, pink, gray/grey, silver, mint, muted,
 
 `Messages` индексируется ключом объявления, а не ключом Localization
 Режимы: `Chat`, `Hud`, `ChatAndHud`; по умолчанию сохраняется `Chat`
-Без доступного Custom HUD или при отказе принять сообщение остаётся вывод в чат
+Явный режим HUD-only не отправляет сообщения в чат при недоступности HUD. Старый локальный fallback без DisplayType сохраняет прежнее поведение
 Реклама использует приоритет 0, баннеры раунда — 100
 После изменения настроек доставки перезагрузите Advertisement.Core
 Сами объявления по-прежнему редактируются через существующую админку
@@ -161,3 +161,59 @@ yellow, gold, orange, purple, lightpurple, pink, gray/grey, silver, mint, muted,
 - [Лимиты идентификаторов и устройство Custom HUD](https://github.com/Wend4r/s2r-skills/blob/82fd9c366dec51edf19b801a102dce86fd695950/custom-hud-layout/references/internals.md)
 
 Настройки доставки рекламы из Flute описаны в [Advertisement.Core](../Advertisement.Core/README.md#настройка-через-flute-cms)
+
+
+## Конструктор баннеров и дополнительный API
+
+`CustomHud.Core 1.1.0` экспортирует `ICustomBannerApi` по ключу `CustomHud.Api.ICustomBannerApi`
+Существующий `ICustomHudApi` продолжает работать. Каналы, девять позиций, приоритеты и `Hide`/`ClearChannel` общие для обоих API
+
+```csharp
+interfaces.TryGetSharedInterface<ICustomBannerApi>(ICustomBannerApi.SharedApiKey, out var banners);
+var template = new HudBannerTemplate
+{
+    Variant = "feature", Icon = "infection", Theme = "danger", Accent = "red",
+    Enter = "zoom", Exit = "fade", IconAnimation = "pulse",
+    Sound = "ZombiePlagueSounds.round_start_2", Volume = 0.5f
+};
+banners?.ShowLocalized(player, template, new HudBannerContent
+{
+    Header = "Banner.Round.Header", Title = "Banner.Round.Title", Description = "Banner.Round.Description"
+}, new Dictionary<string, object?>
+{
+    ["player_name"] = player.Name, ["round"] = 7, ["mode"] = "Массовое заражение"
+}, new HudMessageOptions
+{
+    Channel = "MyPlugin.Round", Position = HudPosition.TopCenter, DurationSeconds = 6, Priority = 100
+});
+```
+
+Сначала создайте ключи примера в общей Localization: Header = `РАУНД {round}`, Title = `{mode}`, Description = `Приготовься, {player_name}!`
+Передавайте исходные значения параметров: API сам экранирует строки до подстановки; число/boolean сохраняет тип
+Переводы выбираются для игрока с обычным fallback Localization; отсутствие обязательного перевода возвращает false
+Для готовых текстов используйте `Show(player, template, content, options)` и самостоятельно экранируйте вставляемые имена через `HudText.Escape`
+Повторный `Show` создаёт новый экземпляр. Обновления сетевого состояния существующего экземпляра не повторяют анимацию и звук
+
+| Variant | Обязательные поля | Иконка |
+| --- | --- | --- |
+| text | Description | отсутствует |
+| icon | Description | обязательна |
+| headline | Title, Description | необязательна |
+| feature | Header, Title, Description | обязательна |
+| hero | Header, Title, Description | необязательна, удобно размещать сверху |
+
+Header/Title ограничены одной строкой каждый, Description — четырьмя, до 12 цветных фрагментов в строке и 4096 UTF-16 символов на поле
+Перенос зависит от Width: small — 32, medium — 40, large — 52 символа. Переполнение помечается многоточием
+Дизайн поддерживает 6 фонов, 3 ширины, 3 размера текста, выравнивание, углы, границы и произвольный HEX-акцент, округляемый до палитры игры
+Enter/Exit: none, fade, slide_up, slide_down, slide_left, slide_right, zoom. Speed: fast — 0,2 с, normal — 0,4 с, slow — 0,8 с
+На выходе сообщение сохраняется до конца эффекта после TTL. Новое сообщение сразу заменяет выходящее; отключение игрока и карты очищает всё немедленно
+Иконка: info, warning, infection, skull, shield, trophy, star, gift, megaphone, lightning, clock, heart; эффекты none/pulse/spin/bounce/shake
+Новый SVG требует изменения каталога, пересборки layout и доставки VPK. Произвольные URL, скрипты и CSS не отправляются клиенту
+
+Sound — имя установленного sound event, а не путь, URL или консольная команда. Volume: 0–1, пустой Sound отключает звук
+Он адресуется получателю при первом фактическом показе. Перекрытый баннер молчит до показа; возобновление и восстановление сущности не повторяют звук
+Браузерный Preview может проиграть отдельно указанную HTTPS-аудиоверсию; соответствие этой записи игровому sound event проверяется администратором
+
+Ресурс остаётся `elysium_messages_v4`, но его содержимое расширено. Обязательно пересоберите и доставьте новый VPK вместе с плагином
+`SchemaVersion = 1` обозначает первую схему JSON-дизайна и не имеет отношения к редакции клиентского layout v4
+Исходник генератора ресурсов: `scripts/generate-banner-resources.py`. Макет содержит 712 уникальных panel IDs, меньше лимита 1024

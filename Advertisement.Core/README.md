@@ -83,7 +83,7 @@ API работает только с памятью и не обращается
 | Поле / поле fallback | Значение |
 | --- | --- |
 | `display_type` / `DisplayType` | `chat`, `hud`, `chat_and_hud` |
-| `localization_key` / `LocalizationKey` | Ключ текста чата, также резерв при недоступном HUD |
+| `localization_key` / `LocalizationKey` | Ключ текста чата; необязателен в режиме hud |
 | `hud_localization_key` / `HudLocalizationKey` | Отдельный ключ текста HUD, обязателен для HUD |
 | `hud_position` / `HudPosition` | `top_left`, `top_center`, `top_right`, `middle_left`, `center`, `middle_right`, `bottom_left`, `bottom_center`, `bottom_right` |
 | `hud_duration_seconds` / `HudDurationSeconds` | 0,5–60 секунд, по умолчанию 8 |
@@ -97,11 +97,27 @@ HTML из изменённого общего ключа удаляется пе
 
 Настройки CMS имеют приоритет над старым `hud_delivery.json`
 Этот файл используется только для старого fallback без `DisplayType`; чтобы сохранить старое индивидуальное HUD-правило для объявления из БД, перенесите его в CMS
-Если CustomHud.Api недоступен, отклонил сообщение или не найден перевод HUD, отправляется резервный чат
+Явный режим hud никогда не выводит в чат, даже при недоступном HUD или переводе; резервный чат сохраняется только для старого fallback без DisplayType
 `chat_and_hud` отправляет каждый канал один раз
 Выбор канала не меняет расписание, аудиторию, права `ads_test` и ключ публичного Advertisement API
 
-Порядок обновления: сервер и EF-миграция → ресурсы `elysium_messages_v4` у сервера и клиентов → ElysiumAdvertisements 2.6.0 в Flute
+Порядок обновления: сервер и EF-миграция → ресурсы `elysium_messages_v4` у сервера и клиентов → ElysiumAdvertisements 2.7.0 в Flute
 До миграции CMS покажет штатное сообщение о недостающей схеме и не будет писать новые поля
 После сохранения выполните `ads_reload`, затем `ads_test <key> [locale]` в игре с permission `advertisement.admin`
 Проверьте оба перевода, расположение, меню и случай отключённого CustomHud.Core
+
+
+### Шаблоны баннеров (2.8.0)
+
+Миграция `20260908070000_AddBannerTemplates` создаёт `advertisement.banner_templates`, ссылки на Header/Title и параметры сообщения
+Дизайн выбирается во вкладке «Реклама → Баннеры» CMS. Общая Localization остаётся единственным источником переводов
+`hud_localization_key` используется как Description; `banner_header_key` и `banner_title_key` зависят от Variant
+`banner_parameters` — объект дополнительных строковых значений, которые Localization приводит к объявленному типу
+`player_name`, `steam_id`, `map`, `round`, `players`, `max_players`, `bots`, `total_players`, `time`, `next_map`, `server_name` заполняются сервером и не переопределяются статическими значениями
+`round` — TotalRoundsPlayed + 1 (0, если game rules ещё нет)
+
+Snapshot загружает только связанные шаблоны и параметры вместе с сообщениями; SQL не выполняется при рендере
+Изменение шаблона увеличивает configuration_version. Применение — следующая карта или ads_reload, экспорт fallback становится устаревшим
+Fallback встраивает дизайн в `BannerTemplate`, поля в `BannerHeaderKey`/`BannerTitleKey`, значения в `BannerParameters`
+Для внешних плагинов доступен `ICustomBannerApi.ShowLocalized`: можно передать собственный дизайн, ключи и параметры без зависимости от Advertisement.Core
+Удаление используемого шаблона или ключа Localization запрещено. Откат миграции останавливается, если есть HUD-only сообщения без чатового ключа, чтобы не потерять данные и не отправить HTML в чат
