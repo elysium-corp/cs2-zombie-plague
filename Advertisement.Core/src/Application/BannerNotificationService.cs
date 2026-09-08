@@ -43,7 +43,8 @@ internal sealed class BannerNotificationService(ISwiftlyCore core, Advertisement
     {
         ObserveConfiguration();
         if (_disposed || _banners is not { IsAvailable: true } || !Eligible(player)
-            || _snapshot is null || !_snapshot.Notifications.TryGetValue(eventKey, out var rule) || !rule.Enabled) return false;
+            || _snapshot is null || !_snapshot.Notifications.TryGetValue(eventKey, out var rule) || !rule.Enabled
+            || !_queue.CanAccept(player.PlayerID, player.SteamID, rule)) return false;
         try
         {
             var values = Context(player);

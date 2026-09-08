@@ -89,6 +89,9 @@ internal static class HudBannerDesign
         foreach (var (name, value) in new[] { ("WidthPixels", t.WidthPixels), ("Padding", t.Padding), ("Gap", t.Gap),
                      ("HeaderSize", t.HeaderSize), ("TitleSize", t.TitleSize), ("DescriptionSize", t.DescriptionSize), ("IconSize", t.IconSize) })
             if (value.HasValue) classes.Add(name + "_" + value.Value);
+        var fields = HudBannerFields.Get(t);
+        if (!fields.Contains("Description")) classes.Add("NoDescription");
+        if (!fields.Contains("Title")) classes.Add("NoTitle");
         return classes.ToArray();
     }
 

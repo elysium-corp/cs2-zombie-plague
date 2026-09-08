@@ -96,6 +96,17 @@ public sealed class HudMarkupTests
         Assert.NotEqual(HudPalette.White, run.Style.Color);
     }
 
+    [Fact]
+    public void ExplicitWhiteRemainsDistinctFromInheritedBlockColor()
+    {
+        var runs = Parse("A<font color='white'>B</font>C").Lines[0];
+        Assert.Equal(new[] { "A", "B", "C" }, runs.Select(run => run.Text));
+        Assert.All(runs, run => Assert.Equal(HudPalette.White, run.Style.Color));
+        Assert.False(runs[0].Style.ExplicitColor);
+        Assert.True(runs[1].Style.ExplicitColor);
+        Assert.False(runs[2].Style.ExplicitColor);
+    }
+
     private static HudDocument Parse(string text) => HudMarkup.Parse(text, HudTextFormat.Markup, HudMessageStyle.Notice);
     private static string Text(HudDocument document) => string.Join("\n", document.Lines.Select(line => string.Concat(line.Select(run => run.Text))));
 }

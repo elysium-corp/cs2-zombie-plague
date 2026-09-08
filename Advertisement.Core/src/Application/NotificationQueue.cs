@@ -23,6 +23,11 @@ internal sealed class NotificationQueue(TimeProvider clock)
     internal IEnumerable<string> EventKeys => _slots.Values.SelectMany(slot => slot.Waiting.Select(item => item.Rule.EventKey)
         .Concat(slot.Active is { } active ? [active.Rule.EventKey] : [])).Distinct().ToArray();
 
+    internal bool CanAccept(int playerId, ulong steamId, BannerNotificationRule rule) =>
+        !_sessions.TryGetValue(playerId, out var session) || session != steamId
+        || !_lastAccepted.TryGetValue((playerId, rule.EventKey), out var last)
+        || (clock.GetUtcNow() - last).TotalSeconds >= rule.CooldownSeconds;
+
     internal bool Enqueue(int playerId, ulong steamId, BannerNotificationRule rule, IReadOnlyDictionary<string, object?> parameters)
     {
         var now = clock.GetUtcNow();

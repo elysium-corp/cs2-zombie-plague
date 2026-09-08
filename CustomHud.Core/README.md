@@ -1,6 +1,6 @@
 # Elysium Custom HUD
 
-`CustomHud.Core 1.1.1` предоставляет `CustomHud.Api.ICustomHudApi` другим плагинам
+`CustomHud.Core 1.2.0` предоставляет `CustomHud.Api.ICustomHudApi` другим плагинам
 HUD сообщений использует собственную сущность и сосуществует с меню SwiftlyS2 и панелью способностей
 
 ## Вызов из плагина
@@ -111,23 +111,11 @@ yellow, gold, orange, purple, lightpurple, pink, gray/grey, silver, mint, muted,
 Компилятор Workshop Tools и игровой клиент не входят в .NET-сборку
 Перед установкой на сервер проверьте баннер, разноцветный текст, меню, все используемые позиции и смену карты в CS2
 
-## Начало раунда
+## Игровые уведомления
 
-`ZombiePlague.Core` показывает баннер после успешного запуска режима, через событие `Rounds.Started`
-Поддержаны Инфекция, Массовое заражение, Немезида и Выживший; неизвестный режим использует своё имя
-Подготовка и отклонённая попытка запуска баннера не создают, окончание режима удаляет его
-Текст локализуется для каждого игрока ключом `ZombiePlague.Round.Hud.Started`, параметр `{mode}`
-Параметры в `ZombiePlague.Core/round_hud.json`:
+Начало раунда и остальные всплывающие уведомления плагинов используют `IBannerNotificationApi` из Advertisement.Core 3.0.0. Настройка находится в **Реклама → Баннеры → Плагины**. Отдельный `round_hud.json` больше не используется. Начало режима — событие `Game.Round.Started`, текст по умолчанию `Notifications.Game.Round.Started` с `{round}` и `{roundName}`.
 
-```json
-{
-  "RoundHud": {
-    "Enabled": true,
-    "DurationSeconds": 6,
-    "Position": "TopCenter"
-  }
-}
-```
+[Настройки событий, полный каталог параметров и порядок установки](../docs/banner-notifications.md).
 
 ## Реклама
 
@@ -167,7 +155,7 @@ yellow, gold, orange, purple, lightpurple, pink, gray/grey, silver, mint, muted,
 
 ## Конструктор баннеров и дополнительный API
 
-`CustomHud.Core 1.1.1` экспортирует `ICustomBannerApi` по ключу `CustomHud.Api.ICustomBannerApi`
+`CustomHud.Core 1.2.0` экспортирует `ICustomBannerApi` по ключу `CustomHud.Api.ICustomBannerApi`
 Существующий `ICustomHudApi` продолжает работать. Каналы, девять позиций, приоритеты и `Hide`/`ClearChannel` общие для обоих API
 
 ```csharp
@@ -203,6 +191,7 @@ banners?.ShowLocalized(player, template, new HudBannerContent
 | headline | Title, Description | необязательна |
 | feature | Header, Title, Description | обязательна |
 | hero | Header, Title, Description | необязательна, удобно размещать сверху |
+| custom | Только блоки с ShowHeader/ShowTitle/ShowDescription = true, хотя бы один | необязательна |
 
 Header/Title ограничены одной строкой каждый, Description — четырьмя, до 12 цветных фрагментов в строке и 4096 UTF-16 символов на поле
 Ширина панели: small — 440, medium — 600, large — 760 единиц Panorama. Для переноса учитываются отступы, место иконки, размер текста и отдельные шрифты Header/Title/Description. Переполнение помечается многоточием
@@ -219,3 +208,5 @@ Sound — имя установленного sound event, а не путь, URL
 Ресурс остаётся `elysium_messages_v4`, но его содержимое расширено. Обязательно пересоберите и доставьте новый VPK вместе с плагином
 `SchemaVersion = 1` обозначает первую схему JSON-дизайна и не имеет отношения к редакции клиентского layout v4
 Исходник генератора ресурсов: `scripts/generate-banner-resources.py`. Макет содержит 712 уникальных panel IDs, меньше лимита 1024
+
+Точные настройки доступны и через API: WidthPixels 320–960 (шаг 40), Padding 0–40 (4), Gap 0–24 (2), HeaderSize 10–24 (2), TitleSize 16–48 (2), DescriptionSize 12–32 (2), IconSize 24–96 (8). `null` использует размер темы. Background выбирает theme/slate/black/blue/purple/red/green/gold/white; BackgroundOpacity 0–100 (10) меняет только фон. HeaderColor/TitleColor/DescriptionColor и Shadow управляют цветом блока и тенью. Перечень цветов и других значений находится в XML-документации HudBannerTemplate.

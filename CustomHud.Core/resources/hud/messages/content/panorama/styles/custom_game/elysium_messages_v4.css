@@ -1837,3 +1837,5 @@
 .CustomBanner .BannerTexts .MessageLine .MessageRun.C232 { color: #8AAAC2; }
 .CustomBanner .BannerTexts .MessageLine .MessageRun.C233 { color: #FF55FF; }
 .CustomBanner .BannerTexts .MessageLine .MessageRun.C234 { color: #FF8888; }
+.CustomBanner.NoDescription .BannerTitle { margin-bottom: 0px; }
+.CustomBanner.NoDescription.NoTitle .BannerHeader { margin-bottom: 0px; }

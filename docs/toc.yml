@@ -4,5 +4,7 @@
   href: events.md
 - name: Сборка и развёртывание
   href: build-and-deployment.md
+- name: Баннеры плагинов
+  href: banner-notifications.md
 - name: API reference
   href: api/index.md

@@ -143,5 +143,7 @@ for field in ['Header', 'Title', 'Description']:
 # Разметка Localization имеет больший приоритет, чем общий цвет текстового блока.
 for idx, color in re.findall(r'\.MessageRun\.C(\d+) \{ color: (#[A-F0-9]+); \}', css):
     css += f'.CustomBanner .BannerTexts .MessageLine .MessageRun.C{idx} {{ color: {color}; }}\n'
+css += '.CustomBanner.NoDescription .BannerTitle { margin-bottom: 0px; }\n'
+css += '.CustomBanner.NoDescription.NoTitle .BannerHeader { margin-bottom: 0px; }\n'
 css_path.write_text(css)
 print(f'Generated v4: {len(layout.findall(".//*[@id]"))} panel IDs, {len(icons)} icons')
