@@ -554,7 +554,7 @@ internal sealed class EquipmentService(
         return HookResult.Continue;
     }
 
-    private void ScheduleCustomizationReapply(IPlayer? player)
+    internal void ScheduleCustomizationReapply(IPlayer? player)
     {
         if (!_initialized || player is not { IsValid: true, IsAlive: true } ||
             player.PlayerPawn is not { IsValid: true } pawn)

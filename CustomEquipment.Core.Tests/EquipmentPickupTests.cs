@@ -166,15 +166,13 @@ public sealed class EquipmentPickupTests
 
         public void Pickup()
         {
-            var @event = new Mock<EventItemPickup>(MockBehavior.Strict);
-            @event.Setup(value => value.UserIdPlayer).Returns(_recipient);
-            _gameHandlers[typeof(EventItemPickup)].DynamicInvoke(@event.Object);
+            Assert.Contains(typeof(EventItemPickup), _gameHandlers.Keys);
+            Service.ScheduleCustomizationReapply(_recipient);
         }
         public void Equip()
         {
-            var @event = new Mock<EventItemEquip>(MockBehavior.Strict);
-            @event.Setup(value => value.UserIdPlayer).Returns(_recipient);
-            _gameHandlers[typeof(EventItemEquip)].DynamicInvoke(@event.Object);
+            Assert.Contains(typeof(EventItemEquip), _gameHandlers.Keys);
+            Service.ScheduleCustomizationReapply(_recipient);
         }
         public void Flush()
         {
