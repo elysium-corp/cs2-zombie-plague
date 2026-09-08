@@ -53,6 +53,8 @@ internal sealed class ShopHudMenu(
     {
         if (!_active || !catalog.CanOpen(player)) return;
         if (state.IsOpen(player)) return;
+        // Запоздалое отключение прежнего владельца слота не должно оставлять его сущность в мире.
+        if (_sessions.ContainsKey(player.PlayerID)) Close(player.PlayerID);
         if (player.PlayerPawn?.IsBuyMenuOpen == true) player.ExecuteCommand("cancelselect");
         if (!options.Value.Enabled || _failure is not null)
         {
