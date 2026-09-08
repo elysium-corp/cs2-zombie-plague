@@ -20,14 +20,20 @@ internal class Leap(ISwiftlyCore core, LeapConfig config, Func<ILocalizationApi>
     public override void Use()
     {
         var casterPawn = Caster.RequiredPlayerPawn;
+
         var viewAngles = casterPawn.EyeAngles;
         var forward = MathAlgorithm.ForwardFromAngles(viewAngles);
 
         var leapVelocity = forward * config.LeapDistance;
         var leapScale = Math.Min(MinScale, 1 / casterPawn.GravityScale);
+
         leapVelocity.Z = config.LeapBoost * leapScale;
 
-        Caster.Teleport(casterPawn.AbsOrigin, viewAngles, leapVelocity);
+        Caster.Teleport(
+            casterPawn.AbsOrigin,
+            null,
+            leapVelocity
+        );
 
         base.Use();
     }
