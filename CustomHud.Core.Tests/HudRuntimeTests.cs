@@ -151,6 +151,8 @@ public sealed class HudRuntimeTests
         Assert.EndsWith("_v4_r2.vxml_c", PanoramaHudRuntime.Layout);
         Assert.EndsWith("_v4_r2.vcss_c", PanoramaHudRuntime.Style);
         var layout = XDocument.Load(Path.Combine(root, "layout/custom_game/elysium_messages_v4_r2.xml"));
+        // Корневая панель не может иметь id: иначе Resource Compiler не создаёт vxml_c.
+        Assert.Null(Assert.Single(layout.Root!.Elements("Panel")).Attribute("id"));
         Assert.Equal("s2r://" + PanoramaHudRuntime.Style, layout.Descendants("include").Single().Attribute("src")!.Value);
         var allowed = new Dictionary<string, string[]>
         {
@@ -166,6 +168,7 @@ public sealed class HudRuntimeTests
         var ids = layout.Descendants().Attributes("id").Select(attribute => attribute.Value).ToArray();
         Assert.Equal(ids.Length, ids.Distinct().Count());
         Assert.True(ids.Length < 1024);
+        Assert.Contains("MessageRegion", ids);
         for (var lane = 0; lane < PanoramaHudRuntime.StackCapacity; lane++)
             for (var line = 0; line < HudMarkup.MaximumLines; line++)
                 for (var run = 0; run < HudMarkup.MaximumRuns; run++)
