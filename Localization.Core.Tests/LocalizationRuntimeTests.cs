@@ -170,6 +170,15 @@ public sealed class LocalizationRuntimeTests
         Assert.Equal("#ffffff", LocalizationRoleStyle.Select([new TestRole("broken", 500, "bad")]).HudColor);
     }
 
+    [Fact]
+    public void LegacyChatColorsAndHtmlNestedStylesSurviveHudFormatting()
+    {
+        var result = LocalizationMarkupRenderer.Render("[red]<b>Red <i>italic</i></b>[/] plain", LocalizationColorSchema.Defaults, LocalizationOutputMode.Html);
+        Assert.Contains("<font color=\"red\"><b>Red </b></font>", result);
+        Assert.Contains("<font color=\"red\"><b><i>italic</i></b></font>", result);
+        Assert.EndsWith(" plain", result); Assert.DoesNotContain("[red]", result);
+    }
+
     private sealed record TestRole(string Key, int ColorPriority, string HudColor = "#ff4040") : Admin.Api.Data.IPrivilege
     {
         public string Id => Key; public string Group => "test";
