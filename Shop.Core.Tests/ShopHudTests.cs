@@ -186,6 +186,10 @@ public sealed class ShopHudTests
     public void PanoramaContainsOnlyAllowedElementsAndAllServerTargets()
     {
         var xml = XDocument.Load(Path.Combine(AppContext.BaseDirectory, "Fixtures", "elysium_shop_v1.xml"));
+        var rootPanel = Assert.Single(xml.Root!.Elements("Panel"));
+        Assert.Null(rootPanel.Attribute("id"));
+        // ShopRoot должен оставаться адресуемым потомком для персонального показа HUD.
+        Assert.Single(rootPanel.Descendants("Panel").Where(x => (string?)x.Attribute("id") == "ShopRoot"));
         var allowed = new Dictionary<string, string[]>
         {
             ["Panel"] = ["id", "class", "hittest"], ["Label"] = ["id", "class", "hittest", "text"],
