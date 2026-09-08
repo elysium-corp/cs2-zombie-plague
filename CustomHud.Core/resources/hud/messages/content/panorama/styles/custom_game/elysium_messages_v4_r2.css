@@ -336,6 +336,18 @@
 .CustomBanner.Speed_normal { animation-duration: 0.4s; }
 .CustomBanner.Speed_slow { animation-duration: 0.8s; }
 .CustomBanner.Leaving { opacity: 0; animation-timing-function: ease-in; }
+.CustomBanner.HeaderAlign_left .BannerHeader { horizontal-align: left; }
+.CustomBanner.HeaderAlign_center .BannerHeader { horizontal-align: center; }
+.CustomBanner.HeaderAlign_right .BannerHeader { horizontal-align: right; }
+.CustomBanner.TitleAlign_left .BannerTitle { horizontal-align: left; }
+.CustomBanner.TitleAlign_center .BannerTitle { horizontal-align: center; }
+.CustomBanner.TitleAlign_right .BannerTitle { horizontal-align: right; }
+.CustomBanner.DescriptionAlign_left .BannerDescription { horizontal-align: left; }
+.CustomBanner.DescriptionAlign_center .BannerDescription { horizontal-align: center; }
+.CustomBanner.DescriptionAlign_right .BannerDescription { horizontal-align: right; }
+.CustomBanner.IconPosition_left.VerticalAlign_top .BannerTexts { vertical-align: top; }
+.CustomBanner.IconPosition_left.VerticalAlign_center .BannerTexts { vertical-align: center; }
+.CustomBanner.IconPosition_left.VerticalAlign_bottom .BannerTexts { vertical-align: bottom; }
 .CustomBanner.Icon_info .Icon_info { visibility: visible; }
 .CustomBanner.Icon_warning .Icon_warning { visibility: visible; }
 .CustomBanner.Icon_infection .Icon_infection { visibility: visible; }

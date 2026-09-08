@@ -5,24 +5,14 @@ import json
 import xml.etree.ElementTree as ET
 
 root = Path(__file__).resolve().parents[1] / 'CustomHud.Core/resources/hud/messages/content/panorama'
-icons = {
-    'info': '<circle cx="32" cy="32" r="25"/><path d="M32 29v18M32 18v2"/>',
-    'warning': '<path d="M32 7 59 55H5ZM32 25v13M32 45v2"/>',
-    'infection': '<circle cx="32" cy="32" r="12"/><path d="M32 4v12M32 48v12M4 32h12M48 32h12M12 12l9 9M43 43l9 9M12 52l9-9M43 21l9-9"/><circle cx="28" cy="30" r="1"/><circle cx="36" cy="36" r="1"/>',
-    'skull': '<path d="M20 47C3 43 5 8 32 8s29 35 12 39v10H20Z"/><circle cx="22" cy="30" r="5"/><circle cx="42" cy="30" r="5"/><path d="m29 43 3-5 3 5M28 50v7M36 50v7"/>',
-    'shield': '<path d="M32 6 54 15v16c0 13-11 22-22 27C21 53 10 44 10 31V15ZM21 31l8 8 16-18"/>',
-    'trophy': '<path d="M18 7h28v19c0 20-28 20-28 0ZM18 13H7v10c0 9 8 13 14 13M46 13h11v10c0 9-8 13-14 13M32 41v15M20 56h24"/>',
-    'star': '<path d="m32 5 8 18 20 2-15 14 4 20-17-10-17 10 4-20L4 25l20-2Z"/>',
-    'gift': '<path d="M8 25h48v12H8ZM12 37v21h40V37M32 25v33"/><path d="M32 25C8 26 13 2 25 9c6 3 7 16 7 16Zm0 0C56 26 51 2 39 9c-6 3-7 16-7 16Z"/>',
-    'megaphone': '<path d="M7 26h14l34-16v42L21 37H7ZM21 37l7 18H16l-5-18M21 26v11"/>',
-    'lightning': '<path d="M36 4 10 37h20l-3 23 27-35H34Z"/>',
-    'clock': '<circle cx="32" cy="32" r="25"/><path d="M32 16v17l13 8"/>',
-    'heart': '<path d="M32 56 10 34C-8 13 18-5 32 16 46-5 72 13 54 34Z"/>',
-}
+# SVG — исходные ресурсы, как у HUD способностей: только явные белые залитые контуры.
+# При добавлении иконки преобразуйте обводки в path; наследование стиля группы не используется.
+icons = ['info', 'warning', 'infection', 'skull', 'shield', 'trophy', 'star', 'gift', 'megaphone', 'lightning', 'clock', 'heart']
 image_dir = root / 'images/custom_game/elysium/banners'
-image_dir.mkdir(parents=True, exist_ok=True)
-for name, body in icons.items():
-    (image_dir / f'{name}.svg').write_text(f'<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><g fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">{body}</g></svg>\n')
+for name in icons:
+    svg = ET.parse(image_dir / f'{name}.svg').getroot()
+    assert len(svg) and all(node.tag.endswith('}path') and node.get('fill') == '#ffffff'
+        and set(node.attrib) == {'fill', 'd'} for node in svg), f'{name}: use explicit white filled paths'
 
 layout = ET.Element('root')
 styles = ET.SubElement(layout, 'styles')
@@ -108,6 +98,11 @@ css += '''
 .CustomBanner.Speed_slow { animation-duration: 0.8s; }
 .CustomBanner.Leaving { opacity: 0; animation-timing-function: ease-in; }
 '''
+for field in ['Header', 'Title', 'Description']:
+    for align in ['left', 'center', 'right']:
+        css += f'.CustomBanner.{field}Align_{align} .Banner{field} {{ horizontal-align: {align}; }}\n'
+for align in ['top', 'center', 'bottom']:
+    css += f'.CustomBanner.IconPosition_left.VerticalAlign_{align} .BannerTexts {{ vertical-align: {align}; }}\n'
 for name in icons:
     css += f'.CustomBanner.Icon_{name} .Icon_{name} {{ visibility: visible; }}\n'
 for idx, color in palette:

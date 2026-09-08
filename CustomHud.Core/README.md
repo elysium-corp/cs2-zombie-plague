@@ -2,8 +2,19 @@
 
 # Elysium Custom HUD
 
-`CustomHud.Core 1.2.0` предоставляет `CustomHud.Api.ICustomHudApi` другим плагинам
+`CustomHud.Core 1.4.0` предоставляет `CustomHud.Api.ICustomHudApi` другим плагинам
 HUD сообщений использует собственную сущность и сосуществует с меню SwiftlyS2 и панелью способностей
+
+В конструкторе раздел «Текст» задаёт общее выравнивание `Align` (`left`, `center`, `right`)
+У `HeaderAlign`, `TitleAlign` и `DescriptionAlign` значение `inherit` сохраняет общее выравнивание,
+либо каждый блок может выбрать собственное. `VerticalAlign` (`top`, `center`, `bottom`) располагает
+текст относительно иконки слева. Положение самого баннера на экране по-прежнему задаёт `HudMessageOptions.Position`
+
+Для версии 1.4.0 обновите CustomHud.Core, общий CustomHud.Api и содержимое VPK:
+перекомпилируйте CSS `elysium_messages_v4_r2.css` и все 12 SVG из `images/custom_game/elysium/banners`
+Иконки используют явные белые залитые контуры, как HUD способностей. Обводки и наследуемые стили `<g>`
+в этих ресурсах не используются. Генератор проверяет формат и сохраняет готовые SVG
+Проверка в CI не заменяет компиляцию Workshop Tools и проверку обновлённого VPK в игровом клиенте
 
 ## Вызов из плагина
 

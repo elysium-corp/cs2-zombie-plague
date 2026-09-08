@@ -6,6 +6,27 @@ namespace CustomHud.Core.Tests;
 public sealed class BannerStudioTests
 {
     [Fact]
+    public void AlignmentSurvivesJsonAndUsesCompiledStyles()
+    {
+        var design = System.Text.Json.JsonSerializer.Deserialize<HudBannerTemplate>("""
+            {"Align":"center","HeaderAlign":"left","TitleAlign":"right","DescriptionAlign":"inherit","VerticalAlign":"bottom"}
+            """)!;
+        HudBannerDesign.Validate(design, new() { Title = "Заголовок", Description = "Описание" });
+        var classes = HudBannerDesign.Classes(design);
+        Assert.Contains("Align_center", classes);
+        Assert.Contains("HeaderAlign_left", classes);
+        Assert.Contains("TitleAlign_right", classes);
+        Assert.Contains("DescriptionAlign_inherit", classes);
+        Assert.Contains("VerticalAlign_bottom", classes);
+        var css = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "content/panorama/styles/custom_game/elysium_messages_v4_r2.css"));
+        Assert.Contains(".CustomBanner.TitleAlign_right .BannerTitle { horizontal-align: right; }", css);
+        Assert.Contains(".CustomBanner.IconPosition_left.VerticalAlign_bottom .BannerTexts { vertical-align: bottom; }", css);
+        var legacy = System.Text.Json.JsonSerializer.Deserialize<HudBannerTemplate>("{\"Align\":\"right\"}")!;
+        Assert.Equal("inherit", legacy.TitleAlign);
+        Assert.Throws<ArgumentException>(() => HudBannerDesign.Validate(design with { TitleAlign = "justify" }, new() { Title = "x", Description = "y" }));
+    }
+
+    [Fact]
     public void TitleOnlyCompositionHasNoPhantomDescription()
     {
         var design = new HudBannerTemplate { Variant = "custom", ShowHeader = false, ShowTitle = true, ShowDescription = false, TitleSize = 40, WidthPixels = 800 };
