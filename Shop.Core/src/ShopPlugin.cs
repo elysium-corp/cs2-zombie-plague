@@ -220,10 +220,10 @@ internal sealed class ShopPlugin(ISwiftlyCore core) : Plugin<ShopModule>(core)
     {
         var playerId = context.Sender?.PlayerID;
         context.Reply(LocalizeForContext(context, "Shop.Admin.Reload.Started"));
-        Track(ReloadAsync(playerId));
+        Track(ReloadAsync(playerId, context.Sender?.SteamID));
     }
 
-    private async Task ReloadAsync(int? playerId)
+    private async Task ReloadAsync(int? playerId, ulong? steamId)
     {
         var succeeded = await _coordinator.Value.ReloadNowAsync().ConfigureAwait(false);
         if (_lifetime.IsCancellationRequested)
@@ -245,7 +245,7 @@ internal sealed class ShopPlugin(ISwiftlyCore core) : Plugin<ShopModule>(core)
 
             if (playerId is { } id)
             {
-                if (Core.PlayerManager.GetPlayer(id) is not { IsValid: true } player)
+                if (Core.PlayerManager.GetPlayer(id) is not { IsValid: true } player || player.SteamID != steamId)
                 {
                     return;
                 }

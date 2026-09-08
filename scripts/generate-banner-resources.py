@@ -114,11 +114,12 @@ def alpha(color, opacity):
     rgb = color[:7]
     original = int(color[7:9], 16) if len(color) == 9 else 255
     return rgb + format(round(original * opacity / 100), '02x')
-themes = {'midnight': '#15232af0', 'glass': '#11242cb8', 'solid': '#15232aff', 'light': '#e9f0f5f5', 'transparent': '#00000000'}
+themes = {'glass': '#11242cb8', 'solid': '#15232aff', 'light': '#e9f0f5f5', 'transparent': '#00000000'}
 backgrounds = {'slate': '#15232a', 'black': '#090d12', 'blue': '#10233f', 'purple': '#271735', 'red': '#35121c', 'green': '#112e26', 'gold': '#342a13', 'white': '#eef3f5'}
 for opacity in range(0, 101, 10):
     for name, color in themes.items():
         css += f'.CustomBanner.Theme_{name}.Background_theme.BackgroundOpacity_{opacity} {{ background-color: {alpha(color, opacity)}; }}\n'
+    css += f'.CustomBanner.Theme_midnight.Background_theme.BackgroundOpacity_{opacity} {{ background-color: gradient(linear, 0% 0%, 100% 100%, from({alpha("#0c171cf2", opacity)}), to({alpha("#14252ae8", opacity)})); }}\n'
     css += f'.CustomBanner.Theme_danger.Background_theme.BackgroundOpacity_{opacity} {{ background-color: gradient(linear, 0% 0%, 100% 100%, from({alpha("#320e16f5", opacity)}), to({alpha("#170c16f0", opacity)})); }}\n'
     for name, color in backgrounds.items():
         css += f'.CustomBanner.Background_{name}.BackgroundOpacity_{opacity} {{ background-color: {alpha(color, opacity)}; }}\n'

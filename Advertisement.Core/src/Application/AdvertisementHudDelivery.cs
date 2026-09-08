@@ -66,7 +66,7 @@ internal sealed class AdvertisementHudDelivery(IOptions<AdvertisementHudConfig> 
             null or "notice" => HudMessageStyle.Notice, "banner" => HudMessageStyle.Banner,
             _ => (HudMessageStyle)(-1)
         };
-        if ((presentation is not null && string.IsNullOrWhiteSpace(presentation.HudLocalizationKey)) || !Enum.IsDefined(mode) || !Enum.IsDefined(position) || !Enum.IsDefined(style) || !double.IsFinite(duration) || duration is < 0.5 or > 60)
+        if ((presentation is { Template: null } && string.IsNullOrWhiteSpace(presentation.HudLocalizationKey)) || !Enum.IsDefined(mode) || !Enum.IsDefined(position) || !Enum.IsDefined(style) || !double.IsFinite(duration) || duration is < 0.5 or > 60)
         {
             if (!_warned) logger.LogWarning("[Advertisement] Некорректные настройки доставки HUD; доставка HUD пропущена");
             _warned = true;

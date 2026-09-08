@@ -1090,11 +1090,11 @@
 @keyframes 'banner-icon-bounce' { 0% { transform: translatey(0px); } 50% { transform: translatey(-6px); } 100% { transform: translatey(0px); } }
 .CustomBanner.IconAnimation_shake .BannerIcon { animation-name: banner-icon-shake; animation-duration: 1.8s; animation-iteration-count: infinite; animation-timing-function: ease-in-out; }
 @keyframes 'banner-icon-shake' { 0% { transform: rotatez(-8deg); } 50% { transform: rotatez(8deg); } 100% { transform: rotatez(-8deg); } }
-.CustomBanner.Theme_midnight.Background_theme.BackgroundOpacity_0 { background-color: #15232a00; }
 .CustomBanner.Theme_glass.Background_theme.BackgroundOpacity_0 { background-color: #11242c00; }
 .CustomBanner.Theme_solid.Background_theme.BackgroundOpacity_0 { background-color: #15232a00; }
 .CustomBanner.Theme_light.Background_theme.BackgroundOpacity_0 { background-color: #e9f0f500; }
 .CustomBanner.Theme_transparent.Background_theme.BackgroundOpacity_0 { background-color: #00000000; }
+.CustomBanner.Theme_midnight.Background_theme.BackgroundOpacity_0 { background-color: gradient(linear, 0% 0%, 100% 100%, from(#0c171c00), to(#14252a00)); }
 .CustomBanner.Theme_danger.Background_theme.BackgroundOpacity_0 { background-color: gradient(linear, 0% 0%, 100% 100%, from(#320e1600), to(#170c1600)); }
 .CustomBanner.Background_slate.BackgroundOpacity_0 { background-color: #15232a00; }
 .CustomBanner.Background_black.BackgroundOpacity_0 { background-color: #090d1200; }
@@ -1104,11 +1104,11 @@
 .CustomBanner.Background_green.BackgroundOpacity_0 { background-color: #112e2600; }
 .CustomBanner.Background_gold.BackgroundOpacity_0 { background-color: #342a1300; }
 .CustomBanner.Background_white.BackgroundOpacity_0 { background-color: #eef3f500; }
-.CustomBanner.Theme_midnight.Background_theme.BackgroundOpacity_10 { background-color: #15232a18; }
 .CustomBanner.Theme_glass.Background_theme.BackgroundOpacity_10 { background-color: #11242c12; }
 .CustomBanner.Theme_solid.Background_theme.BackgroundOpacity_10 { background-color: #15232a1a; }
 .CustomBanner.Theme_light.Background_theme.BackgroundOpacity_10 { background-color: #e9f0f518; }
 .CustomBanner.Theme_transparent.Background_theme.BackgroundOpacity_10 { background-color: #00000000; }
+.CustomBanner.Theme_midnight.Background_theme.BackgroundOpacity_10 { background-color: gradient(linear, 0% 0%, 100% 100%, from(#0c171c18), to(#14252a17)); }
 .CustomBanner.Theme_danger.Background_theme.BackgroundOpacity_10 { background-color: gradient(linear, 0% 0%, 100% 100%, from(#320e1618), to(#170c1618)); }
 .CustomBanner.Background_slate.BackgroundOpacity_10 { background-color: #15232a1a; }
 .CustomBanner.Background_black.BackgroundOpacity_10 { background-color: #090d121a; }
@@ -1118,11 +1118,11 @@
 .CustomBanner.Background_green.BackgroundOpacity_10 { background-color: #112e261a; }
 .CustomBanner.Background_gold.BackgroundOpacity_10 { background-color: #342a131a; }
 .CustomBanner.Background_white.BackgroundOpacity_10 { background-color: #eef3f51a; }
-.CustomBanner.Theme_midnight.Background_theme.BackgroundOpacity_20 { background-color: #15232a30; }
 .CustomBanner.Theme_glass.Background_theme.BackgroundOpacity_20 { background-color: #11242c25; }
 .CustomBanner.Theme_solid.Background_theme.BackgroundOpacity_20 { background-color: #15232a33; }
 .CustomBanner.Theme_light.Background_theme.BackgroundOpacity_20 { background-color: #e9f0f531; }
 .CustomBanner.Theme_transparent.Background_theme.BackgroundOpacity_20 { background-color: #00000000; }
+.CustomBanner.Theme_midnight.Background_theme.BackgroundOpacity_20 { background-color: gradient(linear, 0% 0%, 100% 100%, from(#0c171c30), to(#14252a2e)); }
 .CustomBanner.Theme_danger.Background_theme.BackgroundOpacity_20 { background-color: gradient(linear, 0% 0%, 100% 100%, from(#320e1631), to(#170c1630)); }
 .CustomBanner.Background_slate.BackgroundOpacity_20 { background-color: #15232a33; }
 .CustomBanner.Background_black.BackgroundOpacity_20 { background-color: #090d1233; }
@@ -1132,11 +1132,11 @@
 .CustomBanner.Background_green.BackgroundOpacity_20 { background-color: #112e2633; }
 .CustomBanner.Background_gold.BackgroundOpacity_20 { background-color: #342a1333; }
 .CustomBanner.Background_white.BackgroundOpacity_20 { background-color: #eef3f533; }
-.CustomBanner.Theme_midnight.Background_theme.BackgroundOpacity_30 { background-color: #15232a48; }
 .CustomBanner.Theme_glass.Background_theme.BackgroundOpacity_30 { background-color: #11242c37; }
 .CustomBanner.Theme_solid.Background_theme.BackgroundOpacity_30 { background-color: #15232a4c; }
 .CustomBanner.Theme_light.Background_theme.BackgroundOpacity_30 { background-color: #e9f0f54a; }
 .CustomBanner.Theme_transparent.Background_theme.BackgroundOpacity_30 { background-color: #00000000; }
+.CustomBanner.Theme_midnight.Background_theme.BackgroundOpacity_30 { background-color: gradient(linear, 0% 0%, 100% 100%, from(#0c171c49), to(#14252a46)); }
 .CustomBanner.Theme_danger.Background_theme.BackgroundOpacity_30 { background-color: gradient(linear, 0% 0%, 100% 100%, from(#320e164a), to(#170c1648)); }
 .CustomBanner.Background_slate.BackgroundOpacity_30 { background-color: #15232a4c; }
 .CustomBanner.Background_black.BackgroundOpacity_30 { background-color: #090d124c; }
@@ -1146,11 +1146,11 @@
 .CustomBanner.Background_green.BackgroundOpacity_30 { background-color: #112e264c; }
 .CustomBanner.Background_gold.BackgroundOpacity_30 { background-color: #342a134c; }
 .CustomBanner.Background_white.BackgroundOpacity_30 { background-color: #eef3f54c; }
-.CustomBanner.Theme_midnight.Background_theme.BackgroundOpacity_40 { background-color: #15232a60; }
 .CustomBanner.Theme_glass.Background_theme.BackgroundOpacity_40 { background-color: #11242c4a; }
 .CustomBanner.Theme_solid.Background_theme.BackgroundOpacity_40 { background-color: #15232a66; }
 .CustomBanner.Theme_light.Background_theme.BackgroundOpacity_40 { background-color: #e9f0f562; }
 .CustomBanner.Theme_transparent.Background_theme.BackgroundOpacity_40 { background-color: #00000000; }
+.CustomBanner.Theme_midnight.Background_theme.BackgroundOpacity_40 { background-color: gradient(linear, 0% 0%, 100% 100%, from(#0c171c61), to(#14252a5d)); }
 .CustomBanner.Theme_danger.Background_theme.BackgroundOpacity_40 { background-color: gradient(linear, 0% 0%, 100% 100%, from(#320e1662), to(#170c1660)); }
 .CustomBanner.Background_slate.BackgroundOpacity_40 { background-color: #15232a66; }
 .CustomBanner.Background_black.BackgroundOpacity_40 { background-color: #090d1266; }
@@ -1160,11 +1160,11 @@
 .CustomBanner.Background_green.BackgroundOpacity_40 { background-color: #112e2666; }
 .CustomBanner.Background_gold.BackgroundOpacity_40 { background-color: #342a1366; }
 .CustomBanner.Background_white.BackgroundOpacity_40 { background-color: #eef3f566; }
-.CustomBanner.Theme_midnight.Background_theme.BackgroundOpacity_50 { background-color: #15232a78; }
 .CustomBanner.Theme_glass.Background_theme.BackgroundOpacity_50 { background-color: #11242c5c; }
 .CustomBanner.Theme_solid.Background_theme.BackgroundOpacity_50 { background-color: #15232a80; }
 .CustomBanner.Theme_light.Background_theme.BackgroundOpacity_50 { background-color: #e9f0f57a; }
 .CustomBanner.Theme_transparent.Background_theme.BackgroundOpacity_50 { background-color: #00000000; }
+.CustomBanner.Theme_midnight.Background_theme.BackgroundOpacity_50 { background-color: gradient(linear, 0% 0%, 100% 100%, from(#0c171c79), to(#14252a74)); }
 .CustomBanner.Theme_danger.Background_theme.BackgroundOpacity_50 { background-color: gradient(linear, 0% 0%, 100% 100%, from(#320e167a), to(#170c1678)); }
 .CustomBanner.Background_slate.BackgroundOpacity_50 { background-color: #15232a80; }
 .CustomBanner.Background_black.BackgroundOpacity_50 { background-color: #090d1280; }
@@ -1174,11 +1174,11 @@
 .CustomBanner.Background_green.BackgroundOpacity_50 { background-color: #112e2680; }
 .CustomBanner.Background_gold.BackgroundOpacity_50 { background-color: #342a1380; }
 .CustomBanner.Background_white.BackgroundOpacity_50 { background-color: #eef3f580; }
-.CustomBanner.Theme_midnight.Background_theme.BackgroundOpacity_60 { background-color: #15232a90; }
 .CustomBanner.Theme_glass.Background_theme.BackgroundOpacity_60 { background-color: #11242c6e; }
 .CustomBanner.Theme_solid.Background_theme.BackgroundOpacity_60 { background-color: #15232a99; }
 .CustomBanner.Theme_light.Background_theme.BackgroundOpacity_60 { background-color: #e9f0f593; }
 .CustomBanner.Theme_transparent.Background_theme.BackgroundOpacity_60 { background-color: #00000000; }
+.CustomBanner.Theme_midnight.Background_theme.BackgroundOpacity_60 { background-color: gradient(linear, 0% 0%, 100% 100%, from(#0c171c91), to(#14252a8b)); }
 .CustomBanner.Theme_danger.Background_theme.BackgroundOpacity_60 { background-color: gradient(linear, 0% 0%, 100% 100%, from(#320e1693), to(#170c1690)); }
 .CustomBanner.Background_slate.BackgroundOpacity_60 { background-color: #15232a99; }
 .CustomBanner.Background_black.BackgroundOpacity_60 { background-color: #090d1299; }
@@ -1188,11 +1188,11 @@
 .CustomBanner.Background_green.BackgroundOpacity_60 { background-color: #112e2699; }
 .CustomBanner.Background_gold.BackgroundOpacity_60 { background-color: #342a1399; }
 .CustomBanner.Background_white.BackgroundOpacity_60 { background-color: #eef3f599; }
-.CustomBanner.Theme_midnight.Background_theme.BackgroundOpacity_70 { background-color: #15232aa8; }
 .CustomBanner.Theme_glass.Background_theme.BackgroundOpacity_70 { background-color: #11242c81; }
 .CustomBanner.Theme_solid.Background_theme.BackgroundOpacity_70 { background-color: #15232ab2; }
 .CustomBanner.Theme_light.Background_theme.BackgroundOpacity_70 { background-color: #e9f0f5ac; }
 .CustomBanner.Theme_transparent.Background_theme.BackgroundOpacity_70 { background-color: #00000000; }
+.CustomBanner.Theme_midnight.Background_theme.BackgroundOpacity_70 { background-color: gradient(linear, 0% 0%, 100% 100%, from(#0c171ca9), to(#14252aa2)); }
 .CustomBanner.Theme_danger.Background_theme.BackgroundOpacity_70 { background-color: gradient(linear, 0% 0%, 100% 100%, from(#320e16ac), to(#170c16a8)); }
 .CustomBanner.Background_slate.BackgroundOpacity_70 { background-color: #15232ab2; }
 .CustomBanner.Background_black.BackgroundOpacity_70 { background-color: #090d12b2; }
@@ -1202,11 +1202,11 @@
 .CustomBanner.Background_green.BackgroundOpacity_70 { background-color: #112e26b2; }
 .CustomBanner.Background_gold.BackgroundOpacity_70 { background-color: #342a13b2; }
 .CustomBanner.Background_white.BackgroundOpacity_70 { background-color: #eef3f5b2; }
-.CustomBanner.Theme_midnight.Background_theme.BackgroundOpacity_80 { background-color: #15232ac0; }
 .CustomBanner.Theme_glass.Background_theme.BackgroundOpacity_80 { background-color: #11242c93; }
 .CustomBanner.Theme_solid.Background_theme.BackgroundOpacity_80 { background-color: #15232acc; }
 .CustomBanner.Theme_light.Background_theme.BackgroundOpacity_80 { background-color: #e9f0f5c4; }
 .CustomBanner.Theme_transparent.Background_theme.BackgroundOpacity_80 { background-color: #00000000; }
+.CustomBanner.Theme_midnight.Background_theme.BackgroundOpacity_80 { background-color: gradient(linear, 0% 0%, 100% 100%, from(#0c171cc2), to(#14252aba)); }
 .CustomBanner.Theme_danger.Background_theme.BackgroundOpacity_80 { background-color: gradient(linear, 0% 0%, 100% 100%, from(#320e16c4), to(#170c16c0)); }
 .CustomBanner.Background_slate.BackgroundOpacity_80 { background-color: #15232acc; }
 .CustomBanner.Background_black.BackgroundOpacity_80 { background-color: #090d12cc; }
@@ -1216,11 +1216,11 @@
 .CustomBanner.Background_green.BackgroundOpacity_80 { background-color: #112e26cc; }
 .CustomBanner.Background_gold.BackgroundOpacity_80 { background-color: #342a13cc; }
 .CustomBanner.Background_white.BackgroundOpacity_80 { background-color: #eef3f5cc; }
-.CustomBanner.Theme_midnight.Background_theme.BackgroundOpacity_90 { background-color: #15232ad8; }
 .CustomBanner.Theme_glass.Background_theme.BackgroundOpacity_90 { background-color: #11242ca6; }
 .CustomBanner.Theme_solid.Background_theme.BackgroundOpacity_90 { background-color: #15232ae6; }
 .CustomBanner.Theme_light.Background_theme.BackgroundOpacity_90 { background-color: #e9f0f5dc; }
 .CustomBanner.Theme_transparent.Background_theme.BackgroundOpacity_90 { background-color: #00000000; }
+.CustomBanner.Theme_midnight.Background_theme.BackgroundOpacity_90 { background-color: gradient(linear, 0% 0%, 100% 100%, from(#0c171cda), to(#14252ad1)); }
 .CustomBanner.Theme_danger.Background_theme.BackgroundOpacity_90 { background-color: gradient(linear, 0% 0%, 100% 100%, from(#320e16dc), to(#170c16d8)); }
 .CustomBanner.Background_slate.BackgroundOpacity_90 { background-color: #15232ae6; }
 .CustomBanner.Background_black.BackgroundOpacity_90 { background-color: #090d12e6; }
@@ -1230,11 +1230,11 @@
 .CustomBanner.Background_green.BackgroundOpacity_90 { background-color: #112e26e6; }
 .CustomBanner.Background_gold.BackgroundOpacity_90 { background-color: #342a13e6; }
 .CustomBanner.Background_white.BackgroundOpacity_90 { background-color: #eef3f5e6; }
-.CustomBanner.Theme_midnight.Background_theme.BackgroundOpacity_100 { background-color: #15232af0; }
 .CustomBanner.Theme_glass.Background_theme.BackgroundOpacity_100 { background-color: #11242cb8; }
 .CustomBanner.Theme_solid.Background_theme.BackgroundOpacity_100 { background-color: #15232aff; }
 .CustomBanner.Theme_light.Background_theme.BackgroundOpacity_100 { background-color: #e9f0f5f5; }
 .CustomBanner.Theme_transparent.Background_theme.BackgroundOpacity_100 { background-color: #00000000; }
+.CustomBanner.Theme_midnight.Background_theme.BackgroundOpacity_100 { background-color: gradient(linear, 0% 0%, 100% 100%, from(#0c171cf2), to(#14252ae8)); }
 .CustomBanner.Theme_danger.Background_theme.BackgroundOpacity_100 { background-color: gradient(linear, 0% 0%, 100% 100%, from(#320e16f5), to(#170c16f0)); }
 .CustomBanner.Background_slate.BackgroundOpacity_100 { background-color: #15232aff; }
 .CustomBanner.Background_black.BackgroundOpacity_100 { background-color: #090d12ff; }

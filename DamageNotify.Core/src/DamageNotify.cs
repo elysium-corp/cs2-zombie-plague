@@ -68,7 +68,7 @@ internal partial class DamageNotify(ISwiftlyCore core) : Plugin<DamageNotifyModu
         _notifications.Value.Publish(player, "Game.Damage.Hit", new Dictionary<string, object?>
         {
             ["victim"] = victim.Name, ["victim_health"] = victim.PlayerPawn?.Health ?? 0,
-            ["damage"] = @event.DmgHealth, ["weapon"] = @event.Weapon, ["hitgroup"] = @event.HitGroup
+            ["damage"] = @event.ActualDmgHealth, ["weapon"] = @event.Weapon, ["hitgroup"] = @event.ActualHitGroup
         });
 
         return HookResult.Continue;

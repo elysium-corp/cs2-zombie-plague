@@ -15,7 +15,7 @@ internal sealed class BannerNotificationService(ISwiftlyCore core, Advertisement
     Func<ILocalizationApi> localization, TimeProvider clock) : IBannerNotificationApi, IDisposable
 {
     private readonly NotificationQueue _queue = new(clock);
-    private readonly Dictionary<string, Func<IPlayer, IReadOnlyDictionary<string, object?>>> _providers = [];
+    private readonly Dictionary<string, (object Token, Func<IPlayer, IReadOnlyDictionary<string, object?>> Provider)> _providers = [];
     private readonly HashSet<Action> _configurationListeners = [];
     private readonly Dictionary<string, DateTimeOffset> _warnings = [];
     private ICustomBannerApi? _banners;
@@ -43,7 +43,7 @@ internal sealed class BannerNotificationService(ISwiftlyCore core, Advertisement
     {
         ObserveConfiguration();
         if (_disposed || _banners is not { IsAvailable: true } || !Eligible(player)
-            || _snapshot?.Notifications.TryGetValue(eventKey, out var rule) != true || !rule.Enabled) return false;
+            || _snapshot is null || !_snapshot.Notifications.TryGetValue(eventKey, out var rule) || !rule.Enabled) return false;
         try
         {
             var values = Context(player);
@@ -65,8 +65,9 @@ internal sealed class BannerNotificationService(ISwiftlyCore core, Advertisement
     public IDisposable RegisterContext(string owner, Func<IPlayer, IReadOnlyDictionary<string, object?>> provider)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(owner); ArgumentNullException.ThrowIfNull(provider);
-        _providers[owner] = provider;
-        return new Registration(() => { if (_providers.GetValueOrDefault(owner) == provider) _providers.Remove(owner); });
+        var token = new object();
+        _providers[owner] = (token, provider);
+        return new Registration(() => { if (ReferenceEquals(_providers.GetValueOrDefault(owner).Token, token)) _providers.Remove(owner); });
     }
 
     public HudWidgetOptions? GetWidget(string key) => cache.Current?.Widgets.GetValueOrDefault(key);
@@ -100,7 +101,7 @@ internal sealed class BannerNotificationService(ISwiftlyCore core, Advertisement
         if (_economy is not null) values["balance"] = _economy.GetBalance(player);
         foreach (var (owner, provider) in _providers.ToArray())
         {
-            try { foreach (var pair in provider(player)) values[pair.Key] = pair.Value; }
+            try { foreach (var pair in provider.Provider(player)) values[pair.Key] = pair.Value; }
             catch (Exception exception) { Warn("context:" + owner, exception); }
         }
         return values;

@@ -5,7 +5,7 @@ namespace ZombiePlague.Core.Database.Migrations;
 
 [DbContext(typeof(ZombiePlagueDbContext))]
 [Migration("20260908102000_AddHudCustomizationFlag")]
-internal sealed class AddHudCustomizationFlag : Migration
+internal sealed partial class AddHudCustomizationFlag : Migration
 {
     protected override void Up(MigrationBuilder migrationBuilder) => migrationBuilder.Sql("""
         ALTER TABLE zombie_plague.players ADD COLUMN ability_hud_customized boolean NOT NULL DEFAULT FALSE;

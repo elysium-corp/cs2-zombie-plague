@@ -104,7 +104,7 @@ internal sealed class AdvertisementDbContext(DbContextOptions<AdvertisementDbCon
                     "hud_position IN ('top_left', 'top_center', 'top_right', 'middle_left', 'center', 'middle_right', 'bottom_left', 'bottom_center', 'bottom_right')");
                 table.HasCheckConstraint("messages_hud_duration_valid", "hud_duration_seconds BETWEEN 0.5 AND 60");
                 table.HasCheckConstraint("messages_hud_style_valid", "hud_style IN ('notice', 'banner')");
-                table.HasCheckConstraint("messages_hud_key_required", "display_type = 'chat' OR (hud_localization_key IS NOT NULL AND btrim(hud_localization_key) <> '')");
+                table.HasCheckConstraint("messages_hud_key_required", "display_type = 'chat' OR (hud_localization_key IS NOT NULL AND btrim(hud_localization_key) <> '') OR (banner_template_key IS NOT NULL AND (banner_header_key IS NOT NULL OR banner_title_key IS NOT NULL))");
                 table.HasCheckConstraint("ck_advertisement_messages_weight", "weight >= 0");
                 table.HasCheckConstraint(
                     "ck_advertisement_messages_interval",

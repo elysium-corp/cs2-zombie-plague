@@ -54,6 +54,14 @@ internal static class NotificationCatalog
         JsonValueKind.Number => json.GetDouble(), _ => null
     } : value;
 
+    internal static HudWidgetOptions ValidateWidget(HudWidgetOptions options)
+    {
+        if (options.ScalePercent is not (50 or 75 or 100)
+            || options.Position is not ("top_left" or "top_center" or "top_right" or "middle_left" or "middle_center" or "middle_right" or "bottom_left" or "bottom_center" or "bottom_right"))
+            throw new InvalidDataException("Некорректные настройки постоянного HUD");
+        return options;
+    }
+
     internal static void Validate(BannerNotificationRule rule)
     {
         if (!Defaults.ContainsKey(rule.EventKey) || !Enum.IsDefined(rule.Options.Position)

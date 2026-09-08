@@ -34,7 +34,7 @@ internal sealed class AbilityHudSettings(PlayerSessionStore<PlayerPreferences> s
         if (session is null) return false;
         session.Update(data =>
         {
-            var previous = data.AbilityHud.Normalize();
+            var previous = data.AbilityHudCustomized || _server is null ? data.AbilityHud.Normalize() : ServerDefault;
             data.AbilityHud = update(previous).Normalize();
             data.AbilityHudCustomized = !reset;
             data.AbilityHudScaleChangedInSession |= reset || previous.ScalePercent != data.AbilityHud.ScalePercent;

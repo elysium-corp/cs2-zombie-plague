@@ -189,10 +189,10 @@ internal sealed class AdvertisementPlugin(ISwiftlyCore core) : Plugin<Advertisem
     {
         var playerId = context.Sender?.PlayerID;
         context.Reply("Advertisement reload started.");
-        Track(ReloadAsync(playerId));
+        Track(ReloadAsync(playerId, context.Sender?.SteamID));
     }
 
-    private async Task ReloadAsync(int? playerId)
+    private async Task ReloadAsync(int? playerId, ulong? steamId)
     {
         var result = await _coordinator.Value.ReloadNowAsync();
         if (_lifetime.IsCancellationRequested)
@@ -209,7 +209,7 @@ internal sealed class AdvertisementPlugin(ISwiftlyCore core) : Plugin<Advertisem
 
             if (playerId is { } id)
             {
-                if (Core.PlayerManager.GetPlayer(id) is { IsValid: true } player)
+                if (Core.PlayerManager.GetPlayer(id) is { IsValid: true } player && player.SteamID == steamId)
                     _notifications.Value.Publish(player, "Advertisement.Reload.Result", new Dictionary<string, object?> { ["result"] = result.Message });
             }
             else

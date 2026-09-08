@@ -205,7 +205,8 @@ internal sealed class ConfigAdvertisementProvider(IOptionsMonitor<AdvertisementC
         {
             Notifications = (config.Notifications ?? NotificationCatalog.Defaults.Values.ToList())
                 .Select(rule => { NotificationCatalog.Validate(rule); return rule; }).ToFrozenDictionary(rule => rule.EventKey),
-            Widgets = (config.Widgets ?? new() { ["ZombiePlague.Abilities"] = new() }).ToFrozenDictionary()
+            Widgets = (config.Widgets ?? new() { ["ZombiePlague.Abilities"] = new() })
+                .ToFrozenDictionary(pair => pair.Key, pair => NotificationCatalog.ValidateWidget(pair.Value))
         };
     }
 
@@ -258,7 +259,7 @@ internal sealed class DatabaseAdvertisementProvider(IDbContextFactory<Advertisem
             Notifications = (await context.Set<NotificationRuleEntity>().AsNoTracking().Include(x => x.Template).ToListAsync(cancellationToken))
                 .Select(MapNotification).ToFrozenDictionary(rule => rule.EventKey),
             Widgets = (await context.Set<HudWidgetEntity>().AsNoTracking().ToListAsync(cancellationToken))
-                .ToFrozenDictionary(item => item.Key, item => JsonSerializer.Deserialize<HudWidgetOptions>(item.SettingsJson) ?? new())
+                .ToFrozenDictionary(item => item.Key, item => NotificationCatalog.ValidateWidget(JsonSerializer.Deserialize<HudWidgetOptions>(item.SettingsJson) ?? new()))
         };
     }
 

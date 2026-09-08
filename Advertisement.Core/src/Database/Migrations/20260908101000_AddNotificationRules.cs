@@ -9,6 +9,8 @@ internal sealed class AddNotificationRules : Migration
 {
     protected override void Up(MigrationBuilder migrationBuilder) => migrationBuilder.Sql(
         """
+        ALTER TABLE advertisement.messages DROP CONSTRAINT messages_hud_key_required;
+        ALTER TABLE advertisement.messages ADD CONSTRAINT messages_hud_key_required CHECK (display_type = 'chat' OR (hud_localization_key IS NOT NULL AND btrim(hud_localization_key) <> '') OR (banner_template_key IS NOT NULL AND (banner_header_key IS NOT NULL OR banner_title_key IS NOT NULL)));
         ALTER TABLE advertisement.banner_templates
             ADD COLUMN default_header_key VARCHAR(191) REFERENCES localization.entries(key) ON UPDATE CASCADE ON DELETE RESTRICT,
             ADD COLUMN default_title_key VARCHAR(191) REFERENCES localization.entries(key) ON UPDATE CASCADE ON DELETE RESTRICT,
@@ -97,6 +99,9 @@ internal sealed class AddNotificationRules : Migration
         """);
     protected override void Down(MigrationBuilder migrationBuilder) => migrationBuilder.Sql(
         """
+        -- Откат требует сначала назначить описание баннерам с одним заголовком.
+        ALTER TABLE advertisement.messages DROP CONSTRAINT messages_hud_key_required;
+        ALTER TABLE advertisement.messages ADD CONSTRAINT messages_hud_key_required CHECK (display_type = 'chat' OR (hud_localization_key IS NOT NULL AND btrim(hud_localization_key) <> ''));
         DROP TABLE advertisement.notification_rules;
         DROP TABLE advertisement.hud_widgets;
         ALTER TABLE advertisement.banner_templates DROP COLUMN default_header_key,

@@ -141,6 +141,39 @@ public sealed class AbilityHudPreferencesTests
             Assert.Contains(".AbilityBuffs.Position_" + position + " {", css);
     }
 
+    [Fact]
+    public void ServerDefaultsSurviveFirstPersonalChangeAndResetFollowsUpdatedServerSettings()
+    {
+        var sessions = new PlayerSessionStore<PlayerPreferences>();
+        var session = sessions.Create(1, new());
+        var settings = new AbilityHudSettings(sessions);
+        settings.ApplyServerOptions(new() { Position = "top_left", ScalePercent = 75 });
+        Assert.Equal(new(75, "top_left"), settings.Get(1));
+        settings.Update(1, value => value with { ScalePercent = 50 });
+        Assert.Equal(new(50, "top_left"), settings.Get(1));
+        Assert.True(session.Read(data => data.AbilityHudCustomized));
+        settings.ApplyServerOptions(new() { Position = "top_right", ScalePercent = 100 });
+        Assert.Equal(new(50, "top_left"), settings.Get(1));
+        settings.Reset(1);
+        Assert.Equal(new(100, "top_right"), settings.Get(1));
+        Assert.False(session.Read(data => data.AbilityHudCustomized));
+    }
+
+    [Fact]
+    public void ServerCanLockWidgetWithoutDestroyingPersonalPreferences()
+    {
+        var sessions = new PlayerSessionStore<PlayerPreferences>();
+        sessions.Create(1, new() { AbilityHud = new(50, "bottom_right"), AbilityHudCustomized = true });
+        var settings = new AbilityHudSettings(sessions);
+        var server = new CustomHud.Api.HudWidgetOptions { Position = "top_left", ScalePercent = 75, AllowPlayerCustomization = false };
+        settings.ApplyServerOptions(server);
+        Assert.Equal(new(75, "top_left"), settings.Get(1));
+        Assert.False(settings.Update(1, _ => new(100, "top_center")));
+        Assert.False(settings.Reset(1));
+        settings.ApplyServerOptions(server with { AllowPlayerCustomization = true });
+        Assert.Equal(new(50, "bottom_right"), settings.Get(1));
+    }
+
     private sealed class Sink : IAbilityHudSink
     {
         public List<string> Calls { get; } = [];
