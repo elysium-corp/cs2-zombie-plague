@@ -62,7 +62,8 @@ internal sealed class NotificationQueue(TimeProvider clock)
             if (slot.Until <= now) slot.Active = null;
             var active = slot.Active;
             var candidate = slot.Waiting.Where(item => item.Rule.Delivery != "stack")
-                .OrderByDescending(item => item.Rule.Options.Priority).FirstOrDefault();
+                .OrderByDescending(item => item.Rule.Options.Priority)
+                .ThenBy(item => item.Rule.EventKey == "Game.Round.Started" ? 0 : 1).FirstOrDefault();
             if (candidate is not null && (active is not null || slot.Stacked.Count < 3))
             {
                 var update = active?.Rule.EventKey == candidate.Rule.EventKey && candidate.Rule.Delivery == "replace";

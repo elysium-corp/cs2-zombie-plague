@@ -99,7 +99,8 @@ public sealed class NotificationQueueTests
     public void RoundAnnouncementWinsEvenWhenFirstInfectedWasPublishedFirst()
     {
         var queue = new NotificationQueue(new Clock());
-        var round = NotificationCatalog.Defaults["Game.Round.Started"];
+        var defaults = NotificationCatalog.Defaults["Game.Round.Started"];
+        var round = defaults with { Options = defaults.Options with { Priority = 100 } };
         var first = NotificationCatalog.Defaults["ZombiePlague.Round.Infection.FirstInfected"];
         queue.Enqueue(1, 11, first with { Delivery = "queue", Options = first.Options with { Position = round.Options.Position } }, new Dictionary<string, object?>());
         queue.Enqueue(1, 11, round, new Dictionary<string, object?>());
