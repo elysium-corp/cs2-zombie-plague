@@ -39,7 +39,7 @@ internal sealed class AbilityHudMenu(ISwiftlyCore core, IMenuExtensionDispatcher
         var scale = new SelectorMenuOption<int>(Text(player, "Menu.AbilityHud.Scale"), AbilityHudPreferences.Scales,
             Array.IndexOf(AbilityHudPreferences.Scales, current.ScalePercent), value => value + "%");
         scale.Enabled = settings.AllowCustomization;
-        scale.Comment = settings.AllowCustomization ? Text(player, "Menu.AbilityHud.PreviewHint") : null;
+        scale.Comment = settings.AllowCustomization ? Text(player, "Menu.AbilityHud.PreviewHint") : string.Empty;
         scale.SelectionChanged += (_, args) => settings.Update(args.Player.SteamID, value => value with { ScalePercent = args.NewValue });
         options.Add(scale);
 
