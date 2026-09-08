@@ -1,4 +1,5 @@
-﻿using Admin.Api;
+using CustomHud.Api;
+using Admin.Api;
 using Common.Database;
 using Common.Database.Storages;
 using Common.Database.Utils;
@@ -31,6 +32,7 @@ internal sealed class CustomKnifeModule(ISwiftlyCore core) : BaseModule(core)
     public override (ServiceProvider, ServiceCollection) GetProvider()
     {
         var service = new ServiceCollection();
+        service.AddSingleton<BannerNotificationClient>();
 
         service.AddSwiftly(core);
 

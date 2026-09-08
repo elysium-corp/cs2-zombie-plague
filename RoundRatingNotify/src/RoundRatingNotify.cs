@@ -1,3 +1,4 @@
+using CustomHud.Api;
 using Common.Di;
 using System.Globalization;
 using Localization.Api;
@@ -14,13 +15,15 @@ namespace RoundRatingNotify;
 
 [PluginMetadata(
     Id = "RoundRatingNotify.Core",
-    Version = "0.1.0",
+    Version = "0.2.0",
     Name = "[ZP] RoundRatingNotify",
     Author = "illusion & fdrinv",
     Description = "Print the best player of the round"
 )]
 internal sealed partial class RoundRatingNotify(ISwiftlyCore core) : Plugin<RoundRatingNotifyModule>(core)
 {
+    private readonly Lazy<BannerNotificationClient> _notifications = GetRequiredServiceLazy<BannerNotificationClient>();
+
     private readonly Dictionary<string, int> _playersDamage = new();
     private readonly Dictionary<string, int> _playersInfect = new();
 
@@ -36,6 +39,12 @@ internal sealed partial class RoundRatingNotify(ISwiftlyCore core) : Plugin<Roun
         _localization = interfaceManager.GetSharedInterface<ILocalizationApi>(ILocalizationApi.SharedApiKey);
     }
 
+    protected override void OnSharedInterfacesInjected(IInterfaceManager interfaceManager)
+    {
+        interfaceManager.TryGetSharedInterface<IBannerNotificationApi>(IBannerNotificationApi.SharedApiKey, out var notificationApi);
+        _notifications.Value.Bind(notificationApi);
+    }
+
     protected override void OnReady()
     {
         _guidOnEventRoundEndPost = core.GameEvent.HookPost<EventRoundEnd>(OnEventRoundEnd);
@@ -46,6 +55,7 @@ internal sealed partial class RoundRatingNotify(ISwiftlyCore core) : Plugin<Roun
 
     protected override void OnUnload()
     {
+        if (_notifications.IsValueCreated) _notifications.Value.Bind(null);
         core.GameEvent.Unhook(_guidOnEventRoundEndPost);
         core.GameEvent.Unhook(_guidOnEvEventPlayerHurtPost);
         
@@ -71,7 +81,7 @@ internal sealed partial class RoundRatingNotify(ISwiftlyCore core) : Plugin<Roun
 
     private HookResult OnEventRoundEnd(EventRoundEnd @event)
     {
-        SendNotifyInChat();
+        SendNotifications();
 
         Clear();
 
@@ -100,7 +110,7 @@ internal sealed partial class RoundRatingNotify(ISwiftlyCore core) : Plugin<Roun
         return keyValuesPair;
     }
 
-    private void SendNotifyInChat()
+    private void SendNotifications()
     {
         var humanTopPlayer = GetTopPlayerAndResultInRound(Team.CT);
         var zombieTopPlayer = GetTopPlayerAndResultInRound(Team.T);
@@ -108,40 +118,12 @@ internal sealed partial class RoundRatingNotify(ISwiftlyCore core) : Plugin<Roun
         foreach (var player in core.PlayerManager.GetAllPlayers()
                      .Where(value => value is { IsAuthorized: true, IsFakeClient: false }))
         {
-            var prefix = _localization.GetForPlayer(player, "RoundRatingNotify.Prefix")
-                         ?? "[[green]Elysium[default]]";
-
             if (!string.IsNullOrEmpty(humanTopPlayer.Key))
-            {
-                var message = _localization.GetForPlayer(
-                    player,
-                    "RoundRatingNotify.HumanTop",
-                    new Dictionary<string, string>
-                    {
-                        ["player"] = humanTopPlayer.Key,
-                        ["value"] = humanTopPlayer.Value.ToString(CultureInfo.InvariantCulture),
-                    });
-                if (message is not null)
-                {
-                    player.SendChat($"{prefix} [blue]{message}");
-                }
-            }
-
+                _notifications.Value.Publish(player, "RoundRatingNotify.HumanTop", new Dictionary<string, object?>
+                    { ["player"] = humanTopPlayer.Key, ["value"] = humanTopPlayer.Value });
             if (!string.IsNullOrEmpty(zombieTopPlayer.Key))
-            {
-                var message = _localization.GetForPlayer(
-                    player,
-                    "RoundRatingNotify.ZombieTop",
-                    new Dictionary<string, string>
-                    {
-                        ["player"] = zombieTopPlayer.Key,
-                        ["value"] = zombieTopPlayer.Value.ToString(CultureInfo.InvariantCulture),
-                    });
-                if (message is not null)
-                {
-                    player.SendChat($"{prefix} [red]{message}");
-                }
-            }
+                _notifications.Value.Publish(player, "RoundRatingNotify.ZombieTop", new Dictionary<string, object?>
+                    { ["player"] = zombieTopPlayer.Key, ["value"] = zombieTopPlayer.Value });
         }
     }
 

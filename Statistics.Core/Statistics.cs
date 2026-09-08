@@ -1,3 +1,4 @@
+using CustomHud.Api;
 using Common.Database.Migrator;
 using Common.Di;
 using Localization.Api;
@@ -13,13 +14,15 @@ namespace Statistics.Core;
 
 [PluginMetadata(
     Id = "Statistics.Core",
-    Version = "0.3.1",
+    Version = "0.4.0",
     Name = "Statistics Core",
     Author = "illusion & fdrinv",
     Description = "Collects player statistics"
 )]
 internal sealed partial class Statistics(ISwiftlyCore core) : Plugin<StatisticsModule>(core)
 {
+    private readonly Lazy<BannerNotificationClient> _notifications = GetRequiredServiceLazy<BannerNotificationClient>();
+
     private readonly Lazy<DatabaseMigrator<StatisticsDbContext>> _databaseMigrator =
         GetRequiredServiceLazy<DatabaseMigrator<StatisticsDbContext>>();
 
@@ -39,6 +42,9 @@ internal sealed partial class Statistics(ISwiftlyCore core) : Plugin<StatisticsM
 
     protected override void OnSharedInterfacesInjected(IInterfaceManager interfaceManager)
     {
+        interfaceManager.TryGetSharedInterface<IBannerNotificationApi>(IBannerNotificationApi.SharedApiKey, out var notificationApi);
+        _notifications.Value.Bind(notificationApi);
+
         var zombiePlagueApi = interfaceManager.GetSharedInterface<IZombiePlagueApi>(
             IZombiePlagueApi.SharedApiKey
         );
@@ -58,6 +64,7 @@ internal sealed partial class Statistics(ISwiftlyCore core) : Plugin<StatisticsM
 
     protected override void OnUnload()
     {
+        if (_notifications.IsValueCreated) _notifications.Value.Bind(null);
         _statisticsCollector.Value.Stop();
         _pointsFormulaProvider.Value.StopAndWait();
         _playerStatisticsService.Value.StopAndWait();

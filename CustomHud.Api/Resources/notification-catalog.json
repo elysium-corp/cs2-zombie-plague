@@ -1,0 +1,1343 @@
+{
+  "schemaVersion": 1,
+  "parameters": [
+    {
+      "name": "player",
+      "type": "string",
+      "description": "Получатель; в событиях выбора и рейтинга — герой события",
+      "example": "Player",
+      "source": "common",
+      "aliases": [
+        "player_name"
+      ]
+    },
+    {
+      "name": "recipient",
+      "type": "string",
+      "description": "Ник получателя",
+      "example": "Player",
+      "source": "common",
+      "aliases": []
+    },
+    {
+      "name": "steam_id",
+      "type": "string",
+      "description": "SteamID получателя",
+      "example": "76561198000000001",
+      "source": "common",
+      "aliases": [
+        "steamId"
+      ]
+    },
+    {
+      "name": "map",
+      "type": "string",
+      "description": "Текущая карта",
+      "example": "zm_elysium",
+      "source": "common",
+      "aliases": []
+    },
+    {
+      "name": "server_name",
+      "type": "string",
+      "description": "Название сервера",
+      "example": "Elysium: Zombie Plague",
+      "source": "common",
+      "aliases": [
+        "serverName"
+      ]
+    },
+    {
+      "name": "next_map",
+      "type": "string",
+      "description": "Следующая карта или пустая строка",
+      "example": "zm_city",
+      "source": "common",
+      "aliases": [
+        "nextMap"
+      ]
+    },
+    {
+      "name": "team",
+      "type": "string",
+      "description": "Команда получателя: CT, T, Spectator",
+      "example": "CT",
+      "source": "common",
+      "aliases": []
+    },
+    {
+      "name": "time",
+      "type": "string",
+      "description": "Время сервера, HH:mm",
+      "example": "21:30",
+      "source": "common",
+      "aliases": []
+    },
+    {
+      "name": "date",
+      "type": "string",
+      "description": "Дата сервера, yyyy-MM-dd",
+      "example": "2026-09-08",
+      "source": "common",
+      "aliases": []
+    },
+    {
+      "name": "language",
+      "type": "string",
+      "description": "Язык получателя",
+      "example": "ru",
+      "source": "common",
+      "aliases": []
+    },
+    {
+      "name": "round",
+      "type": "integer",
+      "description": "Номер раунда",
+      "example": 7,
+      "source": "common",
+      "aliases": []
+    },
+    {
+      "name": "players",
+      "type": "integer",
+      "description": "Количество настоящих игроков",
+      "example": 24,
+      "source": "common",
+      "aliases": []
+    },
+    {
+      "name": "max_players",
+      "type": "integer",
+      "description": "Вместимость сервера",
+      "example": 64,
+      "source": "common",
+      "aliases": [
+        "maxPlayers"
+      ]
+    },
+    {
+      "name": "bots",
+      "type": "integer",
+      "description": "Количество ботов",
+      "example": 0,
+      "source": "common",
+      "aliases": []
+    },
+    {
+      "name": "total_players",
+      "type": "integer",
+      "description": "Игроки вместе с ботами",
+      "example": 24,
+      "source": "common",
+      "aliases": [
+        "totalPlayers"
+      ]
+    },
+    {
+      "name": "alive_players",
+      "type": "integer",
+      "description": "Количество живых игроков",
+      "example": 19,
+      "source": "common",
+      "aliases": [
+        "alivePlayers"
+      ]
+    },
+    {
+      "name": "health",
+      "type": "integer",
+      "description": "Здоровье получателя",
+      "example": 100,
+      "source": "common",
+      "aliases": []
+    },
+    {
+      "name": "armor",
+      "type": "integer",
+      "description": "Броня получателя",
+      "example": 100,
+      "source": "common",
+      "aliases": []
+    },
+    {
+      "name": "kills",
+      "type": "integer",
+      "description": "Убийства получателя",
+      "example": 12,
+      "source": "common",
+      "aliases": []
+    },
+    {
+      "name": "deaths",
+      "type": "integer",
+      "description": "Смерти получателя",
+      "example": 3,
+      "source": "common",
+      "aliases": []
+    },
+    {
+      "name": "assists",
+      "type": "integer",
+      "description": "Помощь в убийствах",
+      "example": 2,
+      "source": "common",
+      "aliases": []
+    },
+    {
+      "name": "score",
+      "type": "integer",
+      "description": "Счёт получателя",
+      "example": 20,
+      "source": "common",
+      "aliases": []
+    },
+    {
+      "name": "mvps",
+      "type": "integer",
+      "description": "MVP получателя",
+      "example": 1,
+      "source": "common",
+      "aliases": []
+    },
+    {
+      "name": "is_alive",
+      "type": "boolean",
+      "description": "Жив ли получатель",
+      "example": true,
+      "source": "common",
+      "aliases": [
+        "isAlive"
+      ]
+    },
+    {
+      "name": "round_name",
+      "type": "string",
+      "description": "Локализованное название текущего режима",
+      "example": "Инфекция",
+      "source": "ZombiePlague",
+      "aliases": [
+        "roundName"
+      ]
+    },
+    {
+      "name": "round_id",
+      "type": "string",
+      "description": "Ключ текущего режима",
+      "example": "infection",
+      "source": "ZombiePlague",
+      "aliases": [
+        "roundId"
+      ]
+    },
+    {
+      "name": "next_round_name",
+      "type": "string",
+      "description": "Название следующего режима",
+      "example": "Немезида",
+      "source": "ZombiePlague",
+      "aliases": [
+        "nextRoundName"
+      ]
+    },
+    {
+      "name": "next_round_id",
+      "type": "string",
+      "description": "Ключ следующего режима",
+      "example": "nemesis",
+      "source": "ZombiePlague",
+      "aliases": [
+        "nextRoundId"
+      ]
+    },
+    {
+      "name": "is_preparing",
+      "type": "boolean",
+      "description": "Идёт подготовка раунда",
+      "example": false,
+      "source": "ZombiePlague",
+      "aliases": [
+        "isPreparing"
+      ]
+    },
+    {
+      "name": "humans",
+      "type": "integer",
+      "description": "Живые люди",
+      "example": 10,
+      "source": "ZombiePlague",
+      "aliases": []
+    },
+    {
+      "name": "zombies",
+      "type": "integer",
+      "description": "Живые зомби",
+      "example": 9,
+      "source": "ZombiePlague",
+      "aliases": []
+    },
+    {
+      "name": "is_zombie",
+      "type": "boolean",
+      "description": "Получатель заражён",
+      "example": false,
+      "source": "ZombiePlague",
+      "aliases": [
+        "isZombie"
+      ]
+    },
+    {
+      "name": "human_class",
+      "type": "string",
+      "description": "Ключ выбранного класса человека",
+      "example": "soldier",
+      "source": "ZombiePlague",
+      "aliases": [
+        "humanClass"
+      ]
+    },
+    {
+      "name": "zombie_class",
+      "type": "string",
+      "description": "Ключ выбранного класса зомби",
+      "example": "classic",
+      "source": "ZombiePlague",
+      "aliases": [
+        "zombieClass"
+      ]
+    },
+    {
+      "name": "balance",
+      "type": "integer",
+      "description": "Баланс получателя; доступен с Economy.Core",
+      "example": 1500,
+      "source": "Economy",
+      "aliases": []
+    },
+    {
+      "name": "victim",
+      "type": "string",
+      "description": "Ник пострадавшего",
+      "example": "Zombie",
+      "source": "event",
+      "aliases": []
+    },
+    {
+      "name": "victim_health",
+      "type": "integer",
+      "description": "Здоровье пострадавшего после попадания",
+      "example": 750,
+      "source": "event",
+      "aliases": []
+    },
+    {
+      "name": "damage",
+      "type": "integer",
+      "description": "Нанесённый урон",
+      "example": 82,
+      "source": "event",
+      "aliases": []
+    },
+    {
+      "name": "weapon",
+      "type": "string",
+      "description": "Оружие попадания",
+      "example": "ak47",
+      "source": "event",
+      "aliases": []
+    },
+    {
+      "name": "hitgroup",
+      "type": "integer",
+      "description": "Группа попадания",
+      "example": 1,
+      "source": "event",
+      "aliases": []
+    },
+    {
+      "name": "seconds",
+      "type": "integer",
+      "description": "Оставшееся время",
+      "example": 10,
+      "source": "event",
+      "aliases": []
+    },
+    {
+      "name": "class",
+      "type": "string",
+      "description": "Локализованное название выбранного класса",
+      "example": "Охотник",
+      "source": "event",
+      "aliases": []
+    },
+    {
+      "name": "knife",
+      "type": "string",
+      "description": "Название выбранного ножа",
+      "example": "Karambit",
+      "source": "event",
+      "aliases": []
+    },
+    {
+      "name": "permission",
+      "type": "string",
+      "description": "Необходимое право",
+      "example": "vip",
+      "source": "event",
+      "aliases": []
+    },
+    {
+      "name": "value",
+      "type": "integer",
+      "description": "Результат лучшего игрока",
+      "example": 12450,
+      "source": "event",
+      "aliases": []
+    },
+    {
+      "name": "points",
+      "type": "integer",
+      "description": "Абсолютное изменение очков",
+      "example": 125,
+      "source": "event",
+      "aliases": []
+    },
+    {
+      "name": "points_delta",
+      "type": "integer",
+      "description": "Изменение очков со знаком",
+      "example": 125,
+      "source": "event",
+      "aliases": []
+    },
+    {
+      "name": "product",
+      "type": "string",
+      "description": "Название товара",
+      "example": "AK-47",
+      "source": "event",
+      "aliases": []
+    },
+    {
+      "name": "product_id",
+      "type": "string",
+      "description": "Ключ товара",
+      "example": "ak47",
+      "source": "event",
+      "aliases": []
+    },
+    {
+      "name": "price",
+      "type": "integer",
+      "description": "Цена товара",
+      "example": 2500,
+      "source": "event",
+      "aliases": []
+    },
+    {
+      "name": "reason",
+      "type": "string",
+      "description": "Ключ причины отказа",
+      "example": "CooldownActive",
+      "source": "event",
+      "aliases": []
+    },
+    {
+      "name": "message",
+      "type": "string",
+      "description": "Текст исходного информационного сообщения",
+      "example": "Добро пожаловать",
+      "source": "event",
+      "aliases": []
+    },
+    {
+      "name": "source",
+      "type": "string",
+      "description": "Источник загруженных данных",
+      "example": "postgresql",
+      "source": "event",
+      "aliases": []
+    },
+    {
+      "name": "offers",
+      "type": "integer",
+      "description": "Количество загруженных товаров",
+      "example": 24,
+      "source": "event",
+      "aliases": []
+    },
+    {
+      "name": "result",
+      "type": "string",
+      "description": "Результат перезагрузки модуля",
+      "example": "OK",
+      "source": "event",
+      "aliases": []
+    }
+  ],
+  "events": [
+    {
+      "key": "Game.Damage.Hit",
+      "name": "Попадание по противнику",
+      "category": "Бой",
+      "parameters": [
+        "victim",
+        "victim_health",
+        "damage",
+        "weapon",
+        "hitgroup"
+      ],
+      "source_key": "Game.Damage.Hit",
+      "default_template": "Notifications.Damage",
+      "localization_key": "Notifications.Game.Damage.Hit",
+      "position": "middle_right",
+      "duration": 1.2,
+      "delivery": "replace",
+      "cooldown": 0.1,
+      "plugin": "DamageNotify.Core"
+    },
+    {
+      "key": "ZombiePlague.Round.Preparing",
+      "name": "Отсчёт до начала раунда",
+      "category": "Раунд",
+      "parameters": [
+        "seconds"
+      ],
+      "source_key": "ZombiePlague.Round.Preparing",
+      "default_template": "Notifications.Countdown",
+      "localization_key": "Notifications.ZombiePlague.Round.Preparing",
+      "position": "top_center",
+      "duration": 1.1,
+      "delivery": "replace",
+      "cooldown": 0,
+      "plugin": "ZombiePlague.Core"
+    },
+    {
+      "key": "Game.Round.Started",
+      "name": "Начало игрового режима",
+      "category": "Раунд",
+      "parameters": [],
+      "source_key": "Game.Round.Started",
+      "default_template": "Notifications.Round",
+      "localization_key": "Notifications.Game.Round.Started",
+      "position": "top_center",
+      "duration": 6,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "ZombiePlague.Core"
+    },
+    {
+      "key": "ZombiePlague.Round.Infection.FirstInfected",
+      "name": "Первый заражённый",
+      "category": "Раунд",
+      "parameters": [
+        "player"
+      ],
+      "source_key": "ZombiePlague.Round.Infection.FirstInfected",
+      "default_template": "Notifications.Round",
+      "localization_key": "Notifications.ZombiePlague.Round.Infection.FirstInfected",
+      "position": "top_center",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "ZombiePlague.Core"
+    },
+    {
+      "key": "ZombiePlague.Round.Nemesis.Selected",
+      "name": "Выбрана Немезида",
+      "category": "Раунд",
+      "parameters": [
+        "player"
+      ],
+      "source_key": "ZombiePlague.Round.Nemesis.Selected",
+      "default_template": "Notifications.Round",
+      "localization_key": "Notifications.ZombiePlague.Round.Nemesis.Selected",
+      "position": "top_center",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "ZombiePlague.Core"
+    },
+    {
+      "key": "ZombiePlague.Round.Survivor.Selected",
+      "name": "Выбран Выживший",
+      "category": "Раунд",
+      "parameters": [
+        "player"
+      ],
+      "source_key": "ZombiePlague.Round.Survivor.Selected",
+      "default_template": "Notifications.Round",
+      "localization_key": "Notifications.ZombiePlague.Round.Survivor.Selected",
+      "position": "top_center",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "ZombiePlague.Core"
+    },
+    {
+      "key": "RoundRatingNotify.HumanTop",
+      "name": "Лучший человек раунда",
+      "category": "Рейтинг",
+      "parameters": [
+        "player",
+        "value"
+      ],
+      "source_key": "RoundRatingNotify.HumanTop",
+      "default_template": "Notifications.Rating",
+      "localization_key": "Notifications.RoundRatingNotify.HumanTop",
+      "position": "top_right",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "RoundRatingNotify.Core"
+    },
+    {
+      "key": "RoundRatingNotify.ZombieTop",
+      "name": "Лучший зомби раунда",
+      "category": "Рейтинг",
+      "parameters": [
+        "player",
+        "value"
+      ],
+      "source_key": "RoundRatingNotify.ZombieTop",
+      "default_template": "Notifications.Rating",
+      "localization_key": "Notifications.RoundRatingNotify.ZombieTop",
+      "position": "top_right",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "RoundRatingNotify.Core"
+    },
+    {
+      "key": "Statistics.PointsGained",
+      "name": "Начислены очки",
+      "category": "Статистика",
+      "parameters": [
+        "points",
+        "points_delta"
+      ],
+      "source_key": "Statistics.PointsGained",
+      "default_template": "Notifications.Notice",
+      "localization_key": "Notifications.Statistics.PointsGained",
+      "position": "bottom_right",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "Statistics.Core"
+    },
+    {
+      "key": "Statistics.PointsLost",
+      "name": "Потеряны очки",
+      "category": "Статистика",
+      "parameters": [
+        "points",
+        "points_delta"
+      ],
+      "source_key": "Statistics.PointsLost",
+      "default_template": "Notifications.Notice",
+      "localization_key": "Notifications.Statistics.PointsLost",
+      "position": "bottom_right",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "Statistics.Core"
+    },
+    {
+      "key": "Statistics.PointsUnchanged",
+      "name": "Очки не изменились",
+      "category": "Статистика",
+      "parameters": [
+        "points",
+        "points_delta"
+      ],
+      "source_key": "Statistics.PointsUnchanged",
+      "default_template": "Notifications.Notice",
+      "localization_key": "Notifications.Statistics.PointsUnchanged",
+      "position": "bottom_right",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "Statistics.Core"
+    },
+    {
+      "key": "ResetScore.ResetMessage",
+      "name": "Сброшен счёт",
+      "category": "Игрок",
+      "parameters": [],
+      "source_key": "ResetScore.ResetMessage",
+      "default_template": "Notifications.Success",
+      "localization_key": "Notifications.ResetScore.ResetMessage",
+      "position": "bottom_right",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "ResetScore.Core"
+    },
+    {
+      "key": "Menu.ZClass.SelectionSuccess",
+      "name": "Выбран класс зомби",
+      "category": "Настройки игрока",
+      "parameters": [
+        "class"
+      ],
+      "source_key": "Menu.ZClass.SelectionSuccess",
+      "default_template": "Notifications.Notice",
+      "localization_key": "Notifications.Menu.ZClass.SelectionSuccess",
+      "position": "bottom_right",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "ZombiePlague.Core"
+    },
+    {
+      "key": "Menu.HClass.SelectionSuccess",
+      "name": "Выбран класс человека",
+      "category": "Настройки игрока",
+      "parameters": [
+        "class"
+      ],
+      "source_key": "Menu.HClass.SelectionSuccess",
+      "default_template": "Notifications.Notice",
+      "localization_key": "Notifications.Menu.HClass.SelectionSuccess",
+      "position": "bottom_right",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "ZombiePlague.Core"
+    },
+    {
+      "key": "Menu.Knife.SelectionSuccess",
+      "name": "Выбран нож",
+      "category": "Настройки игрока",
+      "parameters": [
+        "knife"
+      ],
+      "source_key": "Menu.Knife.SelectionSuccess",
+      "default_template": "Notifications.Notice",
+      "localization_key": "Notifications.Menu.Knife.SelectionSuccess",
+      "position": "bottom_right",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "CustomKnife.Core"
+    },
+    {
+      "key": "Menu.Knife.PermissionRequired",
+      "name": "Нет доступа к ножу",
+      "category": "Настройки игрока",
+      "parameters": [
+        "permission"
+      ],
+      "source_key": "Menu.Knife.PermissionRequired",
+      "default_template": "Notifications.Notice",
+      "localization_key": "Notifications.Menu.Knife.PermissionRequired",
+      "position": "bottom_right",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "CustomKnife.Core"
+    },
+    {
+      "key": "Menu.AbilityHud.Disabled",
+      "name": "HUD способностей выключен",
+      "category": "Настройки игрока",
+      "parameters": [],
+      "source_key": "Menu.AbilityHud.Disabled",
+      "default_template": "Notifications.Notice",
+      "localization_key": "Notifications.Menu.AbilityHud.Disabled",
+      "position": "bottom_right",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "ZombiePlague.Core"
+    },
+    {
+      "key": "Menu.AbilityHud.Unavailable",
+      "name": "Настройки HUD недоступны",
+      "category": "Настройки игрока",
+      "parameters": [],
+      "source_key": "Menu.AbilityHud.Unavailable",
+      "default_template": "Notifications.Notice",
+      "localization_key": "Notifications.Menu.AbilityHud.Unavailable",
+      "position": "bottom_right",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "ZombiePlague.Core"
+    },
+    {
+      "key": "ZombiePlague.Admin.Round.Started",
+      "name": "Раунд запущен администратором",
+      "category": "Администрирование",
+      "parameters": [
+        "round_name"
+      ],
+      "source_key": "ZombiePlague.Admin.Round.Started",
+      "default_template": "Notifications.Notice",
+      "localization_key": "Notifications.ZombiePlague.Admin.Round.Started",
+      "position": "bottom_right",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "ZombiePlague.Core"
+    },
+    {
+      "key": "ZombiePlague.Admin.Round.NotPreparing",
+      "name": "Раунд уже идёт",
+      "category": "Администрирование",
+      "parameters": [],
+      "source_key": "ZombiePlague.Admin.Round.NotPreparing",
+      "default_template": "Notifications.Notice",
+      "localization_key": "Notifications.ZombiePlague.Admin.Round.NotPreparing",
+      "position": "bottom_right",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "ZombiePlague.Core"
+    },
+    {
+      "key": "ZombiePlague.Admin.Round.CannotStart",
+      "name": "Раунд не может начаться",
+      "category": "Администрирование",
+      "parameters": [],
+      "source_key": "ZombiePlague.Admin.Round.CannotStart",
+      "default_template": "Notifications.Notice",
+      "localization_key": "Notifications.ZombiePlague.Admin.Round.CannotStart",
+      "position": "bottom_right",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "ZombiePlague.Core"
+    },
+    {
+      "key": "ZombiePlague.Admin.Round.Cancelled",
+      "name": "Запуск раунда отменён",
+      "category": "Администрирование",
+      "parameters": [],
+      "source_key": "ZombiePlague.Admin.Round.Cancelled",
+      "default_template": "Notifications.Notice",
+      "localization_key": "Notifications.ZombiePlague.Admin.Round.Cancelled",
+      "position": "bottom_right",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "ZombiePlague.Core"
+    },
+    {
+      "key": "ZombiePlague.Admin.Round.Selection.AutomaticSelected",
+      "name": "Включён автоматический режим",
+      "category": "Администрирование",
+      "parameters": [],
+      "source_key": "ZombiePlague.Admin.Round.Selection.AutomaticSelected",
+      "default_template": "Notifications.Notice",
+      "localization_key": "Notifications.ZombiePlague.Admin.Round.Selection.AutomaticSelected",
+      "position": "bottom_right",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "ZombiePlague.Core"
+    },
+    {
+      "key": "ZombiePlague.Admin.Round.Selection.ConditionsPending",
+      "name": "Режим выбран; ожидание условий",
+      "category": "Администрирование",
+      "parameters": [
+        "round_name"
+      ],
+      "source_key": "ZombiePlague.Admin.Round.Selection.ConditionsPending",
+      "default_template": "Notifications.Notice",
+      "localization_key": "Notifications.ZombiePlague.Admin.Round.Selection.ConditionsPending",
+      "position": "bottom_right",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "ZombiePlague.Core"
+    },
+    {
+      "key": "ZombiePlague.Admin.Round.Selection.Selected",
+      "name": "Выбран следующий режим",
+      "category": "Администрирование",
+      "parameters": [
+        "round_name"
+      ],
+      "source_key": "ZombiePlague.Admin.Round.Selection.Selected",
+      "default_template": "Notifications.Notice",
+      "localization_key": "Notifications.ZombiePlague.Admin.Round.Selection.Selected",
+      "position": "bottom_right",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "ZombiePlague.Core"
+    },
+    {
+      "key": "Shop.Errors.ProductUnavailable",
+      "name": "Магазин · ProductUnavailable",
+      "category": "Магазин",
+      "parameters": [
+        "seconds",
+        "product",
+        "product_id",
+        "price",
+        "reason"
+      ],
+      "source_key": "Shop.Errors.ProductUnavailable",
+      "default_template": "Notifications.Warning",
+      "localization_key": "Notifications.Shop.Errors.ProductUnavailable",
+      "position": "bottom_right",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "Shop.Core"
+    },
+    {
+      "key": "Shop.Errors.TeamUnavailable",
+      "name": "Магазин · TeamUnavailable",
+      "category": "Магазин",
+      "parameters": [
+        "seconds",
+        "product",
+        "product_id",
+        "price",
+        "reason"
+      ],
+      "source_key": "Shop.Errors.TeamUnavailable",
+      "default_template": "Notifications.Warning",
+      "localization_key": "Notifications.Shop.Errors.TeamUnavailable",
+      "position": "bottom_right",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "Shop.Core"
+    },
+    {
+      "key": "Shop.Errors.AccessDenied",
+      "name": "Магазин · AccessDenied",
+      "category": "Магазин",
+      "parameters": [
+        "seconds",
+        "product",
+        "product_id",
+        "price",
+        "reason"
+      ],
+      "source_key": "Shop.Errors.AccessDenied",
+      "default_template": "Notifications.Warning",
+      "localization_key": "Notifications.Shop.Errors.AccessDenied",
+      "position": "bottom_right",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "Shop.Core"
+    },
+    {
+      "key": "Shop.Errors.NotEnoughMoney",
+      "name": "Магазин · NotEnoughMoney",
+      "category": "Магазин",
+      "parameters": [
+        "seconds",
+        "product",
+        "product_id",
+        "price",
+        "reason"
+      ],
+      "source_key": "Shop.Errors.NotEnoughMoney",
+      "default_template": "Notifications.Warning",
+      "localization_key": "Notifications.Shop.Errors.NotEnoughMoney",
+      "position": "bottom_right",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "Shop.Core"
+    },
+    {
+      "key": "Shop.Errors.RoundLimit",
+      "name": "Магазин · RoundLimit",
+      "category": "Магазин",
+      "parameters": [
+        "seconds",
+        "product",
+        "product_id",
+        "price",
+        "reason"
+      ],
+      "source_key": "Shop.Errors.RoundLimit",
+      "default_template": "Notifications.Warning",
+      "localization_key": "Notifications.Shop.Errors.RoundLimit",
+      "position": "bottom_right",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "Shop.Core"
+    },
+    {
+      "key": "Shop.Errors.MapLimit",
+      "name": "Магазин · MapLimit",
+      "category": "Магазин",
+      "parameters": [
+        "seconds",
+        "product",
+        "product_id",
+        "price",
+        "reason"
+      ],
+      "source_key": "Shop.Errors.MapLimit",
+      "default_template": "Notifications.Warning",
+      "localization_key": "Notifications.Shop.Errors.MapLimit",
+      "position": "bottom_right",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "Shop.Core"
+    },
+    {
+      "key": "Shop.Errors.Cooldown",
+      "name": "Магазин · Cooldown",
+      "category": "Магазин",
+      "parameters": [
+        "seconds",
+        "product",
+        "product_id",
+        "price",
+        "reason"
+      ],
+      "source_key": "Shop.Errors.Cooldown",
+      "default_template": "Notifications.Warning",
+      "localization_key": "Notifications.Shop.Errors.Cooldown",
+      "position": "bottom_right",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "Shop.Core"
+    },
+    {
+      "key": "Shop.Errors.InvalidPlayer",
+      "name": "Магазин · InvalidPlayer",
+      "category": "Магазин",
+      "parameters": [
+        "seconds",
+        "product",
+        "product_id",
+        "price",
+        "reason"
+      ],
+      "source_key": "Shop.Errors.InvalidPlayer",
+      "default_template": "Notifications.Warning",
+      "localization_key": "Notifications.Shop.Errors.InvalidPlayer",
+      "position": "bottom_right",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "Shop.Core"
+    },
+    {
+      "key": "Shop.Errors.Cancelled",
+      "name": "Магазин · Cancelled",
+      "category": "Магазин",
+      "parameters": [
+        "seconds",
+        "product",
+        "product_id",
+        "price",
+        "reason"
+      ],
+      "source_key": "Shop.Errors.Cancelled",
+      "default_template": "Notifications.Warning",
+      "localization_key": "Notifications.Shop.Errors.Cancelled",
+      "position": "bottom_right",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "Shop.Core"
+    },
+    {
+      "key": "Shop.Errors.PaymentRejected",
+      "name": "Магазин · PaymentRejected",
+      "category": "Магазин",
+      "parameters": [
+        "seconds",
+        "product",
+        "product_id",
+        "price",
+        "reason"
+      ],
+      "source_key": "Shop.Errors.PaymentRejected",
+      "default_template": "Notifications.Warning",
+      "localization_key": "Notifications.Shop.Errors.PaymentRejected",
+      "position": "bottom_right",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "Shop.Core"
+    },
+    {
+      "key": "Shop.Errors.GrantRejected",
+      "name": "Магазин · GrantRejected",
+      "category": "Магазин",
+      "parameters": [
+        "seconds",
+        "product",
+        "product_id",
+        "price",
+        "reason"
+      ],
+      "source_key": "Shop.Errors.GrantRejected",
+      "default_template": "Notifications.Warning",
+      "localization_key": "Notifications.Shop.Errors.GrantRejected",
+      "position": "bottom_right",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "Shop.Core"
+    },
+    {
+      "key": "Shop.Errors.RefundFailed",
+      "name": "Магазин · RefundFailed",
+      "category": "Магазин",
+      "parameters": [
+        "seconds",
+        "product",
+        "product_id",
+        "price",
+        "reason"
+      ],
+      "source_key": "Shop.Errors.RefundFailed",
+      "default_template": "Notifications.Warning",
+      "localization_key": "Notifications.Shop.Errors.RefundFailed",
+      "position": "bottom_right",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "Shop.Core"
+    },
+    {
+      "key": "Shop.Errors.AmmoNotConfigured",
+      "name": "Магазин · AmmoNotConfigured",
+      "category": "Магазин",
+      "parameters": [
+        "seconds",
+        "product",
+        "product_id",
+        "price",
+        "reason"
+      ],
+      "source_key": "Shop.Errors.AmmoNotConfigured",
+      "default_template": "Notifications.Warning",
+      "localization_key": "Notifications.Shop.Errors.AmmoNotConfigured",
+      "position": "bottom_right",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "Shop.Core"
+    },
+    {
+      "key": "Shop.Errors.AmmoFull",
+      "name": "Магазин · AmmoFull",
+      "category": "Магазин",
+      "parameters": [
+        "seconds",
+        "product",
+        "product_id",
+        "price",
+        "reason"
+      ],
+      "source_key": "Shop.Errors.AmmoFull",
+      "default_template": "Notifications.Warning",
+      "localization_key": "Notifications.Shop.Errors.AmmoFull",
+      "position": "bottom_right",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "Shop.Core"
+    },
+    {
+      "key": "Shop.Errors.Unavailable",
+      "name": "Магазин · Unavailable",
+      "category": "Магазин",
+      "parameters": [
+        "seconds",
+        "product",
+        "product_id",
+        "price",
+        "reason"
+      ],
+      "source_key": "Shop.Errors.Unavailable",
+      "default_template": "Notifications.Warning",
+      "localization_key": "Notifications.Shop.Errors.Unavailable",
+      "position": "bottom_right",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "Shop.Core"
+    },
+    {
+      "key": "Shop.Admin.Reload.Succeeded",
+      "name": "Магазин перезагружен",
+      "category": "Администрирование",
+      "parameters": [
+        "source",
+        "offers"
+      ],
+      "source_key": "Shop.Admin.Reload.Succeeded",
+      "default_template": "Notifications.Notice",
+      "localization_key": "Notifications.Shop.Admin.Reload.Succeeded",
+      "position": "bottom_right",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "Shop.Core"
+    },
+    {
+      "key": "Shop.Admin.Reload.Failed",
+      "name": "Ошибка перезагрузки магазина",
+      "category": "Администрирование",
+      "parameters": [],
+      "source_key": "Shop.Admin.Reload.Failed",
+      "default_template": "Notifications.Notice",
+      "localization_key": "Notifications.Shop.Admin.Reload.Failed",
+      "position": "bottom_right",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "Shop.Core"
+    },
+    {
+      "key": "Localization.Menu.Loading",
+      "name": "Загрузка языка",
+      "category": "Настройки игрока",
+      "parameters": [],
+      "source_key": "Localization.Menu.Loading",
+      "default_template": "Notifications.Notice",
+      "localization_key": "Notifications.Localization.Menu.Loading",
+      "position": "bottom_right",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "Localization.Core"
+    },
+    {
+      "key": "Localization.Menu.Changed",
+      "name": "Язык изменён",
+      "category": "Настройки игрока",
+      "parameters": [
+        "language"
+      ],
+      "source_key": "Localization.Menu.Changed",
+      "default_template": "Notifications.Notice",
+      "localization_key": "Notifications.Localization.Menu.Changed",
+      "position": "bottom_right",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "Localization.Core"
+    },
+    {
+      "key": "Localization.Menu.Unavailable",
+      "name": "Язык недоступен",
+      "category": "Настройки игрока",
+      "parameters": [],
+      "source_key": "Localization.Menu.Unavailable",
+      "default_template": "Notifications.Notice",
+      "localization_key": "Notifications.Localization.Menu.Unavailable",
+      "position": "bottom_right",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "Localization.Core"
+    },
+    {
+      "key": "Localization.Reload.Result",
+      "name": "Перезагрузка Localization",
+      "category": "Администрирование",
+      "parameters": [
+        "result"
+      ],
+      "source_key": "Localization.Reload.Result",
+      "default_template": "Notifications.Notice",
+      "localization_key": "Notifications.Localization.Reload.Result",
+      "position": "bottom_right",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "Localization.Core"
+    },
+    {
+      "key": "Advertisement.Reload.Result",
+      "name": "Перезагрузка Advertisement",
+      "category": "Администрирование",
+      "parameters": [
+        "result"
+      ],
+      "source_key": "Advertisement.Reload.Result",
+      "default_template": "Notifications.Notice",
+      "localization_key": "Notifications.Advertisement.Reload.Result",
+      "position": "bottom_right",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "Advertisement.Core"
+    },
+    {
+      "key": "InfoNotify.Connected",
+      "name": "Информация при входе",
+      "category": "Информация",
+      "parameters": [
+        "message"
+      ],
+      "source_key": "InfoNotify.Connected",
+      "default_template": "Notifications.Notice",
+      "localization_key": "Notifications.InfoNotify.Connected",
+      "position": "bottom_right",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "InfoNotify.Core"
+    },
+    {
+      "key": "InfoNotify.RoundStart",
+      "name": "Информация в начале раунда",
+      "category": "Информация",
+      "parameters": [
+        "message"
+      ],
+      "source_key": "InfoNotify.RoundStart",
+      "default_template": "Notifications.Notice",
+      "localization_key": "Notifications.InfoNotify.RoundStart",
+      "position": "bottom_right",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "InfoNotify.Core"
+    },
+    {
+      "key": "InfoNotify.RoundEnd",
+      "name": "Информация в конце раунда",
+      "category": "Информация",
+      "parameters": [
+        "message"
+      ],
+      "source_key": "InfoNotify.RoundEnd",
+      "default_template": "Notifications.Notice",
+      "localization_key": "Notifications.InfoNotify.RoundEnd",
+      "position": "bottom_right",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "InfoNotify.Core"
+    },
+    {
+      "key": "InfoNotify.Periodic",
+      "name": "Периодическая информация",
+      "category": "Информация",
+      "parameters": [
+        "message"
+      ],
+      "source_key": "InfoNotify.Periodic",
+      "default_template": "Notifications.Notice",
+      "localization_key": "Notifications.InfoNotify.Periodic",
+      "position": "bottom_right",
+      "duration": 5,
+      "delivery": "queue",
+      "cooldown": 0,
+      "plugin": "InfoNotify.Core"
+    }
+  ]
+}

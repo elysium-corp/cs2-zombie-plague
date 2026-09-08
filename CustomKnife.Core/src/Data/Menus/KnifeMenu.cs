@@ -1,4 +1,5 @@
-﻿using CustomKnife.Data.Knives;
+using CustomHud.Api;
+using CustomKnife.Data.Knives;
 using CustomKnife.Data.Models;
 using CustomKnife.Data.Registrator;
 using CustomKnife.Data.Services.Contracts;
@@ -21,7 +22,8 @@ internal sealed class KnifeMenu(
     IKnivesRegistry knivesRegistry,
     IKnifeService knifeService,
     IKnifeAuthorizationService authorizationService,
-    ILocalizationApi localization
+    ILocalizationApi localization,
+    BannerNotificationClient? notifications = null
 ) : DynamicOptionsMenu(core, extensionDispatcher)
 {
     public override string Id => ZombiePlagueMenuIds.Knife;
@@ -89,33 +91,26 @@ internal sealed class KnifeMenu(
                 : knifeDescription
         };
 
-        option.Click += async (_, args) =>
+        option.Click += (_, args) =>
         {
             var player = args.Player;
 
             if (!authorizationService.CanUse(player, knife))
             {
                 var permission = authorizationService.GetRequiredPermission(knife);
-                var deniedMessage = localization.GetForPlayer(
-                    player,
-                    "Menu.Knife.PermissionRequired",
-                    new Dictionary<string, string> { ["permission"] = permission ?? string.Empty })
-                                    ?? $"Requires permission: {permission}";
-                await player.SendChatAsync(deniedMessage);
+                notifications?.Publish(player, "Menu.Knife.PermissionRequired",
+                    new Dictionary<string, object?> { ["permission"] = permission ?? "" });
                 core.MenusAPI.CloseActiveMenu(player);
-                return;
+                return ValueTask.CompletedTask;
             }
 
             knifeService.SelectKnife(player, knife);
 
-            var message = localization.GetForPlayer(
-                player,
-                "Menu.Knife.SelectionSuccess",
-                new Dictionary<string, string> { ["knife"] = knifeName })
-                          ?? knifeName;
-            await player.SendChatAsync(message);
+            notifications?.Publish(player, "Menu.Knife.SelectionSuccess",
+                new Dictionary<string, object?> { ["knife"] = knifeName });
 
             core.MenusAPI.CloseActiveMenu(player);
+            return ValueTask.CompletedTask;
         };
 
         return option;

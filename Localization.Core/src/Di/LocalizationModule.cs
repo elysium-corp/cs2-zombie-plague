@@ -1,3 +1,4 @@
+using CustomHud.Api;
 using Common.Database;
 using Common.Database.Utils;
 using Common.Di;
@@ -19,6 +20,7 @@ internal sealed class LocalizationModule(ISwiftlyCore core) : BaseModule(core)
     public override (ServiceProvider, ServiceCollection) GetProvider()
     {
         var services = new ServiceCollection();
+        services.AddSingleton<BannerNotificationClient>();
         // SwiftlyS2 creates the plugin configuration directory during initialization.
         // Configure() cannot be called first on a clean Localization.Core installation.
         Core.Configuration

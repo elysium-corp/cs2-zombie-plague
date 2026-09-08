@@ -23,6 +23,8 @@ internal sealed class AdvertisementModule(ISwiftlyCore core) : BaseModule(core)
         services.AddSwiftly(Core);
         services.AddSharedInterface<ILocalizationApi>();
 
+        services.AddSingleton<TimeProvider>(TimeProvider.System);
+        AddSingleton<BannerNotificationService>(services);
         AddSingleton<AdvertisementCache>(services);
         AddSingleton<AdminAudienceResolver>(services);
         AddSingleton<AdvertisementHudDelivery>(services, provider => new AdvertisementHudDelivery(

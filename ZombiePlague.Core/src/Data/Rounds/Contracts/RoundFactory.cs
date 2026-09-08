@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using CustomHud.Api;
+using System.Diagnostics.CodeAnalysis;
 using Common.Hooks.Abstractions;
 using Localization.Api;
 using Microsoft.Extensions.Options;
@@ -16,12 +17,13 @@ internal class RoundFactory(
     IOptions<ZombiePlagueCoreConfig> coreConfig,
     IPlayerManager playerManager,
     IHookPublisher hooks,
-    Func<ILocalizationApi> localization
+    Func<ILocalizationApi> localization,
+    BannerNotificationClient? notifications = null
 ) : IRoundFactory
 {
     public RoundBase Create<TRound>() where TRound : RoundBase
     {
-        return typeof(TRound) switch
+        return Attach(typeof(TRound) switch
         {
             var type when type == typeof(Infection) => new Infection(core, playerManager, config.Value.Infection, coreConfig, localization),
             var type when type == typeof(Plague) => new Plague(core, playerManager, config.Value.Plague, coreConfig, localization),
@@ -29,12 +31,12 @@ internal class RoundFactory(
             var type when type == typeof(Survivor) => new Survivor(core, playerManager, config.Value.Survivor, localization),
             
             _ => throw new NotSupportedException($"RoundFactory: type '{typeof(TRound)}' is not supported!")
-        };
+        });
     }
 
     public RoundBase Create(IRoundConfig roundConfig)
     {
-        return roundConfig switch
+        return Attach(roundConfig switch
         {
             InfectionConfig value => new Infection(core, playerManager, value, coreConfig, localization),
             PlagueConfig value => new Plague(core, playerManager, value, coreConfig, localization),
@@ -42,7 +44,13 @@ internal class RoundFactory(
             SurvivorConfig value => new Survivor(core, playerManager, value, localization),
             
             _ => throw new NotSupportedException($"RoundFactory: config '{roundConfig.GetType().Name}' is not supported!")
-        };
+        });
+    }
+
+    private RoundBase Attach(RoundBase round)
+    {
+        round.Notifications = notifications;
+        return round;
     }
 
     public bool TryCreate(string roundId, [NotNullWhen(true)] out RoundBase? round)

@@ -33,6 +33,8 @@ namespace ZombiePlague.Core;
 )]
 public sealed partial class ZombiePlague(ISwiftlyCore core) : Plugin<ZombiePlagueModule>(core)
 {
+    private readonly Lazy<BannerNotificationClient> _notifications = GetRequiredServiceLazy<BannerNotificationClient>();
+
     private readonly Lazy<IResourceLoader> _resourceLoader = GetRequiredServiceLazy<IResourceLoader>();
     private readonly Lazy<RoundHudNotifications> _roundHud = GetRequiredServiceLazy<RoundHudNotifications>();
     private readonly Lazy<AbilityHudService> _abilityHud = GetRequiredServiceLazy<AbilityHudService>();
@@ -61,8 +63,10 @@ public sealed partial class ZombiePlague(ISwiftlyCore core) : Plugin<ZombiePlagu
 
     protected override void OnSharedInterfacesInjected(IInterfaceManager interfaceManager)
     {
-        interfaceManager.TryGetSharedInterface<ICustomHudApi>(ICustomHudApi.SharedApiKey, out var hudApi);
-        _roundHud.Value.Initialize(hudApi);
+        interfaceManager.TryGetSharedInterface<IBannerNotificationApi>(IBannerNotificationApi.SharedApiKey, out var notificationApi);
+        _notifications.Value.Bind(notificationApi);
+
+        _roundHud.Value.Initialize(notificationApi);
 
         var menuApi = interfaceManager.GetSharedInterface<IMenuApi>(IMenuApi.SharedApiKey);
 
@@ -102,6 +106,7 @@ public sealed partial class ZombiePlague(ISwiftlyCore core) : Plugin<ZombiePlagu
 
     protected override void OnUnload()
     {
+        if (_notifications.IsValueCreated) _notifications.Value.Bind(null);
         if (_roundHud.IsValueCreated) _roundHud.Value.Dispose();
         if (_abilityHud.IsValueCreated) _abilityHud.Value.Dispose();
         if (_catalog.IsValueCreated) _catalog.Value.Dispose();

@@ -1,3 +1,4 @@
+using CustomHud.Api;
 using Common.Di;
 using Localization.Api;
 using ResetScore.Di;
@@ -10,13 +11,15 @@ namespace ResetScore;
 
 [PluginMetadata(
     Id = "ResetScore.Core",
-    Version = "0.1.0",
+    Version = "0.2.0",
     Name = "[ZP] ResetScore",
     Author = "illusion & fdrinv",
     Description = "Allows a player to reset their score"
 )]
 internal sealed partial class ResetScore(ISwiftlyCore core) : Plugin<ResetScoreModule>(core)
 {
+    private readonly Lazy<BannerNotificationClient> _notifications = GetRequiredServiceLazy<BannerNotificationClient>();
+
     private Guid _command;
     private ILocalizationApi _localization = null!;
 
@@ -24,6 +27,12 @@ internal sealed partial class ResetScore(ISwiftlyCore core) : Plugin<ResetScoreM
     {
         _localization = interfaceManager.GetSharedInterface<ILocalizationApi>(
             ILocalizationApi.SharedApiKey);
+    }
+
+    protected override void OnSharedInterfacesInjected(IInterfaceManager interfaceManager)
+    {
+        interfaceManager.TryGetSharedInterface<IBannerNotificationApi>(IBannerNotificationApi.SharedApiKey, out var notificationApi);
+        _notifications.Value.Bind(notificationApi);
     }
 
     protected override void OnReady()
@@ -39,6 +48,7 @@ internal sealed partial class ResetScore(ISwiftlyCore core) : Plugin<ResetScoreM
 
     protected override void OnUnload()
     {
+        if (_notifications.IsValueCreated) _notifications.Value.Bind(null);
         if (_command == Guid.Empty) return;
         core.Command.UnregisterCommand(_command);
         _command = Guid.Empty;
@@ -81,28 +91,5 @@ internal sealed partial class ResetScore(ISwiftlyCore core) : Plugin<ResetScoreM
         matchStats.AssistsUpdated();
     }
 
-    private void NotifyPlayer(IPlayer player)
-    {
-        var message = _localization.GetForPlayer(player, "ResetScore.ResetMessage")
-                      ?? "Your score has been reset!";
-        
-        switch (player.Controller.Team)
-        {
-            case Team.CT:
-            {
-                player.SendChat($"[blue][ResetScore] [green]{message}");
-                break;
-            }
-            case Team.Spectator:
-            {
-                player.SendChat($"[grey][ResetScore] [green]{message}");
-                break;
-            }
-            case Team.T:
-            {
-                player.SendChat($"[red][ResetScore] [green]{message}");
-                break;
-            }
-        }
-    }
+    private void NotifyPlayer(IPlayer player) => _notifications.Value.Publish(player, "ResetScore.ResetMessage");
 }

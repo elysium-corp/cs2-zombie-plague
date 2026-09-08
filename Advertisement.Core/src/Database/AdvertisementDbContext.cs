@@ -23,6 +23,9 @@ internal sealed class AdvertisementDbContext(DbContextOptions<AdvertisementDbCon
 
         ConfigureSettings(modelBuilder);
         ConfigureMessages(modelBuilder);
+        modelBuilder.Entity<NotificationRuleEntity>().HasOne(x => x.Template).WithMany()
+            .HasForeignKey(x => x.TemplateKey).OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<HudWidgetEntity>();
         modelBuilder.Entity<BannerTemplateEntity>().Property(x => x.UpdatedAt).HasDefaultValueSql(PostgreSqlCurrentTimestamp);
         modelBuilder.Entity<AdvertisementMessageEntity>().HasOne(x => x.BannerTemplate).WithMany()
             .HasForeignKey(x => x.BannerTemplateKey).OnDelete(DeleteBehavior.Restrict);

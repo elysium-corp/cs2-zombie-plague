@@ -32,7 +32,7 @@ public sealed record HudBannerTemplate
 {
     /// <summary>Версия схемы дизайна. Текущий контракт — 1 (не версия клиентского ресурса v4).</summary>
     public int SchemaVersion { get; init; } = 1;
-    /// <summary>Вариант: text, icon, headline, feature, hero.</summary>
+    /// <summary>Вариант: text, icon, headline, feature, hero либо custom с независимыми блоками.</summary>
     public string Variant { get; init; } = "headline";
     /// <summary>Тема: midnight, glass, solid, light, danger, transparent.</summary>
     public string Theme { get; init; } = "midnight";
@@ -64,4 +64,51 @@ public sealed record HudBannerTemplate
     public string? Sound { get; init; }
     /// <summary>Громкость от 0 до 1.</summary>
     public float Volume { get; init; } = 0.5f;
+
+    /// <summary>Показывать надзаголовок в варианте custom.</summary>
+    public bool ShowHeader { get; init; } = true;
+    /// <summary>Показывать заголовок в варианте custom.</summary>
+    public bool ShowTitle { get; init; } = true;
+    /// <summary>Показывать описание в варианте custom. Нужен хотя бы один текстовый блок.</summary>
+    public bool ShowDescription { get; init; } = true;
+    /// <summary>Точная ширина в координатах 1920 × 1080: 320–960, шаг 40. null использует Width.</summary>
+    public int? WidthPixels { get; init; }
+    /// <summary>Внутренний отступ 0–40, шаг 4. null сохраняет отступ темы.</summary>
+    public int? Padding { get; init; }
+    /// <summary>Расстояние между блоками 0–24, шаг 2. null сохраняет стандартное.</summary>
+    public int? Gap { get; init; }
+    /// <summary>Размер надзаголовка 10–24, шаг 2. null использует Size.</summary>
+    public int? HeaderSize { get; init; }
+    /// <summary>Размер заголовка 16–48, шаг 2. null использует Size.</summary>
+    public int? TitleSize { get; init; }
+    /// <summary>Размер описания 12–32, шаг 2. null использует Size.</summary>
+    public int? DescriptionSize { get; init; }
+    /// <summary>Размер иконки 24–96, шаг 8. null означает 64.</summary>
+    public int? IconSize { get; init; }
+    /// <summary>Фон: theme, slate, black, blue, purple, red, green, gold, white.</summary>
+    public string Background { get; init; } = "theme";
+    /// <summary>Непрозрачность фона 0–100, шаг 10. Текст и иконка остаются непрозрачными.</summary>
+    public int BackgroundOpacity { get; init; } = 100;
+    /// <summary>Цвет надзаголовка: inherit, white, muted, mint, gold, red, green, blue, cyan, purple, pink, black.</summary>
+    public string HeaderColor { get; init; } = "inherit";
+    /// <summary>Цвет заголовка из того же набора. Явные HTML-цвета сохраняются.</summary>
+    public string TitleColor { get; init; } = "inherit";
+    /// <summary>Цвет описания из того же набора. Явные HTML-цвета сохраняются.</summary>
+    public string DescriptionColor { get; init; } = "inherit";
+    /// <summary>Тень: default, none, soft, strong.</summary>
+    public string Shadow { get; init; } = "default";
+}
+
+/// <summary>Общие правила состава баннера для клиентов API и конструктора.</summary>
+public static class HudBannerFields
+{
+    /// <summary>Возвращает включённые поля в порядке отрисовки.</summary>
+    public static string[] Get(HudBannerTemplate template) => template.Variant switch
+    {
+        "text" or "icon" => ["Description"],
+        "headline" => ["Title", "Description"],
+        "custom" => new[] { template.ShowHeader ? "Header" : null, template.ShowTitle ? "Title" : null,
+            template.ShowDescription ? "Description" : null }.OfType<string>().ToArray(),
+        _ => ["Header", "Title", "Description"]
+    };
 }

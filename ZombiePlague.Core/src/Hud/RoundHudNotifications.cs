@@ -1,87 +1,80 @@
 using CustomHud.Api;
 using Localization.Api;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;
-using ZombiePlague.Api.Data.Rounds;
+using SwiftlyS2.Shared.Players;
+using ZombiePlague.Api.Data.Store;
 using ZombiePlague.Api.Events.Contexts.Round;
 using ZombiePlague.Core.Api.Events;
+using ZombiePlague.Core.Data.Managers.Contracts;
+using ZombiePlague.Core.Data.Rounds.Contracts;
+using ZombiePlague.Core.Hud.AbilityHud;
+using PlayerManager = ZombiePlague.Core.Data.Managers.Contracts.IPlayerManager;
 
 namespace ZombiePlague.Core.Hud;
 
-internal sealed class RoundHudConfig
-{
-    public bool Enabled { get; set; } = true;
-    public double DurationSeconds { get; set; } = 6;
-    public HudPosition Position { get; set; } = HudPosition.TopCenter;
-}
-
 internal sealed class RoundHudNotifications(ISwiftlyCore core, ZombiePlagueRoundEvents events,
-    Func<ILocalizationApi> localization, IOptions<RoundHudConfig> config) : IDisposable
+    Func<ILocalizationApi> localization, IRoundManager rounds, PlayerManager players, IPlayerRepository preferences,
+    AbilityHudService abilityHud, AbilityHudSettings abilitySettings) : IDisposable
 {
-    internal const string Channel = "ZombiePlague.Round";
-    private ICustomHudApi? _hud;
+    private IBannerNotificationApi? _notifications;
+    private IDisposable? _context;
+    private IDisposable? _configuration;
     private bool _started;
-    private HudMessageOptions? _options;
 
-    internal void Initialize(ICustomHudApi? hud)
+    internal void Initialize(IBannerNotificationApi? notifications)
     {
-        if (ReferenceEquals(_hud, hud)) return;
-        _hud?.ClearChannel(Channel);
-        _hud = hud;
+        if (ReferenceEquals(_notifications, notifications)) return;
+        _context?.Dispose(); _configuration?.Dispose();
+        _notifications = notifications;
+        _context = notifications?.RegisterContext("ZombiePlague", Context);
+        _configuration = notifications?.SubscribeConfiguration(ApplyWidget);
+        ApplyWidget();
+    }
+
+    private void ApplyWidget()
+    {
+        if (_notifications?.GetWidget("ZombiePlague.Abilities") is not { } options) return;
+        abilitySettings.ApplyServerOptions(options);
+        abilityHud.ApplyServerOptions(options);
     }
 
     internal void Start()
     {
-        if (_started || !config.Value.Enabled) return;
-        var settings = config.Value;
-        if (!double.IsFinite(settings.DurationSeconds) || settings.DurationSeconds is < 0.5 or > 60 || !Enum.IsDefined(settings.Position))
-        {
-            core.Logger.LogWarning("[RoundHud] Некорректные DurationSeconds или Position в round_hud.json; баннеры отключены");
-            return;
-        }
-        _options = new HudMessageOptions
-        {
-            Channel = Channel, Position = settings.Position, DurationSeconds = settings.DurationSeconds,
-            Priority = 100, Style = HudMessageStyle.Banner
-        };
-        events.Started.Hook(OnRoundStarted);
-        events.Ended.Hook(OnRoundEnded);
-        _started = true;
+        if (_started) return;
+        events.Started.Hook(OnRoundStarted); events.Ended.Hook(OnRoundEnded); _started = true;
     }
+
+    private string Name(IPlayer player, RoundBase? round) => round is null ? "" :
+        localization().GetForPlayer(player, $"ZombiePlague.Round.{LocalizationKey.Canonicalize(round.Id)}.Name") ?? round.Name;
+
+    private IReadOnlyDictionary<string, object?> Context(IPlayer player) => new Dictionary<string, object?>
+    {
+        ["round_id"] = rounds.CurrentRound?.Id ?? "", ["round_name"] = Name(player, rounds.CurrentRound),
+        ["next_round_id"] = rounds.NextRound?.Id ?? "", ["next_round_name"] = Name(player, rounds.NextRound),
+        ["is_preparing"] = rounds.IsPreparing, ["is_zombie"] = players.IsZombie(player),
+        ["humans"] = players.GetAllAliveHumans().Count(), ["zombies"] = players.GetAllAliveZombies().Count(),
+        ["human_class"] = preferences.GetHClassId(player), ["zombie_class"] = preferences.GetZClassId(player)
+    };
 
     private void OnRoundStarted(ref RoundStartedContext context)
     {
-        if (_hud is not { IsAvailable: true } || _options is null) return;
-        var key = context.Round.Id switch
+        if (_notifications is null) return;
+        _notifications.Clear("ZombiePlague.Round.Preparing");
+        foreach (var player in core.PlayerManager.GetAllPlayers().Where(player => player is { IsValid: true, IsAuthorized: true, IsFakeClient: false }))
         {
-            RoundIds.Infection => "ZombiePlague.Round.Infection.Name",
-            RoundIds.Plague => "ZombiePlague.Round.Plague.Started",
-            RoundIds.Nemesis => "ZombiePlague.Round.Nemesis.Name",
-            RoundIds.Survivor => "ZombiePlague.Round.Survivor.Name",
-            _ => null
-        };
-        var api = localization();
-        foreach (var player in core.PlayerManager.GetAllPlayers()
-                     .Where(player => player is { IsValid: true, IsAuthorized: true, IsFakeClient: false }))
-        {
-            var name = key is null ? context.Round.Name : api.GetForPlayer(player, key) ?? context.Round.Name;
-            var text = api.GetForPlayer(player, "ZombiePlague.Round.Hud.Started",
-                new Dictionary<string, string> { ["mode"] = HudText.Escape(name) }) ?? HudText.Escape(name);
-            _hud.Show(player, text, _options);
+            var name = localization().GetForPlayer(player, $"ZombiePlague.Round.{LocalizationKey.Canonicalize(context.Round.Id)}.Name") ?? context.Round.Name;
+            _notifications.Publish(player, "Game.Round.Started", new Dictionary<string, object?>
+                { ["round_id"] = context.Round.Id, ["round_name"] = name });
         }
     }
-
-    private void OnRoundEnded(ref RoundEndedContext context) => _hud?.ClearChannel(Channel);
-
+    private void OnRoundEnded(ref RoundEndedContext context)
+    {
+        foreach (var key in new[] { "Game.Round.Started", "ZombiePlague.Round.Infection.FirstInfected", "ZombiePlague.Round.Nemesis.Selected", "ZombiePlague.Round.Survivor.Selected", "ZombiePlague.Round.Preparing" })
+            _notifications?.Clear(key);
+    }
     public void Dispose()
     {
-        if (_started)
-        {
-            events.Started.Unhook(OnRoundStarted);
-            events.Ended.Unhook(OnRoundEnded);
-            _started = false;
-        }
+        if (_started) { events.Started.Unhook(OnRoundStarted); events.Ended.Unhook(OnRoundEnded); _started = false; }
         Initialize(null);
     }
 }

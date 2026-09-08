@@ -1,3 +1,4 @@
+using CustomHud.Api;
 using System.Diagnostics;
 using Localization.Api;
 using Microsoft.Extensions.Logging;
@@ -16,6 +17,17 @@ namespace ZombiePlague.Core.Hud.AbilityHud;
 internal sealed class AbilityHudService(ISwiftlyCore core, IPlayerManager players, IOptions<AbilityHudConfig> options,
     Func<ILocalizationApi> localization, AbilityHudSettings settings, Func<IAbilityHudRuntime> createRuntime) : IDisposable
 {
+    private HudWidgetOptions? _serverOptions;
+    internal void ApplyServerOptions(HudWidgetOptions options)
+    {
+        _serverOptions = options;
+        if (!_started || _disposed) return;
+        _config.ShowNames = options.ShowNames;
+        if (_wanted == options.Enabled) return;
+        _wanted = options.Enabled;
+        if (_wanted) QueueStart(); else Stop();
+    }
+
     private const int MaximumEntityRecoveries = 3;
     public bool IsRunning => !_disposed && _wanted && _presenter is not null;
     private IAbilityHudRuntime? _runtime;
@@ -42,7 +54,7 @@ internal sealed class AbilityHudService(ISwiftlyCore core, IPlayerManager player
         core.Event.OnMapUnload += OnMapUnload;
         core.Event.OnClientDisconnected += OnDisconnect;
         _command = core.Command.RegisterCommand("zp_ability_hud", Command, registerRaw: true, permission: "zombie_plague.admin.classes");
-        try { _config = options.Value; _wanted = _config.Enabled; _config.Validate(); }
+        try { _config = options.Value; _wanted = _serverOptions?.Enabled ?? _config.Enabled; _config.ShowNames = _serverOptions?.ShowNames ?? _config.ShowNames; _config.Validate(); }
         catch (Exception error) { Fault(error); return; }
         if (_wanted) QueueStart();
     }

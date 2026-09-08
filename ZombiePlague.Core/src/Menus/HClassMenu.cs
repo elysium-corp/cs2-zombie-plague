@@ -1,3 +1,4 @@
+using CustomHud.Api;
 using Menu.Api.Data;
 using Menu.Api.Data.Contracts;
 using Menu.Api.Extensions;
@@ -19,7 +20,8 @@ internal sealed class HClassMenu(
     ZombieCatalogService catalog,
     IPlayerRepository playerRepository,
     IMetricsService metrics,
-    Func<ILocalizationApi> localization
+    Func<ILocalizationApi> localization,
+    BannerNotificationClient? notifications = null
 ) : DynamicOptionsMenu(core, extensionDispatcher)
 {
     public override string Id => ZombiePlagueMenuIds.HClass;
@@ -107,15 +109,8 @@ internal sealed class HClassMenu(
                 );
             }
 
-            var message = localization().GetForPlayer(
-                player,
-                HClassSelectionSuccess,
-                new Dictionary<string, string> { ["class"] = className });
-
-            if (message is not null)
-            {
-                player.SendChatAsync(message);
-            }
+            notifications?.Publish(player, HClassSelectionSuccess,
+                new Dictionary<string, object?> { ["class"] = className });
 
             core.MenusAPI.CloseActiveMenu(player);
 

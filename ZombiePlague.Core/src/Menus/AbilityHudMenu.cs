@@ -1,3 +1,4 @@
+using CustomHud.Api;
 using Localization.Api;
 using Menu.Api.Data;
 using Menu.Api.Data.Contracts;
@@ -12,7 +13,7 @@ using ZombiePlague.Core.Store.Data;
 namespace ZombiePlague.Core.Menus;
 
 internal sealed class AbilityHudMenu(ISwiftlyCore core, IMenuExtensionDispatcher extensionDispatcher,
-    AbilityHudSettings settings, AbilityHudService hud, Func<ILocalizationApi> localization)
+    AbilityHudSettings settings, AbilityHudService hud, Func<ILocalizationApi> localization, BannerNotificationClient? notifications = null)
     : DynamicOptionsMenu(core, extensionDispatcher)
 {
     public override string Id => "zombie-plague.menu.ability-hud";
@@ -23,7 +24,7 @@ internal sealed class AbilityHudMenu(ISwiftlyCore core, IMenuExtensionDispatcher
         var error = !hud.IsRunning ? "Menu.AbilityHud.Disabled"
             : !settings.HasSession(player.SteamID) ? "Menu.AbilityHud.Unavailable" : null;
         if (error is null) return true;
-        player.SendChatAsync(Text(player, error));
+        notifications?.Publish(player, error);
         return false;
     }
 

@@ -1,4 +1,5 @@
-﻿using Common.Di;
+using CustomHud.Api;
+using Common.Di;
 using Common.Di.Utils;
 using InfoNotify.Core.Data.Configs;
 using Localization.Api;
@@ -14,6 +15,7 @@ internal sealed class InfoNotifyModule(ISwiftlyCore core) : BaseModule(core)
     public override (ServiceProvider, ServiceCollection) GetProvider()
     {
         var service = new ServiceCollection();
+        service.AddSingleton<BannerNotificationClient>();
         
         service.AddSwiftly(_core);
         service.AddSharedInterface<ILocalizationApi>();

@@ -1,3 +1,4 @@
+using CustomHud.Api;
 using Common.Database.Migrator;
 using Common.Di;
 using Localization.Api;
@@ -18,12 +19,14 @@ namespace Localization.Core;
 
 [PluginMetadata(
     Id = "Localization.Core",
-    Version = "1.5.5",
+    Version = "1.6.0",
     Name = "Elysium Localization",
     Author = "Elysium",
     Description = "Единая локализация Elysium с языком игрока, PostgreSQL и fallback-конфигурацией.")]
 internal sealed class LocalizationPlugin(ISwiftlyCore core) : Plugin<LocalizationModule>(core)
 {
+    private readonly Lazy<BannerNotificationClient> _notifications = GetRequiredServiceLazy<BannerNotificationClient>();
+
     private readonly List<Guid> _commands = [];
     private readonly ConcurrentDictionary<int, ulong> _slots = new();
     private readonly HashSet<Task> _pendingOperations = [];
@@ -66,6 +69,12 @@ internal sealed class LocalizationPlugin(ISwiftlyCore core) : Plugin<Localizatio
         _coordinator.Value.Start();
     }
 
+    protected override void OnSharedInterfacesInjected(IInterfaceManager interfaceManager)
+    {
+        interfaceManager.TryGetSharedInterface<IBannerNotificationApi>(IBannerNotificationApi.SharedApiKey, out var notificationApi);
+        _notifications.Value.Bind(notificationApi);
+    }
+
     protected override void OnReady()
     {
         foreach (var player in Core.PlayerManager.GetAllPlayers().Where(player => player.IsAuthorized))
@@ -78,6 +87,7 @@ internal sealed class LocalizationPlugin(ISwiftlyCore core) : Plugin<Localizatio
 
     protected override void OnUnload()
     {
+        if (_notifications.IsValueCreated) _notifications.Value.Bind(null);
         if (_chatHook is { } chatHook)
         {
             Core.Command.UnhookClientChat(chatHook);
@@ -201,11 +211,7 @@ internal sealed class LocalizationPlugin(ISwiftlyCore core) : Plugin<Localizatio
         var languages = _api.Value.GetEnabledLanguages();
         if (languages.Count == 0)
         {
-            var loadingMessage = _api.Value.GetForPlayer(player, "Localization.Menu.Loading");
-            if (!string.IsNullOrWhiteSpace(loadingMessage))
-            {
-                player.SendChat(loadingMessage);
-            }
+            _notifications.Value.Publish(player, "Localization.Menu.Loading");
 
             return;
         }
@@ -250,13 +256,6 @@ internal sealed class LocalizationPlugin(ISwiftlyCore core) : Plugin<Localizatio
                 return;
             }
 
-            var message = _api.Value.GetForLanguage(
-                              language.Code,
-                              "Localization.Menu.Changed",
-                              new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-                              {
-                                  ["language"] = language.NativeName,
-                              });
             Core.Scheduler.NextTick(() =>
             {
                 if (_lifetime.IsCancellationRequested)
@@ -265,9 +264,10 @@ internal sealed class LocalizationPlugin(ISwiftlyCore core) : Plugin<Localizatio
                 }
 
                 var current = Core.PlayerManager.GetPlayer(playerId);
-                if (current?.SteamID == steamId && !string.IsNullOrWhiteSpace(message))
+                if (current is { IsValid: true } && current.SteamID == steamId)
                 {
-                    current.SendChat(message);
+                    _notifications.Value.Publish(current, "Localization.Menu.Changed",
+                        new Dictionary<string, object?> { ["language"] = language.NativeName });
                 }
             });
         }
@@ -297,13 +297,7 @@ internal sealed class LocalizationPlugin(ISwiftlyCore core) : Plugin<Localizatio
                 var current = Core.PlayerManager.GetPlayer(playerId);
                 if (current?.SteamID == steamId)
                 {
-                    var unavailableMessage = _api.Value.GetForPlayer(
-                        current,
-                        "Localization.Menu.Unavailable");
-                    if (!string.IsNullOrWhiteSpace(unavailableMessage))
-                    {
-                        current.SendChat(unavailableMessage);
-                    }
+                    _notifications.Value.Publish(current, "Localization.Menu.Unavailable");
                 }
             });
         }
@@ -384,7 +378,8 @@ internal sealed class LocalizationPlugin(ISwiftlyCore core) : Plugin<Localizatio
 
             if (playerId is { } id)
             {
-                Core.PlayerManager.GetPlayer(id)?.SendChat($"[Localization] {result.Message}");
+                if (Core.PlayerManager.GetPlayer(id) is { IsValid: true } player)
+                    _notifications.Value.Publish(player, "Localization.Reload.Result", new Dictionary<string, object?> { ["result"] = result.Message });
             }
             else
             {

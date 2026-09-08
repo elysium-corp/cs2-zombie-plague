@@ -1,3 +1,4 @@
+using CustomHud.Api;
 using Admin.Api;
 using Common.Database.Migrator;
 using Common.Database.Tasks;
@@ -19,13 +20,15 @@ namespace CustomKnife;
 
 [PluginMetadata(
     Id = "CustomKnife.Core",
-    Version = "0.4.0",
+    Version = "0.5.0",
     Name = "[ZP] CustomKnife",
     Author = "illusion & fdrinv",
     Description = "Database-backed custom knives with Admin.Core permissions"
 )]
 internal sealed partial class CustomKnife(ISwiftlyCore core) : Plugin<CustomKnifeModule>(core)
 {
+    private readonly Lazy<BannerNotificationClient> _notifications = GetRequiredServiceLazy<BannerNotificationClient>();
+
     private readonly Lazy<DatabaseMigrator<CustomKnifeDbContext>> _databaseMigrator = GetRequiredServiceLazy<DatabaseMigrator<CustomKnifeDbContext>>();
     private readonly Lazy<DatabaseTaskTracker> _databaseTaskTracker = GetRequiredServiceLazy<DatabaseTaskTracker>();
     private readonly Lazy<CustomKnifeCoordinator> _coordinator = GetRequiredServiceLazy<CustomKnifeCoordinator>();
@@ -45,6 +48,9 @@ internal sealed partial class CustomKnife(ISwiftlyCore core) : Plugin<CustomKnif
 
     protected override void OnSharedInterfacesInjected(IInterfaceManager interfaceManager)
     {
+        interfaceManager.TryGetSharedInterface<IBannerNotificationApi>(IBannerNotificationApi.SharedApiKey, out var notificationApi);
+        _notifications.Value.Bind(notificationApi);
+
         var menuApi = interfaceManager.GetSharedInterface<IMenuApi>(IMenuApi.SharedApiKey);
         _menuApiBridge.Value.Initialize(menuApi);
 
@@ -94,6 +100,7 @@ internal sealed partial class CustomKnife(ISwiftlyCore core) : Plugin<CustomKnif
 
     protected override void OnUnload()
     {
+        if (_notifications.IsValueCreated) _notifications.Value.Bind(null);
         _isReady = false;
 
         if (_reloadCommand != Guid.Empty)

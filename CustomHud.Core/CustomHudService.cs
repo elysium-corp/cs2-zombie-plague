@@ -36,7 +36,8 @@ internal sealed class CustomHudService(ISwiftlyCore core, IOptions<CustomHudConf
         HudMessageStore.Validate(options);
         var document = HudBannerDesign.Parse(template, content, options.Format);
         return IsAvailable && Eligible(player)
-            && document.Lines.Any(line => line.Any(run => !string.IsNullOrWhiteSpace(run.Text)))
+            && (document.Lines.Any(line => line.Any(run => !string.IsNullOrWhiteSpace(run.Text)))
+                || document.Banner is { } banner && (banner.Header.Length > 0 || banner.Title.Length > 0))
             && _messages.Put(player.PlayerID, player.SteamID, document, options);
     }
 
@@ -52,7 +53,8 @@ internal sealed class CustomHudService(ISwiftlyCore core, IOptions<CustomHudConf
             ? _localization.FormatForPlayer(player, key, escaped) : _localization.FormatForLanguage(language, key, escaped);
         var content = new HudBannerContent { Header = Resolve(keys.Header), Title = Resolve(keys.Title), Description = Resolve(keys.Description) };
         if ((!string.IsNullOrEmpty(keys.Header) && string.IsNullOrWhiteSpace(content.Header))
-            || (!string.IsNullOrEmpty(keys.Title) && string.IsNullOrWhiteSpace(content.Title)) || string.IsNullOrWhiteSpace(content.Description)) return false;
+            || (!string.IsNullOrEmpty(keys.Title) && string.IsNullOrWhiteSpace(content.Title))
+            || (!string.IsNullOrEmpty(keys.Description) && string.IsNullOrWhiteSpace(content.Description))) return false;
         return Show(player, template, content, (options ?? new HudMessageOptions()) with { Format = HudTextFormat.Markup });
     }
 

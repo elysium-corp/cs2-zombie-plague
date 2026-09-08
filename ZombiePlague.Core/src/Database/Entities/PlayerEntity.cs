@@ -32,6 +32,9 @@ internal sealed class PlayerEntity : ISteamEntity
     [Column("human_class")]
     public string HumanClassId { get; set; } = PlayerPreferences.DefaultHumanClassId;
 
+    [Column("ability_hud_customized")]
+    public bool AbilityHudCustomized { get; set; }
+
     [Column("ability_hud_scale")]
     public int AbilityHudScale { get; set; } = AbilityHudPreferences.DefaultScale;
 

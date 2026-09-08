@@ -1,3 +1,4 @@
+using CustomHud.Api;
 using System.Globalization;
 using Admin.Api;
 using Common.Database.Migrator;
@@ -29,12 +30,14 @@ namespace Shop.Core;
 
 [PluginMetadata(
     Id = "Shop.Core",
-    Version = "1.2.2",
+    Version = "1.3.0",
     Name = "Elysium Shop",
     Author = "Elysium",
     Description = "Memory-snapshot shop for human and zombie equipment")]
 internal sealed class ShopPlugin(ISwiftlyCore core) : Plugin<ShopModule>(core)
 {
+    private readonly Lazy<BannerNotificationClient> _notifications = GetRequiredServiceLazy<BannerNotificationClient>();
+
     private readonly Lazy<ShopApi> _api = GetRequiredServiceLazy<ShopApi>();
     private readonly Lazy<ShopMenu> _menu = GetRequiredServiceLazy<ShopMenu>();
     private readonly Lazy<ShopSnapshotCache> _cache = GetRequiredServiceLazy<ShopSnapshotCache>();
@@ -70,6 +73,9 @@ internal sealed class ShopPlugin(ISwiftlyCore core) : Plugin<ShopModule>(core)
 
     protected override void OnSharedInterfacesInjected(IInterfaceManager interfaceManager)
     {
+        interfaceManager.TryGetSharedInterface<IBannerNotificationApi>(IBannerNotificationApi.SharedApiKey, out var notificationApi);
+        _notifications.Value.Bind(notificationApi);
+
         if (interfaceManager.TryGetSharedInterface<IAdminApi>(IAdminApi.SharedApiKey, out var adminApi))
         {
             _admin.Value.Initialize(adminApi);
@@ -118,6 +124,7 @@ internal sealed class ShopPlugin(ISwiftlyCore core) : Plugin<ShopModule>(core)
 
     protected override void OnUnload()
     {
+        if (_notifications.IsValueCreated) _notifications.Value.Bind(null);
         foreach (var command in _commands)
         {
             Core.Command.UnregisterCommand(command);
@@ -246,17 +253,8 @@ internal sealed class ShopPlugin(ISwiftlyCore core) : Plugin<ShopModule>(core)
                 var key = succeeded
                     ? "Shop.Admin.Reload.Succeeded"
                     : "Shop.Admin.Reload.Failed";
-                var message = succeeded
-                    ? _localization.Value().FormatForPlayer(
-                        player,
-                        key,
-                        new Dictionary<string, object?>
-                        {
-                            ["source"] = _cache.Value.Current.Source,
-                            ["offers"] = _cache.Value.Current.Offers.Count
-                        })
-                    : _localization.Value().GetForPlayer(player, key);
-                player.SendChat(message ?? key);
+                _notifications.Value.Publish(player, key, new Dictionary<string, object?>
+                    { ["source"] = _cache.Value.Current.Source, ["offers"] = _cache.Value.Current.Offers.Count });
             }
             else
             {

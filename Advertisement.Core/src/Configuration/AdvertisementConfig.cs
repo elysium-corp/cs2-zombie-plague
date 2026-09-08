@@ -4,6 +4,9 @@ namespace Advertisement.Core.Configuration;
 
 internal sealed class AdvertisementConfig
 {
+    public List<BannerNotificationRule>? Notifications { get; set; }
+    public Dictionary<string, HudWidgetOptions>? Widgets { get; set; }
+
     public bool Enabled { get; set; } = true;
     public int IntervalSeconds { get; set; } = 90;
     public int RefreshIntervalSeconds { get; set; } = 30;

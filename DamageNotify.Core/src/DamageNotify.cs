@@ -1,3 +1,4 @@
+using CustomHud.Api;
 using Common.Di;
 using Common.Di.Utils;
 using DamageNotify.Core.Data.Configs;
@@ -12,25 +13,31 @@ using ZombiePlague.Api;
 namespace DamageNotify.Core;
 
 [PluginMetadata(
-    Id = "DamageNotify.Core", 
-    Version = "0.1.0", 
-    Name = "[ZP] DamageNotify", 
+    Id = "DamageNotify.Core",
+    Version = "0.2.0",
+    Name = "[ZP] DamageNotify",
     Author = "illusion & fdrinv",
     Description = "Provides customizable notifications for in-game damage events")
 ]
 internal partial class DamageNotify(ISwiftlyCore core) : Plugin<DamageNotifyModule>(core)
 {
+    private readonly Lazy<BannerNotificationClient> _notifications = GetRequiredServiceLazy<BannerNotificationClient>();
+
     private Guid _guidOnPlayerHurtPost = Guid.Empty;
-    
+
     private IZombiePlagueApi _zombiePlagueApi = null!;
-    private ILocalizationApi _localization = null!;
-    
+
     private readonly Lazy<IOptions<DamageNotifyConfig>> _config = GetRequiredServiceLazy<IOptions<DamageNotifyConfig>>();
-    
+
     protected override void OnUseSharedInterfaces(IInterfaceManager interfaceManager)
     {
         _zombiePlagueApi = interfaceManager.GetSharedInterface<IZombiePlagueApi>(IZombiePlagueApi.SharedApiKey);
-        _localization = interfaceManager.GetSharedInterface<ILocalizationApi>(ILocalizationApi.SharedApiKey);
+    }
+
+    protected override void OnSharedInterfacesInjected(IInterfaceManager interfaceManager)
+    {
+        interfaceManager.TryGetSharedInterface<IBannerNotificationApi>(IBannerNotificationApi.SharedApiKey, out var notificationApi);
+        _notifications.Value.Bind(notificationApi);
     }
 
     protected override void OnReady()
@@ -40,6 +47,7 @@ internal partial class DamageNotify(ISwiftlyCore core) : Plugin<DamageNotifyModu
 
     protected override void OnUnload()
     {
+        if (_notifications.IsValueCreated) _notifications.Value.Bind(null);
         Core.GameEvent.Unhook(_guidOnPlayerHurtPost);
     }
 
@@ -51,25 +59,17 @@ internal partial class DamageNotify(ISwiftlyCore core) : Plugin<DamageNotifyModu
         if (player == null || victim == null || !player.IsValid || !victim.IsValid) return HookResult.Continue;
 
         if (player.IsFakeClient) return HookResult.Continue;
-        
+
         if (_zombiePlagueApi.IsInfected(player) || victim.Controller.Team == player.Controller.Team)
         {
             return HookResult.Continue;
         }
 
-        var hitMessage = _localization.GetForPlayer(player, "DamageNotify.HitMessage") ?? "You hit";
-        var name = victim.Controller.PlayerName;
-        var health = victim.RequiredPlayerPawn.Health;
-        var dmgHealth = @event.DmgHealth;
-        
-        player.SendCenterHTML(
-            duration: _config.Get().DurationMs,
-            message:  $"<font color='#FFFFFF'>{hitMessage} </font>" +
-                      $"<font color='#FF3333'>{name}</font><br>" +
-                      $"<font color='#CCFF00'>{health}</font>" +
-                      $" <font color='#FFFFFF'></font> " +
-                      $"<font color='#FF3333'>-{dmgHealth}</font>"
-        );
+        _notifications.Value.Publish(player, "Game.Damage.Hit", new Dictionary<string, object?>
+        {
+            ["victim"] = victim.Name, ["victim_health"] = victim.PlayerPawn?.Health ?? 0,
+            ["damage"] = @event.DmgHealth, ["weapon"] = @event.Weapon, ["hitgroup"] = @event.HitGroup
+        });
 
         return HookResult.Continue;
     }

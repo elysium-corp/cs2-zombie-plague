@@ -1,3 +1,4 @@
+using CustomHud.Api;
 using Admin.Api;
 using Common.Database;
 using Common.Database.Utils;
@@ -28,6 +29,7 @@ internal sealed class ShopModule(ISwiftlyCore core) : BaseModule(core)
     public override (ServiceProvider, ServiceCollection) GetProvider()
     {
         var services = new ServiceCollection();
+        services.AddSingleton<BannerNotificationClient>();
         // SwiftlyS2 creates the plugin configuration directory during initialization.
         // Configure() cannot be called first on a clean Shop.Core installation.
         Core.Configuration

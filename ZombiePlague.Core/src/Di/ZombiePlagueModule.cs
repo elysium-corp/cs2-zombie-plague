@@ -1,3 +1,4 @@
+using CustomHud.Api;
 using Admin.Api;
 using ZombiePlague.Core.Hud;
 using Common.Database;
@@ -52,6 +53,7 @@ public sealed class ZombiePlagueModule(ISwiftlyCore core) : BaseModule(core)
     public override (ServiceProvider, ServiceCollection) GetProvider()
     {
         var service = new ServiceCollection();
+        service.AddSingleton<BannerNotificationClient>();
 
         service.AddSwiftly(core);
         service.AddSharedInterface<ILocalizationApi>();
@@ -76,7 +78,6 @@ public sealed class ZombiePlagueModule(ISwiftlyCore core) : BaseModule(core)
             name: "core.json",
             section: "CoreConfig"
         );
-        AddConfig<RoundHudConfig>(service, "round_hud.json", "RoundHud", reloadOnChange: false);
         AddConfig<AbilityHudConfig>(service, "ability_hud.json", "AbilityHud", reloadOnChange: false);
         AddConfig<RoundConfig>(
             service: service,
