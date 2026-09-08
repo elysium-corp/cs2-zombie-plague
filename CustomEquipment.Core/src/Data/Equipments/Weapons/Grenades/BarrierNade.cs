@@ -116,7 +116,7 @@ public class BarrierNade : ManagedGrenadeItemBase
         }
 
         var origin = pawn.AbsOrigin.Value;
-        var directionVector = (origin - position).Normalized();
+        var directionVector = (origin - position).Normalized2D();
         var onGround = pawn.GroundEntity.Value != null;
         var newVelocity = new Vector(
             pawn.AbsVelocity.X + directionVector.X * settings.HorizontalKnockback,
@@ -125,7 +125,7 @@ public class BarrierNade : ManagedGrenadeItemBase
         );
 
         pawn.GroundEntity.Value = null;
-        pawn.Teleport(origin, pawn.EyeAngles, newVelocity);
+        pawn.AbsVelocity = newVelocity;
         SoundExt.PlayAt(player, settings.KnockSound, 1);
     }
 }
