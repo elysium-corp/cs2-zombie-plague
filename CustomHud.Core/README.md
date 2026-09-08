@@ -1,6 +1,6 @@
 # Elysium Custom HUD
 
-`CustomHud.Core 1.0.1` предоставляет `CustomHud.Api.ICustomHudApi` другим плагинам
+`CustomHud.Core 1.1.1` предоставляет `CustomHud.Api.ICustomHudApi` другим плагинам
 HUD сообщений использует собственную сущность и сосуществует с меню SwiftlyS2 и панелью способностей
 
 ## Вызов из плагина
@@ -95,6 +95,8 @@ yellow, gold, orange, purple, lightpurple, pink, gray/grey, silver, mint, muted,
 Суффикс означает редакцию ресурса, а не версию API Panorama; простое переименование старого скомпилированного файла не заменяет пересборку
 Оба layout используют ограниченный набор атрибутов Custom HUD, проверяемый тестами
 
+В 1.1.1 удалены процентные max-width, сжимавшие панель баннера, и задана минимальная ширина в единицах Panorama. Эта часть исправления находится в CSS внутри VPK: замены DLL недостаточно. Список sw plugins list показывает версии серверных плагинов и не подтверждает актуальность ресурсов у клиента
+
 1. Скопируйте содержимое `resources/hud/messages/content/panorama/` в `content/csgo_addons/<addon>/panorama/` на машине с CS2 Workshop Tools
 2. Скомпилируйте `layout/custom_game/elysium_messages_v4.xml` и `styles/custom_game/elysium_messages_v4.css`
 3. Упакуйте SVG из `images/custom_game/elysium/banners/` вместе с layout и styles. В VPK должны попасть `panorama/layout/custom_game/elysium_messages_v4.vxml_c` и `panorama/styles/custom_game/elysium_messages_v4.vcss_c`
@@ -131,7 +133,7 @@ yellow, gold, orange, purple, lightpurple, pink, gray/grey, silver, mint, muted,
 
 Существующие аудитории, расписания, параметры и переводы Advertisement сохраняются
 Выбор способа доставки хранится в `Advertisement.Core/hud_delivery.json`, секция `AdvertisementHud`
-Это серверная настройка; отдельные поля редактора Flute CMS в данный PR не входят
+Настройки отдельного сообщения в Flute CMS имеют приоритет над локальной конфигурацией доставки
 
 ```json
 {
@@ -165,7 +167,7 @@ yellow, gold, orange, purple, lightpurple, pink, gray/grey, silver, mint, muted,
 
 ## Конструктор баннеров и дополнительный API
 
-`CustomHud.Core 1.1.0` экспортирует `ICustomBannerApi` по ключу `CustomHud.Api.ICustomBannerApi`
+`CustomHud.Core 1.1.1` экспортирует `ICustomBannerApi` по ключу `CustomHud.Api.ICustomBannerApi`
 Существующий `ICustomHudApi` продолжает работать. Каналы, девять позиций, приоритеты и `Hide`/`ClearChannel` общие для обоих API
 
 ```csharp
@@ -203,7 +205,7 @@ banners?.ShowLocalized(player, template, new HudBannerContent
 | hero | Header, Title, Description | необязательна, удобно размещать сверху |
 
 Header/Title ограничены одной строкой каждый, Description — четырьмя, до 12 цветных фрагментов в строке и 4096 UTF-16 символов на поле
-Перенос зависит от Width: small — 32, medium — 40, large — 52 символа. Переполнение помечается многоточием
+Ширина панели: small — 440, medium — 600, large — 760 единиц Panorama. Для переноса учитываются отступы, место иконки, размер текста и отдельные шрифты Header/Title/Description. Переполнение помечается многоточием
 Дизайн поддерживает 6 фонов, 3 ширины, 3 размера текста, выравнивание, углы, границы и произвольный HEX-акцент, округляемый до палитры игры
 Enter/Exit: none, fade, slide_up, slide_down, slide_left, slide_right, zoom. Speed: fast — 0,2 с, normal — 0,4 с, slow — 0,8 с
 На выходе сообщение сохраняется до конца эффекта после TTL. Новое сообщение сразу заменяет выходящее; отключение игрока и карты очищает всё немедленно

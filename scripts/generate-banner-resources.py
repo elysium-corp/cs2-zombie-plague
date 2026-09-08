@@ -61,9 +61,9 @@ css += '''
 .CustomBanner.IconPosition_top .BannerContent { flow-children: down; }
 .CustomBanner.IconPosition_top .BannerIcons { horizontal-align: center; margin: 0px 0px 12px 0px; }
 .CustomBanner.IconPosition_top .BannerTexts { width: 100%; }
-.CustomBanner.Width_small { width: 440px; }
-.CustomBanner.Width_medium { width: 600px; }
-.CustomBanner.Width_large { width: 760px; }
+.CustomBanner.Width_small { width: 440px; min-width: 440px; }
+.CustomBanner.Width_medium { width: 600px; min-width: 600px; }
+.CustomBanner.Width_large { width: 760px; min-width: 760px; }
 .CustomBanner .MessageRun { font-size: 22px; }
 .CustomBanner .BannerHeader .MessageRun { font-size: 14px; font-weight: bold; letter-spacing: 2px; }
 .CustomBanner .BannerTitle .MessageRun { font-size: 30px; font-weight: bold; }

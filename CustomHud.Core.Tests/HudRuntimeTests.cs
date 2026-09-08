@@ -170,6 +170,11 @@ public sealed class HudRuntimeTests
                 for (var run = 0; run < HudMarkup.MaximumRuns; run++)
                     Assert.Contains($"Message{(int)position}Line{line}Run{run}", ids);
         var css = File.ReadAllText(Path.Combine(root, "styles/custom_game/elysium_messages_v4.css"));
+        // Процентное ограничение сжимало баннер при расчёте размеров Custom HUD
+        Assert.DoesNotContain("max-width: 28%", css);
+        Assert.DoesNotContain("max-width: 38%", css);
+        foreach (var width in new[] { 440, 600, 760 })
+            Assert.Contains($"min-width: {width}px;", css);
         for (var color = 0; color < HudPalette.Colors.Length; color++)
             Assert.Contains($".MessageRun.C{color} {{ color: #{HudPalette.Colors[color]:X6}; }}", css);
         Assert.True(HudPalette.Colors.Length + 10 < 1024);
