@@ -16,6 +16,7 @@ using Shop.Core.Data;
 using Shop.Core.Database;
 using Shop.Core.Di;
 using Shop.Core.Menus;
+using Shop.Core.Hud;
 using SwiftlyS2.Core.Menus.OptionsBase;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Commands;
@@ -30,7 +31,7 @@ namespace Shop.Core;
 
 [PluginMetadata(
     Id = "Shop.Core",
-    Version = "1.3.0",
+    Version = "1.4.0",
     Name = "Elysium Shop",
     Author = "Elysium",
     Description = "Memory-snapshot shop for human and zombie equipment")]
@@ -40,6 +41,7 @@ internal sealed class ShopPlugin(ISwiftlyCore core) : Plugin<ShopModule>(core)
 
     private readonly Lazy<ShopApi> _api = GetRequiredServiceLazy<ShopApi>();
     private readonly Lazy<ShopMenu> _menu = GetRequiredServiceLazy<ShopMenu>();
+    private readonly Lazy<ShopHudMenu> _hud = GetRequiredServiceLazy<ShopHudMenu>();
     private readonly Lazy<ShopSnapshotCache> _cache = GetRequiredServiceLazy<ShopSnapshotCache>();
     private readonly Lazy<ShopAccessEvaluator> _access = GetRequiredServiceLazy<ShopAccessEvaluator>();
     private readonly Lazy<ShopPurchaseService> _purchases = GetRequiredServiceLazy<ShopPurchaseService>();
@@ -93,6 +95,7 @@ internal sealed class ShopPlugin(ISwiftlyCore core) : Plugin<ShopModule>(core)
             ZombiePlagueMenuIds.Main,
             ExtendMainMenu);
         _menu.Value.RebindExternalEvents();
+        _hud.Value.RebindExternalEvents();
     }
 
     protected override void OnStart()
@@ -115,11 +118,12 @@ internal sealed class ShopPlugin(ISwiftlyCore core) : Plugin<ShopModule>(core)
     {
         _menu.Value.RegisterCommands();
         _menu.Value.Initialize();
+        _hud.Value.Initialize();
         Core.Event.OnClientKeyStateChanged += OnClientKeyStateChanged;
         Core.Event.OnMapUnload += OnMapUnload;
         _roundStartHook = Core.GameEvent.HookPost<EventRoundStart>(OnRoundStart);
         RegisterCommands();
-        Core.Logger.LogInformation("[Shop] Shop.Core 1.2.2 загружен.");
+        Core.Logger.LogInformation("[Shop] Shop.Core 1.4.0 загружен");
     }
 
     protected override void OnUnload()
@@ -141,6 +145,7 @@ internal sealed class ShopPlugin(ISwiftlyCore core) : Plugin<ShopModule>(core)
 
         _mainMenuSubscription?.Dispose();
         _mainMenuSubscription = null;
+        if (_hud.IsValueCreated) _hud.Value.Dispose();
         _menu.Value.UnregisterCommands();
         _menu.Value.Dispose();
         _admin.Value.Uninitialize();
@@ -184,7 +189,7 @@ internal sealed class ShopPlugin(ISwiftlyCore core) : Plugin<ShopModule>(core)
             _localization.Value().GetForPlayer(context.Player, storefront.TitleKey) ?? storefront.TitleKey);
         option.Click += (_, args) =>
         {
-            Core.Scheduler.NextTickAsync(() => _menu.Value.Open(args.Player));
+            Core.Scheduler.NextTickAsync(() => _hud.Value.Open(args.Player));
             return ValueTask.CompletedTask;
         };
         context.Options.Add(option, 3);

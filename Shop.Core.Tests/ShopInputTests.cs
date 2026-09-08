@@ -2,6 +2,7 @@ using System.Reflection;
 using CustomEquipment.Api;
 using Microsoft.Extensions.Logging.Abstractions;
 using Shop.Core.Application;
+using Shop.Core.Hud;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Menus;
 using SwiftlyS2.Shared.Players;
@@ -10,6 +11,24 @@ namespace Shop.Core.Tests;
 
 public sealed class ShopInputTests
 {
+    [Fact]
+    public void CustomHudBlocksAmmoBeforeMenuEquipmentOrEconomyAccess()
+    {
+        var player = Stub<IPlayer>((method, _) => method.Name switch
+        {
+            "get_IsValid" or "get_IsAlive" => true,
+            "get_PlayerID" => 4,
+            "get_SessionId" => 20UL,
+            _ => throw new InvalidOperationException(method.Name)
+        });
+        var state = new ShopHudState();
+        state.Open(player);
+        var core = Stub<ISwiftlyCore>((method, _) => throw new InvalidOperationException(method.Name));
+        var service = new ShopPurchaseService(core, null!, null!, null!, null!, null!, null!, null!, null!,
+            NullLogger<ShopPurchaseService>.Instance, null!, hudState: state);
+        Assert.False(service.TryPurchaseActiveWeaponAmmo(player));
+    }
+
     [Fact]
     public void OpenMenuBlocksAmmoBeforeEquipmentOrMoneyIsAccessedAndClosingRestoresInput()
     {

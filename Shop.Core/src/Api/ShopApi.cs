@@ -3,12 +3,13 @@ using Shop.Api.Data;
 using Shop.Api.Events;
 using Shop.Core.Application;
 using Shop.Core.Menus;
+using Shop.Core.Hud;
 using SwiftlyS2.Shared.Players;
 
 namespace Shop.Core.Api;
 
 internal sealed class ShopApi(
-    ShopMenu menu,
+    ShopHudMenu menu,
     ShopPurchaseService purchases,
     IShopEvents events) : IShopApi
 {

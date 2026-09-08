@@ -39,7 +39,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Content Include="resources/templates/**/*">
+        <Content Include="resources/templates/**/*;resources/hud/**/*">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
     </ItemGroup>

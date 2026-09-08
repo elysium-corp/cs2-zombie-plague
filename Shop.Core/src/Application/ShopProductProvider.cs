@@ -6,6 +6,7 @@ using Shop.Api.Data;
 using Shop.Core.Data;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
+using Shop.Core.Hud;
 
 namespace Shop.Core.Application;
 
@@ -14,6 +15,28 @@ internal sealed class ShopProductProvider(Func<ICustomEquipmentApi> equipmentApi
     private const string CustomEquipmentProvider = "custom_equipment";
     private const string BuiltinProvider = "builtin";
     private const string ArmorItem = "armor";
+
+    public bool IsRegisteredEquipment(ShopOfferDefinition offer) =>
+        offer.Contract.ProviderKey == CustomEquipmentProvider &&
+        equipmentApi().TryGetRegisteredItem(offer.Contract.ItemKey, out _);
+
+    public string GetHudIcon(ShopOfferDefinition offer)
+    {
+        if (offer.Contract.ProviderKey == BuiltinProvider && offer.Contract.ItemKey == ArmorItem) return "kevlar";
+        var name = offer.Contract.ItemKey;
+        if (offer.Contract.ProviderKey == CustomEquipmentProvider &&
+            equipmentApi().TryGetRegisteredItem(offer.Contract.ItemKey, out var item))
+        {
+            name = item switch
+            {
+                IWeapon weapon => weapon.InheritorName,
+                IGrenade grenade => grenade.InheritorName,
+                _ when item.Slot == CustomEquipment.Api.Enums.Slot.Knife => "knife",
+                _ => "equipment"
+            };
+        }
+        return ShopHudIcons.Normalize(name);
+    }
 
     public ItemRarity? GetRarity(ShopOfferDefinition offer)
     {

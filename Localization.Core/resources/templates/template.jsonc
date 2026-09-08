@@ -1,8 +1,8 @@
 {
   "schemaVersion": 4,
-  "version": 12,
-  "generatedAt": "2026-09-08T10:00:00Z",
-  "checksum": "sha256:b65be7086c92e4904f7288b192b6fde1adb78c9c0debed696dd501f77f0ec1ee",
+  "version": 13,
+  "generatedAt": "2026-09-08T22:00:00Z",
+  "checksum": "sha256:25d8d30a08b92dee1cbdb802f4131cc8bfcc8751d2b87d7d2c0a8269e4916237",
   "serverFallbackLanguage": "ru",
   "languages": [
     "ru",
@@ -1724,6 +1724,14 @@
     "Notifications.InfoNotify.Periodic": {
       "ru": "{message}",
       "en": "{message}"
+    },
+    "Shop.Hud.Other": {
+      "ru": "Экипировка",
+      "en": "Equipment"
+    },
+    "Shop.Hud.Hint": {
+      "ru": "ЛКМ — купить · B / !weapons — закрыть · Стрелки — страницы товаров",
+      "en": "Click to buy · B / !weapons to close · Arrows for more items"
     }
   }
 }

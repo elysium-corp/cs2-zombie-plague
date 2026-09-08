@@ -19,6 +19,7 @@ using Shop.Core.Configuration;
 using Shop.Core.Data;
 using Shop.Core.Database;
 using Shop.Core.Menus;
+using Shop.Core.Hud;
 using SwiftlyS2.Shared;
 using ZombiePlague.Api;
 
@@ -52,6 +53,7 @@ internal sealed class ShopModule(ISwiftlyCore core) : BaseModule(core)
             }));
         services.AddOptionsWithValidateOnStart<ShopFallbackConfig>()
             .BindConfiguration(string.Empty);
+        AddConfig<ShopHudOptions>(services, "shop_hud.json", "ShopHud", reloadOnChange: false);
         services.AddSwiftly(Core);
         services.AddSharedInterface<ICustomEquipmentApi>();
         services.AddSharedInterface<IEconomyApi>();
@@ -76,6 +78,9 @@ internal sealed class ShopModule(ISwiftlyCore core) : BaseModule(core)
         AddSingleton<IShopSoundFeedback, ShopSoundFeedback>(services);
         AddSingleton<ShopPurchaseService>(services);
         AddSingleton<ShopMenu>(services);
+        AddSingleton<ShopHudState>(services);
+        AddSingleton<ShopHudCatalog>(services);
+        AddSingleton<ShopHudMenu>(services);
         AddSingleton<ShopApi>(services);
 
         services.AddPostgreSqlDatabase<ShopDbContext>(Core, new DatabaseOptions
