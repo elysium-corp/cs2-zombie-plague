@@ -5,20 +5,20 @@ namespace CustomHud.Core;
 internal sealed class HudPresenter(IHudRuntime runtime, TimeProvider? clock = null, Action<int, string, float>? playSound = null)
 {
     private readonly TimeProvider _clock = clock ?? TimeProvider.System;
-    private readonly Dictionary<(int Player, HudPosition Position), (ulong SteamId, HudMessage Message)> _shown = [];
-    private readonly Dictionary<(int Player, HudPosition Position), long> _exits = [];
-    private readonly HashSet<(int Player, HudPosition Position)> _entryB = [];
+    private readonly Dictionary<(int Player, int Slot), (ulong SteamId, HudMessage Message)> _shown = [];
+    private readonly Dictionary<(int Player, int Slot), long> _exits = [];
+    private readonly HashSet<(int Player, int Slot)> _entryB = [];
     private readonly Dictionary<int, ulong> _sessions = [];
     internal int[] PlayerIds => _shown.Keys.Select(key => key.Player).Distinct().ToArray();
 
-    internal void Render(int playerId, ulong steamId, HudPosition position, HudMessage? message, bool immediate = false)
+    internal void Render(int playerId, ulong steamId, HudPosition position, HudMessage? message, bool immediate = false, int lane = 0)
     {
         if (_sessions.TryGetValue(playerId, out var owner) && owner != steamId) Clear(playerId);
-        var key = (playerId, position);
+        var key = (playerId, (int)position + lane * PanoramaHudRuntime.RegionCount);
         _shown.TryGetValue(key, out var previous);
         var old = previous.Message;
         if (old?.Revision == message?.Revision) return;
-        var slot = $"Message{(int)position}";
+        var slot = $"Message{key.Item2}";
         if (!immediate && message is null && old?.Document.Banner?.Template is { Exit: not "none" } outgoing)
         {
             if (!_exits.TryGetValue(key, out var started))
@@ -56,8 +56,13 @@ internal sealed class HudPresenter(IHudRuntime runtime, TimeProvider? clock = nu
             // Разные имена keyframes перезапускают появление даже при замене в том же сетевом кадре.
             var wasB = _entryB.Contains(key);
             runtime.SetClass(playerId, slot, wasB ? "EntryB" : "EntryA", false);
-            runtime.SetClass(playerId, slot, wasB ? "EntryA" : "EntryB", true);
-            if (wasB) _entryB.Remove(key); else _entryB.Add(key);
+            _entryB.Remove(key);
+            if (!message.Presented)
+            {
+                runtime.SetClass(playerId, slot, wasB ? "EntryA" : "EntryB", true);
+                if (!wasB) _entryB.Add(key);
+                message.Presented = true;
+            }
             if (old is null) runtime.SetClass(playerId, slot, "Shown", true);
             _sessions[playerId] = steamId;
             _shown[key] = (steamId, message);
@@ -66,6 +71,23 @@ internal sealed class HudPresenter(IHudRuntime runtime, TimeProvider? clock = nu
                 message.SoundPlayed = true;
                 playSound?.Invoke(playerId, sound, template.Volume);
             }
+        }
+    }
+
+    internal void RenderFrame(int playerId, ulong steamId, HudMessage?[] frame)
+    {
+        // При сдвиге стопки очищаем прежнее место сразу: текст, звук и появление не дублируются.
+        var locations = frame.Select((message, slot) => (message, slot)).Where(item => item.message is not null)
+            .ToDictionary(item => item.message!.Revision, item => item.slot);
+        foreach (var (key, value) in _shown.Where(item => item.Key.Player == playerId).ToArray())
+            if (locations.TryGetValue(value.Message.Revision, out var next) && next != key.Slot)
+                Render(playerId, value.SteamId, (HudPosition)(key.Slot % PanoramaHudRuntime.RegionCount), null, true, key.Slot / PanoramaHudRuntime.RegionCount);
+        for (var slot = 0; slot < frame.Length; slot++)
+        {
+            var message = frame[slot];
+            if (message is not null && _clock.GetElapsedTime(message.CreatedAt).TotalSeconds >= message.Options.DurationSeconds)
+                message = null;
+            Render(playerId, steamId, (HudPosition)(slot % PanoramaHudRuntime.RegionCount), message, lane: slot / PanoramaHudRuntime.RegionCount);
         }
     }
 
@@ -87,6 +109,7 @@ internal sealed class HudPresenter(IHudRuntime runtime, TimeProvider? clock = nu
                 if (oldStyle.Color != HudPalette.White || oldStyle.ExplicitColor) runtime.SetClass(playerId, panel, "C" + oldStyle.Color, false);
                 if (newStyle.Color != HudPalette.White || newStyle.ExplicitColor) runtime.SetClass(playerId, panel, "C" + newStyle.Color, true);
             }
+            if (oldStyle.Parameter != newStyle.Parameter) runtime.SetClass(playerId, panel, "Parameter", newStyle.Parameter);
             if (oldStyle.Bold != newStyle.Bold) runtime.SetClass(playerId, panel, "Bold", newStyle.Bold);
             if (oldStyle.Italic != newStyle.Italic) runtime.SetClass(playerId, panel, "Italic", newStyle.Italic);
             if (oldStyle.Underline != newStyle.Underline) runtime.SetClass(playerId, panel, "Underline", newStyle.Underline);
@@ -98,7 +121,7 @@ internal sealed class HudPresenter(IHudRuntime runtime, TimeProvider? clock = nu
     internal void Clear(int playerId)
     {
         foreach (var key in _shown.Keys.Where(key => key.Player == playerId).ToArray())
-            Render(playerId, _shown[key].SteamId, key.Position, null, immediate: true);
+            Render(playerId, _shown[key].SteamId, (HudPosition)(key.Slot % PanoramaHudRuntime.RegionCount), null, immediate: true, lane: key.Slot / PanoramaHudRuntime.RegionCount);
         _sessions.Remove(playerId);
     }
 }

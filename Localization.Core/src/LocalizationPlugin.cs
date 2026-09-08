@@ -19,7 +19,7 @@ namespace Localization.Core;
 
 [PluginMetadata(
     Id = "Localization.Core",
-    Version = "1.6.0",
+    Version = "1.7.0",
     Name = "Elysium Localization",
     Author = "Elysium",
     Description = "Единая локализация Elysium с языком игрока, PostgreSQL и fallback-конфигурацией.")]
@@ -27,6 +27,7 @@ internal sealed class LocalizationPlugin(ISwiftlyCore core) : Plugin<Localizatio
 {
     private readonly Lazy<BannerNotificationClient> _notifications = GetRequiredServiceLazy<BannerNotificationClient>();
 
+    private readonly Lazy<LocalizationRoleStyle> _roleStyle = GetRequiredServiceLazy<LocalizationRoleStyle>();
     private readonly List<Guid> _commands = [];
     private readonly ConcurrentDictionary<int, ulong> _slots = new();
     private readonly HashSet<Task> _pendingOperations = [];
@@ -73,6 +74,8 @@ internal sealed class LocalizationPlugin(ISwiftlyCore core) : Plugin<Localizatio
     {
         interfaceManager.TryGetSharedInterface<IBannerNotificationApi>(IBannerNotificationApi.SharedApiKey, out var notificationApi);
         _notifications.Value.Bind(notificationApi);
+        interfaceManager.TryGetSharedInterface<Admin.Api.IAdminApi>(Admin.Api.IAdminApi.SharedApiKey, out var adminApi);
+        _roleStyle.Value.Bind(adminApi);
     }
 
     protected override void OnReady()
@@ -88,6 +91,7 @@ internal sealed class LocalizationPlugin(ISwiftlyCore core) : Plugin<Localizatio
     protected override void OnUnload()
     {
         if (_notifications.IsValueCreated) _notifications.Value.Bind(null);
+        if (_roleStyle.IsValueCreated) _roleStyle.Value.Bind(null);
         if (_chatHook is { } chatHook)
         {
             Core.Command.UnhookClientChat(chatHook);

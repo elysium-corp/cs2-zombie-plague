@@ -65,6 +65,28 @@ public interface ILocalizationApi : ILanguageResolver
     /// <returns>Неизменяемый список параметров или пустой список для неизвестного ключа.</returns>
     IReadOnlyList<LocalizationParameterDefinition> GetParameterDefinitions(string key);
 
+    /// <summary>Форматирует сообщение с явным режимом разметки и ролью получателя; язык можно переопределить для Preview.</summary>
+    /// <param name="player">Получатель, чья активная роль определяет динамический цвет.</param>
+    /// <param name="key">Ключ перевода.</param>
+    /// <param name="parameters">Исходные, не экранированные значения параметров.</param>
+    /// <param name="mode">Формат результата.</param>
+    /// <param name="languageCode">Язык Preview; null использует язык игрока.</param>
+    /// <returns>Сообщение или null при ошибке параметров либо отсутствии перевода.</returns>
+    string? FormatForPlayer(IPlayer player, string key, IReadOnlyDictionary<string, object?> parameters,
+        LocalizationOutputMode mode, string? languageCode = null)
+    {
+        var values = mode == LocalizationOutputMode.Html
+            ? parameters.ToDictionary(x => x.Key, x => x.Value is string text
+                ? (object?)System.Net.WebUtility.HtmlEncode(text).Replace("[", "&#91;").Replace("]", "&#93;") : x.Value)
+            : parameters;
+        return languageCode is null ? FormatForPlayer(player, key, values) : FormatForLanguage(languageCode, key, values);
+    }
+
+    /// <summary>Возвращает оформление активной роли из памяти; при отсутствии Admin API — обычные цвета.</summary>
+    /// <param name="player">Получатель сообщения.</param>
+    /// <returns>Оформление роли без запросов в БД.</returns>
+    LocalizationPlayerStyle GetPlayerStyle(IPlayer player) => new();
+
     /// <summary>
     /// Возвращает включённый тег для эффективного языка игрока.
     /// </summary>

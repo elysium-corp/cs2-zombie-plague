@@ -1,0 +1,333 @@
+<root>
+    <styles>
+        <include src="s2r://panorama/styles/custom_game/elysium_messages_v4_r2.vcss_c" />
+    </styles>
+    <Panel class="ElysiumMessageCanvas" hittest="false" id="ElysiumMessageCanvas">
+        <Panel class="MessageRegion" id="MessageRegion">
+            <Panel class="Message" hittest="false" id="Message0">
+                <Panel class="BannerSurface">
+                    <Panel class="MessageAccent" />
+                    <Label class="MessageBrand" text="ELYSIUM" />
+                    <Panel class="BannerContent">
+                        <Panel class="BannerIcons">
+                            <Image class="BannerIcon Icon_info" src="s2r://panorama/images/custom_game/elysium/banners/info.vsvg" texturewidth="64" textureheight="64" />
+                            <Image class="BannerIcon Icon_warning" src="s2r://panorama/images/custom_game/elysium/banners/warning.vsvg" texturewidth="64" textureheight="64" />
+                            <Image class="BannerIcon Icon_infection" src="s2r://panorama/images/custom_game/elysium/banners/infection.vsvg" texturewidth="64" textureheight="64" />
+                            <Image class="BannerIcon Icon_skull" src="s2r://panorama/images/custom_game/elysium/banners/skull.vsvg" texturewidth="64" textureheight="64" />
+                            <Image class="BannerIcon Icon_shield" src="s2r://panorama/images/custom_game/elysium/banners/shield.vsvg" texturewidth="64" textureheight="64" />
+                            <Image class="BannerIcon Icon_trophy" src="s2r://panorama/images/custom_game/elysium/banners/trophy.vsvg" texturewidth="64" textureheight="64" />
+                            <Image class="BannerIcon Icon_star" src="s2r://panorama/images/custom_game/elysium/banners/star.vsvg" texturewidth="64" textureheight="64" />
+                            <Image class="BannerIcon Icon_gift" src="s2r://panorama/images/custom_game/elysium/banners/gift.vsvg" texturewidth="64" textureheight="64" />
+                            <Image class="BannerIcon Icon_megaphone" src="s2r://panorama/images/custom_game/elysium/banners/megaphone.vsvg" texturewidth="64" textureheight="64" />
+                            <Image class="BannerIcon Icon_lightning" src="s2r://panorama/images/custom_game/elysium/banners/lightning.vsvg" texturewidth="64" textureheight="64" />
+                            <Image class="BannerIcon Icon_clock" src="s2r://panorama/images/custom_game/elysium/banners/clock.vsvg" texturewidth="64" textureheight="64" />
+                            <Image class="BannerIcon Icon_heart" src="s2r://panorama/images/custom_game/elysium/banners/heart.vsvg" texturewidth="64" textureheight="64" />
+                        </Panel>
+                        <Panel class="BannerTexts">
+                            <Panel class="MessageLine BannerHeader" id="Message0Header">
+                                <Label class="MessageRun" text="{s:value}" id="Message0HeaderRun0" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0HeaderRun1" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0HeaderRun2" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0HeaderRun3" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0HeaderRun4" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0HeaderRun5" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0HeaderRun6" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0HeaderRun7" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0HeaderRun8" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0HeaderRun9" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0HeaderRun10" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0HeaderRun11" />
+                            </Panel>
+                            <Panel class="MessageLine BannerTitle" id="Message0Title">
+                                <Label class="MessageRun" text="{s:value}" id="Message0TitleRun0" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0TitleRun1" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0TitleRun2" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0TitleRun3" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0TitleRun4" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0TitleRun5" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0TitleRun6" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0TitleRun7" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0TitleRun8" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0TitleRun9" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0TitleRun10" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0TitleRun11" />
+                            </Panel>
+                            <Panel class="MessageLine BannerDescription" id="Message0Line0">
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line0Run0" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line0Run1" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line0Run2" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line0Run3" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line0Run4" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line0Run5" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line0Run6" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line0Run7" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line0Run8" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line0Run9" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line0Run10" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line0Run11" />
+                            </Panel>
+                            <Panel class="MessageLine BannerDescription" id="Message0Line1">
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line1Run0" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line1Run1" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line1Run2" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line1Run3" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line1Run4" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line1Run5" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line1Run6" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line1Run7" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line1Run8" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line1Run9" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line1Run10" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line1Run11" />
+                            </Panel>
+                            <Panel class="MessageLine BannerDescription" id="Message0Line2">
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line2Run0" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line2Run1" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line2Run2" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line2Run3" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line2Run4" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line2Run5" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line2Run6" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line2Run7" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line2Run8" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line2Run9" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line2Run10" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line2Run11" />
+                            </Panel>
+                            <Panel class="MessageLine BannerDescription" id="Message0Line3">
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line3Run0" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line3Run1" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line3Run2" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line3Run3" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line3Run4" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line3Run5" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line3Run6" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line3Run7" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line3Run8" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line3Run9" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line3Run10" />
+                                <Label class="MessageRun" text="{s:value}" id="Message0Line3Run11" />
+                            </Panel>
+                        </Panel>
+                    </Panel>
+                </Panel>
+            </Panel>
+            <Panel class="Message" hittest="false" id="Message1">
+                <Panel class="BannerSurface">
+                    <Panel class="MessageAccent" />
+                    <Label class="MessageBrand" text="ELYSIUM" />
+                    <Panel class="BannerContent">
+                        <Panel class="BannerIcons">
+                            <Image class="BannerIcon Icon_info" src="s2r://panorama/images/custom_game/elysium/banners/info.vsvg" texturewidth="64" textureheight="64" />
+                            <Image class="BannerIcon Icon_warning" src="s2r://panorama/images/custom_game/elysium/banners/warning.vsvg" texturewidth="64" textureheight="64" />
+                            <Image class="BannerIcon Icon_infection" src="s2r://panorama/images/custom_game/elysium/banners/infection.vsvg" texturewidth="64" textureheight="64" />
+                            <Image class="BannerIcon Icon_skull" src="s2r://panorama/images/custom_game/elysium/banners/skull.vsvg" texturewidth="64" textureheight="64" />
+                            <Image class="BannerIcon Icon_shield" src="s2r://panorama/images/custom_game/elysium/banners/shield.vsvg" texturewidth="64" textureheight="64" />
+                            <Image class="BannerIcon Icon_trophy" src="s2r://panorama/images/custom_game/elysium/banners/trophy.vsvg" texturewidth="64" textureheight="64" />
+                            <Image class="BannerIcon Icon_star" src="s2r://panorama/images/custom_game/elysium/banners/star.vsvg" texturewidth="64" textureheight="64" />
+                            <Image class="BannerIcon Icon_gift" src="s2r://panorama/images/custom_game/elysium/banners/gift.vsvg" texturewidth="64" textureheight="64" />
+                            <Image class="BannerIcon Icon_megaphone" src="s2r://panorama/images/custom_game/elysium/banners/megaphone.vsvg" texturewidth="64" textureheight="64" />
+                            <Image class="BannerIcon Icon_lightning" src="s2r://panorama/images/custom_game/elysium/banners/lightning.vsvg" texturewidth="64" textureheight="64" />
+                            <Image class="BannerIcon Icon_clock" src="s2r://panorama/images/custom_game/elysium/banners/clock.vsvg" texturewidth="64" textureheight="64" />
+                            <Image class="BannerIcon Icon_heart" src="s2r://panorama/images/custom_game/elysium/banners/heart.vsvg" texturewidth="64" textureheight="64" />
+                        </Panel>
+                        <Panel class="BannerTexts">
+                            <Panel class="MessageLine BannerHeader" id="Message1Header">
+                                <Label class="MessageRun" text="{s:value}" id="Message1HeaderRun0" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1HeaderRun1" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1HeaderRun2" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1HeaderRun3" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1HeaderRun4" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1HeaderRun5" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1HeaderRun6" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1HeaderRun7" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1HeaderRun8" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1HeaderRun9" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1HeaderRun10" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1HeaderRun11" />
+                            </Panel>
+                            <Panel class="MessageLine BannerTitle" id="Message1Title">
+                                <Label class="MessageRun" text="{s:value}" id="Message1TitleRun0" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1TitleRun1" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1TitleRun2" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1TitleRun3" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1TitleRun4" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1TitleRun5" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1TitleRun6" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1TitleRun7" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1TitleRun8" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1TitleRun9" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1TitleRun10" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1TitleRun11" />
+                            </Panel>
+                            <Panel class="MessageLine BannerDescription" id="Message1Line0">
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line0Run0" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line0Run1" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line0Run2" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line0Run3" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line0Run4" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line0Run5" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line0Run6" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line0Run7" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line0Run8" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line0Run9" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line0Run10" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line0Run11" />
+                            </Panel>
+                            <Panel class="MessageLine BannerDescription" id="Message1Line1">
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line1Run0" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line1Run1" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line1Run2" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line1Run3" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line1Run4" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line1Run5" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line1Run6" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line1Run7" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line1Run8" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line1Run9" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line1Run10" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line1Run11" />
+                            </Panel>
+                            <Panel class="MessageLine BannerDescription" id="Message1Line2">
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line2Run0" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line2Run1" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line2Run2" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line2Run3" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line2Run4" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line2Run5" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line2Run6" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line2Run7" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line2Run8" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line2Run9" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line2Run10" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line2Run11" />
+                            </Panel>
+                            <Panel class="MessageLine BannerDescription" id="Message1Line3">
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line3Run0" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line3Run1" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line3Run2" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line3Run3" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line3Run4" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line3Run5" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line3Run6" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line3Run7" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line3Run8" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line3Run9" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line3Run10" />
+                                <Label class="MessageRun" text="{s:value}" id="Message1Line3Run11" />
+                            </Panel>
+                        </Panel>
+                    </Panel>
+                </Panel>
+            </Panel>
+            <Panel class="Message" hittest="false" id="Message2">
+                <Panel class="BannerSurface">
+                    <Panel class="MessageAccent" />
+                    <Label class="MessageBrand" text="ELYSIUM" />
+                    <Panel class="BannerContent">
+                        <Panel class="BannerIcons">
+                            <Image class="BannerIcon Icon_info" src="s2r://panorama/images/custom_game/elysium/banners/info.vsvg" texturewidth="64" textureheight="64" />
+                            <Image class="BannerIcon Icon_warning" src="s2r://panorama/images/custom_game/elysium/banners/warning.vsvg" texturewidth="64" textureheight="64" />
+                            <Image class="BannerIcon Icon_infection" src="s2r://panorama/images/custom_game/elysium/banners/infection.vsvg" texturewidth="64" textureheight="64" />
+                            <Image class="BannerIcon Icon_skull" src="s2r://panorama/images/custom_game/elysium/banners/skull.vsvg" texturewidth="64" textureheight="64" />
+                            <Image class="BannerIcon Icon_shield" src="s2r://panorama/images/custom_game/elysium/banners/shield.vsvg" texturewidth="64" textureheight="64" />
+                            <Image class="BannerIcon Icon_trophy" src="s2r://panorama/images/custom_game/elysium/banners/trophy.vsvg" texturewidth="64" textureheight="64" />
+                            <Image class="BannerIcon Icon_star" src="s2r://panorama/images/custom_game/elysium/banners/star.vsvg" texturewidth="64" textureheight="64" />
+                            <Image class="BannerIcon Icon_gift" src="s2r://panorama/images/custom_game/elysium/banners/gift.vsvg" texturewidth="64" textureheight="64" />
+                            <Image class="BannerIcon Icon_megaphone" src="s2r://panorama/images/custom_game/elysium/banners/megaphone.vsvg" texturewidth="64" textureheight="64" />
+                            <Image class="BannerIcon Icon_lightning" src="s2r://panorama/images/custom_game/elysium/banners/lightning.vsvg" texturewidth="64" textureheight="64" />
+                            <Image class="BannerIcon Icon_clock" src="s2r://panorama/images/custom_game/elysium/banners/clock.vsvg" texturewidth="64" textureheight="64" />
+                            <Image class="BannerIcon Icon_heart" src="s2r://panorama/images/custom_game/elysium/banners/heart.vsvg" texturewidth="64" textureheight="64" />
+                        </Panel>
+                        <Panel class="BannerTexts">
+                            <Panel class="MessageLine BannerHeader" id="Message2Header">
+                                <Label class="MessageRun" text="{s:value}" id="Message2HeaderRun0" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2HeaderRun1" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2HeaderRun2" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2HeaderRun3" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2HeaderRun4" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2HeaderRun5" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2HeaderRun6" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2HeaderRun7" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2HeaderRun8" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2HeaderRun9" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2HeaderRun10" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2HeaderRun11" />
+                            </Panel>
+                            <Panel class="MessageLine BannerTitle" id="Message2Title">
+                                <Label class="MessageRun" text="{s:value}" id="Message2TitleRun0" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2TitleRun1" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2TitleRun2" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2TitleRun3" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2TitleRun4" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2TitleRun5" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2TitleRun6" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2TitleRun7" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2TitleRun8" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2TitleRun9" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2TitleRun10" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2TitleRun11" />
+                            </Panel>
+                            <Panel class="MessageLine BannerDescription" id="Message2Line0">
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line0Run0" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line0Run1" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line0Run2" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line0Run3" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line0Run4" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line0Run5" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line0Run6" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line0Run7" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line0Run8" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line0Run9" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line0Run10" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line0Run11" />
+                            </Panel>
+                            <Panel class="MessageLine BannerDescription" id="Message2Line1">
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line1Run0" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line1Run1" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line1Run2" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line1Run3" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line1Run4" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line1Run5" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line1Run6" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line1Run7" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line1Run8" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line1Run9" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line1Run10" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line1Run11" />
+                            </Panel>
+                            <Panel class="MessageLine BannerDescription" id="Message2Line2">
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line2Run0" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line2Run1" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line2Run2" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line2Run3" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line2Run4" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line2Run5" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line2Run6" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line2Run7" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line2Run8" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line2Run9" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line2Run10" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line2Run11" />
+                            </Panel>
+                            <Panel class="MessageLine BannerDescription" id="Message2Line3">
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line3Run0" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line3Run1" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line3Run2" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line3Run3" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line3Run4" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line3Run5" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line3Run6" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line3Run7" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line3Run8" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line3Run9" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line3Run10" />
+                                <Label class="MessageRun" text="{s:value}" id="Message2Line3Run11" />
+                            </Panel>
+                        </Panel>
+                    </Panel>
+                </Panel>
+            </Panel>
+        </Panel>
+    </Panel>
+</root>

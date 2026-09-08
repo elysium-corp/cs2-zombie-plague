@@ -1,4 +1,4 @@
-﻿using Admin.Core.Database.Entities;
+using Admin.Core.Database.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Admin.Core.Database;
@@ -63,6 +63,9 @@ public sealed class AdminDbContext(DbContextOptions<AdminDbContext> options) : D
 
     private static void ConfigurePrivileges(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<PrivilegeEntity>().Property(x => x.ChatColor).HasDefaultValue("default");
+        modelBuilder.Entity<PrivilegeEntity>().Property(x => x.HudColor).HasDefaultValue("#ffffff");
+        modelBuilder.Entity<PrivilegeEntity>().Property(x => x.ColorPriority).HasDefaultValue(0);
         modelBuilder.Entity<PrivilegeEntity>()
             .ToTable(
                 "privileges",

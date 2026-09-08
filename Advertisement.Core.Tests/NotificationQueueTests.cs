@@ -74,6 +74,51 @@ public sealed class NotificationQueueTests
     }
 
     [Fact]
+    public void StackShowsThreeImmediatelyThenWaitsOnlyForOneFreePlace()
+    {
+        var clock = new Clock(); var queue = new NotificationQueue(clock);
+        for (var i = 0; i < 4; i++) queue.Enqueue(1, 11, Rule("info", "stack"), new Dictionary<string, object?> { ["index"] = i });
+        var ready = queue.Ready(); Assert.Equal(3, ready.Length);
+        foreach (var item in ready) queue.Shown(item);
+        clock.Advance(.5); Assert.Empty(queue.Ready());
+        clock.Advance(.5); Assert.Equal(3, Assert.Single(queue.Ready()).Parameters["index"]);
+        queue.ClearEvent("info"); Assert.Empty(queue.EventKeys);
+    }
+
+    [Fact]
+    public void StackCanAppearUnderAnActiveRoundWhileQueueStillWaits()
+    {
+        var queue = new NotificationQueue(new Clock());
+        queue.Enqueue(1, 11, Rule("round"), new Dictionary<string, object?>()); queue.Shown(Assert.Single(queue.Ready()));
+        queue.Enqueue(1, 11, Rule("queued"), new Dictionary<string, object?>());
+        queue.Enqueue(1, 11, Rule("info", "stack"), new Dictionary<string, object?>());
+        Assert.Equal("info", Assert.Single(queue.Ready()).Rule.EventKey);
+    }
+
+    [Fact]
+    public void RoundAnnouncementWinsEvenWhenFirstInfectedWasPublishedFirst()
+    {
+        var queue = new NotificationQueue(new Clock());
+        var defaults = NotificationCatalog.Defaults["Game.Round.Started"];
+        var round = defaults with { Options = defaults.Options with { Priority = 100 } };
+        var first = NotificationCatalog.Defaults["ZombiePlague.Round.Infection.FirstInfected"];
+        queue.Enqueue(1, 11, first with { Delivery = "queue", Options = first.Options with { Position = round.Options.Position } }, new Dictionary<string, object?>());
+        queue.Enqueue(1, 11, round, new Dictionary<string, object?>());
+        Assert.Equal("Game.Round.Started", Assert.Single(queue.Ready()).Rule.EventKey);
+        Assert.NotEqual(round.Options.Position, first.Options.Position);
+    }
+
+    [Fact]
+    public void FullHudFromAnotherPluginDefersWithoutRestartingTheQueueAge()
+    {
+        var clock = new Clock(); var queue = new NotificationQueue(clock);
+        queue.Enqueue(1, 11, Rule("info", "stack") with { MaxQueueAgeSeconds = 2 }, new Dictionary<string, object?>());
+        var pending = Assert.Single(queue.Ready()); queue.Defer(pending);
+        clock.Advance(1); var retried = Assert.Single(queue.Ready()); Assert.Equal(pending.CreatedAt, retried.CreatedAt);
+        queue.Defer(retried); clock.Advance(2); Assert.Empty(queue.Ready());
+    }
+
+    [Fact]
     public void CatalogDefaultsAreCompleteAndNeverContainTheRemovedCooldownPopup()
     {
         Assert.DoesNotContain("ZombiePlague.Ability.Cooldown", NotificationCatalog.Defaults.Keys);

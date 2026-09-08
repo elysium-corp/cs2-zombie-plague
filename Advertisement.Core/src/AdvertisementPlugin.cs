@@ -20,7 +20,7 @@ namespace Advertisement.Core;
 
 [PluginMetadata(
     Id = "Advertisement.Core",
-    Version = "3.0.0",
+    Version = "3.1.0",
     Name = "Elysium Advertisements",
     Author = "Elysium",
     Description = "Реклама Elysium с общей локализацией через Localization.Core.")]

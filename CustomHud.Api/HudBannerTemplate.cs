@@ -52,14 +52,35 @@ public sealed record HudBannerTemplate
     public string Icon { get; init; } = "none";
     /// <summary>Размещение иконки: left или top.</summary>
     public string IconPosition { get; init; } = "left";
-    /// <summary>Анимация иконки: none, pulse, spin, bounce, shake.</summary>
+    /// <summary>Анимация иконки: none, pulse, spin, spin_reverse, bounce, shake, breathe, blink, glow, neon, shimmer, float, wobble, heartbeat.</summary>
     public string IconAnimation { get; init; } = "none";
-    /// <summary>Появление: none, fade, slide_up, slide_down, slide_left, slide_right, zoom.</summary>
+    /// <summary>Появление: fade, slide_up/down/left/right, zoom, zoom_out, pop, flip_x/y, rotate, drop, swing, bounce_in либо none.</summary>
     public string Enter { get; init; } = "fade";
     /// <summary>Исчезновение: тот же набор, что Enter. После TTL допускается завершающая анимация до 0,8 секунды.</summary>
     public string Exit { get; init; } = "fade";
     /// <summary>Скорость эффектов: fast (0,2 с), normal (0,4 с), slow (0,8 с).</summary>
     public string Speed { get; init; } = "normal";
+    /// <summary>Циклический эффект всего баннера, независимо от появления и исчезновения.</summary>
+    public string ContainerAnimation { get; init; } = "none";
+    /// <summary>Циклический эффект надзаголовка.</summary>
+    public string HeaderAnimation { get; init; } = "none";
+    /// <summary>Циклический эффект заголовка.</summary>
+    public string TitleAnimation { get; init; } = "none";
+    /// <summary>Циклический эффект описания.</summary>
+    public string DescriptionAnimation { get; init; } = "none";
+    /// <summary>Циклический эффект только подставленных параметров Localization и span.hud-parameter.</summary>
+    public string ParameterAnimation { get; init; } = "none";
+    /// <summary>Скорость цикла: fast (1,2 с), normal (2,4 с), slow (3,6 с).</summary>
+    public string LoopSpeed { get; init; } = "normal";
+    /// <summary>Подсветка иконки цветом акцента: none, soft, strong.</summary>
+    public string IconGlow { get; init; } = "none";
+    /// <summary>Подсветка текста цветом акцента: none, soft, strong.</summary>
+    public string TextGlow { get; init; } = "none";
+    /// <summary>Цвет параметров; inherit сохраняет HTML-цвет, accent использует акцент баннера.</summary>
+    public string ParameterColor { get; init; } = "inherit";
+    /// <summary>Задержка старта циклических эффектов, 0–2000 мс, шаг 100.</summary>
+    public int EffectDelay { get; init; }
+
     /// <summary>Имя установленного sound event; null отключает звук. Проигрывается один раз при первом показе одному клиенту.</summary>
     public string? Sound { get; init; }
     /// <summary>Громкость от 0 до 1.</summary>

@@ -96,7 +96,7 @@ internal static partial class LocalizationColorSchema
                 throw new InvalidDataException($"Некорректное имя цветового тега '{rawName}'.");
             }
 
-            if (string.Equals(name, "color", StringComparison.OrdinalIgnoreCase))
+            if ((name is "color" or "role_color"))
             {
                 throw new InvalidDataException("Имя цветового тега 'color' зарезервировано.");
             }

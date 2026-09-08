@@ -38,6 +38,12 @@ internal sealed class LocalizationApi(
         IReadOnlyDictionary<string, object?> parameters) =>
         runtime.FormatForLanguage(languageCode, key, parameters);
 
+    public string? FormatForPlayer(IPlayer player, string key, IReadOnlyDictionary<string, object?> parameters,
+        LocalizationOutputMode mode, string? languageCode = null) =>
+        runtime.FormatForPlayer(player, key, parameters, mode, languageCode);
+
+    public LocalizationPlayerStyle GetPlayerStyle(IPlayer player) => runtime.GetPlayerStyle(player);
+
     public IReadOnlyList<LocalizationParameterDefinition> GetParameterDefinitions(string key) =>
         runtime.GetParameterDefinitions(key);
 

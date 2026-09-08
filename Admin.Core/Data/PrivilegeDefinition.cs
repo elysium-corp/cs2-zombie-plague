@@ -1,4 +1,4 @@
-﻿namespace Admin.Core.Data;
+namespace Admin.Core.Data;
 
 /// <summary>
 /// Представляет определение привилегии,
@@ -19,5 +19,9 @@
 internal sealed record PrivilegeDefinition(
     string Id,
     string Group,
-    IReadOnlySet<string> Permissions
+    IReadOnlySet<string> Permissions,
+    string? DisplayName = null,
+    string ChatColor = "default",
+    string HudColor = "#ffffff",
+    int ColorPriority = 0
 );

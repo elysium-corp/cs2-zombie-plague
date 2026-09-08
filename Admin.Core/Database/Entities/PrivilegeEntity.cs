@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
@@ -27,6 +27,17 @@ internal sealed class PrivilegeEntity
     [MaxLength(512)]
     [Column("description")]
     public string? Description { get; set; }
+
+    [MaxLength(16)]
+    [Column("chat_color")]
+    public string ChatColor { get; set; } = "default";
+
+    [MaxLength(7)]
+    [Column("hud_color")]
+    public string HudColor { get; set; } = "#ffffff";
+
+    [Column("color_priority")]
+    public int ColorPriority { get; set; }
 
     [Column("created_at")]
     public DateTime CreatedAtUtc { get; set; }

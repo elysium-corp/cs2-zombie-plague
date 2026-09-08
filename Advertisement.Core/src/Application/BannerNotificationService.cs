@@ -86,8 +86,10 @@ internal sealed class BannerNotificationService(ISwiftlyCore core, Advertisement
         var bots = core.PlayerManager.GetAllPlayers().Count(item => item.IsValid && item.IsFakeClient);
         var stats = player.Controller.ActionTrackingServices?.MatchStats;
         var now = clock.GetLocalNow();
+        var role = localization().GetPlayerStyle(player);
         var values = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase)
         {
+            ["role_name"] = role.RoleName, ["role_key"] = role.RoleKey,
             ["player"] = player.Name, ["recipient"] = player.Name, ["steam_id"] = player.SteamID.ToString(),
             ["map"] = core.Engine.GlobalVars.MapName.Value, ["server_name"] = core.ConVar.FindAsString("hostname")?.ValueAsString ?? "",
             ["next_map"] = core.ConVar.FindAsString("nextlevel")?.ValueAsString ?? "", ["team"] = player.Controller.Team.ToString(),
@@ -132,13 +134,13 @@ internal sealed class BannerNotificationService(ISwiftlyCore core, Advertisement
                 if (!Allowed(player, rule, Context(player))) { _queue.Reject(pending); continue; }
                 var template = pending.IsUpdate ? rule.Template with { Enter = "none", Sound = null } : rule.Template;
                 var accepted = _banners.ShowLocalized(player, template, rule.Content, pending.Parameters,
-                    rule.Options with { Channel = Channel(rule.EventKey) });
+                    rule.Options with { Channel = Channel(rule.EventKey), Stack = rule.Delivery == "stack" });
                 if (accepted)
                 {
                     if (pending.PreviousEvent is { } previous && previous != rule.EventKey) _hud?.Hide(player, Channel(previous));
                     _queue.Shown(pending);
                 }
-                else { _queue.Reject(pending); Warn(rule.EventKey, new InvalidOperationException("Localization или HUD не приняли уведомление")); }
+                else { _queue.Defer(pending); Warn(rule.EventKey, new InvalidOperationException("Localization или HUD пока не приняли уведомление; повтор до истечения MaxQueueAgeSeconds")); }
             }
             catch (Exception exception) { _queue.Reject(pending); Warn(rule.EventKey, exception); }
         }

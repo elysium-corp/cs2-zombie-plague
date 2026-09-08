@@ -1,3 +1,5 @@
+> В версии 0.6.0 нужны layout и CSS v4 r2 вместе со всеми скомпилированными иконками, старый VPK необходимо пересобрать
+
 # HUD способностей
 
 Штатная панель ZombiePlague.Core 0.5.0, включена по умолчанию
@@ -174,8 +176,8 @@ $hudSource = Join-Path $cs2Path 'content/csgo_addons/elysium_dev/panorama'
 $resourceCompiler = Join-Path $cs2Path 'game/bin/win64/resourcecompiler.exe'
 $hudInputs = @(
     'images/custom_game/elysium/abilities/*.svg'
-    'styles/custom_game/elysium_ability_buffs_v4.css'
-    'layout/custom_game/elysium_ability_buffs_v4.xml'
+    'styles/custom_game/elysium_ability_buffs_v4_r2.css'
+    'layout/custom_game/elysium_ability_buffs_v4_r2.xml'
 )
 foreach ($hudInput in $hudInputs) {
     & $resourceCompiler -i (Join-Path $hudSource $hudInput) -r
@@ -188,8 +190,8 @@ foreach ($hudInput in $hudInputs) {
 
 | Исходник внутри addon | Результат внутри addon |
 | --- | --- |
-| `panorama/layout/custom_game/elysium_ability_buffs_v4.xml` | `panorama/layout/custom_game/elysium_ability_buffs_v4.vxml_c` |
-| `panorama/styles/custom_game/elysium_ability_buffs_v4.css` | `panorama/styles/custom_game/elysium_ability_buffs_v4.vcss_c` |
+| `panorama/layout/custom_game/elysium_ability_buffs_v4_r2.xml` | `panorama/layout/custom_game/elysium_ability_buffs_v4_r2.vxml_c` |
+| `panorama/styles/custom_game/elysium_ability_buffs_v4_r2.css` | `panorama/styles/custom_game/elysium_ability_buffs_v4_r2.vcss_c` |
 | `panorama/images/custom_game/elysium/abilities/*.svg` | `panorama/images/custom_game/elysium/abilities/*.vsvg_c` |
 
 Нужны все восемь иконок: `heal`, `leap`, `blind`, `charge`, `trap`, `catch`, `double_jump`, `generic`

@@ -107,6 +107,22 @@ public sealed class HudMessageStoreTests
     public void InvalidLifetimesAreRejected(double seconds) =>
         Assert.Throws<ArgumentException>(() => HudMessageStore.Validate(new() { DurationSeconds = seconds }));
 
+    [Fact]
+    public void StacksKeepRepeatedEventsInOrderWithBoundedCapacityAndOwnerCleanup()
+    {
+        var clock = new Clock(); var store = new HudMessageStore(clock);
+        var options = new HudMessageOptions { Channel = "award", Stack = true, DurationSeconds = 2 };
+        Assert.True(store.Put(1, 11, Document, options));
+        Assert.True(store.Put(1, 11, Document, options));
+        Assert.True(store.Put(1, 11, Document, options));
+        Assert.False(store.Put(1, 11, Document, options));
+        Assert.Equal(new long[] { 1, 2, 3 }, store.GetStackedFrame(1, 11).OfType<HudMessage>().Select(message => message.Revision));
+        store.Hide(1, 11, "other"); Assert.Equal(3, store.GetStackedFrame(1, 11).OfType<HudMessage>().Count());
+        store.Hide(1, 11, "award"); Assert.Empty(store.GetStackedFrame(1, 11).OfType<HudMessage>());
+        store.Put(1, 11, Document, options); clock.Advance(2);
+        Assert.Empty(store.GetStackedFrame(1, 11).OfType<HudMessage>());
+    }
+
     private static HudMessage? Current(HudMessageStore store) => store.GetFrame(1, 11)[(int)HudPosition.TopCenter];
 
     internal sealed class Clock : TimeProvider

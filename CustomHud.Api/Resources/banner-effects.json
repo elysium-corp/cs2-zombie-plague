@@ -1,0 +1,345 @@
+{
+  "motion": {
+    "none": [
+      {
+        "opacity": 1
+      },
+      {
+        "opacity": 1
+      }
+    ],
+    "fade": [
+      {
+        "opacity": 0
+      },
+      {
+        "opacity": 1
+      }
+    ],
+    "slide_up": [
+      {
+        "opacity": 0,
+        "transform": "translateY(24px)"
+      },
+      {
+        "opacity": 1,
+        "transform": "translateY(0px) scale(1) rotateX(0deg) rotateY(0deg) rotateZ(0deg)"
+      }
+    ],
+    "slide_down": [
+      {
+        "opacity": 0,
+        "transform": "translateY(-24px)"
+      },
+      {
+        "opacity": 1,
+        "transform": "translateY(0px) scale(1) rotateX(0deg) rotateY(0deg) rotateZ(0deg)"
+      }
+    ],
+    "slide_left": [
+      {
+        "opacity": 0,
+        "transform": "translateX(32px)"
+      },
+      {
+        "opacity": 1,
+        "transform": "translateY(0px) scale(1) rotateX(0deg) rotateY(0deg) rotateZ(0deg)"
+      }
+    ],
+    "slide_right": [
+      {
+        "opacity": 0,
+        "transform": "translateX(-32px)"
+      },
+      {
+        "opacity": 1,
+        "transform": "translateY(0px) scale(1) rotateX(0deg) rotateY(0deg) rotateZ(0deg)"
+      }
+    ],
+    "zoom": [
+      {
+        "opacity": 0,
+        "transform": "scale(0.82)"
+      },
+      {
+        "opacity": 1,
+        "transform": "translateY(0px) scale(1) rotateX(0deg) rotateY(0deg) rotateZ(0deg)"
+      }
+    ],
+    "zoom_out": [
+      {
+        "opacity": 0,
+        "transform": "scale(1.2)"
+      },
+      {
+        "opacity": 1,
+        "transform": "translateY(0px) scale(1) rotateX(0deg) rotateY(0deg) rotateZ(0deg)"
+      }
+    ],
+    "flip_x": [
+      {
+        "opacity": 0,
+        "transform": "rotateX(-80deg)"
+      },
+      {
+        "opacity": 1,
+        "transform": "translateY(0px) scale(1) rotateX(0deg) rotateY(0deg) rotateZ(0deg)"
+      }
+    ],
+    "flip_y": [
+      {
+        "opacity": 0,
+        "transform": "rotateY(-80deg)"
+      },
+      {
+        "opacity": 1,
+        "transform": "translateY(0px) scale(1) rotateX(0deg) rotateY(0deg) rotateZ(0deg)"
+      }
+    ],
+    "rotate": [
+      {
+        "opacity": 0,
+        "transform": "rotateZ(-12deg) scale(0.82)"
+      },
+      {
+        "opacity": 1,
+        "transform": "translateY(0px) scale(1) rotateX(0deg) rotateY(0deg) rotateZ(0deg)"
+      }
+    ],
+    "drop": [
+      {
+        "opacity": 0,
+        "transform": "translateY(-72px)"
+      },
+      {
+        "opacity": 1,
+        "transform": "translateY(0px) scale(1) rotateX(0deg) rotateY(0deg) rotateZ(0deg)"
+      }
+    ],
+    "swing": [
+      {
+        "opacity": 0,
+        "transform": "translateX(-22px) rotateZ(-9deg)"
+      },
+      {
+        "opacity": 1,
+        "transform": "translateY(0px) scale(1) rotateX(0deg) rotateY(0deg) rotateZ(0deg)"
+      }
+    ],
+    "pop": [
+      {
+        "opacity": 0,
+        "transform": "scale(0.65)",
+        "offset": 0
+      },
+      {
+        "opacity": 1,
+        "transform": "scale(1.07)",
+        "offset": 0.7
+      },
+      {
+        "opacity": 1,
+        "transform": "translateY(0px) scale(1) rotateX(0deg) rotateY(0deg) rotateZ(0deg)",
+        "offset": 1
+      }
+    ],
+    "bounce_in": [
+      {
+        "opacity": 0,
+        "transform": "translateY(-40px)",
+        "offset": 0
+      },
+      {
+        "opacity": 1,
+        "transform": "translateY(6px)",
+        "offset": 0.6
+      },
+      {
+        "opacity": 1,
+        "transform": "translateY(-4px)",
+        "offset": 0.8
+      },
+      {
+        "opacity": 1,
+        "transform": "translateY(0px) scale(1) rotateX(0deg) rotateY(0deg) rotateZ(0deg)",
+        "offset": 1
+      }
+    ]
+  },
+  "loops": {
+    "pulse": [
+      {
+        "opacity": 0.55
+      },
+      {
+        "opacity": 1
+      },
+      {
+        "opacity": 0.55
+      }
+    ],
+    "breathe": [
+      {
+        "transform": "scale(1)"
+      },
+      {
+        "transform": "scale(1.03)"
+      },
+      {
+        "transform": "scale(1)"
+      }
+    ],
+    "blink": [
+      {
+        "opacity": 1,
+        "offset": 0
+      },
+      {
+        "opacity": 1,
+        "offset": 0.4
+      },
+      {
+        "opacity": 0.2,
+        "offset": 0.5
+      },
+      {
+        "opacity": 1,
+        "offset": 0.6
+      },
+      {
+        "opacity": 1,
+        "offset": 1
+      }
+    ],
+    "glow": [
+      {
+        "brightness": 1
+      },
+      {
+        "brightness": 1.5
+      },
+      {
+        "brightness": 1
+      }
+    ],
+    "neon": [
+      {
+        "brightness": 1,
+        "offset": 0
+      },
+      {
+        "brightness": 1.8,
+        "offset": 0.4
+      },
+      {
+        "brightness": 0.7,
+        "offset": 0.5
+      },
+      {
+        "brightness": 1.6,
+        "offset": 0.6
+      },
+      {
+        "brightness": 1,
+        "offset": 1
+      }
+    ],
+    "shimmer": [
+      {
+        "brightness": 1
+      },
+      {
+        "brightness": 1.8
+      },
+      {
+        "brightness": 1
+      }
+    ],
+    "float": [
+      {
+        "transform": "translateY(0px)"
+      },
+      {
+        "transform": "translateY(-6px)"
+      },
+      {
+        "transform": "translateY(0px)"
+      }
+    ],
+    "bounce": [
+      {
+        "transform": "translateY(0px)"
+      },
+      {
+        "transform": "translateY(-10px)"
+      },
+      {
+        "transform": "translateY(0px)"
+      }
+    ],
+    "shake": [
+      {
+        "transform": "rotateZ(-2deg)"
+      },
+      {
+        "transform": "rotateZ(2deg)"
+      },
+      {
+        "transform": "rotateZ(-2deg)"
+      }
+    ],
+    "wobble": [
+      {
+        "transform": "rotateZ(-6deg)"
+      },
+      {
+        "transform": "rotateZ(6deg)"
+      },
+      {
+        "transform": "rotateZ(-6deg)"
+      }
+    ],
+    "heartbeat": [
+      {
+        "transform": "scale(1)",
+        "offset": 0
+      },
+      {
+        "transform": "scale(1.06)",
+        "offset": 0.14
+      },
+      {
+        "transform": "scale(1)",
+        "offset": 0.28
+      },
+      {
+        "transform": "scale(1.08)",
+        "offset": 0.42
+      },
+      {
+        "transform": "scale(1)",
+        "offset": 0.7
+      },
+      {
+        "transform": "scale(1)",
+        "offset": 1
+      }
+    ],
+    "spin": [
+      {
+        "transform": "rotateZ(0deg)"
+      },
+      {
+        "transform": "rotateZ(360deg)"
+      }
+    ],
+    "spin_reverse": [
+      {
+        "transform": "rotateZ(0deg)"
+      },
+      {
+        "transform": "rotateZ(-360deg)"
+      }
+    ]
+  }
+}

@@ -28,6 +28,7 @@ internal static partial class LocalizationValidation
         "important",
         "muted",
         "color",
+        "role_color",
     }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
     public static void ValidateFallback(LocalizationFallbackConfig config)
@@ -354,9 +355,9 @@ internal static partial class LocalizationValidation
         foreach (Match match in MarkupRegex().Matches(text))
         {
             var name = match.Groups["name"].Value.ToLowerInvariant();
-            var argument = match.Groups["argument"].Value;
+            var argument = match.Groups["argument"].Value.ToLowerInvariant();
             var recognized = string.Equals(name, "color", StringComparison.OrdinalIgnoreCase)
-                             || colorTags.ContainsKey(name);
+                             || name == "role_color" || colorTags.ContainsKey(name);
             if (!recognized)
             {
                 if (match.Groups["close"].Success)
@@ -378,7 +379,7 @@ internal static partial class LocalizationValidation
             }
             else
             {
-                if ((name == "color" && !LocalizationColorSchema.SupportedColors.Contains(argument))
+                if ((name == "color" && argument != "role" && !LocalizationColorSchema.SupportedColors.Contains(argument))
                     || (name != "color" && argument.Length > 0))
                 {
                     return false;
@@ -388,7 +389,7 @@ internal static partial class LocalizationValidation
             }
         }
 
-        return stack.Count == 0;
+        return stack.Count == 0 && LocalizationHtmlMarkup.IsValid(text);
     }
 
     [GeneratedRegex(@"^[A-Z0-9][A-Za-z0-9]*(\.[A-Z0-9][A-Za-z0-9]*)*$", RegexOptions.CultureInvariant)]

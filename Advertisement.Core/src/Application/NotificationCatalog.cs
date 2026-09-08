@@ -24,7 +24,7 @@ internal static class NotificationCatalog
             Template = Templates[item.GetProperty("default_template").GetString()!],
             Content = new() { Description = item.GetProperty("localization_key").GetString() },
             Options = new() { Position = Position(item.GetProperty("position").GetString()!),
-                DurationSeconds = item.GetProperty("duration").GetDouble(), Priority = 100 },
+                DurationSeconds = item.GetProperty("duration").GetDouble(), Priority = item.TryGetProperty("priority", out var priority) ? priority.GetInt32() : 100 },
             Delivery = item.GetProperty("delivery").GetString()!, CooldownSeconds = item.GetProperty("cooldown").GetDouble()
         }).ToFrozenDictionary(item => item.EventKey, StringComparer.Ordinal);
     internal static readonly FrozenDictionary<string, string[]> Aliases = Document.GetProperty("parameters").EnumerateArray()
@@ -66,7 +66,7 @@ internal static class NotificationCatalog
     {
         if (!Defaults.ContainsKey(rule.EventKey) || !Enum.IsDefined(rule.Options.Position)
             || !double.IsFinite(rule.Options.DurationSeconds) || rule.Options.DurationSeconds is < .5 or > 60
-            || rule.Options.Priority is < 0 or > 1000 || rule.Delivery is not ("replace" or "queue")
+            || rule.Options.Priority is < 0 or > 1000 || rule.Delivery is not ("replace" or "queue" or "stack")
             || !double.IsFinite(rule.CooldownSeconds) || rule.CooldownSeconds is < 0 or > 300
             || !double.IsFinite(rule.MaxQueueAgeSeconds) || rule.MaxQueueAgeSeconds is < 1 or > 120
             || rule.Audience is not ("all" or "alive" or "dead" or "humans" or "zombies" or "spectators")

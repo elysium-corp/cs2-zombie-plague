@@ -1,4 +1,4 @@
-﻿namespace Admin.Api.Data;
+namespace Admin.Api.Data;
 
 /// <summary>
 /// Представляет зарегистрированную привилегию, которая описывает набор разрешений,
@@ -21,6 +21,20 @@ public interface IPrivilege
     /// Для привилегии <c>admin.owner</c> идентификатором является <c>owner</c>.
     /// </example>
     string Id { get; }
+
+    /// <summary>Название роли для отображения игроку.</summary>
+    string DisplayName => Key;
+
+    /// <summary>Цвет роли из палитры чата SwiftlyS2.</summary>
+    string ChatColor => "default";
+
+    /// <summary>HTML-цвет роли в формате #RRGGBB.</summary>
+    string HudColor => "#ffffff";
+
+    /// <summary>Приоритет оформления: большее значение побеждает среди активных ролей.</summary>
+    int ColorPriority => 0;
+
+
 
     /// <summary>
     /// Получает логическую группу привилегии.

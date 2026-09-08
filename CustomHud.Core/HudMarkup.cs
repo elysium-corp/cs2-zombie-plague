@@ -5,7 +5,7 @@ using CustomHud.Api;
 
 namespace CustomHud.Core;
 
-internal readonly record struct HudRunStyle(int Color, bool Bold = false, bool Italic = false, bool Underline = false, bool ExplicitColor = false)
+internal readonly record struct HudRunStyle(int Color, bool Bold = false, bool Italic = false, bool Underline = false, bool ExplicitColor = false, bool Parameter = false)
 {
     internal static readonly HudRunStyle Default = new(HudPalette.White);
 }
@@ -91,6 +91,8 @@ internal static class HudMarkup
                 "b" => style with { Bold = true }, "i" => style with { Italic = true },
                 "u" => style with { Underline = true }, _ => style
             };
+            if (tag == "span" && Regex.IsMatch(body, "^span\\s+class\\s*=\\s*(['\"])hud-parameter\\1\\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+                style = style with { Parameter = true };
             var match = (tag == "span" ? StyleAttribute : ColorAttribute).Match(body);
             if (match.Success && HudPalette.TryResolve(match.Groups["value"].Value, out var resolved))
                 style = style with { Color = resolved, ExplicitColor = true };
