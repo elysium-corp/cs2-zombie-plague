@@ -8,6 +8,7 @@ internal sealed class NotificationQueue(TimeProvider clock)
     internal sealed record Pending(int PlayerId, ulong SteamId, BannerNotificationRule Rule,
         IReadOnlyDictionary<string, object?> Parameters, DateTimeOffset CreatedAt)
     {
+        internal long Sequence { get; init; }
         internal bool IsUpdate { get; init; }
         internal string? PreviousEvent { get; init; }
     }
@@ -18,6 +19,7 @@ internal sealed class NotificationQueue(TimeProvider clock)
         internal Pending? Active;
         internal DateTimeOffset Until;
     }
+    private long _sequence;
     private readonly Dictionary<(int Player, HudPosition Position), Slot> _slots = [];
     private readonly Dictionary<int, ulong> _sessions = [];
     private readonly Dictionary<(int Player, string Event), DateTimeOffset> _lastAccepted = [];
@@ -46,7 +48,7 @@ internal sealed class NotificationQueue(TimeProvider clock)
             if (victim.Rule.Options.Priority > rule.Options.Priority) return false;
             _slots[(playerId, victim.Rule.Options.Position)].Waiting.Remove(victim);
         }
-        slot.Waiting.Add(new(playerId, steamId, rule, new Dictionary<string, object?>(parameters, StringComparer.OrdinalIgnoreCase), now));
+        slot.Waiting.Add(new(playerId, steamId, rule, new Dictionary<string, object?>(parameters, StringComparer.OrdinalIgnoreCase), now) { Sequence = ++_sequence });
         _lastAccepted[eventId] = now;
         return true;
     }
@@ -63,7 +65,7 @@ internal sealed class NotificationQueue(TimeProvider clock)
             var active = slot.Active;
             var candidate = slot.Waiting.Where(item => item.Rule.Delivery != "stack")
                 .OrderByDescending(item => item.Rule.Options.Priority)
-                .ThenBy(item => item.Rule.EventKey == "Game.Round.Started" ? 0 : 1).FirstOrDefault();
+                .ThenBy(item => item.Rule.EventKey == "Game.Round.Started" ? 0 : 1).ThenBy(item => item.Sequence).FirstOrDefault();
             if (candidate is not null && (active is not null || slot.Stacked.Count < 3))
             {
                 var update = active?.Rule.EventKey == candidate.Rule.EventKey && candidate.Rule.Delivery == "replace";
@@ -76,7 +78,7 @@ internal sealed class NotificationQueue(TimeProvider clock)
             }
             var free = 3 - slot.Stacked.Count - (active is null ? 0 : 1);
             foreach (var stacked in slot.Waiting.Where(item => item.Rule.Delivery == "stack")
-                .OrderByDescending(item => item.Rule.Options.Priority).ThenBy(item => item.CreatedAt).Take(free).ToArray())
+                .OrderByDescending(item => item.Rule.Options.Priority).ThenBy(item => item.Sequence).Take(free).ToArray())
             {
                 slot.Waiting.Remove(stacked);
                 result.Add(stacked);
@@ -99,7 +101,7 @@ internal sealed class NotificationQueue(TimeProvider clock)
             || (clock.GetUtcNow() - pending.CreatedAt).TotalSeconds > pending.Rule.MaxQueueAgeSeconds) return;
         if (pending.Rule.Delivery == "replace" && slot.Waiting.Any(item => item.Rule.EventKey == pending.Rule.EventKey)) return;
         if (_slots.Where(item => item.Key.Player == pending.PlayerId).Sum(item => item.Value.Waiting.Count) >= 32) return;
-        slot.Waiting.Insert(0, pending with { IsUpdate = false, PreviousEvent = null });
+        slot.Waiting.Add(pending with { IsUpdate = false, PreviousEvent = null });
     }
 
     internal void Reject(Pending pending) { /* Не блокируем область после отказа Localization или HUD. */ }
