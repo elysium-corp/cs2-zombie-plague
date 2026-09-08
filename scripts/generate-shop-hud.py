@@ -29,7 +29,9 @@ def nav(parent, panel, button, text):
 root = ET.Element('root')
 styles = ET.SubElement(root, 'styles')
 ET.SubElement(styles, 'include', {'src': 's2r://panorama/styles/custom_game/elysium_shop_v1.vcss_c'})
-screen = ET.SubElement(root, 'Panel', {'id': 'ShopRoot', 'class': 'ShopRoot'})
+# Компилятор Panorama запрещает id у корневой панели; сервер адресует дочерний ShopRoot.
+viewport = ET.SubElement(root, 'Panel', {'class': 'ShopViewport'})
+screen = ET.SubElement(viewport, 'Panel', {'id': 'ShopRoot', 'class': 'ShopRoot'})
 window = ET.SubElement(screen, 'Panel', {'class': 'ShopWindow'})
 header = ET.SubElement(window, 'Panel', {'class': 'Header'})
 brand = ET.SubElement(header, 'Panel', {'class': 'Brand'})
@@ -66,6 +68,7 @@ nav(pages, 'CategoryNext', 'CategoriesNext', '›')
 ET.indent(root, space='    ')
 xml = ET.tostring(root, encoding='unicode') + '\n'
 css = '''/* Создано scripts/generate-shop-hud.py */
+.ShopViewport { width: 100%; height: 100%; }
 .ShopRoot { width: 100%; height: 100%; visibility: collapse; background-color: #07101855; }
 .ShopRoot.Visible { visibility: visible; }
 .ShopWindow { width: 94%; max-width: 1720px; height: 920px; max-height: 94%; horizontal-align: center; vertical-align: center; flow-children: down; background-color: #10171feF; border: 1px solid #b3c5d42b; box-shadow: 0px 8px 40px #00000099; }
