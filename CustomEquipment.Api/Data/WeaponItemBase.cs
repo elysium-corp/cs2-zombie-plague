@@ -31,6 +31,34 @@ public abstract class WeaponItemBase : ItemBase, IWeapon, IHasParticle
 
     public virtual IReadOnlyCollection<WeaponSound> Sounds => Array.Empty<WeaponSound>();
 
+    /// <summary>
+    /// Восстанавливает подкласс и параметры оружия, сохраняя текущие патроны в обоих
+    /// магазинах и резерве. Подбор и экипировка не должны пополнять боезапас.
+    /// </summary>
+    public override void ReapplyCustomization()
+    {
+        var weapon = AttachedWeapon;
+        var clip1 = weapon.Clip1;
+        var clip2 = weapon.Clip2;
+        var reserve1 = weapon.ReserveAmmo[0];
+        var reserve2 = weapon.ReserveAmmo[1];
+
+        try
+        {
+            AttachBaseWeaponVData(weapon);
+        }
+        finally
+        {
+            weapon.Clip1 = clip1;
+            weapon.Clip2 = clip2;
+            weapon.ReserveAmmo[0] = reserve1;
+            weapon.ReserveAmmo[1] = reserve2;
+            weapon.Clip1Updated();
+            weapon.Clip2Updated();
+            weapon.ReserveAmmoUpdated();
+        }
+    }
+
     [MemberNotNullWhen(true, nameof(Particle))]
     public bool HasTraceParticle()
     {
@@ -61,11 +89,7 @@ public abstract class WeaponItemBase : ItemBase, IWeapon, IHasParticle
         vData.SetTiming(WeaponTiming?.CycleTime, WeaponTiming?.DeployDuration, weapon);
         vData.SetDamage(WeaponDamage?.NumBullets, WeaponDamage?.Penetration, WeaponDamage?.Range,
             WeaponDamage?.RangeModifier);
-        if (!string.IsNullOrEmpty(Model)) weapon.SetModel(Model);
-
-        weapon.AttributeManager.Item.CustomName = DisplayName;
-        weapon.AttributeManager.Item.CustomNameOverride = DisplayName;
-        weapon.AttributeManager.Item.CustomNameUpdated();
+        base.ReapplyCustomization();
         
         return weapon;
     }

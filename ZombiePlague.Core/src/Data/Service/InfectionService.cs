@@ -19,22 +19,37 @@ internal sealed class InfectionService(
     IZombiePlagueEvents events
 ) : IInfectionService
 {
+    private bool _registered;
+    private int _generation;
+
     public void Register()
     {
+        if (_registered) return;
+        _registered = true;
+        _generation++;
+
         core.GameHooks.Items.CanAcquire.Pre += OnCanAcquire;
         core.GameHooks.Weapons.CanUse.Pre += OnCanUse;
         core.GameHooks.Weapons.Drop.Pre += OnDrop;
         
         events.Players.Infected.Hook(OnPlayerInfected);
+        events.Players.RoleApplied.Hook(OnPlayerRoleApplied);
+        events.Players.BecameNemesis.Hook(OnPlayerBecameNemesis);
     }
 
     public void Unregister()
     {
+        if (!_registered) return;
+        _registered = false;
+        _generation++;
+
         core.GameHooks.Items.CanAcquire.Pre -= OnCanAcquire;
         core.GameHooks.Weapons.CanUse.Pre -= OnCanUse;
         core.GameHooks.Weapons.Drop.Pre -= OnDrop;
         
         events.Players.Infected.Unhook(OnPlayerInfected);
+        events.Players.RoleApplied.Unhook(OnPlayerRoleApplied);
+        events.Players.BecameNemesis.Unhook(OnPlayerBecameNemesis);
     }
     
     private void OnCanAcquire(ref CanAcquireItemPreContext context)
@@ -87,11 +102,47 @@ internal sealed class InfectionService(
 
     private void OnPlayerInfected(ref PlayerInfectedContext context)
     {
-        var player = context.Player;
-        
+        ScheduleCosmeticsReset(context.Player);
+    }
+
+    private void OnPlayerRoleApplied(ref PlayerRoleAppliedContext context)
+    {
+        ScheduleCosmeticsReset(context.Player);
+    }
+
+    private void OnPlayerBecameNemesis(ref PlayerBecameNemesisContext context)
+    {
+        ScheduleCosmeticsReset(context.Player);
+    }
+
+    private void ScheduleCosmeticsReset(IPlayer player)
+    {
+        if (!_registered || !player.IsValid || !player.IsAlive || !playerManager.IsZombie(player) ||
+            player.PlayerPawn is not { IsValid: true } pawn)
+        {
+            return;
+        }
+
+        var sessionId = player.SessionId;
+        var pawnAddress = pawn.Address;
+        var generation = _generation;
+
+        // Выполняем после отложенного применения модели роли, в том числе при возрождении.
         core.Scheduler.NextWorldUpdate(() =>
         {
-            RemoveGloves(player);
+            if (!_registered || generation != _generation) return;
+
+            var currentPlayer = core.PlayerManager.GetPlayerFromSessionId(sessionId);
+            if (currentPlayer is not { IsValid: true, IsAlive: true } ||
+                !playerManager.IsZombie(currentPlayer) ||
+                currentPlayer.PlayerPawn is not { IsValid: true } currentPawn ||
+                currentPawn.Address != pawnAddress)
+            {
+                return;
+            }
+
+            RemoveGloves(currentPlayer);
+            ResetKnife(currentPawn);
         });
     }
 
@@ -132,7 +183,39 @@ internal sealed class InfectionService(
         gloves.AccountIDUpdated();
         gloves.InventoryPositionUpdated();
         gloves.InitializedUpdated();
+        pawn.EconGlovesUpdated();
+        pawn.EconGlovesChanged++;
+        pawn.EconGlovesChangedUpdated();
 
         _ = pawn.AcceptInputAsync("SetBodygroup", value: "first_or_third_person,0");
+    }
+
+    private static void ResetKnife(CCSPlayerPawn pawn)
+    {
+        if (pawn.WeaponServices is not { } weapons) return;
+
+        foreach (var weapon in weapons.MyValidWeapons.Where(weapon =>
+                     weapon.DesignerName.Contains("knife", StringComparison.OrdinalIgnoreCase)))
+        {
+            var item = weapon.AttributeManager.Item;
+            item.AttributeList.Attributes.RemoveAll();
+            item.NetworkedDynamicAttributes.Attributes.RemoveAll();
+            item.ItemDefinitionIndex = 59;
+            item.ItemID = 0;
+            item.ItemIDHigh = 0;
+            item.ItemIDLow = 0;
+            item.AccountID = 0;
+            item.CustomName = "";
+            item.CustomNameOverride = "";
+            item.ItemDefinitionIndexUpdated();
+            item.ItemIDHighUpdated();
+            item.ItemIDLowUpdated();
+            item.AccountIDUpdated();
+            item.CustomNameUpdated();
+
+            // Обычный нож стороны T, включая случай восстановления ножа из инвентаря Steam.
+            weapon.AcceptInput("ChangeSubclass", "59");
+            weapon.SetModel("weapons/models/knife/knife_t.vmdl");
+        }
     }
 }
