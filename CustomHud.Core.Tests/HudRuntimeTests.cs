@@ -124,13 +124,37 @@ public sealed class HudRuntimeTests
     }
 
     [Fact]
+    public void LocalizedBannerEscapesEachParameterBeforeFormattingAndRejectsMissingFields()
+    {
+        using var fixture = new Fixture();
+        fixture.Start();
+        IReadOnlyDictionary<string, object?>? observed = null;
+        fixture.Service.InitializeLocalization(Stub<Localization.Api.ILocalizationApi>((method, args) =>
+        {
+            if (method.Name != "FormatForPlayer") throw new InvalidOperationException(method.Name);
+            observed = (IReadOnlyDictionary<string, object?>)args![2]!;
+            return args[1] as string == "Missing" ? null : "<b>" + observed["player_name"] + "</b>";
+        }));
+        var parameters = new Dictionary<string, object?> { ["player_name"] = "<b>[red]Player", ["round"] = 7 };
+        Assert.True(fixture.Service.ShowLocalized(fixture.Players[0], new(), new() { Title = "Title", Description = "Description" }, parameters));
+        Assert.Equal("&lt;b&gt;&#91;red&#93;Player", observed!["player_name"]);
+        Assert.Equal(7, observed["round"]);
+        Assert.Equal("<b>[red]Player", parameters["player_name"]);
+        Assert.False(fixture.Service.ShowLocalized(fixture.Players[0], new(), new() { Title = "Missing", Description = "Description" }, parameters));
+    }
+
+    [Fact]
     public void ResourcesRespectCustomHudWhitelistAndTheNetworkIdLimit()
     {
         var root = Path.Combine(AppContext.BaseDirectory, "content/panorama");
-        var layout = XDocument.Load(Path.Combine(root, "layout/custom_game/elysium_messages_v1.xml"));
+        Assert.EndsWith("_v4.vxml_c", PanoramaHudRuntime.Layout);
+        Assert.EndsWith("_v4.vcss_c", PanoramaHudRuntime.Style);
+        var layout = XDocument.Load(Path.Combine(root, "layout/custom_game/elysium_messages_v4.xml"));
+        Assert.Equal("s2r://" + PanoramaHudRuntime.Style, layout.Descendants("include").Single().Attribute("src")!.Value);
         var allowed = new Dictionary<string, string[]>
         {
             ["root"] = [], ["styles"] = [], ["include"] = ["src"],
+            ["Image"] = ["id", "class", "hittest", "src", "texturewidth", "textureheight"],
             ["Panel"] = ["id", "class", "hittest"], ["Label"] = ["id", "class", "hittest", "text"]
         };
         foreach (var element in layout.Descendants())
@@ -145,7 +169,7 @@ public sealed class HudRuntimeTests
             for (var line = 0; line < HudMarkup.MaximumLines; line++)
                 for (var run = 0; run < HudMarkup.MaximumRuns; run++)
                     Assert.Contains($"Message{(int)position}Line{line}Run{run}", ids);
-        var css = File.ReadAllText(Path.Combine(root, "styles/custom_game/elysium_messages_v1.css"));
+        var css = File.ReadAllText(Path.Combine(root, "styles/custom_game/elysium_messages_v4.css"));
         for (var color = 0; color < HudPalette.Colors.Length; color++)
             Assert.Contains($".MessageRun.C{color} {{ color: #{HudPalette.Colors[color]:X6}; }}", css);
         Assert.True(HudPalette.Colors.Length + 10 < 1024);

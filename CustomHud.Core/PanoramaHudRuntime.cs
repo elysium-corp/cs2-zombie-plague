@@ -16,8 +16,8 @@ internal interface IHudRuntime : IDisposable
 
 internal sealed class PanoramaHudRuntime : IHudRuntime
 {
-    internal const string Layout = "panorama/layout/custom_game/elysium_messages_v1.vxml_c";
-    internal const string Style = "panorama/styles/custom_game/elysium_messages_v1.vcss_c";
+    internal const string Layout = "panorama/layout/custom_game/elysium_messages_v4.vxml_c";
+    internal const string Style = "panorama/styles/custom_game/elysium_messages_v4.vcss_c";
     private readonly CCSCustomHudLayout _entity;
     private bool _disposed;
 

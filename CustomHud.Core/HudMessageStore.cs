@@ -2,7 +2,10 @@ using CustomHud.Api;
 
 namespace CustomHud.Core;
 
-internal sealed record HudMessage(long Revision, HudMessageOptions Options, HudDocument Document, long CreatedAt);
+internal sealed record HudMessage(long Revision, HudMessageOptions Options, HudDocument Document, long CreatedAt)
+{
+    internal bool SoundPlayed { get; set; }
+}
 
 internal sealed class HudMessageStore(TimeProvider clock)
 {

@@ -19,7 +19,7 @@ internal sealed class AdvertisementApi(
     public string? GetText(string messageKey, string locale)
     {
         var message = FindMessage(cache.Current, messageKey);
-        return message is null
+        return message?.LocalizationKey is null
             ? null
             : localization().GetForLanguage(locale, message.LocalizationKey);
     }
@@ -27,7 +27,7 @@ internal sealed class AdvertisementApi(
     public string? GetText(string messageKey, IPlayer player)
     {
         var message = FindMessage(cache.Current, messageKey);
-        return message is null
+        return message?.LocalizationKey is null
             ? null
             : localization().GetForPlayer(player, message.LocalizationKey);
     }

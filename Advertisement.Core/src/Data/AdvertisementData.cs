@@ -1,3 +1,4 @@
+using CustomHud.Api;
 using System.Collections.Frozen;
 using System.Text.Json;
 using Advertisement.Core.Configuration;
@@ -27,7 +28,7 @@ internal sealed record AdvertisementMessage(
     long Id,
     string Key,
     string Name,
-    string LocalizationKey,
+    string? LocalizationKey,
     string? TagKey,
     string Type,
     bool Enabled,
@@ -46,6 +47,8 @@ internal sealed record AdvertisementMessage(
     DateTimeOffset? StartsAt,
     DateTimeOffset? EndsAt)
 {
+    public AdvertisementPresentation? Presentation { get; init; }
+
     public bool IsActive(DateTimeOffset now, int playerCount)
     {
         var localTime = TimeOnly.FromDateTime(now.LocalDateTime);
@@ -162,7 +165,7 @@ internal sealed class ConfigAdvertisementProvider(IOptionsMonitor<AdvertisementC
             messages[id] = new AdvertisementMessage(
                 id, key,
                 string.IsNullOrWhiteSpace(message.Name) ? key : message.Name,
-                string.IsNullOrWhiteSpace(message.LocalizationKey)
+                message.DisplayType == "hud" ? null : string.IsNullOrWhiteSpace(message.LocalizationKey)
                     ? $"Advertisement.Messages.{key}"
                     : LocalizationKey.Canonicalize(message.LocalizationKey),
                 NormalizeTagKey(message.Tag), message.Type, message.Enabled, message.Priority, Math.Max(0, message.Weight),
@@ -174,7 +177,17 @@ internal sealed class ConfigAdvertisementProvider(IOptionsMonitor<AdvertisementC
                 DeliveryRuleParser.ParseAudienceType(message.AudienceType),
                 string.IsNullOrWhiteSpace(message.AudienceGroup) ? null : message.AudienceGroup.Trim(),
                 message.MinPlayers, message.MaxPlayers,
-                message.StartsAt, message.EndsAt);
+                message.StartsAt, message.EndsAt)
+            {
+                Presentation = message.DisplayType is null ? null : new(
+                    message.DisplayType,
+                    string.IsNullOrWhiteSpace(message.HudLocalizationKey) ? null : LocalizationKey.Canonicalize(message.HudLocalizationKey),
+                    message.HudPosition, message.HudDurationSeconds, message.HudStyle)
+                {
+                    Template = message.BannerTemplate, HeaderKey = message.BannerHeaderKey, TitleKey = message.BannerTitleKey,
+                    Parameters = message.BannerParameters.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase)
+                }
+            };
         }
 
         var settings = new AdvertisementSettings(
@@ -215,7 +228,7 @@ internal sealed class DatabaseAdvertisementProvider(IDbContextFactory<Advertisem
             .SingleOrDefaultAsync(cancellationToken)
             ?? throw new InvalidOperationException("В advertisement.settings отсутствует настройка.");
 
-        var messages = await context.Messages.AsNoTracking()
+        var messages = await context.Messages.AsNoTracking().Include(x => x.BannerTemplate)
             .OrderByDescending(x => x.Priority).ThenBy(x => x.SortOrder).ThenBy(x => x.Id)
             .ToListAsync(cancellationToken);
 
@@ -246,7 +259,7 @@ internal sealed class DatabaseAdvertisementProvider(IDbContextFactory<Advertisem
                 entity.ExcludeBotsFromPlayers,
                 entity.ConfigurationVersion));
 
-    private static AdvertisementMessage MapMessage(AdvertisementMessageEntity entity) => new(
+    internal static AdvertisementMessage MapMessage(AdvertisementMessageEntity entity) => new(
         entity.Id, entity.Key, entity.Name, entity.LocalizationKey,
         string.IsNullOrWhiteSpace(entity.TagKey) ? null : entity.TagKey.Trim(),
         entity.Type, entity.Enabled,
@@ -256,5 +269,14 @@ internal sealed class DatabaseAdvertisementProvider(IDbContextFactory<Advertisem
         entity.DailyStartTime, entity.DailyEndTime,
         DeliveryRuleParser.ParseAudienceType(entity.AudienceType),
         string.IsNullOrWhiteSpace(entity.AudienceGroup) ? null : entity.AudienceGroup.Trim(),
-        entity.MinPlayers, entity.MaxPlayers, entity.StartsAt, entity.EndsAt);
+        entity.MinPlayers, entity.MaxPlayers, entity.StartsAt, entity.EndsAt)
+    {
+        Presentation = new(entity.DisplayType, entity.HudLocalizationKey,
+            entity.HudPosition, entity.HudDurationSeconds, entity.HudStyle)
+        {
+            Template = entity.BannerTemplate is null ? null : JsonSerializer.Deserialize<HudBannerTemplate>(entity.BannerTemplate.DesignJson),
+            HeaderKey = entity.BannerHeaderKey, TitleKey = entity.BannerTitleKey,
+            Parameters = (JsonSerializer.Deserialize<Dictionary<string, string>>(entity.BannerParametersJson) ?? []).ToFrozenDictionary(StringComparer.OrdinalIgnoreCase)
+        }
+    };
 }

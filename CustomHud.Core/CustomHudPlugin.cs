@@ -1,19 +1,29 @@
 using Common.Di;
 using CustomHud.Api;
+using Localization.Api;
 using Microsoft.Extensions.DependencyInjection;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Plugins;
 
 namespace CustomHud.Core;
 
-[PluginMetadata(Id = "CustomHud.Core", Version = "1.0.0", Name = "Elysium Custom HUD",
+[PluginMetadata(Id = "CustomHud.Core", Version = "1.1.0", Name = "Elysium Custom HUD",
     Author = "Elysium", Description = "Общий API цветных HUD-сообщений и баннеров")]
 internal sealed class CustomHudPlugin(ISwiftlyCore core) : Plugin<CustomHudModule>(core)
 {
     private readonly Lazy<CustomHudService> _service = GetRequiredServiceLazy<CustomHudService>();
 
-    protected override void OnConfigureSharedInterfaces(IInterfaceManager interfaces) =>
+    protected override void OnConfigureSharedInterfaces(IInterfaceManager interfaces)
+    {
         interfaces.AddSharedInterface<ICustomHudApi, CustomHudService>(ICustomHudApi.SharedApiKey, _service.Value);
+        interfaces.AddSharedInterface<ICustomBannerApi, CustomHudService>(ICustomBannerApi.SharedApiKey, _service.Value);
+    }
+
+    protected override void OnSharedInterfacesInjected(IInterfaceManager interfaces)
+    {
+        interfaces.TryGetSharedInterface<ILocalizationApi>(ILocalizationApi.SharedApiKey, out var localization);
+        _service.Value.InitializeLocalization(localization);
+    }
 
     protected override void OnReady() => _service.Value.Start();
 

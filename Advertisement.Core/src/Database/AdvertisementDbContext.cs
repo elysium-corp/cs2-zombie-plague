@@ -23,6 +23,10 @@ internal sealed class AdvertisementDbContext(DbContextOptions<AdvertisementDbCon
 
         ConfigureSettings(modelBuilder);
         ConfigureMessages(modelBuilder);
+        modelBuilder.Entity<BannerTemplateEntity>().Property(x => x.UpdatedAt).HasDefaultValueSql(PostgreSqlCurrentTimestamp);
+        modelBuilder.Entity<AdvertisementMessageEntity>().HasOne(x => x.BannerTemplate).WithMany()
+            .HasForeignKey(x => x.BannerTemplateKey).OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<AdvertisementMessageEntity>().Property(x => x.BannerParametersJson).HasDefaultValueSql("'{}'::jsonb");
         ConfigureMessageTranslations(modelBuilder);
         ConfigurePlayerPreferences(modelBuilder);
     }
@@ -69,6 +73,9 @@ internal sealed class AdvertisementDbContext(DbContextOptions<AdvertisementDbCon
 
         entity.Property(x => x.Type).HasDefaultValue("information");
         entity.Property(x => x.DisplayType).HasDefaultValue("chat");
+        entity.Property(x => x.HudPosition).HasDefaultValue("bottom_left");
+        entity.Property(x => x.HudDurationSeconds).HasDefaultValue(8d);
+        entity.Property(x => x.HudStyle).HasDefaultValue("notice");
         entity.Property(x => x.Enabled).HasDefaultValue(true);
         entity.Property(x => x.Priority).HasDefaultValue(0);
         entity.Property(x => x.Weight).HasDefaultValue(100);
@@ -89,7 +96,12 @@ internal sealed class AdvertisementDbContext(DbContextOptions<AdvertisementDbCon
                 table.HasCheckConstraint(
                     "ck_advertisement_messages_type",
                     "type IN ('information', 'advertisement', 'tip', 'warning', 'event', 'system')");
-                table.HasCheckConstraint("ck_advertisement_messages_display_type", "display_type = 'chat'");
+                table.HasCheckConstraint("ck_advertisement_messages_display_type", "display_type IN ('chat', 'hud', 'chat_and_hud')");
+                table.HasCheckConstraint("messages_hud_position_valid",
+                    "hud_position IN ('top_left', 'top_center', 'top_right', 'middle_left', 'center', 'middle_right', 'bottom_left', 'bottom_center', 'bottom_right')");
+                table.HasCheckConstraint("messages_hud_duration_valid", "hud_duration_seconds BETWEEN 0.5 AND 60");
+                table.HasCheckConstraint("messages_hud_style_valid", "hud_style IN ('notice', 'banner')");
+                table.HasCheckConstraint("messages_hud_key_required", "display_type = 'chat' OR (hud_localization_key IS NOT NULL AND btrim(hud_localization_key) <> '')");
                 table.HasCheckConstraint("ck_advertisement_messages_weight", "weight >= 0");
                 table.HasCheckConstraint(
                     "ck_advertisement_messages_interval",
@@ -127,6 +139,10 @@ internal sealed class AdvertisementDbContext(DbContextOptions<AdvertisementDbCon
 
         entity.HasIndex(x => x.LocalizationKey)
             .HasDatabaseName("messages_localization_key_idx");
+
+        entity.HasIndex(x => x.HudLocalizationKey)
+            .HasDatabaseName("messages_hud_localization_key_idx")
+            .HasFilter("hud_localization_key IS NOT NULL");
 
         entity.HasIndex(x => x.TagKey)
             .HasDatabaseName("messages_tag_key_idx")
