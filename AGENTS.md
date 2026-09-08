@@ -36,6 +36,15 @@ the complete runtime ZIP are written to `dist/Release/packages/`. Treat
 - Каждый публичный интерфейс и каждый его член должны иметь XML-документацию,
   описывающую назначение и контракт использования.
 
+## Custom HUD resources
+
+- Для новых Custom HUD Elysium использовать обозначение ресурсов `_v4` и
+  проверенную структуру существующих HUD способностей и сообщений
+  Суффикс обозначает ревизию ресурсов проекта, а не параметр версии компилятора Valve
+- Имена в серверных путях, XML include, генераторе и тестовых fixtures должны совпадать
+- Корневая панель XML не имеет `id`; адресуемые сервером панели находятся внутри неё
+- Успешные .NET-тесты не заменяют компиляцию XML/CSS актуальными CS2 Workshop Tools
+
 ## Lifecycle conventions
 
 `OnLoad` performs early setup, then the module builds its isolated DI container.

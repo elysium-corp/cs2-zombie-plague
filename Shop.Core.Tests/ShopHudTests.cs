@@ -185,9 +185,12 @@ public sealed class ShopHudTests
     [Fact]
     public void PanoramaContainsOnlyAllowedElementsAndAllServerTargets()
     {
-        var xml = XDocument.Load(Path.Combine(AppContext.BaseDirectory, "Fixtures", "elysium_shop_v1.xml"));
+        var xml = XDocument.Load(Path.Combine(AppContext.BaseDirectory, "Fixtures",
+            Path.GetFileName(Path.ChangeExtension(ShopHudRuntime.Layout, ".xml"))));
         var rootPanel = Assert.Single(xml.Root!.Elements("Panel"));
         Assert.Null(rootPanel.Attribute("id"));
+        Assert.Equal("s2r://" + ShopHudRuntime.Style,
+            (string?)Assert.Single(xml.Root!.Element("styles")!.Elements("include")).Attribute("src"));
         // ShopRoot должен оставаться адресуемым потомком для персонального показа HUD.
         Assert.Single(rootPanel.Descendants("Panel").Where(x => (string?)x.Attribute("id") == "ShopRoot"));
         var allowed = new Dictionary<string, string[]>
@@ -210,7 +213,8 @@ public sealed class ShopHudTests
         for (var column = 0; column < ShopHudCatalog.ColumnCount; column++)
         foreach (var prefix in new[] { "Column", "Category", "Page", "Prev", "Next", "Previous", "NextItems" })
             Assert.Contains(prefix + column, ids);
-        var css = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", "elysium_shop_v1.css"));
+        var css = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures",
+            Path.GetFileName(Path.ChangeExtension(ShopHudRuntime.Style, ".css"))));
         Assert.Contains(".BuyHit { width: 100%; height: 100%; visibility: collapse; }", css);
         foreach (var icon in ShopHudIcons.Names) Assert.Contains(".Icon_" + icon + " ", css);
         foreach (var rarity in Enum.GetValues<ItemRarity>()) Assert.Contains(".Rarity" + rarity, css);
