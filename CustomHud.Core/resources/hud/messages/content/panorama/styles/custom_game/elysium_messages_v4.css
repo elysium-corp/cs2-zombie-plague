@@ -1,8 +1,9 @@
 /* Общие сообщения Elysium — поддерживаемые элементы Panorama, без скриптов и захвата ввода */
 .ElysiumMessageCanvas { width: 100%; height: 100%; }
+/* Размеры в единицах Panorama: процентный max-width сужал панель и обрезал даже бренд */
 .Message {
     width: 600px;
-    max-width: 28%;
+    min-width: 600px;
     flow-children: down;
     padding: 14px 18px 15px 18px;
     background-color: gradient(linear, 0% 0%, 100% 100%, from(#0c171cf2), to(#14252ae8));
@@ -18,7 +19,7 @@
     animation-timing-function: ease-out;
     animation-iteration-count: 1;
 }
-.Message.Banner { width: 760px; padding: 18px 24px 22px 24px; border-color: #85dcb175; }
+.Message.Banner { width: 760px; min-width: 760px; padding: 18px 24px 22px 24px; border-color: #85dcb175; }
 .MessageAccent { width: 64px; height: 3px; background-color: #85dcb1; horizontal-align: center; margin-bottom: 10px; visibility: collapse; }
 .MessageBrand { font-family: Stratum2, Arial; font-size: 13px; font-weight: bold; letter-spacing: 5px; color: #85dcb1; horizontal-align: center; margin-bottom: 10px; visibility: collapse; }
 .Banner .MessageAccent, .Banner .MessageBrand { visibility: visible; }
@@ -30,7 +31,6 @@
 .MessageRun.Bold { font-weight: bold; }
 .MessageRun.Italic { font-style: italic; }
 .MessageRun.Underline { text-decoration: underline; }
-.Message.PositionTopCenter, .Message.PositionCenter, .Message.PositionBottomCenter { max-width: 38%; }
 .PositionTopLeft { horizontal-align: left; vertical-align: top; margin: 100px 0px 0px 24px; }
 .PositionTopCenter { horizontal-align: center; vertical-align: top; margin-top: 112px; }
 .PositionTopRight { horizontal-align: right; vertical-align: top; margin: 100px 24px 0px 0px; }
@@ -295,9 +295,9 @@
 .CustomBanner.IconPosition_top .BannerContent { flow-children: down; }
 .CustomBanner.IconPosition_top .BannerIcons { horizontal-align: center; margin: 0px 0px 12px 0px; }
 .CustomBanner.IconPosition_top .BannerTexts { width: 100%; }
-.CustomBanner.Width_small { width: 440px; }
-.CustomBanner.Width_medium { width: 600px; }
-.CustomBanner.Width_large { width: 760px; }
+.CustomBanner.Width_small { width: 440px; min-width: 440px; }
+.CustomBanner.Width_medium { width: 600px; min-width: 600px; }
+.CustomBanner.Width_large { width: 760px; min-width: 760px; }
 .CustomBanner .MessageRun { font-size: 22px; }
 .CustomBanner .BannerHeader .MessageRun { font-size: 14px; font-weight: bold; letter-spacing: 2px; }
 .CustomBanner .BannerTitle .MessageRun { font-size: 30px; font-weight: bold; }

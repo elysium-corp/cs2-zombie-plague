@@ -82,6 +82,22 @@ public sealed class BannerTests
         Assert.Throws<ArgumentException>(() => HudBannerDesign.Validate(template with { Volume = float.NaN }, content));
     }
 
+    [Fact]
+    public void TextBudgetAccountsForIconAndFieldTypography()
+    {
+        var plain = new HudBannerTemplate { Width = "small" };
+        var icon = plain with { Icon = "infection" };
+        Assert.True(HudBannerDesign.TextWidth(icon, "Description") < HudBannerDesign.TextWidth(plain, "Description"));
+        Assert.True(HudBannerDesign.TextWidth(icon, "Title") < HudBannerDesign.TextWidth(icon, "Description"));
+        Assert.True(HudBannerDesign.TextWidth(icon with { Size = "large" }, "Description") < HudBannerDesign.TextWidth(icon, "Description"));
+        Assert.Equal(HudBannerDesign.TextWidth(plain, "Description"), HudBannerDesign.TextWidth(icon with { IconPosition = "top" }, "Description"));
+
+        var round = HudBannerDesign.Parse(new() { Variant = "feature", Icon = "infection" },
+            new() { Header = "ELYSIUM", Title = "Массовое заражение", Description = "Раунд начался" }, HudTextFormat.Markup);
+        Assert.Equal("Массовое заражение", string.Concat(round.Banner!.Title.Select(run => run.Text)));
+        Assert.Equal("Раунд начался", string.Concat(round.Lines.SelectMany(line => line).Select(run => run.Text)));
+    }
+
     private static HudMessage Message(long revision) => new(revision, new(), HudBannerDesign.Parse(
         new() { Sound = "ZombiePlagueSounds.round_start_2" }, new() { Title = "Title", Description = "Description" }, HudTextFormat.Markup), 0);
 

@@ -44,11 +44,26 @@ internal static class HudBannerDesign
     internal static HudDocument Parse(HudBannerTemplate template, HudBannerContent content, HudTextFormat format)
     {
         Validate(template, content);
-        var width = template.Width == "small" ? 32 : template.Width == "large" ? 52 : 40;
-        var description = HudMarkup.Parse(content.Description!, format, HudMessageStyle.Notice, width: width);
-        var header = HudMarkup.Parse(content.Header ?? "", format, HudMessageStyle.Notice, 1, width).Lines.FirstOrDefault() ?? [];
-        var title = HudMarkup.Parse(content.Title ?? "", format, HudMessageStyle.Banner, 1, width).Lines.FirstOrDefault() ?? [];
+        var description = HudMarkup.Parse(content.Description!, format, HudMessageStyle.Notice, width: TextWidth(template, "Description"));
+        var header = HudMarkup.Parse(content.Header ?? "", format, HudMessageStyle.Notice, 1, TextWidth(template, "Header")).Lines.FirstOrDefault() ?? [];
+        var title = HudMarkup.Parse(content.Title ?? "", format, HudMessageStyle.Banner, 1, TextWidth(template, "Title")).Lines.FirstOrDefault() ?? [];
         return description with { Banner = new(template, header, title) };
+    }
+
+    // Оценка строки учитывает место иконки, отступы и шрифт конкретного поля
+    // Та же формула используется в Preview CMS; Panorama дополнительно уменьшает длинные глифы
+    internal static int TextWidth(HudBannerTemplate template, string field)
+    {
+        var panelWidth = template.Width switch { "small" => 440, "large" => 760, _ => 600 };
+        var available = panelWidth - 48 - (template.Icon != "none" && template.IconPosition == "left" ? 80 : 0);
+        var fontSize = (field, template.Size) switch
+        {
+            ("Header", "small") => 12, ("Header", "large") => 16, ("Header", _) => 14,
+            ("Title", "small") => 24, ("Title", "large") => 36, ("Title", _) => 30,
+            (_, "small") => 18, (_, "large") => 26, _ => 22
+        };
+        var glyphWidth = fontSize * 0.65 + (field == "Header" ? 2 : 0);
+        return Math.Clamp((int)(available / glyphWidth), 8, 80);
     }
 
     internal static string[] Classes(HudBannerTemplate t)
