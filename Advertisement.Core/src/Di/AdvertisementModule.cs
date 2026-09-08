@@ -27,7 +27,9 @@ internal sealed class AdvertisementModule(ISwiftlyCore core) : BaseModule(core)
         AddSingleton<AdminAudienceResolver>(services);
         AddSingleton<AdvertisementHudDelivery>(services, provider => new AdvertisementHudDelivery(
             provider.GetRequiredService<Microsoft.Extensions.Options.IOptions<AdvertisementHudConfig>>(), Core.Logger));
-        AddSingleton<AdvertisementSender>(services);
+        AddSingleton<AdvertisementSender>(services, provider => new AdvertisementSender(
+            provider.GetRequiredService<Func<ILocalizationApi>>(), provider.GetRequiredService<AdvertisementHudDelivery>(),
+            () => (Core.EntitySystem.GetGameRules()?.TotalRoundsPlayed ?? -1) + 1));
         AddSingleton<AdvertisementScheduler>(services);
         AddSingleton<AdvertisementApi>(services);
         AddSingleton<ConfigAdvertisementProvider>(services);

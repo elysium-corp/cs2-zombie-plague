@@ -1,3 +1,4 @@
+using CustomHud.Api;
 using System.Collections.Frozen;
 using System.Text.Json;
 using Advertisement.Core.Configuration;
@@ -27,7 +28,7 @@ internal sealed record AdvertisementMessage(
     long Id,
     string Key,
     string Name,
-    string LocalizationKey,
+    string? LocalizationKey,
     string? TagKey,
     string Type,
     bool Enabled,
@@ -164,7 +165,7 @@ internal sealed class ConfigAdvertisementProvider(IOptionsMonitor<AdvertisementC
             messages[id] = new AdvertisementMessage(
                 id, key,
                 string.IsNullOrWhiteSpace(message.Name) ? key : message.Name,
-                string.IsNullOrWhiteSpace(message.LocalizationKey)
+                message.DisplayType == "hud" ? null : string.IsNullOrWhiteSpace(message.LocalizationKey)
                     ? $"Advertisement.Messages.{key}"
                     : LocalizationKey.Canonicalize(message.LocalizationKey),
                 NormalizeTagKey(message.Tag), message.Type, message.Enabled, message.Priority, Math.Max(0, message.Weight),
@@ -182,6 +183,10 @@ internal sealed class ConfigAdvertisementProvider(IOptionsMonitor<AdvertisementC
                     message.DisplayType,
                     string.IsNullOrWhiteSpace(message.HudLocalizationKey) ? null : LocalizationKey.Canonicalize(message.HudLocalizationKey),
                     message.HudPosition, message.HudDurationSeconds, message.HudStyle)
+                {
+                    Template = message.BannerTemplate, HeaderKey = message.BannerHeaderKey, TitleKey = message.BannerTitleKey,
+                    Parameters = message.BannerParameters.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase)
+                }
             };
         }
 
@@ -223,7 +228,7 @@ internal sealed class DatabaseAdvertisementProvider(IDbContextFactory<Advertisem
             .SingleOrDefaultAsync(cancellationToken)
             ?? throw new InvalidOperationException("В advertisement.settings отсутствует настройка.");
 
-        var messages = await context.Messages.AsNoTracking()
+        var messages = await context.Messages.AsNoTracking().Include(x => x.BannerTemplate)
             .OrderByDescending(x => x.Priority).ThenBy(x => x.SortOrder).ThenBy(x => x.Id)
             .ToListAsync(cancellationToken);
 
@@ -268,5 +273,10 @@ internal sealed class DatabaseAdvertisementProvider(IDbContextFactory<Advertisem
     {
         Presentation = new(entity.DisplayType, entity.HudLocalizationKey,
             entity.HudPosition, entity.HudDurationSeconds, entity.HudStyle)
+        {
+            Template = entity.BannerTemplate is null ? null : JsonSerializer.Deserialize<HudBannerTemplate>(entity.BannerTemplate.DesignJson),
+            HeaderKey = entity.BannerHeaderKey, TitleKey = entity.BannerTitleKey,
+            Parameters = (JsonSerializer.Deserialize<Dictionary<string, string>>(entity.BannerParametersJson) ?? []).ToFrozenDictionary(StringComparer.OrdinalIgnoreCase)
+        }
     };
 }

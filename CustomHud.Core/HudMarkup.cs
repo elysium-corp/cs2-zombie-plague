@@ -11,7 +11,10 @@ internal readonly record struct HudRunStyle(int Color, bool Bold = false, bool I
 }
 
 internal sealed record HudRun(string Text, HudRunStyle Style);
-internal sealed record HudDocument(HudRun[][] Lines);
+internal sealed record HudDocument(HudRun[][] Lines)
+{
+    internal HudBannerDocument? Banner { get; init; }
+}
 
 internal static class HudMarkup
 {
@@ -26,7 +29,7 @@ internal static class HudMarkup
     private static readonly Regex StyleAttribute = new("(?:^|\\s)style\\s*=\\s*['\"][^'\"]*?color\\s*:\\s*(?<value>#[a-fA-F0-9]{3,6}|[a-zA-Z]+)",
         RegexOptions.CultureInvariant | RegexOptions.IgnoreCase | RegexOptions.NonBacktracking);
 
-    internal static HudDocument Parse(string text, HudTextFormat format, HudMessageStyle messageStyle)
+    internal static HudDocument Parse(string text, HudTextFormat format, HudMessageStyle messageStyle, int maximumLines = MaximumLines, int? width = null)
     {
         ArgumentNullException.ThrowIfNull(text);
         if (text.Length > MaximumInputLength) throw new ArgumentException("HUD: текст длиннее 4096 символов", nameof(text));
@@ -45,7 +48,7 @@ internal static class HudMarkup
             }
             Append(text[start..], decode: true);
         }
-        return Wrap(glyphs, messageStyle == HudMessageStyle.Banner ? 40 : 52);
+        return Wrap(glyphs, width ?? (messageStyle == HudMessageStyle.Banner ? 40 : 52), maximumLines);
 
         void Append(string value, bool decode)
         {
@@ -94,11 +97,11 @@ internal static class HudMarkup
         }
     }
 
-    private static HudDocument Wrap(List<(Rune Glyph, HudRunStyle Style)> glyphs, int width)
+    private static HudDocument Wrap(List<(Rune Glyph, HudRunStyle Style)> glyphs, int width, int maximumLines)
     {
         var lines = new List<HudRun[]>();
         var cursor = 0;
-        while (cursor < glyphs.Count && lines.Count < MaximumLines)
+        while (cursor < glyphs.Count && lines.Count < maximumLines)
         {
             var end = cursor;
             while (end < glyphs.Count && end - cursor < width && glyphs[end].Glyph.Value != '\n') end++;

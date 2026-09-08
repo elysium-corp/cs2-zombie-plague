@@ -69,7 +69,7 @@ internal sealed class RateLimitedLogger(ILogger logger)
     }
 }
 
-internal sealed class AdvertisementSender(Func<ILocalizationApi> localization, AdvertisementHudDelivery hud)
+internal sealed class AdvertisementSender(Func<ILocalizationApi> localization, AdvertisementHudDelivery hud, Func<int>? round = null)
 {
     public void Send(AdvertisementSnapshot snapshot, AdvertisementMessage message, IEnumerable<IPlayer> targets,
         int humans, int bots, string serverName, string mapName, string nextMap, int maxPlayers,
@@ -87,8 +87,12 @@ internal sealed class AdvertisementSender(Func<ILocalizationApi> localization, A
                 bots,
                 maxPlayers,
                 nextMap,
-                now);
-            var text = localeOverride is null
+                now).ToDictionary(item => item.Key, item => item.Value, StringComparer.OrdinalIgnoreCase);
+            parameters["round"] = round?.Invoke() ?? 0;
+            if (message.Presentation is { } presentation)
+                foreach (var (name, value) in presentation.Parameters)
+                    parameters.TryAdd(name, value);
+            var text = message.LocalizationKey is null || message.Presentation?.DisplayType == "hud" ? null : localeOverride is null
                 ? localizationApi.FormatForPlayer(player, message.LocalizationKey, parameters)
                 : localizationApi.FormatForLanguage(localeOverride, message.LocalizationKey, parameters);
 
@@ -114,7 +118,7 @@ internal sealed class AdvertisementSender(Func<ILocalizationApi> localization, A
                     item => item.Value is string value ? (object?)HudText.Escape(value) : item.Value,
                     StringComparer.OrdinalIgnoreCase);
                 var hudKey = message.Presentation?.HudLocalizationKey ?? message.LocalizationKey;
-                var hudText = localeOverride is null
+                var hudText = hudKey is null ? null : localeOverride is null
                     ? localizationApi.FormatForPlayer(player, hudKey, escaped)
                     : localizationApi.FormatForLanguage(localeOverride, hudKey, escaped);
                 if (hudText is null) return string.Empty;
@@ -122,7 +126,7 @@ internal sealed class AdvertisementSender(Func<ILocalizationApi> localization, A
                     ? localizationApi.GetTagForPlayer(player, tagKey)
                     : localizationApi.GetTagForLanguage(localeOverride, tagKey);
                 return tag is null ? hudText : $"[{tag.Color}]&#91;{HudText.Escape(tag.Text)}&#93;[/] {hudText}";
-            }, message.Presentation);
+            }, message.Presentation, parameters, localeOverride);
             if (!hudOnly && !string.IsNullOrWhiteSpace(text)) player.SendMessage(MessageType.Chat, output.ToString().Colored());
         }
     }

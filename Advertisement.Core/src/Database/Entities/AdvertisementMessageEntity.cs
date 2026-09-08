@@ -20,7 +20,7 @@ internal sealed class AdvertisementMessageEntity
 
     [MaxLength(191)]
     [Column("localization_key")]
-    public string LocalizationKey { get; set; } = string.Empty;
+    public string? LocalizationKey { get; set; }
 
     [MaxLength(64)]
     [Column("tag_key")]
@@ -48,6 +48,16 @@ internal sealed class AdvertisementMessageEntity
     [MaxLength(16)]
     [Column("hud_style")]
     public string HudStyle { get; set; } = "notice";
+
+    [MaxLength(64), Column("banner_template_key")]
+    public string? BannerTemplateKey { get; set; }
+    [MaxLength(191), Column("banner_header_key")]
+    public string? BannerHeaderKey { get; set; }
+    [MaxLength(191), Column("banner_title_key")]
+    public string? BannerTitleKey { get; set; }
+    [Column("banner_parameters", TypeName = "jsonb")]
+    public string BannerParametersJson { get; set; } = "{}";
+    public BannerTemplateEntity? BannerTemplate { get; set; }
 
     [Column("enabled")]
     public bool Enabled { get; set; } = true;

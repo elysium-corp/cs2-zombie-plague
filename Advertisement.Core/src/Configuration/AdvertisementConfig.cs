@@ -1,3 +1,5 @@
+using CustomHud.Api;
+
 namespace Advertisement.Core.Configuration;
 
 internal sealed class AdvertisementConfig
@@ -31,6 +33,10 @@ internal sealed class FallbackMessageConfig
     public string HudPosition { get; set; } = "bottom_left";
     public double HudDurationSeconds { get; set; } = 8;
     public string HudStyle { get; set; } = "notice";
+    public HudBannerTemplate? BannerTemplate { get; set; }
+    public string? BannerHeaderKey { get; set; }
+    public string? BannerTitleKey { get; set; }
+    public Dictionary<string, string> BannerParameters { get; set; } = new(StringComparer.OrdinalIgnoreCase);
     public string? Tag { get; set; }
     public string Type { get; set; } = "information";
     public bool Enabled { get; set; } = true;

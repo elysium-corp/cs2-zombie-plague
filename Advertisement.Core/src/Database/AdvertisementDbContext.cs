@@ -23,6 +23,10 @@ internal sealed class AdvertisementDbContext(DbContextOptions<AdvertisementDbCon
 
         ConfigureSettings(modelBuilder);
         ConfigureMessages(modelBuilder);
+        modelBuilder.Entity<BannerTemplateEntity>().Property(x => x.UpdatedAt).HasDefaultValueSql(PostgreSqlCurrentTimestamp);
+        modelBuilder.Entity<AdvertisementMessageEntity>().HasOne(x => x.BannerTemplate).WithMany()
+            .HasForeignKey(x => x.BannerTemplateKey).OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<AdvertisementMessageEntity>().Property(x => x.BannerParametersJson).HasDefaultValueSql("'{}'::jsonb");
         ConfigureMessageTranslations(modelBuilder);
         ConfigurePlayerPreferences(modelBuilder);
     }

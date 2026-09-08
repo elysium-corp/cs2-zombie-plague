@@ -1,15 +1,17 @@
 using CustomHud.Api;
+using Localization.Api;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Commands;
 using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.Players;
+using SwiftlyS2.Shared.Sounds;
 
 namespace CustomHud.Core;
 
 internal sealed class CustomHudService(ISwiftlyCore core, IOptions<CustomHudConfig> config,
-    TimeProvider clock, Func<IHudRuntime> createRuntime) : ICustomHudApi, IDisposable
+    TimeProvider clock, Func<IHudRuntime> createRuntime) : ICustomHudApi, ICustomBannerApi, IDisposable
 {
     private static readonly HudPosition[] Positions = Enum.GetValues<HudPosition>();
     private readonly HudMessageStore _messages = new(clock);
@@ -24,6 +26,35 @@ internal sealed class CustomHudService(ISwiftlyCore core, IOptions<CustomHudConf
     private int _generation;
     private int _recoveries;
     private string _status = "выключен";
+    private ILocalizationApi? _localization;
+
+    internal void InitializeLocalization(ILocalizationApi? localization) => _localization = localization;
+
+    public bool Show(IPlayer player, HudBannerTemplate template, HudBannerContent content, HudMessageOptions? options = null)
+    {
+        options ??= new HudMessageOptions();
+        HudMessageStore.Validate(options);
+        var document = HudBannerDesign.Parse(template, content, options.Format);
+        return IsAvailable && Eligible(player)
+            && document.Lines.Any(line => line.Any(run => !string.IsNullOrWhiteSpace(run.Text)))
+            && _messages.Put(player.PlayerID, player.SteamID, document, options);
+    }
+
+    public bool ShowLocalized(IPlayer player, HudBannerTemplate template, HudBannerContent keys,
+        IReadOnlyDictionary<string, object?> parameters, HudMessageOptions? options = null, string? language = null)
+    {
+        HudBannerDesign.Validate(template, keys);
+        ArgumentNullException.ThrowIfNull(parameters);
+        if (!IsAvailable || !Eligible(player) || _localization is null) return false;
+        var escaped = parameters.ToDictionary(item => item.Key,
+            item => item.Value is string value ? (object?)HudText.Escape(value) : item.Value, StringComparer.OrdinalIgnoreCase);
+        string? Resolve(string? key) => string.IsNullOrEmpty(key) ? null : language is null
+            ? _localization.FormatForPlayer(player, key, escaped) : _localization.FormatForLanguage(language, key, escaped);
+        var content = new HudBannerContent { Header = Resolve(keys.Header), Title = Resolve(keys.Title), Description = Resolve(keys.Description) };
+        if ((!string.IsNullOrEmpty(keys.Header) && string.IsNullOrWhiteSpace(content.Header))
+            || (!string.IsNullOrEmpty(keys.Title) && string.IsNullOrWhiteSpace(content.Title)) || string.IsNullOrWhiteSpace(content.Description)) return false;
+        return Show(player, template, content, (options ?? new HudMessageOptions()) with { Format = HudTextFormat.Markup });
+    }
 
     public bool IsAvailable => !_disposed && _wanted && _runtime is { IsValid: true };
 
@@ -78,6 +109,19 @@ internal sealed class CustomHudService(ISwiftlyCore core, IOptions<CustomHudConf
 
     private static bool Eligible(IPlayer player) => player is { IsValid: true, IsFakeClient: false };
 
+    private void PlaySound(int playerId, string name, float volume)
+    {
+        try
+        {
+            using var sound = new SoundEvent(name);
+            sound.Recipients.AddRecipient(playerId);
+            sound.SourceEntityIndex = -1;
+            sound.Volume = volume;
+            sound.Emit();
+        }
+        catch (Exception error) { core.Logger.LogWarning(error, "[CustomHud] Не удалось воспроизвести звук баннера {Sound}", name); }
+    }
+
     private void QueueStart(bool preserveMessages = false)
     {
         Stop(clearMessages: !preserveMessages);
@@ -90,7 +134,7 @@ internal sealed class CustomHudService(ISwiftlyCore core, IOptions<CustomHudConf
             try
             {
                 _runtime = createRuntime();
-                _presenter = new HudPresenter(_runtime);
+                _presenter = new HudPresenter(_runtime, clock, PlaySound);
                 _timer = core.Scheduler.DelayAndRepeatBySeconds(0.1f, 0.1f, () =>
                 {
                     if (generation == _generation) Tick();

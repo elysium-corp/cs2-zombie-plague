@@ -35,7 +35,7 @@ public sealed class CmsHudDeliveryTests
     }
 
     [Fact]
-    public void InvalidOrMissingHudDoesNotConsumeChatFallback()
+    public void HudOnlyNeverLeaksIntoChatOnInvalidSettingsOrMissingText()
     {
         var api = new Hud();
         using var delivery = Delivery(api);
@@ -44,8 +44,8 @@ public sealed class CmsHudDeliveryTests
             new("invalid", "Hud.Text"), new("hud", "Hud.Text", "invalid"),
             new("hud", "Hud.Text", HudDurationSeconds: double.NaN),
             new("hud", "Hud.Text", HudDurationSeconds: 61), new("hud", "Hud.Text", HudStyle: "invalid")
-        }) Assert.False(delivery.Send(null!, "Test", () => throw new InvalidOperationException(), presentation));
-        Assert.False(delivery.Send(null!, "Test", () => null, new("hud", "Missing")));
+        }) Assert.Equal(presentation.DisplayType == "hud", delivery.Send(null!, "Test", () => throw new InvalidOperationException(), presentation));
+        Assert.True(delivery.Send(null!, "Test", () => null, new("hud", "Missing")));
         Assert.Empty(api.Texts);
     }
 
@@ -81,7 +81,7 @@ public sealed class CmsHudDeliveryTests
             new[] { message }.ToFrozenDictionary(item => item.Id), DateTimeOffset.UtcNow, AdvertisementSource.Database);
         new AdvertisementSender(() => localization, delivery).Send(snapshot, message, [player],
             1, 0, "Server", "Map", "Next", 32, DateTimeOffset.UtcNow, null);
-        Assert.Equal(mode == "hud" && available ? 0 : 1, chat.Count);
+        Assert.Equal(mode == "hud" ? 0 : 1, chat.Count);
         if (chat.Count > 0) Assert.Contains("Chat only", chat[0]);
         Assert.Equal(mode != "chat" && available ? 1 : 0, api.Texts.Count);
         if (api.Texts.Count > 0) Assert.Equal("<b>&lt;b&gt;&#91;red&#93;Игрок</b>", api.Texts[0]);

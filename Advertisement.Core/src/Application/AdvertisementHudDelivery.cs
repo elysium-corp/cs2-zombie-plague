@@ -28,16 +28,19 @@ internal sealed class AdvertisementHudDelivery(IOptions<AdvertisementHudConfig> 
     internal const string Channel = "Advertisement.Messages";
     private ICustomHudApi? _hud;
     private bool _warned;
+    private ICustomBannerApi? _banners;
 
-    internal void Initialize(ICustomHudApi? hud)
+    internal void Initialize(ICustomHudApi? hud, ICustomBannerApi? banners = null)
     {
-        if (ReferenceEquals(_hud, hud)) return;
+        if (ReferenceEquals(_hud, hud) && ReferenceEquals(_banners, banners)) return;
         _hud?.ClearChannel(Channel);
         _hud = hud;
+        _banners = banners;
     }
 
-    // true означает, что HUD принят как единственный способ вывода; иначе вызывающий код отправляет обычный чат
-    internal bool Send(IPlayer player, string key, Func<string?> text, AdvertisementPresentation? presentation = null)
+    // true запрещает вывод в чат. Явный HUD-only не меняет канал при ошибке; legacy сохраняет прежнее резервирование.
+    internal bool Send(IPlayer player, string key, Func<string?> text, AdvertisementPresentation? presentation = null,
+        IReadOnlyDictionary<string, object?>? parameters = null, string? language = null)
     {
         var settings = config.Value;
         settings.Messages.TryGetValue(key, out var rule);
@@ -48,7 +51,8 @@ internal sealed class AdvertisementHudDelivery(IOptions<AdvertisementHudConfig> 
             "chat_and_hud" => AdvertisementDeliveryMode.ChatAndHud,
             _ => (AdvertisementDeliveryMode)(-1)
         };
-        if (mode == AdvertisementDeliveryMode.Chat || _hud is not { IsAvailable: true }) return false;
+        var hudOnly = presentation?.DisplayType == "hud";
+        if (mode == AdvertisementDeliveryMode.Chat || _hud is not { IsAvailable: true }) return hudOnly;
         var duration = presentation?.HudDurationSeconds ?? rule?.DurationSeconds ?? settings.DurationSeconds;
         var position = presentation is null ? rule?.Position ?? settings.Position : presentation.HudPosition switch
         {
@@ -64,25 +68,35 @@ internal sealed class AdvertisementHudDelivery(IOptions<AdvertisementHudConfig> 
         };
         if ((presentation is not null && string.IsNullOrWhiteSpace(presentation.HudLocalizationKey)) || !Enum.IsDefined(mode) || !Enum.IsDefined(position) || !Enum.IsDefined(style) || !double.IsFinite(duration) || duration is < 0.5 or > 60)
         {
-            if (!_warned) logger.LogWarning("[Advertisement] Некорректные настройки доставки HUD; используется чат");
+            if (!_warned) logger.LogWarning("[Advertisement] Некорректные настройки доставки HUD; доставка HUD пропущена");
             _warned = true;
-            return false;
+            return hudOnly;
         }
         try
         {
-            var content = text();
-            if (string.IsNullOrWhiteSpace(content)) return false;
-            var accepted = _hud.Show(player, content, new HudMessageOptions
+            var options = new HudMessageOptions
             {
                 Channel = Channel, Position = position, DurationSeconds = duration, Priority = 0, Style = style
-            });
-            return accepted && mode == AdvertisementDeliveryMode.Hud;
+            };
+            if (presentation?.Template is { } template)
+            {
+                if (_banners is { IsAvailable: true })
+                    _banners.ShowLocalized(player, template, new HudBannerContent
+                    {
+                        Header = presentation.HeaderKey, Title = presentation.TitleKey, Description = presentation.HudLocalizationKey
+                    }, parameters ?? new Dictionary<string, object?>(), options, language);
+                return hudOnly;
+            }
+            var content = text();
+            if (string.IsNullOrWhiteSpace(content)) return hudOnly;
+            var accepted = _hud.Show(player, content, options);
+            return hudOnly || (accepted && mode == AdvertisementDeliveryMode.Hud);
         }
         catch (ArgumentException error)
         {
-            if (!_warned) logger.LogWarning(error, "[Advertisement] Текст не принят Custom HUD; используется чат");
+            if (!_warned) logger.LogWarning(error, "[Advertisement] Текст не принят Custom HUD; доставка HUD пропущена");
             _warned = true;
-            return false;
+            return hudOnly;
         }
     }
 

@@ -17,6 +17,7 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <ProjectReference Include="../CustomHud.Api/CustomHud.Api.csproj" Private="true" />
+        <ProjectReference Include="../Localization.Api/Localization.Api.csproj" Private="true" />
         <ProjectReference Include="../CustomHud.Core/CustomHud.Core.csproj" Private="true" />
     </ItemGroup>
     <ItemGroup>
