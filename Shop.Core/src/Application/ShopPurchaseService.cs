@@ -11,6 +11,7 @@ using Shop.Api.Events;
 using Shop.Core.Data;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Players;
+using Shop.Core.Hud;
 
 namespace Shop.Core.Application;
 
@@ -26,7 +27,8 @@ internal sealed class ShopPurchaseService(
     Func<ILocalizationApi> localizationApi,
     ILogger<ShopPurchaseService> logger,
     IShopSoundFeedback soundFeedback,
-    BannerNotificationClient? notifications = null)
+    BannerNotificationClient? notifications = null,
+    ShopHudState? hudState = null)
 {
     public IReadOnlyCollection<ShopOffer> GetOffers(ShopType shopType) => cache.Current.Offers
         .Where(offer => offer.ShopType == shopType)
@@ -114,6 +116,7 @@ internal sealed class ShopPurchaseService(
     public bool TryPurchaseActiveWeaponAmmo(IPlayer player)
     {
         if (!player.IsValid || !player.IsAlive ||
+            hudState?.IsOpen(player) == true ||
             core.MenusAPI.GetCurrentMenu(player) is not null ||
             !equipmentApi().TryGetActiveWeapon(player, out var weapon))
         {

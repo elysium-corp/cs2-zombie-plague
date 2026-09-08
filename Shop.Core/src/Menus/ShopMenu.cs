@@ -42,9 +42,7 @@ internal sealed class ShopMenu(
 
     protected override IReadOnlyCollection<string> Commands { get; } =
     [
-        "shop",
-        "магазин",
-        "ьфпфяш"
+        "shop_classic"
     ];
 
     public void Initialize()

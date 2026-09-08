@@ -1,0 +1,538 @@
+<root>
+    <styles>
+        <include src="s2r://panorama/styles/custom_game/elysium_shop_v1.vcss_c" />
+    </styles>
+    <Panel id="ShopRoot" class="ShopRoot">
+        <Panel class="ShopWindow">
+            <Panel class="Header">
+                <Panel class="Brand">
+                    <Label text="ELYSIUM" hittest="false" class="BrandName" />
+                    <Label text="{s:value}" hittest="false" id="StoreTitle" class="StoreTitle" />
+                </Panel>
+                <Label text="{s:value}" hittest="false" id="Balance" class="Balance" />
+                <Button id="Close" class="Close">
+                    <Label text="×" hittest="false" class="CloseLabel" />
+                </Button>
+            </Panel>
+            <Panel class="Body">
+                <Panel class="Columns">
+                    <Panel id="Column0" class="Column">
+                        <Label text="{s:value}" hittest="false" id="Category0" class="Category" />
+                        <Panel class="Cards">
+                            <Panel id="Card0" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name0" class="ItemName" />
+                                <Panel id="Icon0" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price0" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status0" class="Status" />
+                                <Button id="Buy0" class="BuyHit" />
+                            </Panel>
+                            <Panel id="Card1" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name1" class="ItemName" />
+                                <Panel id="Icon1" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price1" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status1" class="Status" />
+                                <Button id="Buy1" class="BuyHit" />
+                            </Panel>
+                            <Panel id="Card2" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name2" class="ItemName" />
+                                <Panel id="Icon2" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price2" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status2" class="Status" />
+                                <Button id="Buy2" class="BuyHit" />
+                            </Panel>
+                            <Panel id="Card3" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name3" class="ItemName" />
+                                <Panel id="Icon3" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price3" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status3" class="Status" />
+                                <Button id="Buy3" class="BuyHit" />
+                            </Panel>
+                            <Panel id="Card4" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name4" class="ItemName" />
+                                <Panel id="Icon4" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price4" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status4" class="Status" />
+                                <Button id="Buy4" class="BuyHit" />
+                            </Panel>
+                            <Panel id="Card5" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name5" class="ItemName" />
+                                <Panel id="Icon5" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price5" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status5" class="Status" />
+                                <Button id="Buy5" class="BuyHit" />
+                            </Panel>
+                        </Panel>
+                        <Panel class="ItemPager">
+                            <Panel id="Prev0" class="Nav">
+                                <Label text="‹" hittest="false" class="NavGlyph" />
+                                <Button id="Previous0" class="NavHit">
+                                    <Label text="‹" hittest="false" class="NavGlyph" />
+                                </Button>
+                            </Panel>
+                            <Label text="{s:value}" hittest="false" id="Page0" class="PageText" />
+                            <Panel id="Next0" class="Nav">
+                                <Label text="›" hittest="false" class="NavGlyph" />
+                                <Button id="NextItems0" class="NavHit">
+                                    <Label text="›" hittest="false" class="NavGlyph" />
+                                </Button>
+                            </Panel>
+                        </Panel>
+                    </Panel>
+                    <Panel id="Column1" class="Column">
+                        <Label text="{s:value}" hittest="false" id="Category1" class="Category" />
+                        <Panel class="Cards">
+                            <Panel id="Card6" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name6" class="ItemName" />
+                                <Panel id="Icon6" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price6" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status6" class="Status" />
+                                <Button id="Buy6" class="BuyHit" />
+                            </Panel>
+                            <Panel id="Card7" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name7" class="ItemName" />
+                                <Panel id="Icon7" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price7" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status7" class="Status" />
+                                <Button id="Buy7" class="BuyHit" />
+                            </Panel>
+                            <Panel id="Card8" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name8" class="ItemName" />
+                                <Panel id="Icon8" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price8" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status8" class="Status" />
+                                <Button id="Buy8" class="BuyHit" />
+                            </Panel>
+                            <Panel id="Card9" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name9" class="ItemName" />
+                                <Panel id="Icon9" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price9" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status9" class="Status" />
+                                <Button id="Buy9" class="BuyHit" />
+                            </Panel>
+                            <Panel id="Card10" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name10" class="ItemName" />
+                                <Panel id="Icon10" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price10" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status10" class="Status" />
+                                <Button id="Buy10" class="BuyHit" />
+                            </Panel>
+                            <Panel id="Card11" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name11" class="ItemName" />
+                                <Panel id="Icon11" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price11" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status11" class="Status" />
+                                <Button id="Buy11" class="BuyHit" />
+                            </Panel>
+                        </Panel>
+                        <Panel class="ItemPager">
+                            <Panel id="Prev1" class="Nav">
+                                <Label text="‹" hittest="false" class="NavGlyph" />
+                                <Button id="Previous1" class="NavHit">
+                                    <Label text="‹" hittest="false" class="NavGlyph" />
+                                </Button>
+                            </Panel>
+                            <Label text="{s:value}" hittest="false" id="Page1" class="PageText" />
+                            <Panel id="Next1" class="Nav">
+                                <Label text="›" hittest="false" class="NavGlyph" />
+                                <Button id="NextItems1" class="NavHit">
+                                    <Label text="›" hittest="false" class="NavGlyph" />
+                                </Button>
+                            </Panel>
+                        </Panel>
+                    </Panel>
+                    <Panel id="Column2" class="Column">
+                        <Label text="{s:value}" hittest="false" id="Category2" class="Category" />
+                        <Panel class="Cards">
+                            <Panel id="Card12" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name12" class="ItemName" />
+                                <Panel id="Icon12" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price12" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status12" class="Status" />
+                                <Button id="Buy12" class="BuyHit" />
+                            </Panel>
+                            <Panel id="Card13" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name13" class="ItemName" />
+                                <Panel id="Icon13" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price13" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status13" class="Status" />
+                                <Button id="Buy13" class="BuyHit" />
+                            </Panel>
+                            <Panel id="Card14" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name14" class="ItemName" />
+                                <Panel id="Icon14" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price14" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status14" class="Status" />
+                                <Button id="Buy14" class="BuyHit" />
+                            </Panel>
+                            <Panel id="Card15" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name15" class="ItemName" />
+                                <Panel id="Icon15" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price15" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status15" class="Status" />
+                                <Button id="Buy15" class="BuyHit" />
+                            </Panel>
+                            <Panel id="Card16" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name16" class="ItemName" />
+                                <Panel id="Icon16" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price16" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status16" class="Status" />
+                                <Button id="Buy16" class="BuyHit" />
+                            </Panel>
+                            <Panel id="Card17" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name17" class="ItemName" />
+                                <Panel id="Icon17" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price17" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status17" class="Status" />
+                                <Button id="Buy17" class="BuyHit" />
+                            </Panel>
+                        </Panel>
+                        <Panel class="ItemPager">
+                            <Panel id="Prev2" class="Nav">
+                                <Label text="‹" hittest="false" class="NavGlyph" />
+                                <Button id="Previous2" class="NavHit">
+                                    <Label text="‹" hittest="false" class="NavGlyph" />
+                                </Button>
+                            </Panel>
+                            <Label text="{s:value}" hittest="false" id="Page2" class="PageText" />
+                            <Panel id="Next2" class="Nav">
+                                <Label text="›" hittest="false" class="NavGlyph" />
+                                <Button id="NextItems2" class="NavHit">
+                                    <Label text="›" hittest="false" class="NavGlyph" />
+                                </Button>
+                            </Panel>
+                        </Panel>
+                    </Panel>
+                    <Panel id="Column3" class="Column">
+                        <Label text="{s:value}" hittest="false" id="Category3" class="Category" />
+                        <Panel class="Cards">
+                            <Panel id="Card18" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name18" class="ItemName" />
+                                <Panel id="Icon18" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price18" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status18" class="Status" />
+                                <Button id="Buy18" class="BuyHit" />
+                            </Panel>
+                            <Panel id="Card19" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name19" class="ItemName" />
+                                <Panel id="Icon19" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price19" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status19" class="Status" />
+                                <Button id="Buy19" class="BuyHit" />
+                            </Panel>
+                            <Panel id="Card20" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name20" class="ItemName" />
+                                <Panel id="Icon20" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price20" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status20" class="Status" />
+                                <Button id="Buy20" class="BuyHit" />
+                            </Panel>
+                            <Panel id="Card21" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name21" class="ItemName" />
+                                <Panel id="Icon21" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price21" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status21" class="Status" />
+                                <Button id="Buy21" class="BuyHit" />
+                            </Panel>
+                            <Panel id="Card22" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name22" class="ItemName" />
+                                <Panel id="Icon22" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price22" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status22" class="Status" />
+                                <Button id="Buy22" class="BuyHit" />
+                            </Panel>
+                            <Panel id="Card23" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name23" class="ItemName" />
+                                <Panel id="Icon23" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price23" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status23" class="Status" />
+                                <Button id="Buy23" class="BuyHit" />
+                            </Panel>
+                        </Panel>
+                        <Panel class="ItemPager">
+                            <Panel id="Prev3" class="Nav">
+                                <Label text="‹" hittest="false" class="NavGlyph" />
+                                <Button id="Previous3" class="NavHit">
+                                    <Label text="‹" hittest="false" class="NavGlyph" />
+                                </Button>
+                            </Panel>
+                            <Label text="{s:value}" hittest="false" id="Page3" class="PageText" />
+                            <Panel id="Next3" class="Nav">
+                                <Label text="›" hittest="false" class="NavGlyph" />
+                                <Button id="NextItems3" class="NavHit">
+                                    <Label text="›" hittest="false" class="NavGlyph" />
+                                </Button>
+                            </Panel>
+                        </Panel>
+                    </Panel>
+                    <Panel id="Column4" class="Column">
+                        <Label text="{s:value}" hittest="false" id="Category4" class="Category" />
+                        <Panel class="Cards">
+                            <Panel id="Card24" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name24" class="ItemName" />
+                                <Panel id="Icon24" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price24" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status24" class="Status" />
+                                <Button id="Buy24" class="BuyHit" />
+                            </Panel>
+                            <Panel id="Card25" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name25" class="ItemName" />
+                                <Panel id="Icon25" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price25" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status25" class="Status" />
+                                <Button id="Buy25" class="BuyHit" />
+                            </Panel>
+                            <Panel id="Card26" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name26" class="ItemName" />
+                                <Panel id="Icon26" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price26" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status26" class="Status" />
+                                <Button id="Buy26" class="BuyHit" />
+                            </Panel>
+                            <Panel id="Card27" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name27" class="ItemName" />
+                                <Panel id="Icon27" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price27" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status27" class="Status" />
+                                <Button id="Buy27" class="BuyHit" />
+                            </Panel>
+                            <Panel id="Card28" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name28" class="ItemName" />
+                                <Panel id="Icon28" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price28" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status28" class="Status" />
+                                <Button id="Buy28" class="BuyHit" />
+                            </Panel>
+                            <Panel id="Card29" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name29" class="ItemName" />
+                                <Panel id="Icon29" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price29" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status29" class="Status" />
+                                <Button id="Buy29" class="BuyHit" />
+                            </Panel>
+                        </Panel>
+                        <Panel class="ItemPager">
+                            <Panel id="Prev4" class="Nav">
+                                <Label text="‹" hittest="false" class="NavGlyph" />
+                                <Button id="Previous4" class="NavHit">
+                                    <Label text="‹" hittest="false" class="NavGlyph" />
+                                </Button>
+                            </Panel>
+                            <Label text="{s:value}" hittest="false" id="Page4" class="PageText" />
+                            <Panel id="Next4" class="Nav">
+                                <Label text="›" hittest="false" class="NavGlyph" />
+                                <Button id="NextItems4" class="NavHit">
+                                    <Label text="›" hittest="false" class="NavGlyph" />
+                                </Button>
+                            </Panel>
+                        </Panel>
+                    </Panel>
+                    <Panel id="Column5" class="Column">
+                        <Label text="{s:value}" hittest="false" id="Category5" class="Category" />
+                        <Panel class="Cards">
+                            <Panel id="Card30" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name30" class="ItemName" />
+                                <Panel id="Icon30" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price30" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status30" class="Status" />
+                                <Button id="Buy30" class="BuyHit" />
+                            </Panel>
+                            <Panel id="Card31" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name31" class="ItemName" />
+                                <Panel id="Icon31" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price31" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status31" class="Status" />
+                                <Button id="Buy31" class="BuyHit" />
+                            </Panel>
+                            <Panel id="Card32" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name32" class="ItemName" />
+                                <Panel id="Icon32" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price32" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status32" class="Status" />
+                                <Button id="Buy32" class="BuyHit" />
+                            </Panel>
+                            <Panel id="Card33" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name33" class="ItemName" />
+                                <Panel id="Icon33" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price33" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status33" class="Status" />
+                                <Button id="Buy33" class="BuyHit" />
+                            </Panel>
+                            <Panel id="Card34" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name34" class="ItemName" />
+                                <Panel id="Icon34" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price34" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status34" class="Status" />
+                                <Button id="Buy34" class="BuyHit" />
+                            </Panel>
+                            <Panel id="Card35" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name35" class="ItemName" />
+                                <Panel id="Icon35" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price35" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status35" class="Status" />
+                                <Button id="Buy35" class="BuyHit" />
+                            </Panel>
+                        </Panel>
+                        <Panel class="ItemPager">
+                            <Panel id="Prev5" class="Nav">
+                                <Label text="‹" hittest="false" class="NavGlyph" />
+                                <Button id="Previous5" class="NavHit">
+                                    <Label text="‹" hittest="false" class="NavGlyph" />
+                                </Button>
+                            </Panel>
+                            <Label text="{s:value}" hittest="false" id="Page5" class="PageText" />
+                            <Panel id="Next5" class="Nav">
+                                <Label text="›" hittest="false" class="NavGlyph" />
+                                <Button id="NextItems5" class="NavHit">
+                                    <Label text="›" hittest="false" class="NavGlyph" />
+                                </Button>
+                            </Panel>
+                        </Panel>
+                    </Panel>
+                    <Panel id="Column6" class="Column">
+                        <Label text="{s:value}" hittest="false" id="Category6" class="Category" />
+                        <Panel class="Cards">
+                            <Panel id="Card36" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name36" class="ItemName" />
+                                <Panel id="Icon36" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price36" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status36" class="Status" />
+                                <Button id="Buy36" class="BuyHit" />
+                            </Panel>
+                            <Panel id="Card37" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name37" class="ItemName" />
+                                <Panel id="Icon37" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price37" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status37" class="Status" />
+                                <Button id="Buy37" class="BuyHit" />
+                            </Panel>
+                            <Panel id="Card38" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name38" class="ItemName" />
+                                <Panel id="Icon38" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price38" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status38" class="Status" />
+                                <Button id="Buy38" class="BuyHit" />
+                            </Panel>
+                            <Panel id="Card39" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name39" class="ItemName" />
+                                <Panel id="Icon39" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price39" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status39" class="Status" />
+                                <Button id="Buy39" class="BuyHit" />
+                            </Panel>
+                            <Panel id="Card40" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name40" class="ItemName" />
+                                <Panel id="Icon40" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price40" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status40" class="Status" />
+                                <Button id="Buy40" class="BuyHit" />
+                            </Panel>
+                            <Panel id="Card41" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name41" class="ItemName" />
+                                <Panel id="Icon41" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price41" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status41" class="Status" />
+                                <Button id="Buy41" class="BuyHit" />
+                            </Panel>
+                        </Panel>
+                        <Panel class="ItemPager">
+                            <Panel id="Prev6" class="Nav">
+                                <Label text="‹" hittest="false" class="NavGlyph" />
+                                <Button id="Previous6" class="NavHit">
+                                    <Label text="‹" hittest="false" class="NavGlyph" />
+                                </Button>
+                            </Panel>
+                            <Label text="{s:value}" hittest="false" id="Page6" class="PageText" />
+                            <Panel id="Next6" class="Nav">
+                                <Label text="›" hittest="false" class="NavGlyph" />
+                                <Button id="NextItems6" class="NavHit">
+                                    <Label text="›" hittest="false" class="NavGlyph" />
+                                </Button>
+                            </Panel>
+                        </Panel>
+                    </Panel>
+                    <Panel id="Column7" class="Column">
+                        <Label text="{s:value}" hittest="false" id="Category7" class="Category" />
+                        <Panel class="Cards">
+                            <Panel id="Card42" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name42" class="ItemName" />
+                                <Panel id="Icon42" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price42" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status42" class="Status" />
+                                <Button id="Buy42" class="BuyHit" />
+                            </Panel>
+                            <Panel id="Card43" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name43" class="ItemName" />
+                                <Panel id="Icon43" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price43" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status43" class="Status" />
+                                <Button id="Buy43" class="BuyHit" />
+                            </Panel>
+                            <Panel id="Card44" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name44" class="ItemName" />
+                                <Panel id="Icon44" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price44" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status44" class="Status" />
+                                <Button id="Buy44" class="BuyHit" />
+                            </Panel>
+                            <Panel id="Card45" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name45" class="ItemName" />
+                                <Panel id="Icon45" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price45" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status45" class="Status" />
+                                <Button id="Buy45" class="BuyHit" />
+                            </Panel>
+                            <Panel id="Card46" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name46" class="ItemName" />
+                                <Panel id="Icon46" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price46" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status46" class="Status" />
+                                <Button id="Buy46" class="BuyHit" />
+                            </Panel>
+                            <Panel id="Card47" class="Card">
+                                <Label text="{s:value}" hittest="false" id="Name47" class="ItemName" />
+                                <Panel id="Icon47" class="ItemIcon" hittest="false" />
+                                <Label text="{s:value}" hittest="false" id="Price47" class="Price" />
+                                <Label text="{s:value}" hittest="false" id="Status47" class="Status" />
+                                <Button id="Buy47" class="BuyHit" />
+                            </Panel>
+                        </Panel>
+                        <Panel class="ItemPager">
+                            <Panel id="Prev7" class="Nav">
+                                <Label text="‹" hittest="false" class="NavGlyph" />
+                                <Button id="Previous7" class="NavHit">
+                                    <Label text="‹" hittest="false" class="NavGlyph" />
+                                </Button>
+                            </Panel>
+                            <Label text="{s:value}" hittest="false" id="Page7" class="PageText" />
+                            <Panel id="Next7" class="Nav">
+                                <Label text="›" hittest="false" class="NavGlyph" />
+                                <Button id="NextItems7" class="NavHit">
+                                    <Label text="›" hittest="false" class="NavGlyph" />
+                                </Button>
+                            </Panel>
+                        </Panel>
+                    </Panel>
+                </Panel>
+                <Label text="{s:value}" hittest="false" id="Empty" class="Empty" />
+            </Panel>
+            <Panel class="Footer">
+                <Label text="{s:value}" hittest="false" id="Hint" class="Hint" />
+                <Panel class="CategoryPager">
+                    <Panel id="CategoryPrev" class="Nav">
+                        <Label text="‹" hittest="false" class="NavGlyph" />
+                        <Button id="CategoriesPrevious" class="NavHit">
+                            <Label text="‹" hittest="false" class="NavGlyph" />
+                        </Button>
+                    </Panel>
+                    <Label text="{s:value}" hittest="false" id="CategoryPage" class="PageText" />
+                    <Panel id="CategoryNext" class="Nav">
+                        <Label text="›" hittest="false" class="NavGlyph" />
+                        <Button id="CategoriesNext" class="NavHit">
+                            <Label text="›" hittest="false" class="NavGlyph" />
+                        </Button>
+                    </Panel>
+                </Panel>
+            </Panel>
+        </Panel>
+    </Panel>
+</root>
