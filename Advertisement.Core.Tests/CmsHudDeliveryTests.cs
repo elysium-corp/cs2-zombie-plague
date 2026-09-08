@@ -68,7 +68,8 @@ public sealed class CmsHudDeliveryTests
             if (!method.Name.StartsWith("FormatFor", StringComparison.Ordinal)) return null;
             var key = (string)args![1]!;
             var parameters = (IReadOnlyDictionary<string, object?>)args[2]!;
-            return key == "Chat.Text" ? "Chat only" : $"<b>{parameters["player_name"]}</b>";
+            Assert.Equal(key == "Chat.Text" ? LocalizationOutputMode.Chat : LocalizationOutputMode.Html, args[3]);
+            return key == "Chat.Text" ? "Chat only" : $"<b>{HudText.Escape((string)parameters["player_name"]!)}</b>";
         });
         var api = new Hud { Available = available };
         using var delivery = Delivery(api);
@@ -92,6 +93,34 @@ public sealed class CmsHudDeliveryTests
     {
         Assert.Equal("Привет мир [red]цвет[/] &#91;blue&#93;", AdvertisementChatText.Normalize(
             "<b>Привет</b><br>мир [red]цвет[/] &#91;blue&#93;"));
+    }
+
+    [Fact]
+    public async Task RoleColorMigrationPreservesRolesAndSeedsOnlyAdministrators()
+    {
+        var connectionString = Environment.GetEnvironmentVariable("ADVERTISEMENT_TEST_POSTGRES");
+        if (connectionString is null) return;
+        await using var connection = new NpgsqlConnection(connectionString); await connection.OpenAsync();
+        await using var transaction = await connection.BeginTransactionAsync();
+        async Task Execute(string sql) => await new NpgsqlCommand(sql, connection, transaction).ExecuteNonQueryAsync();
+        async Task<object?> Scalar(string sql) => await new NpgsqlCommand(sql, connection, transaction).ExecuteScalarAsync();
+        await Execute("""
+            CREATE SCHEMA admin;
+            CREATE TABLE admin.privileges(id INTEGER PRIMARY KEY, group_name TEXT, code TEXT);
+            CREATE TABLE admin.permissions(id INTEGER PRIMARY KEY, key TEXT);
+            CREATE TABLE admin.privilege_permissions(privilege_id INTEGER, permission_id INTEGER);
+            INSERT INTO admin.privileges VALUES (1,'vip','premium'), (2,'admin','owner'), (3,'custom','moderator');
+            INSERT INTO admin.permissions VALUES (1, 'admin.kick');
+            INSERT INTO admin.privilege_permissions VALUES (3, 1);
+            """);
+        var type = Assembly.Load("Admin.Core").GetType("Admin.Core.Database.Migrations.AddRoleColors", true)!;
+        var migration = (Microsoft.EntityFrameworkCore.Migrations.Migration)Activator.CreateInstance(type, nonPublic: true)!;
+        foreach (var operation in migration.UpOperations.Cast<SqlOperation>()) await Execute(operation.Sql);
+        Assert.Equal("#ffffff", await Scalar("SELECT hud_color FROM admin.privileges WHERE id=1"));
+        Assert.Equal(2L, await Scalar("SELECT count(*) FROM admin.privileges WHERE chat_color='red' AND hud_color='#ff4040' AND color_priority=100"));
+        foreach (var operation in migration.DownOperations.Cast<SqlOperation>()) await Execute(operation.Sql);
+        Assert.Equal(3L, await Scalar("SELECT count(*) FROM admin.privileges"));
+        await transaction.RollbackAsync();
     }
 
     [Fact]
@@ -206,6 +235,12 @@ public sealed class CmsHudDeliveryTests
         foreach (var migration in new Microsoft.EntityFrameworkCore.Migrations.Migration[]
                  { localizationMigration, new AddHudDelivery(), new AddBannerTemplates(), new AddNotificationRules() })
             foreach (var operation in migration.UpOperations.Cast<SqlOperation>()) await Execute(operation.Sql);
+        await Execute("UPDATE advertisement.notification_rules SET settings = jsonb_set(settings, '{Options,Priority}', '999') WHERE event_key = 'Shop.Errors.Cooldown'");
+        foreach (var operation in new StackNotifications().UpOperations.Cast<SqlOperation>()) await Execute(operation.Sql);
+        Assert.Equal("300", await Scalar("SELECT settings #>> '{Options,Priority}' FROM advertisement.notification_rules WHERE event_key = 'Game.Round.Started'"));
+        Assert.Equal("999", await Scalar("SELECT settings #>> '{Options,Priority}' FROM advertisement.notification_rules WHERE event_key = 'Shop.Errors.Cooldown'"));
+        Assert.Equal("queue", await Scalar("SELECT settings->>'Delivery' FROM advertisement.notification_rules WHERE event_key = 'Shop.Errors.Cooldown'"));
+        Assert.Equal("stack", await Scalar("SELECT settings->>'Delivery' FROM advertisement.notification_rules WHERE event_key = 'Statistics.PointsGained'"));
         Assert.Equal((long)NotificationCatalog.Defaults.Count, await Scalar("SELECT COUNT(*) FROM advertisement.notification_rules"));
         Assert.Equal((long)NotificationCatalog.Defaults.Count, await Scalar("SELECT COUNT(*) FROM localization.entries"));
         Assert.Equal("top_left", await Scalar("SELECT settings->>'Position' FROM advertisement.hud_widgets WHERE key = 'ZombiePlague.Abilities'"));

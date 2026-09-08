@@ -1,12 +1,18 @@
 using System.Text;
+using Localization.Api;
 using System.Text.RegularExpressions;
 
 namespace Localization.Core.Application;
 
 internal static partial class LocalizationMarkupRenderer
 {
-    public static string Render(string text, IReadOnlyDictionary<string, string> colorTags)
+    public static string Render(string text, IReadOnlyDictionary<string, string> colorTags,
+        LocalizationOutputMode? mode = null, LocalizationPlayerStyle? playerStyle = null)
     {
+        if (mode == LocalizationOutputMode.Raw) return text;
+        playerStyle ??= new();
+        var roleColor = mode == LocalizationOutputMode.Html ? playerStyle.HudColor : playerStyle.ChatColor;
+        var html = mode == LocalizationOutputMode.Html;
         if (string.IsNullOrEmpty(text))
         {
             return text;
@@ -27,8 +33,8 @@ internal static partial class LocalizationMarkupRenderer
             var isDirectColor = string.Equals(name, "color", StringComparison.OrdinalIgnoreCase)
                                 && (match.Groups["close"].Success
                                     ? argument.Length == 0
-                                    : LocalizationColorSchema.SupportedColors.Contains(argument));
-            if (!isDirectColor && (!colorTags.TryGetValue(name, out _) || argument.Length > 0))
+                                    : (LocalizationColorSchema.SupportedColors.Contains(argument) || argument == "role"));
+            if (!isDirectColor && ((name != "role_color" && !colorTags.TryGetValue(name, out _)) || argument.Length > 0))
             {
                 continue;
             }
@@ -43,7 +49,8 @@ internal static partial class LocalizationMarkupRenderer
                     && string.Equals(stack[^1].Name, name, StringComparison.OrdinalIgnoreCase))
                 {
                     stack.RemoveAt(stack.Count - 1);
-                    output.Append('[').Append(stack[^1].Color).Append(']');
+                    if (html) output.Append("</font>");
+                    else output.Append('[').Append(stack[^1].Color).Append(']');
                 }
                 else
                 {
@@ -52,18 +59,20 @@ internal static partial class LocalizationMarkupRenderer
                 continue;
             }
 
-            var color = isDirectColor ? argument : colorTags[name];
+            var color = isDirectColor ? argument == "role" ? roleColor : argument : name == "role_color" ? roleColor : colorTags[name];
             stack.Add((name, color));
-            output.Append('[').Append(color).Append(']');
+            if (html) output.Append("<font color=\"").Append(color).Append("\">");
+            else output.Append('[').Append(color).Append(']');
         }
 
-        if (!rendered)
+        var result = text;
+        if (rendered)
         {
-            return text;
+            output.Append(text, position, text.Length - position);
+            if (!html) output.Append("[/]");
+            result = output.ToString();
         }
-
-        output.Append(text, position, text.Length - position).Append("[/]");
-        return output.ToString();
+        return mode is null ? result : LocalizationHtmlMarkup.Render(result, mode.Value, playerStyle);
     }
 
     [GeneratedRegex(

@@ -1,3 +1,5 @@
+> Обновление ресурсов v4 r2 обязательно для этой версии: [установка, стопки, роли и анимации](../docs/banner-enhancements.md)
+
 # Elysium Custom HUD
 
 `CustomHud.Core 1.2.0` предоставляет `CustomHud.Api.ICustomHudApi` другим плагинам
@@ -98,8 +100,8 @@ yellow, gold, orange, purple, lightpurple, pink, gray/grey, silver, mint, muted,
 В 1.1.1 удалены процентные max-width, сжимавшие панель баннера, и задана минимальная ширина в единицах Panorama. Эта часть исправления находится в CSS внутри VPK: замены DLL недостаточно. Список sw plugins list показывает версии серверных плагинов и не подтверждает актуальность ресурсов у клиента
 
 1. Скопируйте содержимое `resources/hud/messages/content/panorama/` в `content/csgo_addons/<addon>/panorama/` на машине с CS2 Workshop Tools
-2. Скомпилируйте `layout/custom_game/elysium_messages_v4.xml` и `styles/custom_game/elysium_messages_v4.css`
-3. Упакуйте SVG из `images/custom_game/elysium/banners/` вместе с layout и styles. В VPK должны попасть `panorama/layout/custom_game/elysium_messages_v4.vxml_c` и `panorama/styles/custom_game/elysium_messages_v4.vcss_c`
+2. Скомпилируйте `layout/custom_game/elysium_messages_v4_r2.xml` и `styles/custom_game/elysium_messages_v4_r2.css`
+3. Упакуйте SVG из `images/custom_game/elysium/banners/` вместе с layout и styles. В VPK должны попасть `panorama/layout/custom_game/elysium_messages_v4_r2.vxml_c` и `panorama/styles/custom_game/elysium_messages_v4_r2.vcss_c`
 4. Доставьте обновлённый VPK серверу и клиентам, затем смените карту
 5. Выполните `custom_hud status`, затем `custom_hud test TopCenter`
 
@@ -207,6 +209,6 @@ Sound — имя установленного sound event, а не путь, URL
 
 Ресурс остаётся `elysium_messages_v4`, но его содержимое расширено. Обязательно пересоберите и доставьте новый VPK вместе с плагином
 `SchemaVersion = 1` обозначает первую схему JSON-дизайна и не имеет отношения к редакции клиентского layout v4
-Исходник генератора ресурсов: `scripts/generate-banner-resources.py`. Макет содержит 712 уникальных panel IDs, меньше лимита 1024
+Исходник генератора ресурсов: `scripts/generate-banner-resources.py`. Макет содержит 239 уникальных panel IDs на область, меньше лимита 1024
 
 Точные настройки доступны и через API: WidthPixels 320–960 (шаг 40), Padding 0–40 (4), Gap 0–24 (2), HeaderSize 10–24 (2), TitleSize 16–48 (2), DescriptionSize 12–32 (2), IconSize 24–96 (8). `null` использует размер темы. Background выбирает theme/slate/black/blue/purple/red/green/gold/white; BackgroundOpacity 0–100 (10) меняет только фон. HeaderColor/TitleColor/DescriptionColor и Shadow управляют цветом блока и тенью. Перечень цветов и других значений находится в XML-документации HudBannerTemplate.

@@ -284,7 +284,7 @@ public sealed class AbilityHudTests
         }
         foreach (var src in xml.Descendants("Image").Attributes("src").Select(value => value.Value).Distinct())
         {
-            var path = Path.Combine(content, "images", src.Replace("file://{images}/", ""));
+            var path = Path.Combine(content, "images", src.Replace("s2r://panorama/images/", "").Replace(".vsvg", ".svg"));
             Assert.True(File.Exists(path), path);
             var svg = XDocument.Load(path);
             Assert.Equal("svg", svg.Root!.Name.LocalName);
@@ -294,7 +294,7 @@ public sealed class AbilityHudTests
         {
             var images = xml.Descendants("Image").Where(node => ((string?)node.Attribute("class"))?.Split(' ').Contains("Icon_" + kind) == true).ToArray();
             Assert.Equal(AbilityHudFrame.SlotCount, images.Length);
-            Assert.All(images, node => Assert.Equal($"file://{{images}}/custom_game/elysium/abilities/{kind}.svg", (string?)node.Attribute("src")));
+            Assert.All(images, node => Assert.Equal($"s2r://panorama/images/custom_game/elysium/abilities/{kind}.vsvg", (string?)node.Attribute("src")));
             Assert.Contains($".Kind_{kind} .Icon_{kind} {{ visibility: visible; }}", css);
         }
     }

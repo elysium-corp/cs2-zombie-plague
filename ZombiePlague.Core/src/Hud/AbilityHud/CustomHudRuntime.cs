@@ -6,9 +6,9 @@ namespace ZombiePlague.Core.Hud.AbilityHud;
 
 internal sealed class CustomHudRuntime : IAbilityHudRuntime
 {
-    public const string SourceLayout = "panorama/layout/custom_game/elysium_ability_buffs_v4.xml";
-    public const string CompiledLayout = "panorama/layout/custom_game/elysium_ability_buffs_v4.vxml_c";
-    public const string CompiledStyle = "panorama/styles/custom_game/elysium_ability_buffs_v4.vcss_c";
+    public const string SourceLayout = "panorama/layout/custom_game/elysium_ability_buffs_v4_r2.xml";
+    public const string CompiledLayout = "panorama/layout/custom_game/elysium_ability_buffs_v4_r2.vxml_c";
+    public const string CompiledStyle = "panorama/styles/custom_game/elysium_ability_buffs_v4_r2.vcss_c";
     // Динамическая сущность запрашивает тот же скомпилированный ресурс, который проверяет preflight
     public const string Layout = CompiledLayout;
     private readonly CCSCustomHudLayout _entity;

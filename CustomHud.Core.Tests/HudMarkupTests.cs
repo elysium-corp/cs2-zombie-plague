@@ -6,6 +6,16 @@ namespace CustomHud.Core.Tests;
 public sealed class HudMarkupTests
 {
     [Fact]
+    public void ParameterRunsRemainSeparateAndRestoreOuterFormatting()
+    {
+        var document = HudMarkup.Parse("<b>Hi <span class='hud-parameter'><font color='red'>Player</font></span> end</b>", HudTextFormat.Markup, HudMessageStyle.Notice);
+        var runs = document.Lines.SelectMany(row => row).ToArray();
+        var parameter = Assert.Single(runs.Where(run => run.Style.Parameter));
+        Assert.Equal("Player", parameter.Text); Assert.True(parameter.Style.Bold);
+        Assert.False(runs[^1].Style.Parameter); Assert.True(runs[^1].Style.Bold);
+    }
+
+    [Fact]
     public void NestedHtmlRestoresStyleAndPreservesLineBreaks()
     {
         var document = Parse("<font color='#85dcb1'>A<b>B</b>C</font><br><i>D</i>E");

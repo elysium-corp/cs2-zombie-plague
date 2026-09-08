@@ -22,6 +22,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="../Admin.Core/Admin.Core.csproj" Private="true" />
         <ProjectReference Include="../CustomHud.Api/CustomHud.Api.csproj" Private="true" />
         <ProjectReference Include="../Localization.Api/Localization.Api.csproj" Private="true" />
         <ProjectReference Include="../Localization.Core/Localization.Core.csproj" Private="true" />

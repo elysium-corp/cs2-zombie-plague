@@ -11,14 +11,16 @@ namespace Localization.Core.Application;
 internal sealed partial class LocalizationRuntime(
     LocalizationCache cache,
     LanguageResolver languageResolver,
-    RateLimitedLocalizationLogger logger)
+    RateLimitedLocalizationLogger logger,
+    LocalizationRoleStyle? roles = null)
 {
     public string? GetForPlayer(
         IPlayer player,
         string key,
         IReadOnlyDictionary<string, string>? placeholders)
     {
-        return GetForLanguage(languageResolver.Resolve(player), key, placeholders);
+        var values = placeholders?.ToDictionary(x => x.Key, x => (object?)x.Value, StringComparer.OrdinalIgnoreCase);
+        return FormatForLanguage(languageResolver.Resolve(player), key, values, false, playerStyle: GetPlayerStyle(player));
     }
 
     public string? GetForLanguage(
@@ -44,7 +46,7 @@ internal sealed partial class LocalizationRuntime(
         string key,
         IReadOnlyDictionary<string, object?> parameters)
     {
-        return FormatForLanguage(languageResolver.Resolve(player), key, parameters);
+        return FormatForLanguage(languageResolver.Resolve(player), key, parameters, true, playerStyle: GetPlayerStyle(player));
     }
 
     public string? FormatForLanguage(
@@ -55,11 +57,21 @@ internal sealed partial class LocalizationRuntime(
         return FormatForLanguage(languageCode, key, parameters, validateSchema: true);
     }
 
+    internal LocalizationPlayerStyle GetPlayerStyle(IPlayer player) => roles?.Resolve(player) ?? new();
+
+    internal string? FormatForPlayer(IPlayer player, string key, IReadOnlyDictionary<string, object?> parameters,
+        LocalizationOutputMode mode, string? languageCode = null) =>
+        FormatForLanguage(languageCode ?? languageResolver.Resolve(player), key, parameters, true, mode, GetPlayerStyle(player));
+
+    internal string? FormatForLanguage(string languageCode, string key, IReadOnlyDictionary<string, object?> parameters,
+        LocalizationOutputMode mode, LocalizationPlayerStyle? playerStyle = null) =>
+        FormatForLanguage(languageCode, key, parameters, true, mode, playerStyle);
+
     private string? FormatForLanguage(
         string languageCode,
         string key,
         IReadOnlyDictionary<string, object?>? parameters,
-        bool validateSchema)
+        bool validateSchema, LocalizationOutputMode? mode = null, LocalizationPlayerStyle? playerStyle = null)
     {
         var snapshot = cache.Current;
         if (snapshot is null || string.IsNullOrWhiteSpace(key))
@@ -89,7 +101,7 @@ internal sealed partial class LocalizationRuntime(
 
         if (!validateSchema)
         {
-            var renderedText = LocalizationMarkupRenderer.Render(text, snapshot.Settings.ColorTags);
+            var renderedText = LocalizationMarkupRenderer.Render(text, snapshot.Settings.ColorTags, mode, playerStyle);
             var legacyResult = parameters is null || parameters.Count == 0
                 ? renderedText
                 : PlaceholderRegex().Replace(renderedText, match =>
@@ -102,7 +114,7 @@ internal sealed partial class LocalizationRuntime(
 
         if (entry.Parameters.Count == 0)
         {
-            return LocalizationMarkupRenderer.Render(text, snapshot.Settings.ColorTags);
+            return LocalizationMarkupRenderer.Render(text, snapshot.Settings.ColorTags, mode, playerStyle);
         }
 
         var formatted = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -126,10 +138,12 @@ internal sealed partial class LocalizationRuntime(
                 return null;
             }
 
-            formatted[definition.Name] = SanitizeParameterValue(result);
+            var safe = SanitizeParameterValue(result);
+            formatted[definition.Name] = mode == LocalizationOutputMode.Html
+                ? "<span class=\"hud-parameter\">" + LocalizationHtmlMarkup.Escape(safe) + "</span>" : safe;
         }
 
-        var rendered = LocalizationMarkupRenderer.Render(text, snapshot.Settings.ColorTags);
+        var rendered = LocalizationMarkupRenderer.Render(text, snapshot.Settings.ColorTags, mode, playerStyle);
         return PlaceholderRegex().Replace(rendered, match =>
             formatted.TryGetValue(match.Groups["name"].Value, out var value)
                 ? value

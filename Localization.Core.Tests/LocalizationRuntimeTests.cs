@@ -133,6 +133,50 @@ public sealed class LocalizationRuntimeTests
         Assert.Null(runtime.GetTagForLanguage("ru", "missing"));
     }
 
+    [Fact]
+    public void ExplicitHtmlEscapesPlayerTextOnceAndKeepsNumbersTyped()
+    {
+        var cache = new LocalizationCache(); cache.Replace(CreateSnapshot());
+        var runtime = new LocalizationRuntime(cache, new LanguageResolver(cache, new PlayerLanguageCache()), new RateLimitedLocalizationLogger(NullLogger.Instance));
+        var result = runtime.FormatForLanguage("en", "Test.Player", new Dictionary<string, object?> { ["nickname"] = "<b>A&B [red]{success}" }, LocalizationOutputMode.Html);
+        Assert.Equal("Player: <span class=\"hud-parameter\">&lt;b&gt;A&amp;B </span>", result);
+        var reward = runtime.FormatForLanguage("en", "Test.Reward", new Dictionary<string, object?> { ["points"] = 15 }, LocalizationOutputMode.Html);
+        Assert.Contains("<span class=\"hud-parameter\">15</span>", reward);
+        Assert.Null(runtime.FormatForLanguage("en", "Test.Reward", new Dictionary<string, object?> { ["points"] = "bad" }, LocalizationOutputMode.Html));
+    }
+
+    [Fact]
+    public void RoleMarkupUsesRecipientStyleForHtmlAndChatAndSupportsRawMode()
+    {
+        const string input = "{role_color}<b>Player</b>{/role_color}<br><font color='role'>Role</font>";
+        var style = new LocalizationPlayerStyle("admin.owner", "Owner", "red", "#ff4040");
+        var html = LocalizationMarkupRenderer.Render(input, LocalizationColorSchema.Defaults, LocalizationOutputMode.Html, style);
+        Assert.Contains("<font color=\"#ff4040\"><b>Player</b></font>", html);
+        Assert.DoesNotContain("role_color", html);
+        var chat = LocalizationMarkupRenderer.Render(input, LocalizationColorSchema.Defaults, LocalizationOutputMode.Chat, style);
+        Assert.Contains("[red]Player", chat); Assert.DoesNotContain("<", chat);
+        Assert.Equal(input, LocalizationMarkupRenderer.Render(input, LocalizationColorSchema.Defaults, LocalizationOutputMode.Raw, style));
+        Assert.Contains("#ffffff", LocalizationMarkupRenderer.Render(input, LocalizationColorSchema.Defaults, LocalizationOutputMode.Html));
+        Assert.False(LocalizationHtmlMarkup.IsValid("<span onclick='x'>Bad</span>"));
+        Assert.False(LocalizationHtmlMarkup.IsValid("<b><i>Bad</b></i>"));
+    }
+
+    [Fact]
+    public void RoleAppearanceSelectsHighestPriorityWithStableTieBreakAndSafeFallback()
+    {
+        Assert.Equal(new LocalizationPlayerStyle(), LocalizationRoleStyle.Select([]));
+        var roles = new Admin.Api.Data.IPrivilege[] { new TestRole("vip.premium", 10), new TestRole("admin.z", 100), new TestRole("admin.a", 100) };
+        Assert.Equal("admin.a", LocalizationRoleStyle.Select(roles).RoleKey);
+        Assert.Equal("#ffffff", LocalizationRoleStyle.Select([new TestRole("broken", 500, "bad")]).HudColor);
+    }
+
+    private sealed record TestRole(string Key, int ColorPriority, string HudColor = "#ff4040") : Admin.Api.Data.IPrivilege
+    {
+        public string Id => Key; public string Group => "test";
+        public string DisplayName => Key; public string ChatColor => "red";
+        public IReadOnlySet<string> Permissions { get; } = new HashSet<string>();
+    }
+
     private static LocalizationSnapshot CreateSnapshot()
     {
         var languages = new[]

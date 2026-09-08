@@ -1,6 +1,7 @@
 """Rebuild the static v4 banner layout and effects; no client scripts or dynamic paths."""
 from pathlib import Path
 import re
+import json
 import xml.etree.ElementTree as ET
 
 root = Path(__file__).resolve().parents[1] / 'CustomHud.Core/resources/hud/messages/content/panorama'
@@ -25,30 +26,39 @@ for name, body in icons.items():
 
 layout = ET.Element('root')
 styles = ET.SubElement(layout, 'styles')
-ET.SubElement(styles, 'include', src='s2r://panorama/styles/custom_game/elysium_messages_v4.vcss_c')
+ET.SubElement(styles, 'include', src='s2r://panorama/styles/custom_game/elysium_messages_v4_r2.vcss_c')
 canvas = ET.SubElement(layout, 'Panel', id='ElysiumMessageCanvas', attrib={'class': 'ElysiumMessageCanvas', 'hittest': 'false'})
 positions = ['TopLeft', 'TopCenter', 'TopRight', 'MiddleLeft', 'Center', 'MiddleRight', 'BottomLeft', 'BottomCenter', 'BottomRight']
-for i, position in enumerate(positions):
+region = ET.SubElement(canvas, 'Panel', id='MessageRegion', attrib={'class': 'MessageRegion'})
+for i in range(3):
     slot = f'Message{i}'
-    panel = ET.SubElement(canvas, 'Panel', id=slot, attrib={'class': f'Message Position{position}', 'hittest': 'false'})
-    ET.SubElement(panel, 'Panel', attrib={'class': 'MessageAccent'})
-    ET.SubElement(panel, 'Label', attrib={'class': 'MessageBrand', 'text': 'ELYSIUM'})
-    content = ET.SubElement(panel, 'Panel', attrib={'class': 'BannerContent'})
+    panel = ET.SubElement(region, 'Panel', id=slot, attrib={'class': 'Message', 'hittest': 'false'})
+    surface = ET.SubElement(panel, 'Panel', attrib={'class': 'BannerSurface'})
+    ET.SubElement(surface, 'Panel', attrib={'class': 'MessageAccent'})
+    ET.SubElement(surface, 'Label', attrib={'class': 'MessageBrand', 'text': 'ELYSIUM'})
+    content = ET.SubElement(surface, 'Panel', attrib={'class': 'BannerContent'})
     icon_panel = ET.SubElement(content, 'Panel', attrib={'class': 'BannerIcons'})
     for name in icons:
-        ET.SubElement(icon_panel, 'Image', attrib={'class': f'BannerIcon Icon_{name}', 'src': f'file://{{images}}/custom_game/elysium/banners/{name}.svg', 'texturewidth': '64', 'textureheight': '64'})
+        ET.SubElement(icon_panel, 'Image', attrib={'class': f'BannerIcon Icon_{name}', 'src': f's2r://panorama/images/custom_game/elysium/banners/{name}.vsvg', 'texturewidth': '64', 'textureheight': '64'})
     texts = ET.SubElement(content, 'Panel', attrib={'class': 'BannerTexts'})
     for suffix in ['Header', 'Title'] + [f'Line{n}' for n in range(4)]:
         row = ET.SubElement(texts, 'Panel', id=slot+suffix, attrib={'class': 'MessageLine ' + ('Banner'+suffix if suffix in ['Header','Title'] else 'BannerDescription')})
         for n in range(12):
             ET.SubElement(row, 'Label', id=f'{slot}{suffix}Run{n}', attrib={'class': 'MessageRun', 'text': '{s:value}'})
 ET.indent(layout, space='    ')
-(root / 'layout/custom_game/elysium_messages_v4.xml').write_text(ET.tostring(layout, encoding='unicode') + '\n')
-css_path = root / 'styles/custom_game/elysium_messages_v4.css'
+(root / 'layout/custom_game/elysium_messages_v4_r2.xml').write_text(ET.tostring(layout, encoding='unicode') + '\n')
+css_path = root / 'styles/custom_game/elysium_messages_v4_r2.css'
 css = css_path.read_text().split('/* Banner constructor */')[0].rstrip()
+palette = sorted(set(re.findall(r'\.MessageRun\.C(\d+) \{ color: (#[A-F0-9]+); \}', css)))
 css += '''
 
 /* Banner constructor */
+.MessageRegion { width: 960px; min-width: 960px; flow-children: down; overflow: noclip; }
+.MessageRegion .Message { margin-bottom: 10px; }
+.PositionTopCenter .Message, .PositionCenter .Message, .PositionBottomCenter .Message { horizontal-align: center; }
+.PositionTopRight .Message, .PositionMiddleRight .Message, .PositionBottomRight .Message { horizontal-align: right; }
+.BannerContent, .BannerTexts, .MessageLine { overflow: noclip; }
+
 .BannerContent { width: 100%; flow-children: right; }
 .BannerTexts { flow-children: down; width: fill-parent-flow(1); }
 .BannerIcons { visibility: collapse; width: 64px; height: 64px; margin-right: 16px; vertical-align: center; }
@@ -98,17 +108,40 @@ css += '''
 '''
 for name in icons:
     css += f'.CustomBanner.Icon_{name} .Icon_{name} {{ visibility: visible; }}\n'
-for idx, color in re.findall(r'\.MessageRun\.C(\d+) \{ color: (#[A-F0-9]+); \}', css):
+for idx, color in palette:
     css += f'.CustomBanner.A{idx} {{ border-color: {color}; }}\n.CustomBanner.A{idx} .BannerIcon {{ wash-color: {color}; }}\n'
     # Preserve explicit inline colors in the light theme.
     css += f'.CustomBanner.Theme_light .MessageRun.C{idx} {{ color: {color}; }}\n'
-transforms = {'fade': 'translatey(0px)', 'slide_up': 'translatey(24px)', 'slide_down': 'translatey(-24px)', 'slide_left': 'translatex(32px)', 'slide_right': 'translatex(-32px)', 'zoom': 'scale3d(0.82, 0.82, 1)'}
-for name, transform in transforms.items():
-    for generation in ['A','B']:
-        css += f".CustomBanner.Enter_{name}.Entry{generation} {{ animation-name: banner-in-{name}-{generation}; }}\n@keyframes 'banner-in-{name}-{generation}' {{ 0% {{ opacity: 0; transform: {transform}; }} 100% {{ opacity: 1; transform: translatey(0px); }} }}\n"
-    css += f".CustomBanner.Shown.Leaving.Exit_{name} {{ animation-name: banner-out-{name}; }}\n@keyframes 'banner-out-{name}' {{ 0% {{ opacity: 1; transform: translatey(0px); }} 100% {{ opacity: 0; transform: {transform}; }} }}\n"
-for name, keyframes in {'pulse': '0% { opacity: 0.55; } 50% { opacity: 1; } 100% { opacity: 0.55; }', 'spin': '0% { transform: rotatez(0deg); } 100% { transform: rotatez(360deg); }', 'bounce': '0% { transform: translatey(0px); } 50% { transform: translatey(-6px); } 100% { transform: translatey(0px); }', 'shake': '0% { transform: rotatez(-8deg); } 50% { transform: rotatez(8deg); } 100% { transform: rotatez(-8deg); }'}.items():
-    css += f".CustomBanner.IconAnimation_{name} .BannerIcon {{ animation-name: banner-icon-{name}; animation-duration: 1.8s; animation-iteration-count: infinite; animation-timing-function: ease-in-out; }}\n@keyframes 'banner-icon-{name}' {{ {keyframes} }}\n"
+effects = json.loads((Path(__file__).resolve().parents[1] / 'CustomHud.Api/Resources/banner-effects.json').read_text())
+def frames(values):
+    rules = []
+    for index, value in enumerate(values):
+        offset = value.get('offset', index / max(1, len(values) - 1)) * 100
+        properties = []
+        for key, item in value.items():
+            if key == 'offset': continue
+            if key == 'transform':
+                item = item.lower()
+                item = re.sub(r'scale\(([^)]+)\)', lambda match: f'scale3d({match[1]}, {match[1]}, 1)', item)
+            properties.append(f'{key}: {item};')
+        rules.append(f'{offset:g}% {{ {" ".join(properties)} }}')
+    return ' '.join(rules)
+for name, values in effects['motion'].items():
+    if name == 'none': continue
+    for generation in ['A', 'B']:
+        css += f".CustomBanner.Enter_{name}.Entry{generation} {{ animation-name: banner-in-{name}-{generation}; }}\n@keyframes 'banner-in-{name}-{generation}' {{ {frames(values)} }}\n"
+    reverse = [{**value, 'offset': 1 - value.get('offset', index / (len(values) - 1))} for index, value in reversed(list(enumerate(values)))]
+    css += f".CustomBanner.Shown.Leaving.Exit_{name} {{ animation-name: banner-out-{name}; }}\n@keyframes 'banner-out-{name}' {{ {frames(reverse)} }}\n"
+for name, values in effects['loops'].items():
+    css += f"@keyframes 'banner-loop-{name}' {{ {frames(values)} }}\n"
+    for field, target in {'Container': '.BannerSurface', 'Header': '.BannerHeader', 'Title': '.BannerTitle', 'Description': '.BannerDescription', 'Parameter': '.MessageRun.Parameter', 'Icon': '.BannerIcon'}.items():
+        if name.startswith('spin') and field != 'Icon': continue
+        css += f'.CustomBanner.{field}Animation_{name} {target} {{ animation-name: banner-loop-{name}; animation-duration: 2.4s; animation-iteration-count: infinite; animation-timing-function: ease-in-out; }}\n'
+loop_targets = ['.BannerSurface', '.BannerHeader', '.BannerTitle', '.BannerDescription', '.MessageRun.Parameter', '.BannerIcon']
+for name, duration in {'fast': 1.2, 'normal': 2.4, 'slow': 3.6}.items():
+    css += ', '.join(f'.CustomBanner.LoopSpeed_{name} {target}' for target in loop_targets) + f' {{ animation-duration: {duration}s; }}\n'
+for delay in range(0, 2001, 100):
+    css += ', '.join(f'.CustomBanner.EffectDelay_{delay} {target}' for target in loop_targets) + f' {{ animation-delay: {delay / 1000:g}s; }}\n'
 # Непрозрачность задаётся альфа-каналом фона; текст и иконка не становятся прозрачными.
 def alpha(color, opacity):
     rgb = color[:7]
@@ -141,9 +174,36 @@ for field in ['Header', 'Title', 'Description']:
     for name, color in colors.items():
         css += f'.CustomBanner.{field}Color_{name} .Banner{field} .MessageRun {{ color: {color}; }}\n'
 # Разметка Localization имеет больший приоритет, чем общий цвет текстового блока.
-for idx, color in re.findall(r'\.MessageRun\.C(\d+) \{ color: (#[A-F0-9]+); \}', css):
+for idx, color in palette:
     css += f'.CustomBanner .BannerTexts .MessageLine .MessageRun.C{idx} {{ color: {color}; }}\n'
 css += '.CustomBanner.NoDescription .BannerTitle { margin-bottom: 0px; }\n'
 css += '.CustomBanner.NoDescription.NoTitle .BannerHeader { margin-bottom: 0px; }\n'
+# Перенос визуальных свойств на отдельную поверхность предотвращает конфликт transform-анимаций.
+css = re.sub(r'^(\.CustomBanner(?:\.(?:A\d+|Theme_[a-z]+|Corners_[a-z]+|Border_[a-z]+|Background_[a-z]+|BackgroundOpacity_\d+|Padding_\d+|Shadow_[a-z]+))+) (\{[^\n]+)',
+             r'\1 .BannerSurface \2', css, flags=re.M)
+css += '.BannerSurface { width: 100%; flow-children: down; }\n'
+css += '.Message.CustomBanner { padding: 0px; background-color: transparent; border: 0px solid transparent; box-shadow: none; overflow: noclip; }\n'
+# Начальные свойства стоят перед вариантами дизайна, чтобы выбранные фон и отступы имели приоритет.
+css = css.replace('/* Banner constructor */', "/* Banner constructor */\n.CustomBanner .BannerSurface { padding: 18px 22px; background-color: gradient(linear, 0% 0%, 100% 100%, from(#0c171cf2), to(#14252ae8)); border: 1px solid #85dcb140; border-radius: 7px; box-shadow: #00000080 0px 4px 14px 0px; overflow: noclip; }")
+for idx, color in palette:
+    css += f'.CustomBanner.A{idx}.ParameterColor_accent .MessageRun.Parameter {{ color: {color}; }}\n'
+    for glow, radius, strength in [('soft', 6, 1), ('strong', 12, 2)]:
+        css += f'.CustomBanner.A{idx}.IconGlow_{glow} .BannerIcon {{ img-shadow: 0px 0px {radius}px {strength}.0 {color}; }}\n'
+        css += f'.CustomBanner.A{idx}.TextGlow_{glow} .MessageRun {{ text-shadow: 0px 0px {radius}px {strength}.0 {color}; }}\n'
+    for effect in ['glow', 'neon']:
+        css += f'.CustomBanner.A{idx}.ContainerAnimation_{effect} .BannerSurface {{ box-shadow: {color} 0px 0px 14px 0px; }}\n'
+        css += f'.CustomBanner.A{idx}.IconAnimation_{effect} .BannerIcon {{ img-shadow: 0px 0px 8px 1.0 {color}; }}\n'
+        for field, target in {'Header': '.BannerHeader .MessageRun', 'Title': '.BannerTitle .MessageRun', 'Description': '.BannerDescription .MessageRun', 'Parameter': '.MessageRun.Parameter'}.items():
+            css += f'.CustomBanner.A{idx}.{field}Animation_{effect} {target} {{ text-shadow: 0px 0px 8px 1.0 {color}; }}\n'
+for name, color in colors.items():
+    css += f'.CustomBanner.ParameterColor_{name} .BannerTexts .MessageLine .MessageRun.Parameter {{ color: {color}; }}\n'
+# Класс акцента должен иметь тот же приоритет, что и явный HTML-цвет параметра.
+for idx, color in palette:
+    css += f'.CustomBanner.A{idx}.ParameterColor_accent .BannerTexts .MessageLine .MessageRun.Parameter {{ color: {color}; }}\n'
+for width in range(128, 961, 8):
+    css += f'.CustomBanner.TextWidth_{width} .BannerTexts {{ width: {width}px; min-width: {width}px; }}\n'
+assert len(layout.findall('.//*[@id]')) < 1024
+classes = set(re.findall(r'\.([A-Za-z_][A-Za-z_0-9]*)', css))
+assert len(classes) < 1024, f'Panorama CSS class limit: {len(classes)}'
 css_path.write_text(css)
 print(f'Generated v4: {len(layout.findall(".//*[@id]"))} panel IDs, {len(icons)} icons')

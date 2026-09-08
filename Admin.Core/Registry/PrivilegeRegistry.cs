@@ -1,4 +1,4 @@
-﻿using System.Collections.Frozen;
+using System.Collections.Frozen;
 using Admin.Api.Data;
 using Admin.Core.Data;
 
@@ -28,6 +28,10 @@ internal sealed class PrivilegeRegistry : IPrivilegeRegistry
             {
                 Id = definition.Id,
                 Group = definition.Group,
+                DisplayName = definition.DisplayName ?? $"{definition.Group}.{definition.Id}",
+                ChatColor = definition.ChatColor,
+                HudColor = definition.HudColor,
+                ColorPriority = definition.ColorPriority,
                 Permissions = definition.Permissions.ToFrozenSet(
                     StringComparer.OrdinalIgnoreCase
                 )

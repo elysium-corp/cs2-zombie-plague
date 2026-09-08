@@ -4,13 +4,14 @@ namespace CustomHud.Core;
 
 internal sealed record HudMessage(long Revision, HudMessageOptions Options, HudDocument Document, long CreatedAt)
 {
+    internal bool Presented { get; set; }
     internal bool SoundPlayed { get; set; }
 }
 
 internal sealed class HudMessageStore(TimeProvider clock)
 {
     internal const int MaximumMessagesPerPlayer = 32;
-    private sealed record Session(ulong SteamId, Dictionary<(string Channel, HudPosition Position), HudMessage> Messages);
+    private sealed record Session(ulong SteamId, Dictionary<(string Channel, HudPosition Position, long Instance), HudMessage> Messages);
     private readonly Dictionary<int, Session> _players = [];
     private long _revision;
 
@@ -18,8 +19,12 @@ internal sealed class HudMessageStore(TimeProvider clock)
     {
         if (!_players.TryGetValue(playerId, out var session) || session.SteamId != steamId)
             _players[playerId] = session = new Session(steamId, []);
-        Expire(session);
-        var key = (options.Channel, options.Position);
+        Expire(session, includeExit: true);
+        var region = session.Messages.Values.Where(message => message.Options.Position == options.Position).ToArray();
+        var stacks = region.Count(message => message.Options.Stack);
+        if (options.Stack ? stacks + (region.Any(message => !message.Options.Stack) ? 1 : 0) >= PanoramaHudRuntime.StackCapacity
+            : stacks >= PanoramaHudRuntime.StackCapacity) return false;
+        var key = (options.Channel, options.Position, options.Stack ? _revision + 1 : 0);
         if (!session.Messages.ContainsKey(key) && session.Messages.Count >= MaximumMessagesPerPlayer) return false;
         session.Messages[key] = new HudMessage(++_revision, options, document, clock.GetTimestamp());
         return true;
@@ -42,11 +47,29 @@ internal sealed class HudMessageStore(TimeProvider clock)
         return frame;
     }
 
-    private void Expire(Session session)
+    internal HudMessage?[] GetStackedFrame(int playerId, ulong steamId)
+    {
+        var frame = new HudMessage?[PanoramaHudRuntime.RegionCount * PanoramaHudRuntime.StackCapacity];
+        if (!_players.TryGetValue(playerId, out var session)) return frame;
+        if (session.SteamId != steamId) { _players.Remove(playerId); return frame; }
+        Expire(session, includeExit: true);
+        foreach (var region in session.Messages.Values.GroupBy(message => message.Options.Position))
+        {
+            var normal = region.Where(message => !message.Options.Stack).OrderByDescending(message => message.Options.Priority)
+                .ThenByDescending(message => message.Revision).FirstOrDefault();
+            var visible = region.Where(message => message.Options.Stack).OrderBy(message => message.Revision).ToList();
+            if (normal is not null) visible.Insert(0, normal);
+            for (var lane = 0; lane < Math.Min(visible.Count, PanoramaHudRuntime.StackCapacity); lane++)
+                frame[(int)region.Key + lane * PanoramaHudRuntime.RegionCount] = visible[lane];
+        }
+        return frame;
+    }
+
+    private void Expire(Session session, bool includeExit = false)
     {
         var now = clock.GetTimestamp();
         foreach (var (key, value) in session.Messages.ToArray())
-            if (clock.GetElapsedTime(value.CreatedAt, now).TotalSeconds >= value.Options.DurationSeconds)
+            if (clock.GetElapsedTime(value.CreatedAt, now).TotalSeconds >= value.Options.DurationSeconds + (includeExit && value.Document.Banner?.Template is { Exit: not "none" } template ? HudBannerDesign.Seconds(template) : 0))
                 session.Messages.Remove(key);
     }
 

@@ -99,10 +99,8 @@ internal sealed class AdvertisementSender(Func<ILocalizationApi> localization, A
             if (message.Presentation is { } presentation)
                 foreach (var (name, value) in presentation.Parameters)
                     parameters.TryAdd(name, value);
-            var text = message.LocalizationKey is null || message.Presentation?.DisplayType == "hud" ? null : localeOverride is null
-                ? localizationApi.FormatForPlayer(player, message.LocalizationKey, parameters)
-                : localizationApi.FormatForLanguage(localeOverride, message.LocalizationKey, parameters);
-
+            var text = message.LocalizationKey is null || message.Presentation?.DisplayType == "hud" ? null
+                : localizationApi.FormatForPlayer(player, message.LocalizationKey, parameters, LocalizationOutputMode.Chat, localeOverride);
 
             // HTML может появиться после редактирования общего ключа в Localization: в чат он не отправляется.
             text = AdvertisementChatText.Normalize(text);
@@ -120,14 +118,9 @@ internal sealed class AdvertisementSender(Func<ILocalizationApi> localization, A
             output.Append(text).Append("[/]");
             var hudOnly = hud.Send(player, message.Key, () =>
             {
-                // Значения параметров экранируются до подстановки: ник не может изменить разметку объявления
-                var escaped = parameters.ToDictionary(item => item.Key,
-                    item => item.Value is string value ? (object?)HudText.Escape(value) : item.Value,
-                    StringComparer.OrdinalIgnoreCase);
                 var hudKey = message.Presentation?.HudLocalizationKey ?? message.LocalizationKey;
-                var hudText = hudKey is null ? null : localeOverride is null
-                    ? localizationApi.FormatForPlayer(player, hudKey, escaped)
-                    : localizationApi.FormatForLanguage(localeOverride, hudKey, escaped);
+                var hudText = hudKey is null ? null : localizationApi.FormatForPlayer(player, hudKey,
+                    parameters, LocalizationOutputMode.Html, localeOverride);
                 if (hudText is null) return string.Empty;
                 var tag = string.IsNullOrWhiteSpace(tagKey) ? null : localeOverride is null
                     ? localizationApi.GetTagForPlayer(player, tagKey)

@@ -3,6 +3,8 @@ namespace CustomHud.Api;
 /// <summary>Оформление и срок жизни одного HUD-сообщения.</summary>
 public sealed record HudMessageOptions
 {
+    /// <summary>Показывать отдельный экземпляр под предыдущими; до трёх карточек в области. При заполнении Show возвращает false.</summary>
+    public bool Stack { get; init; }
     /// <summary>Канал владельца длиной 1–64 символа; разные плагины должны использовать разные имена.</summary>
     public string Channel { get; init; } = "default";
 

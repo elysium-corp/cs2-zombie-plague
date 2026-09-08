@@ -51,6 +51,7 @@ internal sealed class LocalizationModule(ISwiftlyCore core) : BaseModule(core)
         AddSingleton<LanguageResolver>(services);
         AddSingleton<ILanguageResolver>(services, provider => provider.GetRequiredService<LanguageResolver>());
         AddSingleton<LocalizationRuntime>(services);
+        AddSingleton<LocalizationRoleStyle>(services);
         AddSingleton<LocalizationApi>(services);
         AddSingleton<FallbackLocalizationProvider>(services);
         AddSingleton<DatabaseLocalizationProvider>(services);

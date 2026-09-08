@@ -14,6 +14,7 @@ internal sealed class NotificationQueue(TimeProvider clock)
     private sealed class Slot
     {
         internal readonly List<Pending> Waiting = [];
+        internal readonly List<(Pending Item, DateTimeOffset Until)> Stacked = [];
         internal Pending? Active;
         internal DateTimeOffset Until;
     }
@@ -21,7 +22,7 @@ internal sealed class NotificationQueue(TimeProvider clock)
     private readonly Dictionary<int, ulong> _sessions = [];
     private readonly Dictionary<(int Player, string Event), DateTimeOffset> _lastAccepted = [];
     internal IEnumerable<string> EventKeys => _slots.Values.SelectMany(slot => slot.Waiting.Select(item => item.Rule.EventKey)
-        .Concat(slot.Active is { } active ? [active.Rule.EventKey] : [])).Distinct().ToArray();
+        .Concat(slot.Active is { } active ? [active.Rule.EventKey] : []).Concat(slot.Stacked.Select(item => item.Item.Rule.EventKey))).Distinct().ToArray();
 
     internal bool CanAccept(int playerId, ulong steamId, BannerNotificationRule rule) =>
         !_sessions.TryGetValue(playerId, out var session) || session != steamId
@@ -57,13 +58,28 @@ internal sealed class NotificationQueue(TimeProvider clock)
         foreach (var slot in _slots.Values)
         {
             slot.Waiting.RemoveAll(item => (now - item.CreatedAt).TotalSeconds > item.Rule.MaxQueueAgeSeconds);
-            var candidate = slot.Waiting.OrderByDescending(item => item.Rule.Options.Priority).FirstOrDefault();
-            if (candidate is null) continue;
-            var active = slot.Until > now ? slot.Active : null;
-            var update = active?.Rule.EventKey == candidate.Rule.EventKey && candidate.Rule.Delivery == "replace";
-            if (active is not null && !update && candidate.Rule.Options.Priority <= active.Rule.Options.Priority) continue;
-            slot.Waiting.Remove(candidate);
-            result.Add(candidate with { IsUpdate = update, PreviousEvent = active?.Rule.EventKey });
+            slot.Stacked.RemoveAll(item => item.Until <= now);
+            if (slot.Until <= now) slot.Active = null;
+            var active = slot.Active;
+            var candidate = slot.Waiting.Where(item => item.Rule.Delivery != "stack")
+                .OrderByDescending(item => item.Rule.Options.Priority).FirstOrDefault();
+            if (candidate is not null && (active is not null || slot.Stacked.Count < 3))
+            {
+                var update = active?.Rule.EventKey == candidate.Rule.EventKey && candidate.Rule.Delivery == "replace";
+                if (active is null || update || candidate.Rule.Options.Priority > active.Rule.Options.Priority)
+                {
+                    slot.Waiting.Remove(candidate);
+                    result.Add(candidate with { IsUpdate = update, PreviousEvent = active?.Rule.EventKey });
+                    active = candidate;
+                }
+            }
+            var free = 3 - slot.Stacked.Count - (active is null ? 0 : 1);
+            foreach (var stacked in slot.Waiting.Where(item => item.Rule.Delivery == "stack")
+                .OrderByDescending(item => item.Rule.Options.Priority).ThenBy(item => item.CreatedAt).Take(free).ToArray())
+            {
+                slot.Waiting.Remove(stacked);
+                result.Add(stacked);
+            }
         }
         return result.ToArray();
     }
@@ -71,9 +87,10 @@ internal sealed class NotificationQueue(TimeProvider clock)
     internal void Shown(Pending pending)
     {
         if (!_slots.TryGetValue((pending.PlayerId, pending.Rule.Options.Position), out var slot)) return;
-        slot.Active = pending;
         var exit = pending.Rule.Template.Exit == "none" ? 0 : pending.Rule.Template.Speed switch { "fast" => .2, "slow" => .8, _ => .4 };
-        slot.Until = clock.GetUtcNow().AddSeconds(pending.Rule.Options.DurationSeconds + exit);
+        var until = clock.GetUtcNow().AddSeconds(pending.Rule.Options.DurationSeconds + exit);
+        if (pending.Rule.Delivery == "stack") slot.Stacked.Add((pending, until));
+        else { slot.Active = pending; slot.Until = until; }
     }
     internal void Reject(Pending pending) { /* Не блокируем область после отказа Localization или HUD. */ }
     internal void ClearEvent(string eventKey)
@@ -81,6 +98,7 @@ internal sealed class NotificationQueue(TimeProvider clock)
         foreach (var slot in _slots.Values)
         {
             slot.Waiting.RemoveAll(item => item.Rule.EventKey == eventKey);
+            slot.Stacked.RemoveAll(item => item.Item.Rule.EventKey == eventKey);
             if (slot.Active?.Rule.EventKey == eventKey) { slot.Active = null; slot.Until = default; }
         }
         foreach (var key in _lastAccepted.Keys.Where(key => key.Event == eventKey).ToArray()) _lastAccepted.Remove(key);

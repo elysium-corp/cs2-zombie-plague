@@ -124,7 +124,7 @@ public sealed class HudRuntimeTests
     }
 
     [Fact]
-    public void LocalizedBannerEscapesEachParameterBeforeFormattingAndRejectsMissingFields()
+    public void LocalizedBannerDelegatesTypedParametersToHtmlFormatterAndRejectsMissingFields()
     {
         using var fixture = new Fixture();
         fixture.Start();
@@ -132,12 +132,13 @@ public sealed class HudRuntimeTests
         fixture.Service.InitializeLocalization(Stub<Localization.Api.ILocalizationApi>((method, args) =>
         {
             if (method.Name != "FormatForPlayer") throw new InvalidOperationException(method.Name);
+            Assert.Equal(Localization.Api.LocalizationOutputMode.Html, args![3]);
             observed = (IReadOnlyDictionary<string, object?>)args![2]!;
-            return args[1] as string == "Missing" ? null : "<b>" + observed["player_name"] + "</b>";
+            return args[1] as string == "Missing" ? null : "<b>" + HudText.Escape((string)observed["player_name"]!) + "</b>";
         }));
         var parameters = new Dictionary<string, object?> { ["player_name"] = "<b>[red]Player", ["round"] = 7 };
         Assert.True(fixture.Service.ShowLocalized(fixture.Players[0], new(), new() { Title = "Title", Description = "Description" }, parameters));
-        Assert.Equal("&lt;b&gt;&#91;red&#93;Player", observed!["player_name"]);
+        Assert.Equal("<b>[red]Player", observed!["player_name"]);
         Assert.Equal(7, observed["round"]);
         Assert.Equal("<b>[red]Player", parameters["player_name"]);
         Assert.False(fixture.Service.ShowLocalized(fixture.Players[0], new(), new() { Title = "Missing", Description = "Description" }, parameters));
@@ -147,9 +148,9 @@ public sealed class HudRuntimeTests
     public void ResourcesRespectCustomHudWhitelistAndTheNetworkIdLimit()
     {
         var root = Path.Combine(AppContext.BaseDirectory, "content/panorama");
-        Assert.EndsWith("_v4.vxml_c", PanoramaHudRuntime.Layout);
-        Assert.EndsWith("_v4.vcss_c", PanoramaHudRuntime.Style);
-        var layout = XDocument.Load(Path.Combine(root, "layout/custom_game/elysium_messages_v4.xml"));
+        Assert.EndsWith("_v4_r2.vxml_c", PanoramaHudRuntime.Layout);
+        Assert.EndsWith("_v4_r2.vcss_c", PanoramaHudRuntime.Style);
+        var layout = XDocument.Load(Path.Combine(root, "layout/custom_game/elysium_messages_v4_r2.xml"));
         Assert.Equal("s2r://" + PanoramaHudRuntime.Style, layout.Descendants("include").Single().Attribute("src")!.Value);
         var allowed = new Dictionary<string, string[]>
         {
@@ -165,11 +166,11 @@ public sealed class HudRuntimeTests
         var ids = layout.Descendants().Attributes("id").Select(attribute => attribute.Value).ToArray();
         Assert.Equal(ids.Length, ids.Distinct().Count());
         Assert.True(ids.Length < 1024);
-        foreach (var position in Enum.GetValues<HudPosition>())
+        for (var lane = 0; lane < PanoramaHudRuntime.StackCapacity; lane++)
             for (var line = 0; line < HudMarkup.MaximumLines; line++)
                 for (var run = 0; run < HudMarkup.MaximumRuns; run++)
-                    Assert.Contains($"Message{(int)position}Line{line}Run{run}", ids);
-        var css = File.ReadAllText(Path.Combine(root, "styles/custom_game/elysium_messages_v4.css"));
+                    Assert.Contains($"Message{lane}Line{line}Run{run}", ids);
+        var css = File.ReadAllText(Path.Combine(root, "styles/custom_game/elysium_messages_v4_r2.css"));
         // Процентное ограничение сжимало баннер при расчёте размеров Custom HUD
         Assert.DoesNotContain("max-width: 28%", css);
         Assert.DoesNotContain("max-width: 38%", css);
@@ -177,7 +178,41 @@ public sealed class HudRuntimeTests
             Assert.Contains($"min-width: {width}px;", css);
         for (var color = 0; color < HudPalette.Colors.Length; color++)
             Assert.Contains($".MessageRun.C{color} {{ color: #{HudPalette.Colors[color]:X6}; }}", css);
-        Assert.True(HudPalette.Colors.Length + 10 < 1024);
+        Assert.True(System.Text.RegularExpressions.Regex.Matches(css, @"\.([A-Za-z_][A-Za-z_0-9]*)")
+            .Select(match => match.Groups[1].Value).Distinct().Count() < 1024);
+        foreach (var src in layout.Descendants("Image").Attributes("src").Select(attribute => attribute.Value).Distinct())
+        {
+            Assert.StartsWith("s2r://panorama/images/", src);
+            Assert.EndsWith(".vsvg", src);
+            Assert.True(File.Exists(Path.Combine(root, src["s2r://panorama/".Length..].Replace(".vsvg", ".svg"))));
+        }
+    }
+
+    [Fact]
+    public void RegionAddressingAndPreflightCannotSilentlyLoseIcons()
+    {
+        Assert.Equal((1, "Message2TitleRun11"), PanoramaHudRuntime.Address("Message19TitleRun11"));
+        Assert.Throws<ArgumentException>(() => PanoramaHudRuntime.Address("Message27Line0"));
+        var missing = PanoramaHudRuntime.MissingResources(path => !path.EndsWith("/infection.vsvg_c", StringComparison.Ordinal));
+        Assert.EndsWith("/infection.vsvg_c", Assert.Single(missing));
+    }
+
+    [Fact]
+    public void StackedMessagesMoveWithoutReplayingSoundOrAppearanceAndClearOnDisconnect()
+    {
+        var clock = new HudMessageStoreTests.Clock(); var runtime = new Runtime();
+        var store = new HudMessageStore(clock); var sounds = 0;
+        var presenter = new HudPresenter(runtime, clock, (_, _, _) => sounds++);
+        var document = HudBannerDesign.Parse(new() { Exit = "none", Sound = "Test.Sound" }, new() { Title = "Title", Description = "Text" }, HudTextFormat.Markup);
+        store.Put(1, 11, document, new() { Channel = "event", Stack = true, DurationSeconds = 1 });
+        store.Put(1, 11, document, new() { Channel = "event", Stack = true, DurationSeconds = 5 });
+        presenter.RenderFrame(1, 11, store.GetStackedFrame(1, 11));
+        Assert.Equal(2, sounds);
+        clock.Advance(1); presenter.RenderFrame(1, 11, store.GetStackedFrame(1, 11));
+        Assert.Equal(2, sounds); Assert.True(runtime.IsShown(1));
+        Assert.False(runtime.Class(1, "Message10", "Shown"));
+        Assert.False(runtime.Class(1, "Message1", "EntryA")); Assert.False(runtime.Class(1, "Message1", "EntryB"));
+        presenter.Clear(1); Assert.False(runtime.IsShown(1));
     }
 
     private sealed class Fixture : IDisposable
@@ -250,6 +285,7 @@ public sealed class HudRuntimeTests
         private readonly Dictionary<(int, string, string), bool> _classes = [];
         internal bool IsShown(int player, HudPosition position = HudPosition.TopCenter) =>
             _classes.GetValueOrDefault((player, "Message" + (int)position, "Shown"));
+        internal bool Class(int player, string panel, string name) => _classes.GetValueOrDefault((player, panel, name));
         public void SetClass(int playerId, string panel, string name, bool enabled)
         {
             Assert.False(Disposed); Assert.True(IsValid); Calls++;

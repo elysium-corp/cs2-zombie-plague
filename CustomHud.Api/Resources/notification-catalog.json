@@ -20,6 +20,22 @@
       "aliases": []
     },
     {
+      "name": "role_name",
+      "type": "string",
+      "description": "Название наиболее приоритетной активной роли получателя; пусто без роли",
+      "example": "Администратор",
+      "source": "common",
+      "aliases": []
+    },
+    {
+      "name": "role_key",
+      "type": "string",
+      "description": "Ключ наиболее приоритетной активной роли получателя; пусто без роли",
+      "example": "admin.owner",
+      "source": "common",
+      "aliases": []
+    },
+    {
       "name": "steam_id",
       "type": "string",
       "description": "SteamID получателя",
@@ -523,7 +539,8 @@
       "duration": 6,
       "delivery": "queue",
       "cooldown": 0,
-      "plugin": "ZombiePlague.Core"
+      "plugin": "ZombiePlague.Core",
+      "priority": 300
     },
     {
       "key": "ZombiePlague.Round.Infection.FirstInfected",
@@ -533,11 +550,11 @@
         "player"
       ],
       "source_key": "ZombiePlague.Round.Infection.FirstInfected",
-      "default_template": "Notifications.Round",
+      "default_template": "Notifications.Notice",
       "localization_key": "Notifications.ZombiePlague.Round.Infection.FirstInfected",
-      "position": "top_center",
+      "position": "top_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "ZombiePlague.Core"
     },
@@ -549,11 +566,11 @@
         "player"
       ],
       "source_key": "ZombiePlague.Round.Nemesis.Selected",
-      "default_template": "Notifications.Round",
+      "default_template": "Notifications.Notice",
       "localization_key": "Notifications.ZombiePlague.Round.Nemesis.Selected",
-      "position": "top_center",
+      "position": "top_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "ZombiePlague.Core"
     },
@@ -565,11 +582,11 @@
         "player"
       ],
       "source_key": "ZombiePlague.Round.Survivor.Selected",
-      "default_template": "Notifications.Round",
+      "default_template": "Notifications.Notice",
       "localization_key": "Notifications.ZombiePlague.Round.Survivor.Selected",
-      "position": "top_center",
+      "position": "top_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "ZombiePlague.Core"
     },
@@ -586,7 +603,7 @@
       "localization_key": "Notifications.RoundRatingNotify.HumanTop",
       "position": "top_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "RoundRatingNotify.Core"
     },
@@ -603,7 +620,7 @@
       "localization_key": "Notifications.RoundRatingNotify.ZombieTop",
       "position": "top_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "RoundRatingNotify.Core"
     },
@@ -620,7 +637,7 @@
       "localization_key": "Notifications.Statistics.PointsGained",
       "position": "bottom_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "Statistics.Core"
     },
@@ -637,7 +654,7 @@
       "localization_key": "Notifications.Statistics.PointsLost",
       "position": "bottom_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "Statistics.Core"
     },
@@ -654,7 +671,7 @@
       "localization_key": "Notifications.Statistics.PointsUnchanged",
       "position": "bottom_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "Statistics.Core"
     },
@@ -668,7 +685,7 @@
       "localization_key": "Notifications.ResetScore.ResetMessage",
       "position": "bottom_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "ResetScore.Core"
     },
@@ -684,7 +701,7 @@
       "localization_key": "Notifications.Menu.ZClass.SelectionSuccess",
       "position": "bottom_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "ZombiePlague.Core"
     },
@@ -700,7 +717,7 @@
       "localization_key": "Notifications.Menu.HClass.SelectionSuccess",
       "position": "bottom_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "ZombiePlague.Core"
     },
@@ -716,7 +733,7 @@
       "localization_key": "Notifications.Menu.Knife.SelectionSuccess",
       "position": "bottom_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "CustomKnife.Core"
     },
@@ -732,7 +749,7 @@
       "localization_key": "Notifications.Menu.Knife.PermissionRequired",
       "position": "bottom_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "CustomKnife.Core"
     },
@@ -746,7 +763,7 @@
       "localization_key": "Notifications.Menu.AbilityHud.Disabled",
       "position": "bottom_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "ZombiePlague.Core"
     },
@@ -760,7 +777,7 @@
       "localization_key": "Notifications.Menu.AbilityHud.Unavailable",
       "position": "bottom_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "ZombiePlague.Core"
     },
@@ -776,7 +793,7 @@
       "localization_key": "Notifications.ZombiePlague.Admin.Round.Started",
       "position": "bottom_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "ZombiePlague.Core"
     },
@@ -790,7 +807,7 @@
       "localization_key": "Notifications.ZombiePlague.Admin.Round.NotPreparing",
       "position": "bottom_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "ZombiePlague.Core"
     },
@@ -804,7 +821,7 @@
       "localization_key": "Notifications.ZombiePlague.Admin.Round.CannotStart",
       "position": "bottom_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "ZombiePlague.Core"
     },
@@ -818,7 +835,7 @@
       "localization_key": "Notifications.ZombiePlague.Admin.Round.Cancelled",
       "position": "bottom_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "ZombiePlague.Core"
     },
@@ -832,7 +849,7 @@
       "localization_key": "Notifications.ZombiePlague.Admin.Round.Selection.AutomaticSelected",
       "position": "bottom_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "ZombiePlague.Core"
     },
@@ -848,7 +865,7 @@
       "localization_key": "Notifications.ZombiePlague.Admin.Round.Selection.ConditionsPending",
       "position": "bottom_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "ZombiePlague.Core"
     },
@@ -864,7 +881,7 @@
       "localization_key": "Notifications.ZombiePlague.Admin.Round.Selection.Selected",
       "position": "bottom_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "ZombiePlague.Core"
     },
@@ -884,7 +901,7 @@
       "localization_key": "Notifications.Shop.Errors.ProductUnavailable",
       "position": "bottom_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "Shop.Core"
     },
@@ -904,7 +921,7 @@
       "localization_key": "Notifications.Shop.Errors.TeamUnavailable",
       "position": "bottom_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "Shop.Core"
     },
@@ -924,7 +941,7 @@
       "localization_key": "Notifications.Shop.Errors.AccessDenied",
       "position": "bottom_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "Shop.Core"
     },
@@ -944,7 +961,7 @@
       "localization_key": "Notifications.Shop.Errors.NotEnoughMoney",
       "position": "bottom_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "Shop.Core"
     },
@@ -964,7 +981,7 @@
       "localization_key": "Notifications.Shop.Errors.RoundLimit",
       "position": "bottom_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "Shop.Core"
     },
@@ -984,7 +1001,7 @@
       "localization_key": "Notifications.Shop.Errors.MapLimit",
       "position": "bottom_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "Shop.Core"
     },
@@ -1004,7 +1021,7 @@
       "localization_key": "Notifications.Shop.Errors.Cooldown",
       "position": "bottom_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "Shop.Core"
     },
@@ -1024,7 +1041,7 @@
       "localization_key": "Notifications.Shop.Errors.InvalidPlayer",
       "position": "bottom_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "Shop.Core"
     },
@@ -1044,7 +1061,7 @@
       "localization_key": "Notifications.Shop.Errors.Cancelled",
       "position": "bottom_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "Shop.Core"
     },
@@ -1064,7 +1081,7 @@
       "localization_key": "Notifications.Shop.Errors.PaymentRejected",
       "position": "bottom_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "Shop.Core"
     },
@@ -1084,7 +1101,7 @@
       "localization_key": "Notifications.Shop.Errors.GrantRejected",
       "position": "bottom_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "Shop.Core"
     },
@@ -1104,7 +1121,7 @@
       "localization_key": "Notifications.Shop.Errors.RefundFailed",
       "position": "bottom_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "Shop.Core"
     },
@@ -1124,7 +1141,7 @@
       "localization_key": "Notifications.Shop.Errors.AmmoNotConfigured",
       "position": "bottom_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "Shop.Core"
     },
@@ -1144,7 +1161,7 @@
       "localization_key": "Notifications.Shop.Errors.AmmoFull",
       "position": "bottom_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "Shop.Core"
     },
@@ -1164,7 +1181,7 @@
       "localization_key": "Notifications.Shop.Errors.Unavailable",
       "position": "bottom_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "Shop.Core"
     },
@@ -1181,7 +1198,7 @@
       "localization_key": "Notifications.Shop.Admin.Reload.Succeeded",
       "position": "bottom_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "Shop.Core"
     },
@@ -1195,7 +1212,7 @@
       "localization_key": "Notifications.Shop.Admin.Reload.Failed",
       "position": "bottom_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "Shop.Core"
     },
@@ -1209,7 +1226,7 @@
       "localization_key": "Notifications.Localization.Menu.Loading",
       "position": "bottom_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "Localization.Core"
     },
@@ -1225,7 +1242,7 @@
       "localization_key": "Notifications.Localization.Menu.Changed",
       "position": "bottom_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "Localization.Core"
     },
@@ -1239,7 +1256,7 @@
       "localization_key": "Notifications.Localization.Menu.Unavailable",
       "position": "bottom_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "Localization.Core"
     },
@@ -1255,7 +1272,7 @@
       "localization_key": "Notifications.Localization.Reload.Result",
       "position": "bottom_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "Localization.Core"
     },
@@ -1271,7 +1288,7 @@
       "localization_key": "Notifications.Advertisement.Reload.Result",
       "position": "bottom_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "Advertisement.Core"
     },
@@ -1287,7 +1304,7 @@
       "localization_key": "Notifications.InfoNotify.Connected",
       "position": "bottom_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "InfoNotify.Core"
     },
@@ -1303,7 +1320,7 @@
       "localization_key": "Notifications.InfoNotify.RoundStart",
       "position": "bottom_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "InfoNotify.Core"
     },
@@ -1319,7 +1336,7 @@
       "localization_key": "Notifications.InfoNotify.RoundEnd",
       "position": "bottom_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "InfoNotify.Core"
     },
@@ -1335,7 +1352,7 @@
       "localization_key": "Notifications.InfoNotify.Periodic",
       "position": "bottom_right",
       "duration": 5,
-      "delivery": "queue",
+      "delivery": "stack",
       "cooldown": 0,
       "plugin": "InfoNotify.Core"
     }

@@ -68,7 +68,7 @@ public sealed record BannerNotificationRule
     public HudBannerContent Content { get; init; } = new();
     /// <summary>Позиция, приоритет и длительность баннера.</summary>
     public HudMessageOptions Options { get; init; } = new();
-    /// <summary>replace обновляет текущий баннер; queue сохраняет последовательность сообщений в области.</summary>
+    /// <summary>replace обновляет текущий баннер; queue сохраняет последовательность; stack показывает до трёх карточек друг под другом.</summary>
     public string Delivery { get; init; } = "queue";
     /// <summary>Минимальный интервал между принятыми событиями одного типа у игрока: 0–300 секунд.</summary>
     public double CooldownSeconds { get; init; }

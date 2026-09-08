@@ -47,10 +47,8 @@ internal sealed class CustomHudService(ISwiftlyCore core, IOptions<CustomHudConf
         HudBannerDesign.Validate(template, keys);
         ArgumentNullException.ThrowIfNull(parameters);
         if (!IsAvailable || !Eligible(player) || _localization is null) return false;
-        var escaped = parameters.ToDictionary(item => item.Key,
-            item => item.Value is string value ? (object?)HudText.Escape(value) : item.Value, StringComparer.OrdinalIgnoreCase);
-        string? Resolve(string? key) => string.IsNullOrEmpty(key) ? null : language is null
-            ? _localization.FormatForPlayer(player, key, escaped) : _localization.FormatForLanguage(language, key, escaped);
+        string? Resolve(string? key) => string.IsNullOrEmpty(key) ? null
+            : _localization.FormatForPlayer(player, key, parameters, LocalizationOutputMode.Html, language);
         var content = new HudBannerContent { Header = Resolve(keys.Header), Title = Resolve(keys.Title), Description = Resolve(keys.Description) };
         if ((!string.IsNullOrEmpty(keys.Header) && string.IsNullOrWhiteSpace(content.Header))
             || (!string.IsNullOrEmpty(keys.Title) && string.IsNullOrWhiteSpace(content.Title))
@@ -163,9 +161,8 @@ internal sealed class CustomHudService(ISwiftlyCore core, IOptions<CustomHudConf
             foreach (var player in core.PlayerManager.GetAllPlayers().Where(Eligible))
             {
                 seen.Add(player.PlayerID);
-                var frame = _messages.GetFrame(player.PlayerID, player.SteamID);
-                foreach (var position in Positions)
-                    _presenter.Render(player.PlayerID, player.SteamID, position, frame[(int)position]);
+                var frame = _messages.GetStackedFrame(player.PlayerID, player.SteamID);
+                _presenter.RenderFrame(player.PlayerID, player.SteamID, frame);
             }
             foreach (var id in _presenter.PlayerIds.Where(id => !seen.Contains(id))) ClearPlayer(id);
         }
