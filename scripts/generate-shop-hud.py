@@ -71,21 +71,17 @@ label(wallet, 'Balance', 'Balance')
 settings = ET.SubElement(header, 'Button', {'id': 'Settings', 'class': 'SettingsButton'})
 gear = panel(settings, 'Gear')
 gear.set('hittest', 'false')
-for tooth in range(4):
-    panel(gear, f'GearTooth Tooth{tooth}').set('hittest', 'false')
-panel(gear, 'GearHub').set('hittest', 'false')
-panel(gear, 'GearHole').set('hittest', 'false')
 close = ET.SubElement(header, 'Button', {'id': 'Close', 'class': 'Close'})
 label(close, 'CloseLabel', text='×')
 stack = panel(window, 'ContentStack')
 body = panel(stack, 'Body')
-columns = panel(body, 'Columns')
+columns = panel(body, 'Columns', 'Columns')
 for col in range(COLUMNS):
     column = panel(columns, 'Column', f'Column{col}')
     category = panel(column, 'CategoryHeader')
     panel(category, 'CategoryAccent')
     label(category, 'Category', f'Category{col}')
-    cards = panel(column, 'Cards')
+    cards = panel(column, 'Cards', f'Cards{col}')
     for row in range(ROWS):
         slot = col * ROWS + row
         card = panel(cards, 'Card', f'Card{slot}')
@@ -96,13 +92,18 @@ for col in range(COLUMNS):
         icon.set('hittest', 'false')
         # Два одинаковых силуэта: размытый цветной контур под нейтральной иконкой.
         # img-shadow применяется только к Image; здесь фон выбирается CSS-классом.
-        panel(icon, 'WeaponLayer IconHalo').set('hittest', 'false')
+        halo = panel(icon, 'IconHalo')
+        halo.set('hittest', 'false')
+        panel(halo, 'WeaponLayer HaloShape').set('hittest', 'false')
         panel(icon, 'WeaponLayer IconSilhouette').set('hittest', 'false')
         details = panel(content, 'CardDetails')
         panel(details, 'RarityMark')
         label(details, 'Status', f'Status{slot}')
         label(details, 'Price', f'Price{slot}')
         page_buttons(surface, f'Buy{slot}', 'BuyHit')
+        cooldown = panel(surface, 'Cooldown', f'Cooldown{slot}')
+        cooldown.set('hittest', 'false')
+        label(cooldown, 'Countdown', f'Countdown{slot}')
     pager_space = panel(column, 'PagerSpace')
     pager = panel(pager_space, 'ItemPager', f'ItemPager{col}')
     nav(pager, f'Prev{col}', f'Previous{col}', '‹')
@@ -124,7 +125,7 @@ confirm = panel(selection, 'Confirm', 'Confirm')
 label(confirm, 'ConfirmLabel', 'ConfirmLabel')
 for slot in range(COLUMNS * ROWS):
     page_buttons(confirm, f'Confirm{slot}', f'ConfirmHit ConfirmHit{slot}')
-label(footer, 'Hint', 'Hint')
+panel(footer, 'FooterSpace')
 pages = panel(footer, 'CategoryPager', 'CategoryPager')
 nav(pages, 'CategoryPrev', 'CategoriesPrevious', '‹')
 label(pages, 'PageText', 'CategoryPage')
@@ -151,13 +152,7 @@ css = '''/* Создано scripts/generate-shop-hud.py */
 .SettingsButton { width: 44px; height: 44px; vertical-align: center; margin-right: 8px; border: 1px solid #6b839455; border-radius: 4px; background-color: #15212a; }
 .SettingsButton:hover { background-color: #243e48; border-color: #76d9cc; }
 .SettingsOpen .SettingsButton { border-color: #76d9cc; }
-.Gear { width: 26px; height: 26px; horizontal-align: center; vertical-align: center; }
-.GearTooth { width: 8px; height: 26px; horizontal-align: center; vertical-align: center; border-radius: 2px; background-color: #b9cbd4; }
-.Tooth1 { transform: rotateZ(45deg); }
-.Tooth2 { transform: rotateZ(90deg); }
-.Tooth3 { transform: rotateZ(135deg); }
-.GearHub { width: 21px; height: 21px; horizontal-align: center; vertical-align: center; border-radius: 50%; background-color: #b9cbd4; }
-.GearHole { width: 9px; height: 9px; horizontal-align: center; vertical-align: center; border-radius: 50%; background-color: #15212a; }
+.Gear { width: 28px; height: 28px; horizontal-align: center; vertical-align: center; background-image: url("s2r://panorama/images/custom_game/shop/gear.vsvg"); background-size: contain; background-position: center; background-repeat: no-repeat; wash-color: #b9cbd4; }
 .ContentStack { width: 100%; height: fill-parent-flow(1); }
 .Body { width: 100%; height: 100%; padding: 18px 18px 10px; }
 .SettingsPanel { width: 376px; max-width: 96%; height: 150px; horizontal-align: right; margin: 12px 24px; padding: 16px; visibility: collapse; flow-children: down; background-color: #0d1d29fe; border: 1px solid #76d9cc88; border-radius: 6px; box-shadow: #000000aa 0px 6px 18px 0px; }
@@ -189,10 +184,13 @@ css = '''/* Создано scripts/generate-shop-hud.py */
 .Card.Available .ItemName { color: #dfebf0; }
 .ItemIcon { width: 100%; height: fill-parent-flow(1); margin: 2px 0px 5px; }
 .WeaponLayer { width: 86%; max-width: 190px; height: 100%; horizontal-align: center; vertical-align: center; background-size: contain; background-position: center; background-repeat: no-repeat; }
-.IconHalo { visibility: collapse; blur: gaussian(3); opacity: 0.85; }
+.IconHalo { width: 100%; height: 100%; visibility: collapse; blur: gaussian(5); opacity: 1; transform: scale3d(1.08, 1.08, 1); }
 .IconSilhouette { wash-color: #64707c; opacity: 0.45; }
 .Card.Available .IconHalo { visibility: visible; }
 .Card.Available .IconSilhouette { wash-color: #dfebf2; opacity: 1; }
+.Cooldown { visibility: collapse; horizontal-align: right; vertical-align: center; margin-right: 10px; padding: 4px 8px; background-color: #081019ed; border: 1px solid #a4c3d955; border-radius: 4px; }
+.Cooldown.Visible { visibility: visible; }
+.Countdown { color: #eaf5ff; font-size: 18px; font-weight: bold; }
 .CardDetails { width: 100%; height: 22px; flow-children: right; }
 .RarityMark { width: 13px; height: 3px; vertical-align: center; margin-right: 6px; background-color: #52606c; }
 .Status { width: fill-parent-flow(1); height: 22px; vertical-align: center; font-size: 11px; color: #7b8996; text-overflow: ellipsis; }
@@ -216,7 +214,7 @@ css = '''/* Создано scripts/generate-shop-hud.py */
 .Empty { visibility: collapse; horizontal-align: center; vertical-align: center; color: #9bacbb; font-size: 20px; }
 .Empty.Visible { visibility: visible; }
 .Footer { width: 100%; height: 48px; padding: 10px 24px; background-color: #09111ae8; border-top: 1px solid #7a9eae22; flow-children: right; }
-.Hint { width: fill-parent-flow(1); vertical-align: center; font-size: 13px; color: #7d96a7; text-overflow: ellipsis; }
+.FooterSpace { width: fill-parent-flow(1); height: 1px; }
 .CategoryPager { width: 144px; height: 28px; margin-left: 18px; flow-children: right; visibility: collapse; }
 .CategoryPager.Visible { visibility: visible; }
 .ShopRoot.SettingsOpen .Card.Available .BuyHit, .ShopRoot.SettingsOpen .Nav.Available .NavHit { visibility: collapse; }
@@ -235,8 +233,8 @@ css += """
 .Selection_none .Card.Selected .CardSurface { animation-name: none; }
 """
 for bank in ('A', 'B'):
-    for effect, start in [('pulse', 'brightness: 1.7;'), ('lift', 'transform: translateY(-4px);')]:
-        end = 'brightness: 1;' if effect == 'pulse' else 'transform: translateY(0px);'
+    for effect, start in [('pulse', 'brightness: 1.25;'), ('lift', 'transform: translateY(-4px);'), ('press', 'transform: scale3d(0.97, 0.97, 1);')]:
+        end = 'brightness: 1;' if effect == 'pulse' else 'transform: scale3d(1, 1, 1);' if effect == 'press' else 'transform: translateY(0px);'
         css += f'.Selection_{effect}.Pulse{bank} .Card.Selected .CardSurface {{ animation-name: shop-selection-{effect}-{bank}; animation-timing-function: ease-out; }}\n'
         css += f"@keyframes 'shop-selection-{effect}-{bank}' {{ 0% {{ {start} }} 100% {{ {end} }} }}\n"
 for slot in range(COLUMNS * ROWS):
@@ -252,9 +250,9 @@ for scale in SCALES:
 for rows in range(1, ROWS + 1):
     css += f'.Rows{rows} .Card {{ height: {100 / rows:.6f}%; }}\n'
 for name, color in COLORS.items():
-    css += f'.Card.Available.Rarity{name} .IconHalo {{ wash-color: {color}; }}\n'
+    css += f'.Card.Available.Rarity{name} .HaloShape {{ wash-color: {color}; }}\n'
     css += f'.Card.Available.Rarity{name} .RarityMark {{ background-color: {color}; }}\n'
-    css += f'.Card.Available.Rarity{name} .BuyHit:hover {{ border-color: {color}; box-shadow: {color}33 0px 0px 9px 0px; }}\n'
+    css += f'.Hover_rarity .Card.Available.Rarity{name} .BuyHit:hover {{ border-color: {color}; box-shadow: {color}33 0px 0px 9px 0px; }}\n'
 for icon in sorted(set(ICONS)):
     asset = 'kevlar' if icon == 'equipment' else icon
     css += f'.Icon_{icon} .WeaponLayer {{ background-image: url("s2r://panorama/images/icons/equipment/{asset}.vsvg"); }}\n'
@@ -271,19 +269,24 @@ css += """
 .Names_right .ItemName { text-align: right; }
 .Icons_silhouette .Card .IconHalo, .Icons_hidden .Card .ItemIcon { visibility: collapse; }
 .Highlight_none .Card .IconHalo, .Highlight_none .Card .RarityMark { visibility: collapse; }
-.Highlight_none .Card.Available .BuyHit:hover { border-color: #b7cbd655; box-shadow: none; }
+.Hover_none .Card.Available .BuyHit:hover { border-color: #00000000; box-shadow: none; }
 .Open_none.Visible .ShopWindow { animation-name: none; }
 """
 for accent, color in APPEARANCE['accents'].items():
     css += f'.Accent_{accent} .Header {{ border-bottom-color: {color}88; }}\n'
     css += f'.Accent_{accent} .CategoryAccent {{ background-color: {color}; }}\n'
     css += f'.Accent_{accent} .BrandMark {{ border-color: {color}aa; }}\n'
-    css += f'.Accent_{accent}.Highlight_accent .Card.Available .IconHalo {{ wash-color: {color}; }}\n'
+    css += f'.Accent_{accent}.Highlight_accent .Card.Available .HaloShape {{ wash-color: {color}; }}\n'
     css += f'.Accent_{accent}.Highlight_accent .Card.Available .RarityMark {{ background-color: {color}; }}\n'
-    css += f'.Accent_{accent}.Highlight_accent .Card.Available .BuyHit:hover {{ border-color: {color}; box-shadow: {color}33 0px 0px 9px 0px; }}\n'
+    css += f'.Accent_{accent}.Hover_accent .Card.Available .BuyHit:hover {{ border-color: {color}; box-shadow: {color}33 0px 0px 9px 0px; }}\n'
+for accent, color in APPEARANCE['accents'].items():
+    css += f'.Hover_{accent} .Card.Available .BuyHit:hover {{ border-color: {color}; box-shadow: {color}33 0px 0px 9px 0px; }}\n'
 frames = dict(fade=('opacity: 0;', 'opacity: 1;'),
               slide=('opacity: 0; transform: translateY(18px);', 'opacity: 1; transform: translateY(0px);'),
-              zoom=('opacity: 0; transform: scale3d(0.96, 0.96, 1);', 'opacity: 1; transform: scale3d(1, 1, 1);'))
+              zoom=('opacity: 0; transform: scale3d(0.96, 0.96, 1);', 'opacity: 1; transform: scale3d(1, 1, 1);'),
+              rise=('opacity: 0; transform: translateY(60px);', 'opacity: 1; transform: translateY(0px);'),
+              unfold=('opacity: 0; transform: scale3d(1, 0.85, 1);', 'opacity: 1; transform: scale3d(1, 1, 1);'),
+              drift=('opacity: 0; transform: translateX(64px);', 'opacity: 1; transform: translateX(0px);'))
 for effect, (start, end) in frames.items():
     css += f".Open_{effect}.Visible .ShopWindow {{ animation-name: shop-open-{effect}; animation-timing-function: ease-out; }}\n"
     css += f"@keyframes 'shop-open-{effect}' {{ 0% {{ {start} }} 100% {{ {end} }} }}\n"
@@ -292,14 +295,32 @@ for effect, (start, end) in frames.items():
     css += f"@keyframes 'shop-close-{effect}' {{ 0% {{ {end} }} 100% {{ {start} }} }}\n"
 css += '.Close_none.Closing .ShopWindow { animation-name: none; }\n'
 css += '.Closing .BuyHit, .Closing .NavHit, .Closing .ConfirmHit, .Closing .ScaleHit { visibility: collapse; }\n'
-for bank in ('A', 'B'):
-    for effect in ('fade', 'slide'):
-        start, end = frames[effect]
-        if effect == 'slide': start, end = start.replace('translateY', 'translateX'), end.replace('translateY', 'translateX')
-        css += f'.Page_{effect}.Bank{bank} .Cards {{ animation-name: shop-page-{effect}-{bank}; animation-timing-function: ease-out; }}\n'
-        css += f"@keyframes 'shop-page-{effect}-{bank}' {{ 0% {{ {start} }} 100% {{ {end} }} }}\n"
+# Выход и вход применяются только к Columns или Cards выбранной колонки.
+# В scroll нет прозрачности: элементы действительно уезжают за границу области.
+for direction, sign in [('Next', 1), ('Previous', -1)]:
+    for effect in APPEARANCE['options']['pageAnimation']:
+        if effect == 'none':
+            continue
+        for phase in ('Out', 'In'):
+            offset = -sign if phase == 'Out' else sign
+            if effect in ('scroll_x', 'scroll_y', 'slide'):
+                axis = 'Y' if effect == 'scroll_y' else 'X'
+                distance = f'{offset * 100}%' if effect.startswith('scroll') else f'{offset * 28}px'
+                moved = f'transform: translate{axis}({distance});'
+                rest = f'transform: translate{axis}(0px);'
+                if effect == 'slide':
+                    moved += ' opacity: 0;'
+                    rest += ' opacity: 1;'
+            else:
+                moved, rest = frames[effect]
+            start, end = (rest, moved) if phase == 'Out' else (moved, rest)
+            name = f'shop-page-{effect}-{phase}-{direction}'
+            css += f'.Page_{effect} .Motion{phase}{direction} {{ animation-name: {name}; animation-timing-function: ease-in-out; animation-fill-mode: both; }}\n'
+            css += f"@keyframes '{name}' {{ 0% {{ {start} }} 100% {{ {end} }} }}\n"
+css += '.ShopRoot.MotionBusy .Card.Available .BuyHit, .ShopRoot.MotionBusy .Nav.Available .NavHit, .ShopRoot.MotionBusy .Confirm .ConfirmHit { visibility: collapse; }\n'
 for speed, duration in APPEARANCE['duration'].items():
-    css += f'.Speed_{speed} .ShopWindow, .Speed_{speed} .Cards, .Speed_{speed} .CardSurface {{ animation-duration: {duration}s; animation-iteration-count: 1; }}\n'
+    css += f'.Speed_{speed} .ShopWindow, .Speed_{speed} .CardSurface {{ animation-duration: {duration}s; animation-iteration-count: 1; }}\n'
+    css += f'.Speed_{speed} .Cards, .Speed_{speed} .Columns {{ animation-duration: {duration / 2}s; animation-iteration-count: 1; }}\n'
 
 css += '.ShopRoot.BankA .Confirm .HitB, .ShopRoot.BankB .Confirm .HitA, .ShopRoot.Closing .Confirm .ConfirmHit, .ShopRoot.SettingsOpen .Confirm .ConfirmHit { visibility: collapse; }\n'
 
@@ -319,3 +340,6 @@ if arguments.cms_assets:
     arguments.cms_assets.mkdir(parents=True, exist_ok=True)
     for source in [CONTENT.parent / 'hud-appearance.json', *(CONTENT.parent / 'web').glob('shop-hud*')]:
         shutil.copyfile(source, arguments.cms_assets / source.name)
+    controls = arguments.cms_assets / 'controls'
+    controls.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(CONTENT / 'panorama/images/custom_game/shop/gear.svg', controls / 'gear.svg')

@@ -306,7 +306,7 @@ internal sealed class ShopHudMenu(
                     if (now >= session.CloseAt) Close(player.PlayerID);
                     continue;
                 }
-                if (refresh) Render(player, session);
+                if (session.Transition.Advance(now) || refresh) Render(player, session);
             }
         }
         catch (Exception error) { Fail(error); }
@@ -347,7 +347,10 @@ internal sealed class ShopHudMenu(
         hud.Class("ShopRoot", "HasItemPages", view.Columns.Any(x => x.PageCount > 1));
         hud.Text("StoreTitle", catalog.Title(player));
         hud.Text("Balance", catalog.Balance(player));
-        hud.Text("Hint", catalog.Text(player, appearance.ClickBehavior == "confirm" ? "Shop.Hud.SelectHint" : "Shop.Hud.Hint"));
+        hud.Class("ShopRoot", "MotionBusy", session.Transition.Busy);
+        Choice(session, "Columns", "motion", session.Transition.ClassFor("Columns"));
+        for (var index = 0; index < ShopHudCatalog.ColumnCount; index++)
+            Choice(session, $"Cards{index}", "motion", session.Transition.ClassFor($"Cards{index}"));
         var selected = view.Columns.SelectMany(x => x.Cards).FirstOrDefault(x => x.Offer.Id == session.SelectedOfferId);
         hud.Class("ShopRoot", "HasSelection", appearance.ClickBehavior == "confirm" && selected is not null);
         hud.Text("SelectionName", selected is null ? "" : selected.Name + " · " + selected.Price);
@@ -383,6 +386,8 @@ internal sealed class ShopHudMenu(
                 hud.Text($"Name{slot}", card.Name);
                 hud.Text($"Price{slot}", card.Price);
                 hud.Text($"Status{slot}", card.Status);
+                hud.Class($"Cooldown{slot}", "Visible", card.CooldownSeconds > 0);
+                hud.Text($"Countdown{slot}", $"{card.CooldownSeconds / 60:00}:{card.CooldownSeconds % 60:00}");
                 hud.Class(panel, "Available", card.Enabled);
                 hud.Class(panel, "Selected", card.Offer.Id == session.HighlightOfferId);
                 Choice(session, panel, "rarity", "Rarity" + card.Rarity);
@@ -437,7 +442,7 @@ internal sealed class ShopHudMenu(
                 Render(player, session);
                 return;
             }
-            if (session.SettingsOpen || !session.Pages.TryButton(ev.ButtonId, out var button)) return;
+            if (session.SettingsOpen || session.Transition.Busy || !session.Pages.TryButton(ev.ButtonId, out var button)) return;
             if (session.View is not { } view) return;
             var current = catalog.Build(player, session.Navigation);
             if (!ReferenceEquals(session.Snapshot, cache.Current) || !SameSlots(view, current))
@@ -447,31 +452,30 @@ internal sealed class ShopHudMenu(
             }
             var appearance = cache.Current.Storefronts[view.ShopType].Appearance;
             var wrap = appearance.WrapPages;
-            var navigationVersion = session.NavigationVersion;
             if (button == "CategoriesPrevious" && (wrap || view.Page > 0))
             {
-                session.Navigation.Page = ShopHudAppearance.MovePage(view.Page, view.PageCount, -1, wrap);
-                session.NavigationVersion++;
+                Navigate(session, "Columns", -1, appearance, () =>
+                    session.Navigation.Page = ShopHudAppearance.MovePage(view.Page, view.PageCount, -1, wrap));
             }
             else if (button == "CategoriesNext" && (wrap || view.Page + 1 < view.PageCount))
             {
-                session.Navigation.Page = ShopHudAppearance.MovePage(view.Page, view.PageCount, 1, wrap);
-                session.NavigationVersion++;
+                Navigate(session, "Columns", 1, appearance, () =>
+                    session.Navigation.Page = ShopHudAppearance.MovePage(view.Page, view.PageCount, 1, wrap));
             }
             else if (TryIndex(button, "Previous", ShopHudCatalog.ColumnCount, out var previous))
             {
                 if (view.Columns.ElementAtOrDefault(previous) is { } column && (wrap || column.Page > 0))
                 {
-                    session.Navigation.ItemPages[column.Key] = ShopHudAppearance.MovePage(column.Page, column.PageCount, -1, wrap);
-                    session.NavigationVersion++;
+                    Navigate(session, $"Cards{previous}", -1, appearance, () =>
+                        session.Navigation.ItemPages[column.Key] = ShopHudAppearance.MovePage(column.Page, column.PageCount, -1, wrap));
                 }
             }
             else if (TryIndex(button, "NextItems", ShopHudCatalog.ColumnCount, out var next))
             {
                 if (view.Columns.ElementAtOrDefault(next) is { } column && (wrap || column.Page + 1 < column.PageCount))
                 {
-                    session.Navigation.ItemPages[column.Key] = ShopHudAppearance.MovePage(column.Page, column.PageCount, 1, wrap);
-                    session.NavigationVersion++;
+                    Navigate(session, $"Cards{next}", 1, appearance, () =>
+                        session.Navigation.ItemPages[column.Key] = ShopHudAppearance.MovePage(column.Page, column.PageCount, 1, wrap));
                 }
             }
             else if (TryIndex(button, "Confirm", ShopHudCatalog.SlotCount, out var confirmationSlot))
@@ -498,14 +502,20 @@ internal sealed class ShopHudMenu(
                 }
             }
             else return;
-            if (navigationVersion != session.NavigationVersion)
-            {
-                session.SelectedOfferId = null;
-                session.HighlightOfferId = null;
-            }
             Render(player, session);
         }
         catch (Exception error) { Fail(error); }
+    }
+
+    private static void Navigate(Session session, string panel, int direction, ShopHudAppearance appearance, Action update)
+    {
+        session.Transition.Begin(panel, direction, Now, appearance, () =>
+        {
+            update();
+            session.NavigationVersion++;
+            session.SelectedOfferId = null;
+            session.HighlightOfferId = null;
+        });
     }
 
     private bool PurchaseCard(IPlayer player, Session session, ShopHudCard card)
@@ -623,6 +633,7 @@ internal sealed class ShopHudMenu(
     {
         public ulong SessionId { get; } = sessionId;
         public ShopHudPages Pages { get; } = new();
+        public ShopHudTransition Transition { get; } = new();
         public IShopHudRuntime? Runtime => Pages.Runtime;
         public ShopHudNativeVisibility? NativeVisibility { get; set; }
         public ShopHudView? View { get; set; }

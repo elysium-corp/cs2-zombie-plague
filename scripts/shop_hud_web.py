@@ -37,6 +37,7 @@ def preview_css(css):
 {scope} button > * {{ grid-area: 1 / 1; }}
 {scope} [data-hittest="false"] {{ pointer-events: none; }}
 {scope} .WeaponLayer {{ mask: var(--icon) center / contain no-repeat; background-color: white; }}
+{scope} .Gear {{ mask: var(--settings-icon) center / contain no-repeat; }}
 {scope} .Closing button {{ pointer-events: none; }}
 ''']
     flows = set()

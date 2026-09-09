@@ -1,10 +1,10 @@
 {
-  "version": 2,
+  "version": 3,
   "defaults": {
     "theme": "elysium",
     "accent": "mint",
     "openAnimation": "fade",
-    "pageAnimation": "fade",
+    "pageAnimation": "scroll_x",
     "animationSpeed": "normal",
     "highlight": "rarity",
     "iconStyle": "glow",
@@ -18,7 +18,8 @@
     "selectionAnimation": "pulse",
     "clickBehavior": "buy",
     "maxPurchasesPerRound": 0,
-    "closeAnimation": "fade"
+    "closeAnimation": "fade",
+    "hoverHighlight": "rarity"
   },
   "options": {
     "width": [
@@ -58,12 +59,18 @@
       "none",
       "fade",
       "slide",
-      "zoom"
+      "zoom",
+      "rise",
+      "unfold",
+      "drift"
     ],
     "pageAnimation": [
       "none",
       "fade",
-      "slide"
+      "slide",
+      "scroll_x",
+      "scroll_y",
+      "zoom"
     ],
     "animationSpeed": [
       "fast",
@@ -106,7 +113,8 @@
     "selectionAnimation": [
       "none",
       "pulse",
-      "lift"
+      "lift",
+      "press"
     ],
     "clickBehavior": [
       "buy",
@@ -125,7 +133,20 @@
       "none",
       "fade",
       "slide",
-      "zoom"
+      "zoom",
+      "rise",
+      "unfold",
+      "drift"
+    ],
+    "hoverHighlight": [
+      "none",
+      "rarity",
+      "accent",
+      "mint",
+      "gold",
+      "violet",
+      "blue",
+      "red"
     ]
   },
   "accents": {

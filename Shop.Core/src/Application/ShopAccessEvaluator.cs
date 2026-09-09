@@ -67,6 +67,8 @@ internal sealed class ShopAccessEvaluator(
         return counters.Evaluate(player, offer.Contract);
     }
 
+    public TimeSpan RemainingCooldown(IPlayer player, ShopOffer offer) => counters.RemainingCooldown(player, offer);
+
     public ShopAvailability EvaluateAmmo(IPlayer player, ShopOfferDefinition offer)
     {
         if (offer.Contract.AmmoPrice is not { } ammoPrice)
