@@ -9,7 +9,7 @@ using SwiftlyS2.Shared.Players;
 namespace Shop.Core.Hud;
 
 internal sealed record ShopHudCard(ShopOffer Offer, string Name, string Price, string Status,
-    string Icon, ItemRarity Rarity, bool Enabled);
+    string Icon, ItemRarity Rarity, bool Enabled, int CooldownSeconds = 0);
 
 internal sealed record ShopHudColumn(string Key, string Title, int Page, int PageCount,
     IReadOnlyList<ShopHudCard> Cards);
@@ -46,25 +46,21 @@ internal sealed class ShopHudCatalog(
 
     public string Title(IPlayer player) => Text(player, cache.Current.Storefronts[access.GetShopType(player)].TitleKey);
 
-    public string Balance(IPlayer player) => localization().FormatForPlayer(player, "Shop.Menu.Balance",
-        new Dictionary<string, object?> { ["balance"] = economy().GetBalance(player) }) ?? string.Empty;
+    public string Balance(IPlayer player) => localization().FormatForPlayer(player, "Shop.Menu.Price",
+        new Dictionary<string, object?> { ["price"] = economy().GetBalance(player) }) ?? string.Empty;
 
     private ShopHudCard Card(IPlayer player, ShopOfferDefinition offer)
     {
         var availability = access.Evaluate(player, offer);
         var status = string.Empty;
-        if (!availability.Allowed && availability.Reason != ShopAvailabilityReason.InsufficientFunds)
-        {
-            var key = ShopLocalization.AvailabilityKey(availability.Reason);
-            status = availability.Reason == ShopAvailabilityReason.CooldownActive
-                ? localization().FormatForPlayer(player, key, new Dictionary<string, object?>
-                    { ["seconds"] = Math.Max(1, (int)Math.Ceiling(availability.RemainingCooldown.TotalSeconds)) }) ?? key
-                : Text(player, key);
-        }
+        if (!availability.Allowed && availability.Reason is not
+            (ShopAvailabilityReason.InsufficientFunds or ShopAvailabilityReason.CooldownActive))
+            status = Text(player, ShopLocalization.AvailabilityKey(availability.Reason));
         return new ShopHudCard(offer.Contract, Text(player, offer.Contract.DisplayNameKey),
             localization().FormatForPlayer(player, "Shop.Menu.Price",
                 new Dictionary<string, object?> { ["price"] = offer.Contract.Price }) ?? offer.Contract.Price.ToString(),
-            status, products.GetHudIcon(offer), products.GetRarity(offer) ?? ItemRarity.Common, availability.Allowed);
+            status, products.GetHudIcon(offer), products.GetRarity(offer) ?? ItemRarity.Common, availability.Allowed,
+            (int)Math.Ceiling(access.RemainingCooldown(player, offer.Contract).TotalSeconds));
     }
 
     internal static ShopHudView Project(ShopSnapshot snapshot, ShopType type, ShopHudNavigation navigation,

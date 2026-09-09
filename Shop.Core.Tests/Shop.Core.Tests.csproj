@@ -37,8 +37,8 @@
 
     <ItemGroup>
         <Content Include="..\Shop.Core\resources\templates\template.jsonc" Link="Fixtures\template.jsonc" CopyToOutputDirectory="PreserveNewest" />
-        <Content Include="../Shop.Core/resources/hud/shop/content/panorama/layout/custom_game/elysium_shop_v4_r4.xml" Link="Fixtures/elysium_shop_v4_r4.xml" CopyToOutputDirectory="PreserveNewest" />
-        <Content Include="../Shop.Core/resources/hud/shop/content/panorama/styles/custom_game/elysium_shop_v4_r4.css" Link="Fixtures/elysium_shop_v4_r4.css" CopyToOutputDirectory="PreserveNewest" />
+        <Content Include="../Shop.Core/resources/hud/shop/content/panorama/layout/custom_game/elysium_shop_v4_r5.xml" Link="Fixtures/elysium_shop_v4_r5.xml" CopyToOutputDirectory="PreserveNewest" />
+        <Content Include="../Shop.Core/resources/hud/shop/content/panorama/styles/custom_game/elysium_shop_v4_r5.css" Link="Fixtures/elysium_shop_v4_r5.css" CopyToOutputDirectory="PreserveNewest" />
         <Content Include="../Shop.Core/resources/hud/shop/web/shop-hud-template.json" Link="Fixtures/shop-hud-template.json" CopyToOutputDirectory="PreserveNewest" />
         <Content Include="../Shop.Core/resources/hud/shop/hud-appearance.json" Link="Fixtures/hud-appearance.json" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>

@@ -29,19 +29,19 @@ internal sealed class ShopPurchaseCounter
             return ShopAvailability.Rejected(ShopAvailabilityReason.MapLimitReached);
         }
 
-        if (offer.CooldownSeconds > 0 && _lastPurchases.TryGetValue(key, out var lastPurchase))
-        {
-            var elapsed = Stopwatch.GetElapsedTime(lastPurchase);
-            var cooldown = TimeSpan.FromSeconds(offer.CooldownSeconds);
-            if (elapsed < cooldown)
-            {
-                return ShopAvailability.Rejected(
-                    ShopAvailabilityReason.CooldownActive,
-                    cooldown - elapsed);
-            }
-        }
+        var remaining = RemainingCooldown(player, offer);
+        if (remaining > TimeSpan.Zero)
+            return ShopAvailability.Rejected(ShopAvailabilityReason.CooldownActive, remaining);
 
         return ShopAvailability.Available();
+    }
+
+    public TimeSpan RemainingCooldown(IPlayer player, ShopOffer offer)
+    {
+        if (offer.CooldownSeconds <= 0 || !_lastPurchases.TryGetValue((PlayerKey(player), offer.Id), out var last))
+            return TimeSpan.Zero;
+        var remaining = TimeSpan.FromSeconds(offer.CooldownSeconds) - Stopwatch.GetElapsedTime(last);
+        return remaining > TimeSpan.Zero ? remaining : TimeSpan.Zero;
     }
 
     public void Record(IPlayer player, ShopOffer offer)

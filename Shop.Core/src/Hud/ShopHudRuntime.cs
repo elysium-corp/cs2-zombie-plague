@@ -20,9 +20,10 @@ internal interface IShopHudRuntime : IDisposable
 
 internal sealed class ShopHudRuntime : IShopHudRuntime
 {
-    internal const string Layout = "panorama/layout/custom_game/elysium_shop_v4_r4.vxml_c";
-    internal const string Style = "panorama/styles/custom_game/elysium_shop_v4_r4.vcss_c";
+    internal const string Layout = "panorama/layout/custom_game/elysium_shop_v4_r5.vxml_c";
+    internal const string Style = "panorama/styles/custom_game/elysium_shop_v4_r5.vcss_c";
     internal const string IconsStyle = "panorama/styles/custom_game/elysium_equipment_icons_v4.vcss_c";
+    internal const string SettingsIcon = "panorama/images/custom_game/shop/gear.vsvg_c";
     private readonly CCSCustomHudLayout _entity;
     private readonly int _playerId;
     private readonly Dictionary<string, string> _text = [];
@@ -32,7 +33,7 @@ internal sealed class ShopHudRuntime : IShopHudRuntime
 
     public ShopHudRuntime(ISwiftlyCore core, int playerId)
     {
-        foreach (var path in new[] { Layout, Style, IconsStyle })
+        foreach (var path in new[] { Layout, Style, IconsStyle, SettingsIcon })
             if (!core.GameFileSystem.FileExists(path, "GAME"))
                 throw new FileNotFoundException("Shop HUD: отсутствует ресурс " + path);
 

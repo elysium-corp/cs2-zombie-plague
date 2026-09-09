@@ -31,7 +31,7 @@ namespace Shop.Core;
 
 [PluginMetadata(
     Id = "Shop.Core",
-    Version = "1.7.0",
+    Version = "1.8.0",
     Name = "Elysium Shop",
     Author = "Elysium",
     Description = "Memory-snapshot shop for human and zombie equipment")]

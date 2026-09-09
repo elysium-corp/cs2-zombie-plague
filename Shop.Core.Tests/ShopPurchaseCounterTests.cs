@@ -21,12 +21,15 @@ public sealed class ShopPurchaseCounterTests
         Assert.Equal(0, counter.RoundCount(player, ShopType.Zombie));
         Assert.Equal(0, counter.RoundCount(other, ShopType.Human));
         Assert.Equal(ShopAvailabilityReason.RoundLimitReached, counter.Evaluate(player, offer).Reason);
+        Assert.InRange(counter.RemainingCooldown(player, offer).TotalSeconds, 55, 60);
+        Assert.Equal(TimeSpan.Zero, counter.RemainingCooldown(other, offer));
         counter.ResetRound();
         Assert.Equal(0, counter.RoundCount(player, ShopType.Human));
         Assert.Equal(ShopAvailabilityReason.MapLimitReached, counter.Evaluate(player, offer).Reason);
         Assert.Equal(ShopAvailabilityReason.CooldownActive, counter.Evaluate(player, offer with { MaxPurchasesPerMap = 0 }).Reason);
         counter.ResetMap();
         Assert.True(counter.Evaluate(player, offer).Allowed);
+        Assert.Equal(TimeSpan.Zero, counter.RemainingCooldown(player, offer));
     }
 
     private static IPlayer Player(ulong steamId)

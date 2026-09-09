@@ -55,7 +55,7 @@ public sealed class ShopHudAppearanceTests
     {
         using var spec = JsonDocument.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", "hud-appearance.json")));
         Assert.Equal(ShopHudAppearance.Default, ShopHudAppearance.Parse(spec.RootElement.GetProperty("defaults").GetRawText()));
-        var css = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", "elysium_shop_v4_r4.css"));
+        var css = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", "elysium_shop_v4_r5.css"));
         foreach (var field in spec.RootElement.GetProperty("options").EnumerateObject())
         foreach (var option in field.Value.EnumerateArray())
         {
@@ -73,8 +73,8 @@ public sealed class ShopHudAppearanceTests
     {
         var directory = Path.Combine(AppContext.BaseDirectory, "Fixtures");
         using var template = JsonDocument.Parse(File.ReadAllText(Path.Combine(directory, "shop-hud-template.json")));
-        var source = File.ReadAllText(Path.Combine(directory, "elysium_shop_v4_r4.xml"))
-            + File.ReadAllText(Path.Combine(directory, "elysium_shop_v4_r4.css"));
+        var source = File.ReadAllText(Path.Combine(directory, "elysium_shop_v4_r5.xml"))
+            + File.ReadAllText(Path.Combine(directory, "elysium_shop_v4_r5.css"));
         Assert.Equal(Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(source.Replace("\r\n", "\n", StringComparison.Ordinal)))),
             template.RootElement.GetProperty("sourceSha256").GetString());
         Assert.Equal(ShopHudCatalog.ColumnCount, template.RootElement.GetProperty("columns").GetInt32());

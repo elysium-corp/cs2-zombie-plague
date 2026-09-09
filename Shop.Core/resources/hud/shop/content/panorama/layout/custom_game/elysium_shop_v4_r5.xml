@@ -1,6 +1,6 @@
 <root>
     <styles>
-        <include src="s2r://panorama/styles/custom_game/elysium_shop_v4_r4.vcss_c" />
+        <include src="s2r://panorama/styles/custom_game/elysium_shop_v4_r5.vcss_c" />
         <include src="s2r://panorama/styles/custom_game/elysium_equipment_icons_v4.vcss_c" />
     </styles>
     <Panel class="ShopViewport">
@@ -18,14 +18,7 @@
                         <Label class="Balance" text="{s:value}" hittest="false" id="Balance" />
                     </Panel>
                     <Button id="Settings" class="SettingsButton">
-                        <Panel class="Gear" hittest="false">
-                            <Panel class="GearTooth Tooth0" hittest="false" />
-                            <Panel class="GearTooth Tooth1" hittest="false" />
-                            <Panel class="GearTooth Tooth2" hittest="false" />
-                            <Panel class="GearTooth Tooth3" hittest="false" />
-                            <Panel class="GearHub" hittest="false" />
-                            <Panel class="GearHole" hittest="false" />
-                        </Panel>
+                        <Panel class="Gear" hittest="false" />
                     </Button>
                     <Button id="Close" class="Close">
                         <Label class="CloseLabel" text="×" hittest="false" />
@@ -33,19 +26,21 @@
                 </Panel>
                 <Panel class="ContentStack">
                     <Panel class="Body">
-                        <Panel class="Columns">
+                        <Panel class="Columns" id="Columns">
                             <Panel class="Column" id="Column0">
                                 <Panel class="CategoryHeader">
                                     <Panel class="CategoryAccent" />
                                     <Label class="Category" text="{s:value}" hittest="false" id="Category0" />
                                 </Panel>
-                                <Panel class="Cards">
+                                <Panel class="Cards" id="Cards0">
                                     <Panel class="Card" id="Card0">
                                         <Panel class="CardSurface">
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name0" />
                                                 <Panel class="ItemIcon" id="Icon0" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -56,6 +51,9 @@
                                             </Panel>
                                             <Button id="A_Buy0" class="BuyHit HitA" />
                                             <Button id="B_Buy0" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown0" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown0" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                     <Panel class="Card" id="Card1">
@@ -63,7 +61,9 @@
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name1" />
                                                 <Panel class="ItemIcon" id="Icon1" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -74,6 +74,9 @@
                                             </Panel>
                                             <Button id="A_Buy1" class="BuyHit HitA" />
                                             <Button id="B_Buy1" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown1" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown1" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                     <Panel class="Card" id="Card2">
@@ -81,7 +84,9 @@
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name2" />
                                                 <Panel class="ItemIcon" id="Icon2" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -92,6 +97,9 @@
                                             </Panel>
                                             <Button id="A_Buy2" class="BuyHit HitA" />
                                             <Button id="B_Buy2" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown2" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown2" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                     <Panel class="Card" id="Card3">
@@ -99,7 +107,9 @@
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name3" />
                                                 <Panel class="ItemIcon" id="Icon3" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -110,6 +120,9 @@
                                             </Panel>
                                             <Button id="A_Buy3" class="BuyHit HitA" />
                                             <Button id="B_Buy3" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown3" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown3" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                     <Panel class="Card" id="Card4">
@@ -117,7 +130,9 @@
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name4" />
                                                 <Panel class="ItemIcon" id="Icon4" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -128,6 +143,9 @@
                                             </Panel>
                                             <Button id="A_Buy4" class="BuyHit HitA" />
                                             <Button id="B_Buy4" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown4" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown4" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                     <Panel class="Card" id="Card5">
@@ -135,7 +153,9 @@
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name5" />
                                                 <Panel class="ItemIcon" id="Icon5" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -146,6 +166,9 @@
                                             </Panel>
                                             <Button id="A_Buy5" class="BuyHit HitA" />
                                             <Button id="B_Buy5" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown5" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown5" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                 </Panel>
@@ -178,13 +201,15 @@
                                     <Panel class="CategoryAccent" />
                                     <Label class="Category" text="{s:value}" hittest="false" id="Category1" />
                                 </Panel>
-                                <Panel class="Cards">
+                                <Panel class="Cards" id="Cards1">
                                     <Panel class="Card" id="Card6">
                                         <Panel class="CardSurface">
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name6" />
                                                 <Panel class="ItemIcon" id="Icon6" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -195,6 +220,9 @@
                                             </Panel>
                                             <Button id="A_Buy6" class="BuyHit HitA" />
                                             <Button id="B_Buy6" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown6" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown6" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                     <Panel class="Card" id="Card7">
@@ -202,7 +230,9 @@
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name7" />
                                                 <Panel class="ItemIcon" id="Icon7" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -213,6 +243,9 @@
                                             </Panel>
                                             <Button id="A_Buy7" class="BuyHit HitA" />
                                             <Button id="B_Buy7" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown7" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown7" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                     <Panel class="Card" id="Card8">
@@ -220,7 +253,9 @@
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name8" />
                                                 <Panel class="ItemIcon" id="Icon8" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -231,6 +266,9 @@
                                             </Panel>
                                             <Button id="A_Buy8" class="BuyHit HitA" />
                                             <Button id="B_Buy8" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown8" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown8" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                     <Panel class="Card" id="Card9">
@@ -238,7 +276,9 @@
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name9" />
                                                 <Panel class="ItemIcon" id="Icon9" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -249,6 +289,9 @@
                                             </Panel>
                                             <Button id="A_Buy9" class="BuyHit HitA" />
                                             <Button id="B_Buy9" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown9" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown9" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                     <Panel class="Card" id="Card10">
@@ -256,7 +299,9 @@
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name10" />
                                                 <Panel class="ItemIcon" id="Icon10" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -267,6 +312,9 @@
                                             </Panel>
                                             <Button id="A_Buy10" class="BuyHit HitA" />
                                             <Button id="B_Buy10" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown10" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown10" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                     <Panel class="Card" id="Card11">
@@ -274,7 +322,9 @@
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name11" />
                                                 <Panel class="ItemIcon" id="Icon11" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -285,6 +335,9 @@
                                             </Panel>
                                             <Button id="A_Buy11" class="BuyHit HitA" />
                                             <Button id="B_Buy11" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown11" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown11" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                 </Panel>
@@ -317,13 +370,15 @@
                                     <Panel class="CategoryAccent" />
                                     <Label class="Category" text="{s:value}" hittest="false" id="Category2" />
                                 </Panel>
-                                <Panel class="Cards">
+                                <Panel class="Cards" id="Cards2">
                                     <Panel class="Card" id="Card12">
                                         <Panel class="CardSurface">
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name12" />
                                                 <Panel class="ItemIcon" id="Icon12" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -334,6 +389,9 @@
                                             </Panel>
                                             <Button id="A_Buy12" class="BuyHit HitA" />
                                             <Button id="B_Buy12" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown12" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown12" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                     <Panel class="Card" id="Card13">
@@ -341,7 +399,9 @@
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name13" />
                                                 <Panel class="ItemIcon" id="Icon13" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -352,6 +412,9 @@
                                             </Panel>
                                             <Button id="A_Buy13" class="BuyHit HitA" />
                                             <Button id="B_Buy13" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown13" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown13" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                     <Panel class="Card" id="Card14">
@@ -359,7 +422,9 @@
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name14" />
                                                 <Panel class="ItemIcon" id="Icon14" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -370,6 +435,9 @@
                                             </Panel>
                                             <Button id="A_Buy14" class="BuyHit HitA" />
                                             <Button id="B_Buy14" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown14" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown14" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                     <Panel class="Card" id="Card15">
@@ -377,7 +445,9 @@
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name15" />
                                                 <Panel class="ItemIcon" id="Icon15" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -388,6 +458,9 @@
                                             </Panel>
                                             <Button id="A_Buy15" class="BuyHit HitA" />
                                             <Button id="B_Buy15" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown15" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown15" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                     <Panel class="Card" id="Card16">
@@ -395,7 +468,9 @@
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name16" />
                                                 <Panel class="ItemIcon" id="Icon16" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -406,6 +481,9 @@
                                             </Panel>
                                             <Button id="A_Buy16" class="BuyHit HitA" />
                                             <Button id="B_Buy16" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown16" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown16" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                     <Panel class="Card" id="Card17">
@@ -413,7 +491,9 @@
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name17" />
                                                 <Panel class="ItemIcon" id="Icon17" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -424,6 +504,9 @@
                                             </Panel>
                                             <Button id="A_Buy17" class="BuyHit HitA" />
                                             <Button id="B_Buy17" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown17" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown17" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                 </Panel>
@@ -456,13 +539,15 @@
                                     <Panel class="CategoryAccent" />
                                     <Label class="Category" text="{s:value}" hittest="false" id="Category3" />
                                 </Panel>
-                                <Panel class="Cards">
+                                <Panel class="Cards" id="Cards3">
                                     <Panel class="Card" id="Card18">
                                         <Panel class="CardSurface">
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name18" />
                                                 <Panel class="ItemIcon" id="Icon18" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -473,6 +558,9 @@
                                             </Panel>
                                             <Button id="A_Buy18" class="BuyHit HitA" />
                                             <Button id="B_Buy18" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown18" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown18" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                     <Panel class="Card" id="Card19">
@@ -480,7 +568,9 @@
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name19" />
                                                 <Panel class="ItemIcon" id="Icon19" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -491,6 +581,9 @@
                                             </Panel>
                                             <Button id="A_Buy19" class="BuyHit HitA" />
                                             <Button id="B_Buy19" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown19" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown19" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                     <Panel class="Card" id="Card20">
@@ -498,7 +591,9 @@
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name20" />
                                                 <Panel class="ItemIcon" id="Icon20" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -509,6 +604,9 @@
                                             </Panel>
                                             <Button id="A_Buy20" class="BuyHit HitA" />
                                             <Button id="B_Buy20" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown20" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown20" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                     <Panel class="Card" id="Card21">
@@ -516,7 +614,9 @@
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name21" />
                                                 <Panel class="ItemIcon" id="Icon21" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -527,6 +627,9 @@
                                             </Panel>
                                             <Button id="A_Buy21" class="BuyHit HitA" />
                                             <Button id="B_Buy21" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown21" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown21" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                     <Panel class="Card" id="Card22">
@@ -534,7 +637,9 @@
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name22" />
                                                 <Panel class="ItemIcon" id="Icon22" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -545,6 +650,9 @@
                                             </Panel>
                                             <Button id="A_Buy22" class="BuyHit HitA" />
                                             <Button id="B_Buy22" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown22" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown22" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                     <Panel class="Card" id="Card23">
@@ -552,7 +660,9 @@
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name23" />
                                                 <Panel class="ItemIcon" id="Icon23" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -563,6 +673,9 @@
                                             </Panel>
                                             <Button id="A_Buy23" class="BuyHit HitA" />
                                             <Button id="B_Buy23" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown23" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown23" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                 </Panel>
@@ -595,13 +708,15 @@
                                     <Panel class="CategoryAccent" />
                                     <Label class="Category" text="{s:value}" hittest="false" id="Category4" />
                                 </Panel>
-                                <Panel class="Cards">
+                                <Panel class="Cards" id="Cards4">
                                     <Panel class="Card" id="Card24">
                                         <Panel class="CardSurface">
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name24" />
                                                 <Panel class="ItemIcon" id="Icon24" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -612,6 +727,9 @@
                                             </Panel>
                                             <Button id="A_Buy24" class="BuyHit HitA" />
                                             <Button id="B_Buy24" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown24" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown24" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                     <Panel class="Card" id="Card25">
@@ -619,7 +737,9 @@
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name25" />
                                                 <Panel class="ItemIcon" id="Icon25" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -630,6 +750,9 @@
                                             </Panel>
                                             <Button id="A_Buy25" class="BuyHit HitA" />
                                             <Button id="B_Buy25" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown25" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown25" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                     <Panel class="Card" id="Card26">
@@ -637,7 +760,9 @@
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name26" />
                                                 <Panel class="ItemIcon" id="Icon26" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -648,6 +773,9 @@
                                             </Panel>
                                             <Button id="A_Buy26" class="BuyHit HitA" />
                                             <Button id="B_Buy26" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown26" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown26" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                     <Panel class="Card" id="Card27">
@@ -655,7 +783,9 @@
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name27" />
                                                 <Panel class="ItemIcon" id="Icon27" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -666,6 +796,9 @@
                                             </Panel>
                                             <Button id="A_Buy27" class="BuyHit HitA" />
                                             <Button id="B_Buy27" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown27" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown27" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                     <Panel class="Card" id="Card28">
@@ -673,7 +806,9 @@
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name28" />
                                                 <Panel class="ItemIcon" id="Icon28" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -684,6 +819,9 @@
                                             </Panel>
                                             <Button id="A_Buy28" class="BuyHit HitA" />
                                             <Button id="B_Buy28" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown28" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown28" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                     <Panel class="Card" id="Card29">
@@ -691,7 +829,9 @@
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name29" />
                                                 <Panel class="ItemIcon" id="Icon29" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -702,6 +842,9 @@
                                             </Panel>
                                             <Button id="A_Buy29" class="BuyHit HitA" />
                                             <Button id="B_Buy29" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown29" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown29" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                 </Panel>
@@ -734,13 +877,15 @@
                                     <Panel class="CategoryAccent" />
                                     <Label class="Category" text="{s:value}" hittest="false" id="Category5" />
                                 </Panel>
-                                <Panel class="Cards">
+                                <Panel class="Cards" id="Cards5">
                                     <Panel class="Card" id="Card30">
                                         <Panel class="CardSurface">
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name30" />
                                                 <Panel class="ItemIcon" id="Icon30" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -751,6 +896,9 @@
                                             </Panel>
                                             <Button id="A_Buy30" class="BuyHit HitA" />
                                             <Button id="B_Buy30" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown30" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown30" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                     <Panel class="Card" id="Card31">
@@ -758,7 +906,9 @@
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name31" />
                                                 <Panel class="ItemIcon" id="Icon31" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -769,6 +919,9 @@
                                             </Panel>
                                             <Button id="A_Buy31" class="BuyHit HitA" />
                                             <Button id="B_Buy31" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown31" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown31" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                     <Panel class="Card" id="Card32">
@@ -776,7 +929,9 @@
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name32" />
                                                 <Panel class="ItemIcon" id="Icon32" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -787,6 +942,9 @@
                                             </Panel>
                                             <Button id="A_Buy32" class="BuyHit HitA" />
                                             <Button id="B_Buy32" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown32" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown32" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                     <Panel class="Card" id="Card33">
@@ -794,7 +952,9 @@
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name33" />
                                                 <Panel class="ItemIcon" id="Icon33" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -805,6 +965,9 @@
                                             </Panel>
                                             <Button id="A_Buy33" class="BuyHit HitA" />
                                             <Button id="B_Buy33" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown33" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown33" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                     <Panel class="Card" id="Card34">
@@ -812,7 +975,9 @@
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name34" />
                                                 <Panel class="ItemIcon" id="Icon34" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -823,6 +988,9 @@
                                             </Panel>
                                             <Button id="A_Buy34" class="BuyHit HitA" />
                                             <Button id="B_Buy34" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown34" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown34" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                     <Panel class="Card" id="Card35">
@@ -830,7 +998,9 @@
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name35" />
                                                 <Panel class="ItemIcon" id="Icon35" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -841,6 +1011,9 @@
                                             </Panel>
                                             <Button id="A_Buy35" class="BuyHit HitA" />
                                             <Button id="B_Buy35" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown35" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown35" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                 </Panel>
@@ -873,13 +1046,15 @@
                                     <Panel class="CategoryAccent" />
                                     <Label class="Category" text="{s:value}" hittest="false" id="Category6" />
                                 </Panel>
-                                <Panel class="Cards">
+                                <Panel class="Cards" id="Cards6">
                                     <Panel class="Card" id="Card36">
                                         <Panel class="CardSurface">
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name36" />
                                                 <Panel class="ItemIcon" id="Icon36" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -890,6 +1065,9 @@
                                             </Panel>
                                             <Button id="A_Buy36" class="BuyHit HitA" />
                                             <Button id="B_Buy36" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown36" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown36" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                     <Panel class="Card" id="Card37">
@@ -897,7 +1075,9 @@
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name37" />
                                                 <Panel class="ItemIcon" id="Icon37" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -908,6 +1088,9 @@
                                             </Panel>
                                             <Button id="A_Buy37" class="BuyHit HitA" />
                                             <Button id="B_Buy37" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown37" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown37" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                     <Panel class="Card" id="Card38">
@@ -915,7 +1098,9 @@
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name38" />
                                                 <Panel class="ItemIcon" id="Icon38" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -926,6 +1111,9 @@
                                             </Panel>
                                             <Button id="A_Buy38" class="BuyHit HitA" />
                                             <Button id="B_Buy38" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown38" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown38" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                     <Panel class="Card" id="Card39">
@@ -933,7 +1121,9 @@
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name39" />
                                                 <Panel class="ItemIcon" id="Icon39" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -944,6 +1134,9 @@
                                             </Panel>
                                             <Button id="A_Buy39" class="BuyHit HitA" />
                                             <Button id="B_Buy39" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown39" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown39" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                     <Panel class="Card" id="Card40">
@@ -951,7 +1144,9 @@
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name40" />
                                                 <Panel class="ItemIcon" id="Icon40" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -962,6 +1157,9 @@
                                             </Panel>
                                             <Button id="A_Buy40" class="BuyHit HitA" />
                                             <Button id="B_Buy40" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown40" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown40" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                     <Panel class="Card" id="Card41">
@@ -969,7 +1167,9 @@
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name41" />
                                                 <Panel class="ItemIcon" id="Icon41" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -980,6 +1180,9 @@
                                             </Panel>
                                             <Button id="A_Buy41" class="BuyHit HitA" />
                                             <Button id="B_Buy41" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown41" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown41" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                 </Panel>
@@ -1012,13 +1215,15 @@
                                     <Panel class="CategoryAccent" />
                                     <Label class="Category" text="{s:value}" hittest="false" id="Category7" />
                                 </Panel>
-                                <Panel class="Cards">
+                                <Panel class="Cards" id="Cards7">
                                     <Panel class="Card" id="Card42">
                                         <Panel class="CardSurface">
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name42" />
                                                 <Panel class="ItemIcon" id="Icon42" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -1029,6 +1234,9 @@
                                             </Panel>
                                             <Button id="A_Buy42" class="BuyHit HitA" />
                                             <Button id="B_Buy42" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown42" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown42" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                     <Panel class="Card" id="Card43">
@@ -1036,7 +1244,9 @@
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name43" />
                                                 <Panel class="ItemIcon" id="Icon43" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -1047,6 +1257,9 @@
                                             </Panel>
                                             <Button id="A_Buy43" class="BuyHit HitA" />
                                             <Button id="B_Buy43" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown43" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown43" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                     <Panel class="Card" id="Card44">
@@ -1054,7 +1267,9 @@
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name44" />
                                                 <Panel class="ItemIcon" id="Icon44" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -1065,6 +1280,9 @@
                                             </Panel>
                                             <Button id="A_Buy44" class="BuyHit HitA" />
                                             <Button id="B_Buy44" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown44" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown44" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                     <Panel class="Card" id="Card45">
@@ -1072,7 +1290,9 @@
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name45" />
                                                 <Panel class="ItemIcon" id="Icon45" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -1083,6 +1303,9 @@
                                             </Panel>
                                             <Button id="A_Buy45" class="BuyHit HitA" />
                                             <Button id="B_Buy45" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown45" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown45" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                     <Panel class="Card" id="Card46">
@@ -1090,7 +1313,9 @@
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name46" />
                                                 <Panel class="ItemIcon" id="Icon46" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -1101,6 +1326,9 @@
                                             </Panel>
                                             <Button id="A_Buy46" class="BuyHit HitA" />
                                             <Button id="B_Buy46" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown46" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown46" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                     <Panel class="Card" id="Card47">
@@ -1108,7 +1336,9 @@
                                             <Panel class="CardContent">
                                                 <Label class="ItemName" text="{s:value}" hittest="false" id="Name47" />
                                                 <Panel class="ItemIcon" id="Icon47" hittest="false">
-                                                    <Panel class="WeaponLayer IconHalo" hittest="false" />
+                                                    <Panel class="IconHalo" hittest="false">
+                                                        <Panel class="WeaponLayer HaloShape" hittest="false" />
+                                                    </Panel>
                                                     <Panel class="WeaponLayer IconSilhouette" hittest="false" />
                                                 </Panel>
                                                 <Panel class="CardDetails">
@@ -1119,6 +1349,9 @@
                                             </Panel>
                                             <Button id="A_Buy47" class="BuyHit HitA" />
                                             <Button id="B_Buy47" class="BuyHit HitB" />
+                                            <Panel class="Cooldown" id="Cooldown47" hittest="false">
+                                                <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown47" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                 </Panel>
@@ -1279,7 +1512,7 @@
                             <Button id="B_Confirm47" class="ConfirmHit ConfirmHit47 HitB" />
                         </Panel>
                     </Panel>
-                    <Label class="Hint" text="{s:value}" hittest="false" id="Hint" />
+                    <Panel class="FooterSpace" />
                     <Panel class="CategoryPager" id="CategoryPager">
                         <Panel class="Nav" id="CategoryPrev">
                             <Label class="NavGlyph" text="‹" hittest="false" />
