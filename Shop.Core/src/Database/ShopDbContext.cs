@@ -31,6 +31,7 @@ internal sealed class ShopDbContext(DbContextOptions<ShopDbContext> options) : D
         {
             entity.Property(item => item.Enabled).HasDefaultValue(true);
             entity.Property(item => item.SortMode).HasDefaultValue("priority");
+            entity.Property(item => item.HudSettingsJson).HasDefaultValueSql("'{}'::jsonb");
             entity.ToTable(
                 "storefronts",
                 SchemaName,

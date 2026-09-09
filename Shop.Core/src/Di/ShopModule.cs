@@ -72,7 +72,9 @@ internal sealed class ShopModule(ISwiftlyCore core) : BaseModule(core)
         AddSingleton<ShopSnapshotRepository>(services);
         AddSingleton<ShopSnapshotCoordinator>(services);
         AddSingleton<ShopPurchaseCounter>(services);
-        AddSingleton<ShopProductProvider>(services);
+        AddSingleton<ShopProductProvider>(services, provider => new ShopProductProvider(
+            provider.GetRequiredService<Func<ICustomEquipmentApi>>(),
+            path => Core.GameFileSystem.FileExists(path, "GAME")));
         AddSingleton<ShopAccessEvaluator>(services);
         AddSingleton<IShopAccessEvaluator>(services, provider => provider.GetRequiredService<ShopAccessEvaluator>());
         AddSingleton<IShopSoundFeedback, ShopSoundFeedback>(services);

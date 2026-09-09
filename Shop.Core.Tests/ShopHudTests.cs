@@ -60,7 +60,7 @@ public sealed class ShopHudTests
             products.IsHudProduct, offer => Card(offer) with { Enabled = false });
 
         Assert.Equal(new[] { "Category10", "Category20", "Category30" }, view.Columns.Select(x => x.Title));
-        Assert.Equal(new long[] { 1, 2, 4 }, view.Columns.SelectMany(x => x.Cards).Select(x => x.Offer.Id));
+        Assert.Equal(new long[] { 1, 2, 4, 5 }, view.Columns.SelectMany(x => x.Cards).Select(x => x.Offer.Id));
         Assert.All(view.Columns.SelectMany(x => x.Cards), card => Assert.False(card.Enabled));
 
         items.Remove("infection_grenade");
@@ -98,23 +98,33 @@ public sealed class ShopHudTests
         }
     }
 
-    [Fact]
-    public void EveryOfferRemainsReachableBeyondEightCategoriesAndSixRows()
+    [Theory]
+    [InlineData(1, 1)]
+    [InlineData(2, 3)]
+    [InlineData(8, 6)]
+    public void EveryOfferRemainsReachableBeyondConfiguredColumnsAndRows(int columnCount, int rowCount)
     {
         var categories = Enumerable.Range(1, 10).Select(x => Category(x)).ToArray();
         var offers = categories.SelectMany(x => Enumerable.Range(1, 15).Select(i => Offer(x.Id * 100 + i, x.Id))).ToArray();
         var snapshot = Snapshot(offers, categories);
+        snapshot = snapshot with
+        {
+            Storefronts = snapshot.Storefronts.ToDictionary(x => x.Key, x => x.Value with
+            {
+                Appearance = ShopHudAppearance.Default with { Columns = columnCount, Rows = rowCount }
+            })
+        };
         var reached = new HashSet<long>();
-        for (var categoryPage = 0; categoryPage < 2; categoryPage++)
-        for (var itemPage = 0; itemPage < 3; itemPage++)
+        for (var categoryPage = 0; categoryPage < (categories.Length + columnCount - 1) / columnCount; categoryPage++)
+        for (var itemPage = 0; itemPage < (15 + rowCount - 1) / rowCount; itemPage++)
         {
             var navigation = new ShopHudNavigation { Page = categoryPage };
             foreach (var category in categories) navigation.ItemPages[category.Id.ToString()] = itemPage;
             var view = Project(snapshot, navigation);
-            Assert.InRange(view.Columns.Count, 1, ShopHudCatalog.ColumnCount);
+            Assert.InRange(view.Columns.Count, 1, columnCount);
             foreach (var column in view.Columns)
             {
-                Assert.InRange(column.Cards.Count, 1, ShopHudCatalog.RowCount);
+                Assert.InRange(column.Cards.Count, 1, rowCount);
                 foreach (var card in column.Cards) Assert.True(reached.Add(card.Offer.Id));
             }
         }
@@ -218,8 +228,9 @@ public sealed class ShopHudTests
             Path.GetFileName(Path.ChangeExtension(ShopHudRuntime.Layout, ".xml"))));
         var rootPanel = Assert.Single(xml.Root!.Elements("Panel"));
         Assert.Null(rootPanel.Attribute("id"));
-        Assert.Equal("s2r://" + ShopHudRuntime.Style,
-            (string?)Assert.Single(xml.Root!.Element("styles")!.Elements("include")).Attribute("src"));
+        Assert.Equal(new[] { "s2r://" + ShopHudRuntime.Style,
+            "s2r://" + ShopHudRuntime.IconsStyle },
+            xml.Root!.Element("styles")!.Elements("include").Select(x => (string?)x.Attribute("src")));
         // ShopRoot должен оставаться адресуемым потомком для персонального показа HUD.
         Assert.Single(rootPanel.Descendants("Panel").Where(x => (string?)x.Attribute("id") == "ShopRoot"));
         var allowed = new Dictionary<string, string[]>

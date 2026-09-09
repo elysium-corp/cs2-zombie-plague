@@ -544,6 +544,11 @@ internal sealed class CustomEquipmentDbContextModelSnapshot : ModelSnapshot
                 .HasColumnName("enabled")
                 .HasDefaultValue(true);
 
+            b.Property<string>("HudIconPath")
+                .HasMaxLength(512)
+                .HasColumnType("character varying(512)")
+                .HasColumnName("hud_icon_path");
+
             b.Property<string>("ImageUrl")
                 .HasMaxLength(2048)
                 .HasColumnType("character varying(2048)")

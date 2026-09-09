@@ -15,6 +15,7 @@ internal sealed class ShopFallbackStorefront
     public string TitleKey { get; set; } = string.Empty;
     public bool Enabled { get; set; } = true;
     public string SortMode { get; set; } = "priority";
+    public string HudSettingsJson { get; set; } = "{}";
 }
 
 internal sealed class ShopFallbackCategory

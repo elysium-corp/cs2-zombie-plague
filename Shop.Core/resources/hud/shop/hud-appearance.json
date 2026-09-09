@@ -1,0 +1,166 @@
+{
+  "version": 2,
+  "defaults": {
+    "theme": "elysium",
+    "accent": "mint",
+    "openAnimation": "fade",
+    "pageAnimation": "fade",
+    "animationSpeed": "normal",
+    "highlight": "rarity",
+    "iconStyle": "glow",
+    "nameAlignment": "left",
+    "columns": 8,
+    "rows": 6,
+    "wrapPages": false,
+    "width": 1720,
+    "height": 980,
+    "defaultScale": 100,
+    "selectionAnimation": "pulse",
+    "clickBehavior": "buy",
+    "maxPurchasesPerRound": 0,
+    "closeAnimation": "fade"
+  },
+  "options": {
+    "width": [
+      960,
+      1120,
+      1280,
+      1440,
+      1600,
+      1720
+    ],
+    "height": [
+      640,
+      760,
+      880,
+      980
+    ],
+    "defaultScale": [
+      75,
+      85,
+      100,
+      115,
+      125
+    ],
+    "theme": [
+      "elysium",
+      "minimal",
+      "tactical"
+    ],
+    "accent": [
+      "mint",
+      "gold",
+      "violet",
+      "blue",
+      "red"
+    ],
+    "openAnimation": [
+      "none",
+      "fade",
+      "slide",
+      "zoom"
+    ],
+    "pageAnimation": [
+      "none",
+      "fade",
+      "slide"
+    ],
+    "animationSpeed": [
+      "fast",
+      "normal",
+      "slow"
+    ],
+    "highlight": [
+      "none",
+      "rarity",
+      "accent"
+    ],
+    "iconStyle": [
+      "glow",
+      "silhouette",
+      "hidden"
+    ],
+    "nameAlignment": [
+      "left",
+      "center",
+      "right"
+    ],
+    "columns": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "rows": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "selectionAnimation": [
+      "none",
+      "pulse",
+      "lift"
+    ],
+    "clickBehavior": [
+      "buy",
+      "buy_close",
+      "confirm"
+    ],
+    "maxPurchasesPerRound": [
+      0,
+      1,
+      2,
+      3,
+      5,
+      10
+    ],
+    "closeAnimation": [
+      "none",
+      "fade",
+      "slide",
+      "zoom"
+    ]
+  },
+  "accents": {
+    "mint": "#76d9cc",
+    "gold": "#e4ae39",
+    "violet": "#b696ff",
+    "blue": "#68b5ff",
+    "red": "#f07b83"
+  },
+  "duration": {
+    "fast": 0.15,
+    "normal": 0.3,
+    "slow": 0.6
+  },
+  "geometry": {
+    "screenWidth": 1920,
+    "screenHeight": 1080,
+    "minWidth": 720,
+    "maxWidth": 1720,
+    "width": 1720,
+    "height": 980
+  },
+  "rarities": {
+    "Common": "#b0c3d9",
+    "Uncommon": "#5e98d9",
+    "Rare": "#4b69ff",
+    "Restricted": "#8847ff",
+    "Classified": "#d32ce6",
+    "Elite": "#eb4b4b",
+    "Prototype": "#ff8c00",
+    "Legendary": "#e4ae39"
+  },
+  "sharedFields": [
+    "width",
+    "height",
+    "defaultScale"
+  ]
+}

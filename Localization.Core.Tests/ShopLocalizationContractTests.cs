@@ -149,6 +149,21 @@ public sealed class ShopLocalizationContractTests
         Assert.DoesNotContain("UPDATE localization.translations", script);
     }
 
+    [Fact]
+    public void ConfirmationHasDatabaseAndFallbackTranslationsWithoutOverwritingCustomText()
+    {
+        var snapshot = FallbackLocalizationProvider.Load(ReadFallbackConfig());
+        var script = GenerateScript("20260909020100_AddShopHudSettingsLocalization", "20260909123000_AddShopHudConfirmLocalization");
+        foreach (var key in new[] { "Shop.Hud.Confirm", "Shop.Hud.SelectHint" })
+        {
+            Assert.Contains("'" + key + "'", script);
+            Assert.False(string.IsNullOrWhiteSpace(snapshot.Entries[key].Translations["ru"]));
+            Assert.False(string.IsNullOrWhiteSpace(snapshot.Entries[key].Translations["en"]));
+        }
+        Assert.Contains("ON CONFLICT (entry_id, language_code) DO NOTHING", script);
+        Assert.DoesNotContain("UPDATE localization.translations", script);
+    }
+
     private static string GenerateScript(string fromMigration, string toMigration)
     {
         var options = new DbContextOptionsBuilder<LocalizationDbContext>()

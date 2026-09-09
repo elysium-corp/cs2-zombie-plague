@@ -14,6 +14,23 @@ namespace Shop.Core.Tests;
 public sealed class ShopHudPreferencesTests
 {
     [Fact]
+    public async Task UnsetScaleTracksServerDefaultAndExplicitChoiceRemainsPersonal()
+    {
+        var store = new StoreStub();
+        var queue = new SteamIdOperationQueue();
+        using var tracker = new DatabaseTaskTracker(NullLogger<DatabaseTaskTracker>.Instance);
+        using var prefs = new ShopHudPreferences(store, queue, tracker);
+        var player = Player(10, 100);
+        Assert.Equal(115, prefs.Get(player, 115).ScalePercent);
+        await queue.RunAsync(100, () => Task.CompletedTask);
+        Assert.Equal(85, prefs.Get(player, 85).ScalePercent);
+        Assert.Empty(store.Saved);
+        prefs.Set(player, 75);
+        await queue.RunAsync(100, () => Task.CompletedTask);
+        Assert.Equal(75, prefs.Get(player, 125).ScalePercent);
+    }
+
+    [Fact]
     public async Task ChoiceBeforeLoadCompletesWinsAndPersistsInOrder()
     {
         var store = new StoreStub { Load = new(TaskCreationOptions.RunContinuationsAsynchronously) };

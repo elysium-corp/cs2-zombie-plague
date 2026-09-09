@@ -27,6 +27,9 @@ internal sealed class ShopStorefrontEntity
 
     [Column("sort_mode"), MaxLength(24)]
     public string SortMode { get; set; } = "priority";
+
+    [Column("hud_settings", TypeName = "jsonb")]
+    public string HudSettingsJson { get; set; } = "{}";
 }
 
 [Table("categories", Schema = ShopDbContext.SchemaName)]

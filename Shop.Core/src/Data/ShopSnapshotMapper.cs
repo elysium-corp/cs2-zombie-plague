@@ -1,6 +1,7 @@
 using System.Collections.Frozen;
 using System.Text.Json;
 using Shop.Api.Data;
+using Shop.Core.Hud;
 using Shop.Core.Configuration;
 using Shop.Core.Database.Entities;
 
@@ -17,7 +18,8 @@ internal static class ShopSnapshotMapper
             ParseShopType(entity.ShopType),
             LocalizationKey(entity.TitleKey, nameof(entity.TitleKey)),
             entity.Enabled,
-            ParseSortMode(entity.SortMode))).ToArray();
+            ParseSortMode(entity.SortMode))
+        { Appearance = ShopHudAppearance.Parse(entity.HudSettingsJson) }).ToArray();
         var categories = categoryEntities.Select(entity => new ShopCategoryDefinition(
             entity.Id,
             ParseShopType(entity.ShopType),
@@ -62,7 +64,8 @@ internal static class ShopSnapshotMapper
             ParseShopType(item.ShopType),
             LocalizationKey(item.TitleKey, nameof(item.TitleKey)),
             item.Enabled,
-            ParseSortMode(item.SortMode))).ToArray();
+            ParseSortMode(item.SortMode))
+        { Appearance = ShopHudAppearance.Parse(item.HudSettingsJson) }).ToArray();
         var categories = config.Categories.Select(item => new ShopCategoryDefinition(
             item.Id,
             ParseShopType(item.ShopType),

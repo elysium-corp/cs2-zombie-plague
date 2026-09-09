@@ -2,19 +2,24 @@
 """Генерирует макет Shop Custom HUD с размером пула и путями из серверного кода."""
 from pathlib import Path
 import re
+import json
+import argparse
+import shutil
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTENT = ROOT / 'Shop.Core/resources/hud/shop/content'
 HUD = ROOT / 'Shop.Core/src/Hud'
+APPEARANCE = json.loads((CONTENT.parent / 'hud-appearance.json').read_text())
 CATALOG = (HUD / 'ShopHudCatalog.cs').read_text(encoding='utf-8')
 RUNTIME = (HUD / 'ShopHudRuntime.cs').read_text(encoding='utf-8')
 COLUMNS = int(re.search(r'const int ColumnCount = (\d+);', CATALOG)[1])
 ROWS = int(re.search(r'const int RowCount = (\d+);', CATALOG)[1])
 LAYOUT = re.search(r'const string Layout = "([^"]+)";', RUNTIME)[1]
 STYLE = re.search(r'const string Style = "([^"]+)";', RUNTIME)[1]
+ICONS_STYLE = re.search(r'const string IconsStyle = "([^"]+)";', RUNTIME)[1]
 ICONS = re.findall(r'"([a-z0-9_]+)"',
-                   (HUD / 'ShopHudIcons.cs').read_text(encoding='utf-8').split('internal static string Normalize')[0])
+                   (HUD / 'ShopHudIcons.cs').read_text(encoding='utf-8').split('internal static string? Override')[0])
 COLORS = dict(Common='#b0c3d9', Uncommon='#5e98d9', Rare='#4b69ff', Restricted='#8847ff',
               Classified='#d32ce6', Elite='#eb4b4b', Prototype='#ff8c00', Legendary='#e4ae39')
 SCALES = [int(x) for x in re.search(r'Scales = \[([^]]+)\]',
@@ -50,6 +55,7 @@ def nav(parent, id, button, glyph):
 root = ET.Element('root')
 styles = ET.SubElement(root, 'styles')
 ET.SubElement(styles, 'include', {'src': 's2r://' + STYLE})
+ET.SubElement(styles, 'include', {'src': 's2r://' + ICONS_STYLE})
 # Корень без id; персональная видимость задаётся дочернему ShopRoot.
 viewport = panel(root, 'ShopViewport')
 screen = panel(viewport, 'ShopRoot', 'ShopRoot')
@@ -112,6 +118,12 @@ for index, scale in enumerate(SCALES):
     ET.SubElement(option, 'Button', {'id': f'SetScale{index}', 'class': 'ScaleHit'})
 label(settings_panel, 'SettingsStatus', 'SettingsStatus')
 footer = panel(window, 'Footer')
+selection = panel(footer, 'Selection')
+label(selection, 'SelectionName', 'SelectionName')
+confirm = panel(selection, 'Confirm', 'Confirm')
+label(confirm, 'ConfirmLabel', 'ConfirmLabel')
+for slot in range(COLUMNS * ROWS):
+    page_buttons(confirm, f'Confirm{slot}', f'ConfirmHit ConfirmHit{slot}')
 label(footer, 'Hint', 'Hint')
 pages = panel(footer, 'CategoryPager', 'CategoryPager')
 nav(pages, 'CategoryPrev', 'CategoriesPrevious', '‹')
@@ -124,7 +136,7 @@ css = '''/* Создано scripts/generate-shop-hud.py */
 .ShopRoot { width: 100%; height: 100%; visibility: collapse; background-color: #050b1266; }
 .ShopRoot.Visible { visibility: visible; }
 .ShopWindow { width: 1720px; max-width: 94%; height: 980px; max-height: 96%; horizontal-align: center; vertical-align: center; flow-children: down; background-color: gradient(linear, 0% 0%, 100% 100%, from(#12222bf5), to(#080f17fa)); border: 1px solid #698fa144; border-radius: 8px; box-shadow: #000000bb 0px 10px 36px 0px; }
-.ShopRoot Label { font-family: Stratum2, Arial; }
+.ShopRoot Label { font-family: Arial; }
 .Header { width: 100%; height: 88px; padding: 16px 22px; flow-children: right; background-color: #0a131deb; border-bottom: 1px solid #76d9cc88; }
 .BrandMark { width: 48px; height: 48px; vertical-align: center; margin-right: 14px; border: 1px solid #75daceaa; border-radius: 6px; background-color: #69d9c912; }
 .BrandGlyph { horizontal-align: center; vertical-align: center; color: #a4f3e7; font-size: 34px; font-weight: bold; }
@@ -162,7 +174,6 @@ css = '''/* Создано scripts/generate-shop-hud.py */
 .SettingsStatus { width: 100%; height: 24px; margin-top: 8px; font-size: 13px; color: #8cabb9; text-overflow: ellipsis; }
 .SettingsStatus.Failed { color: #eab5a3; }
 .Columns { width: 100%; height: 100%; flow-children: right; }
-.Columns1 .Columns { width: 340px; horizontal-align: center; }
 .Column { height: 100%; padding: 0px 6px; flow-children: down; visibility: collapse; }
 .Column.Visible { visibility: visible; }
 .CategoryHeader { width: 100%; height: 40px; flow-children: right; }
@@ -210,15 +221,35 @@ css = '''/* Создано scripts/generate-shop-hud.py */
 .CategoryPager.Visible { visibility: visible; }
 .ShopRoot.SettingsOpen .Card.Available .BuyHit, .ShopRoot.SettingsOpen .Nav.Available .NavHit { visibility: collapse; }
 '''
+css += """
+.Selection { width: 400px; height: 28px; margin-right: 18px; flow-children: right; visibility: collapse; }
+.HasSelection .Selection { visibility: visible; }
+.SelectionName { width: fill-parent-flow(1); vertical-align: center; font-size: 13px; color: #dfebf2; text-overflow: ellipsis; }
+.Confirm { width: 112px; height: 28px; margin-left: 12px; background-color: #34424b; border-radius: 3px; }
+.Confirm.Available { background-color: #285b51; }
+.ConfirmLabel { horizontal-align: center; vertical-align: center; font-size: 14px; color: #ffffff; }
+.ConfirmHit { width: 100%; height: 100%; visibility: collapse; }
+.ConfirmHit:hover { background-color: #ffffff22; }
+.SettingsOpen .ConfirmHit { visibility: collapse; }
+.Card.Selected .CardSurface { border-color: #d7f8ee; }
+.Selection_none .Card.Selected .CardSurface { animation-name: none; }
+"""
+for bank in ('A', 'B'):
+    for effect, start in [('pulse', 'brightness: 1.7;'), ('lift', 'transform: translateY(-4px);')]:
+        end = 'brightness: 1;' if effect == 'pulse' else 'transform: translateY(0px);'
+        css += f'.Selection_{effect}.Pulse{bank} .Card.Selected .CardSurface {{ animation-name: shop-selection-{effect}-{bank}; animation-timing-function: ease-out; }}\n'
+        css += f"@keyframes 'shop-selection-{effect}-{bank}' {{ 0% {{ {start} }} 100% {{ {end} }} }}\n"
+for slot in range(COLUMNS * ROWS):
+    css += f'.Confirm.Available.ConfirmSlot{slot} .ConfirmHit{slot} {{ visibility: visible; }}\n'
 for columns in range(1, COLUMNS + 1):
-    width = min(1720, max(720, columns * 224 + 48))
-    css += f'.Columns{columns} .ShopWindow {{ width: {width}px; }}\n'
     css += f'.Columns{columns} .Column {{ width: {100 / columns:.6f}%; }}\n'
+for width in APPEARANCE['options']['width']:
+    css += f'.Width{width} .ShopWindow {{ width: {width}px; }}\n'
+for height in APPEARANCE['options']['height']:
+    css += f'.Height{height} .ShopWindow {{ height: {height}px; }}\n'
 for scale in SCALES:
     css += f'.Scale{scale} .ShopWindow {{ ui-scale: {scale}%; }}\n'
 for rows in range(1, ROWS + 1):
-    height = 236 + rows * 124
-    css += f'.Rows{rows} .ShopWindow {{ height: {height}px; }}\n'
     css += f'.Rows{rows} .Card {{ height: {100 / rows:.6f}%; }}\n'
 for name, color in COLORS.items():
     css += f'.Card.Available.Rarity{name} .IconHalo {{ wash-color: {color}; }}\n'
@@ -227,8 +258,64 @@ for name, color in COLORS.items():
 for icon in sorted(set(ICONS)):
     asset = 'kevlar' if icon == 'equipment' else icon
     css += f'.Icon_{icon} .WeaponLayer {{ background-image: url("s2r://panorama/images/icons/equipment/{asset}.vsvg"); }}\n'
+# Варианты оформления используют те же значения, что и Web-превью.
+css += """
+.Theme_minimal .ShopWindow { background-color: #10151bf7; border-radius: 2px; box-shadow: none; }
+.Theme_minimal .Card.Available .CardSurface { background-color: #19222a; border-color: #ffffff18; }
+.Theme_minimal .BrandMark { visibility: collapse; }
+.Theme_tactical .ShopWindow { background-color: #101d1bf7; border-radius: 0px; border: 2px solid #6d8a7855; }
+.Theme_tactical .CardSurface, .Theme_tactical .BrandMark { border-radius: 0px; }
+.Theme_tactical .Card.Available .CardSurface { background-color: #1b2b25; }
+.Names_left .ItemName { text-align: left; }
+.Names_center .ItemName { text-align: center; }
+.Names_right .ItemName { text-align: right; }
+.Icons_silhouette .Card .IconHalo, .Icons_hidden .Card .ItemIcon { visibility: collapse; }
+.Highlight_none .Card .IconHalo, .Highlight_none .Card .RarityMark { visibility: collapse; }
+.Highlight_none .Card.Available .BuyHit:hover { border-color: #b7cbd655; box-shadow: none; }
+.Open_none.Visible .ShopWindow { animation-name: none; }
+"""
+for accent, color in APPEARANCE['accents'].items():
+    css += f'.Accent_{accent} .Header {{ border-bottom-color: {color}88; }}\n'
+    css += f'.Accent_{accent} .CategoryAccent {{ background-color: {color}; }}\n'
+    css += f'.Accent_{accent} .BrandMark {{ border-color: {color}aa; }}\n'
+    css += f'.Accent_{accent}.Highlight_accent .Card.Available .IconHalo {{ wash-color: {color}; }}\n'
+    css += f'.Accent_{accent}.Highlight_accent .Card.Available .RarityMark {{ background-color: {color}; }}\n'
+    css += f'.Accent_{accent}.Highlight_accent .Card.Available .BuyHit:hover {{ border-color: {color}; box-shadow: {color}33 0px 0px 9px 0px; }}\n'
+frames = dict(fade=('opacity: 0;', 'opacity: 1;'),
+              slide=('opacity: 0; transform: translateY(18px);', 'opacity: 1; transform: translateY(0px);'),
+              zoom=('opacity: 0; transform: scale3d(0.96, 0.96, 1);', 'opacity: 1; transform: scale3d(1, 1, 1);'))
+for effect, (start, end) in frames.items():
+    css += f".Open_{effect}.Visible .ShopWindow {{ animation-name: shop-open-{effect}; animation-timing-function: ease-out; }}\n"
+    css += f"@keyframes 'shop-open-{effect}' {{ 0% {{ {start} }} 100% {{ {end} }} }}\n"
+for effect, (start, end) in frames.items():
+    css += f".Close_{effect}.Closing .ShopWindow {{ animation-name: shop-close-{effect}; animation-timing-function: ease-in; animation-fill-mode: forwards; }}\n"
+    css += f"@keyframes 'shop-close-{effect}' {{ 0% {{ {end} }} 100% {{ {start} }} }}\n"
+css += '.Close_none.Closing .ShopWindow { animation-name: none; }\n'
+css += '.Closing .BuyHit, .Closing .NavHit, .Closing .ConfirmHit, .Closing .ScaleHit { visibility: collapse; }\n'
+for bank in ('A', 'B'):
+    for effect in ('fade', 'slide'):
+        start, end = frames[effect]
+        if effect == 'slide': start, end = start.replace('translateY', 'translateX'), end.replace('translateY', 'translateX')
+        css += f'.Page_{effect}.Bank{bank} .Cards {{ animation-name: shop-page-{effect}-{bank}; animation-timing-function: ease-out; }}\n'
+        css += f"@keyframes 'shop-page-{effect}-{bank}' {{ 0% {{ {start} }} 100% {{ {end} }} }}\n"
+for speed, duration in APPEARANCE['duration'].items():
+    css += f'.Speed_{speed} .ShopWindow, .Speed_{speed} .Cards, .Speed_{speed} .CardSurface {{ animation-duration: {duration}s; animation-iteration-count: 1; }}\n'
+
+css += '.ShopRoot.BankA .Confirm .HitB, .ShopRoot.BankB .Confirm .HitA, .ShopRoot.Closing .Confirm .ConfirmHit, .ShopRoot.SettingsOpen .Confirm .ConfirmHit { visibility: collapse; }\n'
+
 for file, data in [(LAYOUT.replace('.vxml_c', '.xml'), xml), (STYLE.replace('.vcss_c', '.css'), css)]:
     path = CONTENT / file
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(data, encoding='utf-8')
 print(f'Shop HUD: {COLUMNS} columns, {COLUMNS * ROWS} cards, contour rarity glow')
+
+from shop_hud_web import build_preview
+build_preview(CONTENT.parent / 'web', xml, css, APPEARANCE)
+
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--cms-assets', type=Path, help='Каталог ElysiumShop/Resources/assets для синхронизации Web-превью')
+arguments = parser.parse_args()
+if arguments.cms_assets:
+    arguments.cms_assets.mkdir(parents=True, exist_ok=True)
+    for source in [CONTENT.parent / 'hud-appearance.json', *(CONTENT.parent / 'web').glob('shop-hud*')]:
+        shutil.copyfile(source, arguments.cms_assets / source.name)

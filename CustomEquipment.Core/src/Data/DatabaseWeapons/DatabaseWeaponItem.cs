@@ -7,8 +7,10 @@ using CustomEquipment.Data.Equipments.Models;
 namespace CustomEquipment.Data.DatabaseWeapons;
 
 internal sealed class DatabaseWeaponItem(DatabaseWeaponDefinition definition)
-    : WeaponItemBase, ILocalizedShopItem, IHasRarity
+    : WeaponItemBase, ILocalizedShopItem, IHasRarity, IHasHudIcon
 {
+    public string? HudIconPath => definition.HudIconPath;
+
     public override string InheritorName => definition.InheritorName;
 
     public override AccessFlags AccessFlags => definition.AccessFlags;
@@ -57,5 +59,6 @@ internal sealed record DatabaseWeaponDefinition(
     WeaponParticle? Particle,
     Ammunition? Ammunition,
     IReadOnlyCollection<WeaponSound> Sounds,
-    ItemRarity Rarity
+    ItemRarity Rarity,
+    string? HudIconPath = null
 );

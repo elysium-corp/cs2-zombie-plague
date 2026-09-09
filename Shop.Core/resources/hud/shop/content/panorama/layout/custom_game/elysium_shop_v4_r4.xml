@@ -1,6 +1,7 @@
 <root>
     <styles>
-        <include src="s2r://panorama/styles/custom_game/elysium_shop_v4_r3.vcss_c" />
+        <include src="s2r://panorama/styles/custom_game/elysium_shop_v4_r4.vcss_c" />
+        <include src="s2r://panorama/styles/custom_game/elysium_equipment_icons_v4.vcss_c" />
     </styles>
     <Panel class="ShopViewport">
         <Panel class="ShopRoot" id="ShopRoot">
@@ -1176,6 +1177,108 @@
                     </Panel>
                 </Panel>
                 <Panel class="Footer">
+                    <Panel class="Selection">
+                        <Label class="SelectionName" text="{s:value}" hittest="false" id="SelectionName" />
+                        <Panel class="Confirm" id="Confirm">
+                            <Label class="ConfirmLabel" text="{s:value}" hittest="false" id="ConfirmLabel" />
+                            <Button id="A_Confirm0" class="ConfirmHit ConfirmHit0 HitA" />
+                            <Button id="B_Confirm0" class="ConfirmHit ConfirmHit0 HitB" />
+                            <Button id="A_Confirm1" class="ConfirmHit ConfirmHit1 HitA" />
+                            <Button id="B_Confirm1" class="ConfirmHit ConfirmHit1 HitB" />
+                            <Button id="A_Confirm2" class="ConfirmHit ConfirmHit2 HitA" />
+                            <Button id="B_Confirm2" class="ConfirmHit ConfirmHit2 HitB" />
+                            <Button id="A_Confirm3" class="ConfirmHit ConfirmHit3 HitA" />
+                            <Button id="B_Confirm3" class="ConfirmHit ConfirmHit3 HitB" />
+                            <Button id="A_Confirm4" class="ConfirmHit ConfirmHit4 HitA" />
+                            <Button id="B_Confirm4" class="ConfirmHit ConfirmHit4 HitB" />
+                            <Button id="A_Confirm5" class="ConfirmHit ConfirmHit5 HitA" />
+                            <Button id="B_Confirm5" class="ConfirmHit ConfirmHit5 HitB" />
+                            <Button id="A_Confirm6" class="ConfirmHit ConfirmHit6 HitA" />
+                            <Button id="B_Confirm6" class="ConfirmHit ConfirmHit6 HitB" />
+                            <Button id="A_Confirm7" class="ConfirmHit ConfirmHit7 HitA" />
+                            <Button id="B_Confirm7" class="ConfirmHit ConfirmHit7 HitB" />
+                            <Button id="A_Confirm8" class="ConfirmHit ConfirmHit8 HitA" />
+                            <Button id="B_Confirm8" class="ConfirmHit ConfirmHit8 HitB" />
+                            <Button id="A_Confirm9" class="ConfirmHit ConfirmHit9 HitA" />
+                            <Button id="B_Confirm9" class="ConfirmHit ConfirmHit9 HitB" />
+                            <Button id="A_Confirm10" class="ConfirmHit ConfirmHit10 HitA" />
+                            <Button id="B_Confirm10" class="ConfirmHit ConfirmHit10 HitB" />
+                            <Button id="A_Confirm11" class="ConfirmHit ConfirmHit11 HitA" />
+                            <Button id="B_Confirm11" class="ConfirmHit ConfirmHit11 HitB" />
+                            <Button id="A_Confirm12" class="ConfirmHit ConfirmHit12 HitA" />
+                            <Button id="B_Confirm12" class="ConfirmHit ConfirmHit12 HitB" />
+                            <Button id="A_Confirm13" class="ConfirmHit ConfirmHit13 HitA" />
+                            <Button id="B_Confirm13" class="ConfirmHit ConfirmHit13 HitB" />
+                            <Button id="A_Confirm14" class="ConfirmHit ConfirmHit14 HitA" />
+                            <Button id="B_Confirm14" class="ConfirmHit ConfirmHit14 HitB" />
+                            <Button id="A_Confirm15" class="ConfirmHit ConfirmHit15 HitA" />
+                            <Button id="B_Confirm15" class="ConfirmHit ConfirmHit15 HitB" />
+                            <Button id="A_Confirm16" class="ConfirmHit ConfirmHit16 HitA" />
+                            <Button id="B_Confirm16" class="ConfirmHit ConfirmHit16 HitB" />
+                            <Button id="A_Confirm17" class="ConfirmHit ConfirmHit17 HitA" />
+                            <Button id="B_Confirm17" class="ConfirmHit ConfirmHit17 HitB" />
+                            <Button id="A_Confirm18" class="ConfirmHit ConfirmHit18 HitA" />
+                            <Button id="B_Confirm18" class="ConfirmHit ConfirmHit18 HitB" />
+                            <Button id="A_Confirm19" class="ConfirmHit ConfirmHit19 HitA" />
+                            <Button id="B_Confirm19" class="ConfirmHit ConfirmHit19 HitB" />
+                            <Button id="A_Confirm20" class="ConfirmHit ConfirmHit20 HitA" />
+                            <Button id="B_Confirm20" class="ConfirmHit ConfirmHit20 HitB" />
+                            <Button id="A_Confirm21" class="ConfirmHit ConfirmHit21 HitA" />
+                            <Button id="B_Confirm21" class="ConfirmHit ConfirmHit21 HitB" />
+                            <Button id="A_Confirm22" class="ConfirmHit ConfirmHit22 HitA" />
+                            <Button id="B_Confirm22" class="ConfirmHit ConfirmHit22 HitB" />
+                            <Button id="A_Confirm23" class="ConfirmHit ConfirmHit23 HitA" />
+                            <Button id="B_Confirm23" class="ConfirmHit ConfirmHit23 HitB" />
+                            <Button id="A_Confirm24" class="ConfirmHit ConfirmHit24 HitA" />
+                            <Button id="B_Confirm24" class="ConfirmHit ConfirmHit24 HitB" />
+                            <Button id="A_Confirm25" class="ConfirmHit ConfirmHit25 HitA" />
+                            <Button id="B_Confirm25" class="ConfirmHit ConfirmHit25 HitB" />
+                            <Button id="A_Confirm26" class="ConfirmHit ConfirmHit26 HitA" />
+                            <Button id="B_Confirm26" class="ConfirmHit ConfirmHit26 HitB" />
+                            <Button id="A_Confirm27" class="ConfirmHit ConfirmHit27 HitA" />
+                            <Button id="B_Confirm27" class="ConfirmHit ConfirmHit27 HitB" />
+                            <Button id="A_Confirm28" class="ConfirmHit ConfirmHit28 HitA" />
+                            <Button id="B_Confirm28" class="ConfirmHit ConfirmHit28 HitB" />
+                            <Button id="A_Confirm29" class="ConfirmHit ConfirmHit29 HitA" />
+                            <Button id="B_Confirm29" class="ConfirmHit ConfirmHit29 HitB" />
+                            <Button id="A_Confirm30" class="ConfirmHit ConfirmHit30 HitA" />
+                            <Button id="B_Confirm30" class="ConfirmHit ConfirmHit30 HitB" />
+                            <Button id="A_Confirm31" class="ConfirmHit ConfirmHit31 HitA" />
+                            <Button id="B_Confirm31" class="ConfirmHit ConfirmHit31 HitB" />
+                            <Button id="A_Confirm32" class="ConfirmHit ConfirmHit32 HitA" />
+                            <Button id="B_Confirm32" class="ConfirmHit ConfirmHit32 HitB" />
+                            <Button id="A_Confirm33" class="ConfirmHit ConfirmHit33 HitA" />
+                            <Button id="B_Confirm33" class="ConfirmHit ConfirmHit33 HitB" />
+                            <Button id="A_Confirm34" class="ConfirmHit ConfirmHit34 HitA" />
+                            <Button id="B_Confirm34" class="ConfirmHit ConfirmHit34 HitB" />
+                            <Button id="A_Confirm35" class="ConfirmHit ConfirmHit35 HitA" />
+                            <Button id="B_Confirm35" class="ConfirmHit ConfirmHit35 HitB" />
+                            <Button id="A_Confirm36" class="ConfirmHit ConfirmHit36 HitA" />
+                            <Button id="B_Confirm36" class="ConfirmHit ConfirmHit36 HitB" />
+                            <Button id="A_Confirm37" class="ConfirmHit ConfirmHit37 HitA" />
+                            <Button id="B_Confirm37" class="ConfirmHit ConfirmHit37 HitB" />
+                            <Button id="A_Confirm38" class="ConfirmHit ConfirmHit38 HitA" />
+                            <Button id="B_Confirm38" class="ConfirmHit ConfirmHit38 HitB" />
+                            <Button id="A_Confirm39" class="ConfirmHit ConfirmHit39 HitA" />
+                            <Button id="B_Confirm39" class="ConfirmHit ConfirmHit39 HitB" />
+                            <Button id="A_Confirm40" class="ConfirmHit ConfirmHit40 HitA" />
+                            <Button id="B_Confirm40" class="ConfirmHit ConfirmHit40 HitB" />
+                            <Button id="A_Confirm41" class="ConfirmHit ConfirmHit41 HitA" />
+                            <Button id="B_Confirm41" class="ConfirmHit ConfirmHit41 HitB" />
+                            <Button id="A_Confirm42" class="ConfirmHit ConfirmHit42 HitA" />
+                            <Button id="B_Confirm42" class="ConfirmHit ConfirmHit42 HitB" />
+                            <Button id="A_Confirm43" class="ConfirmHit ConfirmHit43 HitA" />
+                            <Button id="B_Confirm43" class="ConfirmHit ConfirmHit43 HitB" />
+                            <Button id="A_Confirm44" class="ConfirmHit ConfirmHit44 HitA" />
+                            <Button id="B_Confirm44" class="ConfirmHit ConfirmHit44 HitB" />
+                            <Button id="A_Confirm45" class="ConfirmHit ConfirmHit45 HitA" />
+                            <Button id="B_Confirm45" class="ConfirmHit ConfirmHit45 HitB" />
+                            <Button id="A_Confirm46" class="ConfirmHit ConfirmHit46 HitA" />
+                            <Button id="B_Confirm46" class="ConfirmHit ConfirmHit46 HitB" />
+                            <Button id="A_Confirm47" class="ConfirmHit ConfirmHit47 HitA" />
+                            <Button id="B_Confirm47" class="ConfirmHit ConfirmHit47 HitB" />
+                        </Panel>
+                    </Panel>
                     <Label class="Hint" text="{s:value}" hittest="false" id="Hint" />
                     <Panel class="CategoryPager" id="CategoryPager">
                         <Panel class="Nav" id="CategoryPrev">
