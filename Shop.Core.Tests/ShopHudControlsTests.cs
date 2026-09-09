@@ -1,6 +1,5 @@
 using CustomEquipment.Api.Enums;
 using Shop.Api.Data;
-using Shop.Core.Data;
 using Shop.Core.Hud;
 using SwiftlyS2.Shared.SchemaDefinitions;
 
@@ -45,7 +44,6 @@ public sealed class ShopHudControlsTests
     [Fact]
     public void PagesAndBalanceUpdatesKeepRuntimeAndRejectQueuedOldPageButtons()
     {
-        var snapshot = ShopSnapshot.Empty();
         var offer = new ShopOffer(1, ShopType.Human, "cs2_weapon", "weapon_ak47", "AK", 1,
             100, null, 0, 0, 0, 0, ShopAccessMode.Everyone, new HashSet<string>(), true, 0);
         var card = new ShopHudCard(offer, "AK", "100", "", "ak47", ItemRarity.Common, true);
@@ -54,14 +52,14 @@ public sealed class ShopHudControlsTests
         var created = 0;
         IShopHudRuntime Create() { created++; return runtime; }
         using var pages = new ShopHudPages();
-        pages.Bind(view, snapshot, Create);
+        pages.Bind(view, 0, Create);
         Assert.True(pages.TryButton("A_Buy0", out var buy));
         Assert.Equal("Buy0", buy);
         var grey = view with { Columns = [view.Columns[0] with { Cards = [card with { Enabled = false }] }] };
-        pages.Bind(grey, snapshot, Create);
+        pages.Bind(grey, 0, Create);
         Assert.True(pages.TryButton("A_NextItems0", out _));
         var next = view with { Columns = [view.Columns[0] with { Page = 1, Cards = [card with { Offer = offer with { Id = 2 } }] }] };
-        pages.Bind(next, snapshot, Create);
+        pages.Bind(next, 1, Create);
         Assert.False(pages.TryButton("A_Buy0", out _));
         Assert.False(pages.TryButton("A_NextItems0", out _));
         Assert.False(pages.TryButton("A_CategoriesNext", out _));
@@ -71,6 +69,21 @@ public sealed class ShopHudControlsTests
         Assert.Equal(0, runtime.Disposals);
         pages.Dispose();
         Assert.Equal(1, runtime.Disposals);
+    }
+
+    [Fact]
+    public void AutomaticCatalogReplacementRetiresOldEntityInsteadOfReusingOldButtons()
+    {
+        var view = new ShopHudView(ShopType.Human, 0, 2, [new("1", "Rifles", 0, 1, [])]);
+        using var pages = new ShopHudPages();
+        var first = new RuntimeStub();
+        Assert.True(pages.Bind(view, 0, () => first));
+        var changedCatalog = view with { Columns = [new("2", "Pistols", 0, 1, [])] };
+        var second = new RuntimeStub();
+        Assert.True(pages.Bind(changedCatalog, 0, () => second));
+        Assert.Equal(1, first.Disposals);
+        Assert.Same(second, pages.Runtime);
+        Assert.False(pages.Bind(changedCatalog, 0, () => throw new InvalidOperationException()));
     }
 
     private sealed class RuntimeStub : IShopHudRuntime

@@ -294,7 +294,8 @@ internal sealed class ShopHudMenu(
             Close(player.PlayerID);
             return;
         }
-        session.Pages.Bind(view, snapshot, () => new ShopHudRuntime(core, player.PlayerID));
+        if (session.Pages.Bind(view, session.NavigationVersion, () => new ShopHudRuntime(core, player.PlayerID)))
+            session.Choices.Clear();
         session.Snapshot = snapshot;
         session.View = view;
         var hud = session.Runtime!;
@@ -403,17 +404,31 @@ internal sealed class ShopHudMenu(
                 Render(player, session);
                 return;
             }
-            if (button == "CategoriesPrevious" && view.Page > 0) session.Navigation.Page--;
-            else if (button == "CategoriesNext" && view.Page + 1 < view.PageCount) session.Navigation.Page++;
+            if (button == "CategoriesPrevious" && view.Page > 0)
+            {
+                session.Navigation.Page--;
+                session.NavigationVersion++;
+            }
+            else if (button == "CategoriesNext" && view.Page + 1 < view.PageCount)
+            {
+                session.Navigation.Page++;
+                session.NavigationVersion++;
+            }
             else if (TryIndex(button, "Previous", ShopHudCatalog.ColumnCount, out var previous))
             {
                 if (view.Columns.ElementAtOrDefault(previous) is { Page: > 0 } column)
+                {
                     session.Navigation.ItemPages[column.Key] = column.Page - 1;
+                    session.NavigationVersion++;
+                }
             }
             else if (TryIndex(button, "NextItems", ShopHudCatalog.ColumnCount, out var next))
             {
                 if (view.Columns.ElementAtOrDefault(next) is { } column && column.Page + 1 < column.PageCount)
+                {
                     session.Navigation.ItemPages[column.Key] = column.Page + 1;
+                    session.NavigationVersion++;
+                }
             }
             else if (TryIndex(button, "Buy", ShopHudCatalog.SlotCount, out var slot))
             {
@@ -541,6 +556,7 @@ internal sealed class ShopHudMenu(
         public ShopHudView? View { get; set; }
         public ShopSnapshot? Snapshot { get; set; }
         public ShopHudNavigation Navigation { get; set; } = new();
+        public int NavigationVersion { get; set; }
         public Dictionary<(string, string), string> Choices { get; } = [];
         public double LastInteraction { get; set; }
         public double LastPurchase { get; set; } = double.NegativeInfinity;

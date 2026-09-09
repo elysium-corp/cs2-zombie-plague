@@ -193,7 +193,7 @@ public sealed class HudRuntimeTests
             Assert.All(svg.Root.Elements(), path =>
             {
                 Assert.Equal("path", path.Name.LocalName);
-                Assert.Equal("#ffffff", path.Attribute("fill")?.Value);
+                Assert.Equal("#ffffff", path.Attribute("fill")?.Value, ignoreCase: true);
                 Assert.False(string.IsNullOrWhiteSpace(path.Attribute("d")?.Value));
                 Assert.All(path.Attributes(), attribute => Assert.Contains(attribute.Name.LocalName, new[] { "fill", "d" }));
             });

@@ -22,6 +22,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="../Common.Database/Common.Database.csproj" Private="true" />
         <ProjectReference Include="..\Common.Hooks\Common.Hooks.csproj" Private="true" />
         <ProjectReference Include="..\CustomEquipment.Api\CustomEquipment.Api.csproj" Private="true" />
         <ProjectReference Include="..\Economy.Api\Economy.Api.csproj" Private="true" />
