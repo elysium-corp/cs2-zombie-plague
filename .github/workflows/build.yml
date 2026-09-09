@@ -66,6 +66,12 @@ jobs:
             --no-build \
             --no-restore
 
+      - name: Test Panorama packaging
+        run: python3 -m unittest discover -s scripts/tests -p 'test_package_panorama.py' -v
+
+      - name: Package Panorama resources
+        run: python3 scripts/package-panorama.py --configuration Release
+
       - name: Verify event documentation
         run: |
           dotnet run \
@@ -165,6 +171,16 @@ jobs:
           if-no-files-found: error
           retention-days: 14
           compression-level: 0
+          overwrite: false
+          include-hidden-files: false
+
+      - name: Upload Panorama resources
+        uses: actions/upload-artifact@v7
+        with:
+          path: dist/Release/panorama/Elysium.Panorama.Release.zip
+          archive: false
+          if-no-files-found: error
+          retention-days: 14
           overwrite: false
           include-hidden-files: false
 
