@@ -36,8 +36,8 @@
 
     <ItemGroup>
         <Content Include="..\Shop.Core\resources\templates\template.jsonc" Link="Fixtures\template.jsonc" CopyToOutputDirectory="PreserveNewest" />
-        <Content Include="../Shop.Core/resources/hud/shop/content/panorama/layout/custom_game/elysium_shop_v4.xml" Link="Fixtures/elysium_shop_v4.xml" CopyToOutputDirectory="PreserveNewest" />
-        <Content Include="../Shop.Core/resources/hud/shop/content/panorama/styles/custom_game/elysium_shop_v4.css" Link="Fixtures/elysium_shop_v4.css" CopyToOutputDirectory="PreserveNewest" />
+        <Content Include="../Shop.Core/resources/hud/shop/content/panorama/layout/custom_game/elysium_shop_v4_r2.xml" Link="Fixtures/elysium_shop_v4_r2.xml" CopyToOutputDirectory="PreserveNewest" />
+        <Content Include="../Shop.Core/resources/hud/shop/content/panorama/styles/custom_game/elysium_shop_v4_r2.css" Link="Fixtures/elysium_shop_v4_r2.css" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
 
 </Project>

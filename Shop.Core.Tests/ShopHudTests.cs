@@ -26,14 +26,13 @@ public sealed class ShopHudTests
     }
 
     [Fact]
-    public void CatalogIntersectsShopOffersWithRegisteredEquipmentBeforeBuildingPages()
+    public void CatalogIncludesStandardShopWeaponsAndRegisteredCustomEquipmentBeforeBuildingPages()
     {
         var items = new Dictionary<string, IItem>
         {
             ["plasma"] = new EquipmentItem("plasma", Slot.Primary),
             ["infection_grenade"] = new EquipmentItem("infection_grenade", Slot.Grenade),
-            ["not_in_shop"] = new EquipmentItem("not_in_shop", Slot.Secondary),
-            ["weapon_ak47"] = new EquipmentItem("weapon_ak47", Slot.Primary)
+            ["not_in_shop"] = new EquipmentItem("not_in_shop", Slot.Secondary)
         };
         var api = DispatchProxy.Create<ICustomEquipmentApi, ShopInputTests.InterfaceStub>();
         ((ShopInputTests.InterfaceStub)(object)api).Handler = (method, arguments) =>
@@ -51,22 +50,52 @@ public sealed class ShopHudTests
             Product(3, "custom_equipment", "removed_grenade", 20),
             Product(4, "cs2_weapon", "weapon_ak47", 30),
             Product(5, "builtin", "armor", 30),
-            Product(6, "custom_equipment", "removed_weapon", 40)
+            Product(6, "custom_equipment", "removed_weapon", 40),
+            Product(7, "cs2_weapon", "weapon_hegrenade", 40),
+            Product(8, "cs2_weapon", "weapon_unknown", 40)
         };
         var snapshot = Snapshot(offers, [Category(10), Category(20), Category(30), Category(40)]);
         var navigation = new ShopHudNavigation();
         var view = ShopHudCatalog.Project(snapshot, ShopType.Human, navigation, key => key,
-            products.IsRegisteredEquipment, offer => Card(offer) with { Enabled = false });
+            products.IsHudProduct, offer => Card(offer) with { Enabled = false });
 
-        Assert.Equal(new[] { "Category10", "Category20" }, view.Columns.Select(x => x.Title));
-        Assert.Equal(new long[] { 1, 2 }, view.Columns.SelectMany(x => x.Cards).Select(x => x.Offer.Id));
+        Assert.Equal(new[] { "Category10", "Category20", "Category30" }, view.Columns.Select(x => x.Title));
+        Assert.Equal(new long[] { 1, 2, 4 }, view.Columns.SelectMany(x => x.Cards).Select(x => x.Offer.Id));
         Assert.All(view.Columns.SelectMany(x => x.Cards), card => Assert.False(card.Enabled));
 
         items.Remove("infection_grenade");
         var updated = ShopHudCatalog.Project(snapshot, ShopType.Human, navigation, key => key,
-            products.IsRegisteredEquipment, Card);
-        Assert.Equal("Category10", Assert.Single(updated.Columns).Title);
+            products.IsHudProduct, Card);
+        Assert.Equal(new[] { "Category10", "Category30" }, updated.Columns.Select(x => x.Title));
         Assert.False(ShopHudMenu.SameSlots(view, updated));
+    }
+
+    [Fact]
+    public void HudDoesNotAddStandardWeaponsWithoutAnEnabledShopOffer()
+    {
+        var products = new ShopProductProvider(() => throw new InvalidOperationException("Unexpected equipment lookup"));
+        var enabled = Product(1, StandardWeaponCatalog.ProviderKey, "weapon_glock", 1);
+        var disabled = Product(2, StandardWeaponCatalog.ProviderKey, "weapon_ak47", 1);
+        disabled = disabled with { Contract = disabled.Contract with { Enabled = false } };
+        var view = ShopHudCatalog.Project(Snapshot([enabled, disabled], [Category(1)]), ShopType.Human,
+            new ShopHudNavigation(), key => key, products.IsHudProduct, Card);
+
+        var card = Assert.Single(Assert.Single(view.Columns).Cards);
+        Assert.Equal(enabled.Contract, card.Offer);
+    }
+
+    [Fact]
+    public void EveryStandardFirearmHasAHudIconAndCommonRarityWithoutEquipmentRegistration()
+    {
+        var products = new ShopProductProvider(() => throw new InvalidOperationException("Unexpected equipment lookup"));
+        foreach (var key in StandardWeaponCatalog.Weapons.Keys)
+        {
+            var offer = Product(1, StandardWeaponCatalog.ProviderKey, key, 1);
+            Assert.True(products.IsHudProduct(offer));
+            Assert.Equal(ItemRarity.Common, products.GetRarity(offer));
+            Assert.NotEqual("equipment", products.GetHudIcon(offer));
+            Assert.False(products.IsHudProduct(offer with { Contract = offer.Contract with { ShopType = ShopType.Zombie } }));
+        }
     }
 
     [Fact]
@@ -211,8 +240,9 @@ public sealed class ShopHudTests
         foreach (var prefix in new[] { "Card", "Buy", "Icon", "Name", "Price", "Status" })
             Assert.Contains(prefix + slot, ids);
         for (var column = 0; column < ShopHudCatalog.ColumnCount; column++)
-        foreach (var prefix in new[] { "Column", "Category", "Page", "Prev", "Next", "Previous", "NextItems" })
+        foreach (var prefix in new[] { "Column", "Category", "Page", "Prev", "Next", "Previous", "NextItems", "ItemPager" })
             Assert.Contains(prefix + column, ids);
+        Assert.Contains("CategoryPager", ids);
         var css = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures",
             Path.GetFileName(Path.ChangeExtension(ShopHudRuntime.Style, ".css"))));
         Assert.Contains(".BuyHit { width: 100%; height: 100%; visibility: collapse; }", css);
