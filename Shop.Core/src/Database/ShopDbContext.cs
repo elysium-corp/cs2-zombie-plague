@@ -12,11 +12,20 @@ internal sealed class ShopDbContext(DbContextOptions<ShopDbContext> options) : D
     internal DbSet<ShopOfferEntity> Offers => Set<ShopOfferEntity>();
     internal DbSet<ShopOfferPrivilegeEntity> OfferPrivileges => Set<ShopOfferPrivilegeEntity>();
     internal DbSet<ShopFallbackStateEntity> FallbackState => Set<ShopFallbackStateEntity>();
+    internal DbSet<ShopPlayerPreferenceEntity> PlayerPreferences => Set<ShopPlayerPreferenceEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.HasDefaultSchema(SchemaName);
+
+        modelBuilder.Entity<ShopPlayerPreferenceEntity>(entity =>
+        {
+            entity.Property(x => x.SteamId).ValueGeneratedNever();
+            entity.Property(x => x.HudScale).HasDefaultValue(100);
+            entity.ToTable("player_preferences", SchemaName,
+                table => table.HasCheckConstraint("ck_shop_hud_scale", "hud_scale IN (75, 85, 100, 115, 125)"));
+        });
 
         modelBuilder.Entity<ShopStorefrontEntity>(entity =>
         {
