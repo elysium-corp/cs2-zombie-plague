@@ -16,8 +16,8 @@ internal interface IHudRuntime : IDisposable
 
 internal sealed class PanoramaHudRuntime : IHudRuntime
 {
-    internal const string Layout = "panorama/layout/custom_game/elysium_messages_v4_r2.vxml_c";
-    internal const string Style = "panorama/styles/custom_game/elysium_messages_v4_r2.vcss_c";
+    internal const string Layout = "panorama/layout/custom_game/elysium_messages_v4_r3.vxml_c";
+    internal const string Style = "panorama/styles/custom_game/elysium_messages_v4_r3.vcss_c";
     internal const int RegionCount = 9;
     internal const int StackCapacity = 3;
     private readonly ISwiftlyCore _core;
@@ -29,7 +29,7 @@ internal sealed class PanoramaHudRuntime : IHudRuntime
         _core = core;
         var missing = MissingResources(path => core.GameFileSystem.FileExists(path, "GAME"));
         if (missing.Length > 0)
-            throw new FileNotFoundException("Custom HUD: скомпилируйте и смонтируйте полный VPK v4 r2 у сервера и клиентов: " + string.Join(", ", missing));
+            throw new FileNotFoundException("Custom HUD: скомпилируйте и смонтируйте полный VPK v4 r3 у сервера и клиентов: " + string.Join(", ", missing));
     }
 
     internal static string[] MissingResources(Func<string, bool> exists) => new[] { Layout, Style }

@@ -84,7 +84,7 @@ public sealed record HudBannerTemplate
     public string IconGlow { get; init; } = "none";
     /// <summary>Подсветка текста цветом акцента: none, soft, strong.</summary>
     public string TextGlow { get; init; } = "none";
-    /// <summary>Цвет параметров; inherit сохраняет HTML-цвет, accent использует акцент баннера.</summary>
+    /// <summary>Цвет параметров без явного цвета HTML/Localization: inherit наследует цвет блока, accent использует акцент. Явный цвет фрагмента всегда сохраняется.</summary>
     public string ParameterColor { get; init; } = "inherit";
     /// <summary>Задержка старта циклических эффектов, 0–2000 мс, шаг 100.</summary>
     public int EffectDelay { get; init; }

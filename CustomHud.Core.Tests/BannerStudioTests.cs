@@ -18,7 +18,7 @@ public sealed class BannerStudioTests
         Assert.Contains("TitleAlign_right", classes);
         Assert.Contains("DescriptionAlign_inherit", classes);
         Assert.Contains("VerticalAlign_bottom", classes);
-        var css = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "content/panorama/styles/custom_game/elysium_messages_v4_r2.css"));
+        var css = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "content/panorama/styles/custom_game/elysium_messages_v4_r3.css"));
         Assert.Contains(".CustomBanner.TitleAlign_right .BannerTitle { horizontal-align: right; }", css);
         Assert.Contains(".CustomBanner.IconPosition_left.VerticalAlign_bottom .BannerTexts { vertical-align: bottom; }", css);
         var legacy = System.Text.Json.JsonSerializer.Deserialize<HudBannerTemplate>("{\"Align\":\"right\"}")!;
