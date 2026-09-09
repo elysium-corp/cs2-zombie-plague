@@ -146,6 +146,15 @@ public sealed class LocalizationRuntimeTests
     }
 
     [Fact]
+    public void CountdownParameterKeepsSurroundingHtmlColorAndBold()
+    {
+        var cache = new LocalizationCache(); cache.Replace(CreateSnapshot());
+        var runtime = new LocalizationRuntime(cache, new LanguageResolver(cache, new PlayerLanguageCache()), new RateLimitedLocalizationLogger(NullLogger.Instance));
+        var result = runtime.FormatForLanguage("ru", "Test.Countdown", new Dictionary<string, object?> { ["seconds"] = 10 }, LocalizationOutputMode.Html);
+        Assert.Equal("До заражения <font color=\"red\"><b><span class=\"hud-parameter\">10</span></b></font> сек.", result);
+    }
+
+    [Fact]
     public void RoleMarkupUsesRecipientStyleForHtmlAndChatAndSupportsRawMode()
     {
         const string input = "{role_color}<b>Player</b>{/role_color}<br><font color='role'>Role</font>";
@@ -248,6 +257,14 @@ public sealed class LocalizationRuntimeTests
                     ["ru"] = "Элизиум",
                     ["en"] = "Elysium",
                 }),
+            CreateEntry(
+                6,
+                "Test.Countdown",
+                new Dictionary<string, string>
+                {
+                    ["ru"] = "До заражения <font color=\"red\"><b>{seconds}</b></font> сек.",
+                },
+                [new LocalizationParameterDefinition("seconds", LocalizationParameterType.Integer, true, "До заражения", "10")]),
         }.ToFrozenDictionary(entry => entry.Key, StringComparer.OrdinalIgnoreCase);
 
         var colorTags = LocalizationColorSchema.Defaults

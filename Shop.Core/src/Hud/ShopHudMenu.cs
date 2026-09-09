@@ -55,6 +55,7 @@ internal sealed class ShopHudMenu(
         core.Event.OnCustomHudClicked += OnClicked;
         core.Event.OnClientKeyStateChanged += OnKey;
         core.Event.OnClientDisconnected += OnDisconnected;
+        core.Event.OnTick += PollNativeBuy;
         core.Event.OnMapUnload += OnMapUnload;
         core.Event.OnMapLoad += OnMapLoad;
         _deathHook = core.GameEvent.HookPost<EventPlayerDeath>(OnPlayerDeath);
@@ -222,6 +223,7 @@ internal sealed class ShopHudMenu(
         if (!_active || !options.Value.Enabled || !options.Value.ReplaceNativeBuyMenu) return HookResult.Continue;
         _buyOpenEvents++;
         Trace("buymenu_open received and stopped (event has no userid)");
+        PollNativeBuy();
         // Это отмена серверного уведомления, а не клиентского Panorama.
         // Владельца определяем только по его IsBuyMenuOpen, не по этому событию.
         return HookResult.Stop;
@@ -239,6 +241,36 @@ internal sealed class ShopHudMenu(
         return native;
     }
 
+    // Только проверка сетевого флага: каталог и баланс не пересчитываются каждый тик.
+    // Этот же путь вызывается сразу из buymenu_open, если событие доставлено серверу.
+    private void PollNativeBuy()
+    {
+        if (!_active || !options.Value.Enabled || !options.Value.ReplaceNativeBuyMenu) return;
+        try
+        {
+            var now = Now;
+            foreach (var player in core.PlayerManager.GetAllPlayers())
+            {
+                if (!player.IsValid || player.IsFakeClient) continue;
+                var native = GetNativeState(player);
+                var open = player.PlayerPawn?.IsBuyMenuOpen == true;
+                var action = native.Buy.Observe(open, state.IsOpen(player), now);
+                if (action == ShopNativeBuyAction.CloseNative) CloseNative(player);
+                else if (action == ShopNativeBuyAction.OpenCustom)
+                {
+                    Trace($"native close confirmed: player={player.PlayerID}");
+                    Open(player);
+                }
+                else if (action == ShopNativeBuyAction.TimedOut)
+                {
+                    _nativeTimeouts++;
+                    Trace($"native close timed out: player={player.PlayerID}");
+                }
+            }
+        }
+        catch (Exception error) { Fail(error); }
+    }
+
     private void Tick()
     {
         if (!_active) return;
@@ -250,23 +282,6 @@ internal sealed class ShopHudMenu(
             foreach (var player in core.PlayerManager.GetAllPlayers())
             {
                 if (!player.IsValid || player.IsFakeClient) continue;
-                if (options.Value.Enabled && options.Value.ReplaceNativeBuyMenu)
-                {
-                    var native = GetNativeState(player);
-                    var open = player.PlayerPawn?.IsBuyMenuOpen == true;
-                    var action = native.Buy.Observe(open, state.IsOpen(player), now);
-                    if (action == ShopNativeBuyAction.CloseNative) CloseNative(player);
-                    else if (action == ShopNativeBuyAction.OpenCustom)
-                    {
-                        Trace($"native close confirmed: player={player.PlayerID}");
-                        Open(player);
-                    }
-                    else if (action == ShopNativeBuyAction.TimedOut)
-                    {
-                        _nativeTimeouts++;
-                        Trace($"native close timed out: player={player.PlayerID}");
-                    }
-                }
                 if (!_sessions.TryGetValue(player.PlayerID, out var session)) continue;
                 if (session.SessionId != player.SessionId || !catalog.CanOpen(player)
                     || session.Runtime?.IsValid != true || core.MenusAPI.GetCurrentMenu(player) is not null
@@ -536,6 +551,7 @@ internal sealed class ShopHudMenu(
         core.Event.OnCustomHudClicked -= OnClicked;
         core.Event.OnClientKeyStateChanged -= OnKey;
         core.Event.OnClientDisconnected -= OnDisconnected;
+        core.Event.OnTick -= PollNativeBuy;
         core.Event.OnMapUnload -= OnMapUnload;
         core.Event.OnMapLoad -= OnMapLoad;
         if (_commandHook != Guid.Empty) core.Command.UnhookClientCommand(_commandHook);

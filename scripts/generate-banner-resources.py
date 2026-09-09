@@ -11,12 +11,12 @@ icons = ['info', 'warning', 'infection', 'skull', 'shield', 'trophy', 'star', 'g
 image_dir = root / 'images/custom_game/elysium/banners'
 for name in icons:
     svg = ET.parse(image_dir / f'{name}.svg').getroot()
-    assert len(svg) and all(node.tag.endswith('}path') and node.get('fill') == '#ffffff'
+    assert len(svg) and all(node.tag.endswith('}path') and node.get('fill', '').lower() == '#ffffff'
         and set(node.attrib) == {'fill', 'd'} for node in svg), f'{name}: use explicit white filled paths'
 
 layout = ET.Element('root')
 styles = ET.SubElement(layout, 'styles')
-ET.SubElement(styles, 'include', src='s2r://panorama/styles/custom_game/elysium_messages_v4_r2.vcss_c')
+ET.SubElement(styles, 'include', src='s2r://panorama/styles/custom_game/elysium_messages_v4_r3.vcss_c')
 # Компилятор Panorama запрещает id у корневой панели; сервер адресует дочернюю MessageRegion.
 canvas = ET.SubElement(layout, 'Panel', attrib={'class': 'ElysiumMessageCanvas', 'hittest': 'false'})
 positions = ['TopLeft', 'TopCenter', 'TopRight', 'MiddleLeft', 'Center', 'MiddleRight', 'BottomLeft', 'BottomCenter', 'BottomRight']
@@ -38,8 +38,8 @@ for i in range(3):
             ET.SubElement(row, 'Label', id=f'{slot}{suffix}Run{n}', attrib={'class': 'MessageRun', 'text': '{s:value}'})
 assert 'id' not in canvas.attrib, 'Panorama root panel must not have an id'
 ET.indent(layout, space='    ')
-(root / 'layout/custom_game/elysium_messages_v4_r2.xml').write_text(ET.tostring(layout, encoding='unicode') + '\n')
-css_path = root / 'styles/custom_game/elysium_messages_v4_r2.css'
+(root / 'layout/custom_game/elysium_messages_v4_r3.xml').write_text(ET.tostring(layout, encoding='unicode') + '\n')
+css_path = root / 'styles/custom_game/elysium_messages_v4_r3.css'
 css = css_path.read_text().split('/* Banner constructor */')[0].rstrip()
 palette = sorted(set(re.findall(r'\.MessageRun\.C(\d+) \{ color: (#[A-F0-9]+); \}', css)))
 css += '''
@@ -170,9 +170,6 @@ colors = {'white': '#ffffff', 'muted': '#adc2ce', 'mint': '#85dcb1', 'gold': '#f
 for field in ['Header', 'Title', 'Description']:
     for name, color in colors.items():
         css += f'.CustomBanner.{field}Color_{name} .Banner{field} .MessageRun {{ color: {color}; }}\n'
-# Разметка Localization имеет больший приоритет, чем общий цвет текстового блока.
-for idx, color in palette:
-    css += f'.CustomBanner .BannerTexts .MessageLine .MessageRun.C{idx} {{ color: {color}; }}\n'
 css += '.CustomBanner.NoDescription .BannerTitle { margin-bottom: 0px; }\n'
 css += '.CustomBanner.NoDescription.NoTitle .BannerHeader { margin-bottom: 0px; }\n'
 # Перенос визуальных свойств на отдельную поверхность предотвращает конфликт transform-анимаций.
@@ -194,9 +191,14 @@ for idx, color in palette:
             css += f'.CustomBanner.A{idx}.{field}Animation_{effect} {target} {{ text-shadow: 0px 0px 8px 1.0 {color}; }}\n'
 for name, color in colors.items():
     css += f'.CustomBanner.ParameterColor_{name} .BannerTexts .MessageLine .MessageRun.Parameter {{ color: {color}; }}\n'
-# Класс акцента должен иметь тот же приоритет, что и явный HTML-цвет параметра.
+# Цвет параметра действует, если сам фрагмент не задаёт цвет в разметке.
 for idx, color in palette:
     css += f'.CustomBanner.A{idx}.ParameterColor_accent .BannerTexts .MessageLine .MessageRun.Parameter {{ color: {color}; }}\n'
+# Label получает C-класс для явного цвета HTML/Localization. Такой цвет важнее
+# темы, общего цвета блока и ParameterColor, в том числе для вложенного {seconds}.
+# Правило имеет не меньшую специфичность, чем ParameterColor_accent, и стоит позже.
+for idx, color in palette:
+    css += f'.CustomBanner .BannerSurface .BannerContent .BannerTexts .MessageLine .MessageRun.C{idx} {{ color: {color}; }}\n'
 for width in range(128, 961, 8):
     css += f'.CustomBanner.TextWidth_{width} .BannerTexts {{ width: {width}px; min-width: {width}px; }}\n'
 assert len(layout.findall('.//*[@id]')) < 1024

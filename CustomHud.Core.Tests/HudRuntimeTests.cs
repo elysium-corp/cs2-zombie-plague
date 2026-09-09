@@ -148,9 +148,9 @@ public sealed class HudRuntimeTests
     public void ResourcesRespectCustomHudWhitelistAndTheNetworkIdLimit()
     {
         var root = Path.Combine(AppContext.BaseDirectory, "content/panorama");
-        Assert.EndsWith("_v4_r2.vxml_c", PanoramaHudRuntime.Layout);
-        Assert.EndsWith("_v4_r2.vcss_c", PanoramaHudRuntime.Style);
-        var layout = XDocument.Load(Path.Combine(root, "layout/custom_game/elysium_messages_v4_r2.xml"));
+        Assert.EndsWith("_v4_r3.vxml_c", PanoramaHudRuntime.Layout);
+        Assert.EndsWith("_v4_r3.vcss_c", PanoramaHudRuntime.Style);
+        var layout = XDocument.Load(Path.Combine(root, "layout/custom_game/elysium_messages_v4_r3.xml"));
         // Корневая панель не может иметь id: иначе Resource Compiler не создаёт vxml_c.
         Assert.Null(Assert.Single(layout.Root!.Elements("Panel")).Attribute("id"));
         Assert.Equal("s2r://" + PanoramaHudRuntime.Style, layout.Descendants("include").Single().Attribute("src")!.Value);
@@ -173,7 +173,7 @@ public sealed class HudRuntimeTests
             for (var line = 0; line < HudMarkup.MaximumLines; line++)
                 for (var run = 0; run < HudMarkup.MaximumRuns; run++)
                     Assert.Contains($"Message{lane}Line{line}Run{run}", ids);
-        var css = File.ReadAllText(Path.Combine(root, "styles/custom_game/elysium_messages_v4_r2.css"));
+        var css = File.ReadAllText(Path.Combine(root, "styles/custom_game/elysium_messages_v4_r3.css"));
         // Процентное ограничение сжимало баннер при расчёте размеров Custom HUD
         Assert.DoesNotContain("max-width: 28%", css);
         Assert.DoesNotContain("max-width: 38%", css);

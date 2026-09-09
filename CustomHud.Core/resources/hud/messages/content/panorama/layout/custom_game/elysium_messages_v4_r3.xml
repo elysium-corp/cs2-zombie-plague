@@ -1,6 +1,6 @@
 <root>
     <styles>
-        <include src="s2r://panorama/styles/custom_game/elysium_messages_v4_r2.vcss_c" />
+        <include src="s2r://panorama/styles/custom_game/elysium_messages_v4_r3.vcss_c" />
     </styles>
     <Panel class="ElysiumMessageCanvas" hittest="false">
         <Panel class="MessageRegion" id="MessageRegion">

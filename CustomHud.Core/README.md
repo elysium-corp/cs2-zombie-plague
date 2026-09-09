@@ -1,8 +1,8 @@
-> Обновление ресурсов v4 r2 обязательно для этой версии: [установка, стопки, роли и анимации](../docs/banner-enhancements.md)
+> Для этой версии нужны пересобранные ресурсы сообщений v4 r3; порядок установки ниже
 
 # Elysium Custom HUD
 
-`CustomHud.Core 1.4.0` предоставляет `CustomHud.Api.ICustomHudApi` другим плагинам
+`CustomHud.Core 1.4.1` предоставляет `CustomHud.Api.ICustomHudApi` другим плагинам
 HUD сообщений использует собственную сущность и сосуществует с меню SwiftlyS2 и панелью способностей
 
 В конструкторе раздел «Текст» задаёт общее выравнивание `Align` (`left`, `center`, `right`)
@@ -10,11 +10,18 @@ HUD сообщений использует собственную сущнос�
 либо каждый блок может выбрать собственное. `VerticalAlign` (`top`, `center`, `bottom`) располагает
 текст относительно иконки слева. Положение самого баннера на экране по-прежнему задаёт `HudMessageOptions.Position`
 
-Для версии 1.4.0 обновите CustomHud.Core, общий CustomHud.Api и содержимое VPK:
-перекомпилируйте CSS `elysium_messages_v4_r2.css` и все 12 SVG из `images/custom_game/elysium/banners`
+Для версии 1.4.1 обновите CustomHud.Core, общий CustomHud.Api и содержимое VPK:
+перекомпилируйте XML `elysium_messages_v4_r3.xml`, CSS `elysium_messages_v4_r3.css` и включите используемые SVG из `images/custom_game/elysium/banners`
 Иконки используют явные белые залитые контуры, как HUD способностей. Обводки и наследуемые стили `<g>`
 в этих ресурсах не используются. Генератор проверяет формат и сохраняет готовые SVG
 Проверка в CI не заменяет компиляцию Workshop Tools и проверку обновлённого VPK в игровом клиенте
+
+Явный цвет HTML/Localization имеет приоритет над темой, цветом блока и `ParameterColor`
+`До заражения <font color="red"><b>{seconds}</b></font> сек.` сохраняет красное жирное число после подстановки секунд
+`ParameterColor` меняет только параметры без явного цвета; `inherit` оставляет им цвет блока
+Ранее CSS цвета параметров мог перекрывать `<font>` вокруг `{seconds}`, хотя Localization передавал разметку
+Для проверки выберите `ParameterColor=white` или `accent`: число остаётся красным, окружающий текст — цветом блока
+Старый CSS r2 не содержит исправления; переименование VPK без пересборки не обновит правила
 
 ## Вызов из плагина
 
@@ -111,8 +118,8 @@ yellow, gold, orange, purple, lightpurple, pink, gray/grey, silver, mint, muted,
 В 1.1.1 удалены процентные max-width, сжимавшие панель баннера, и задана минимальная ширина в единицах Panorama. Эта часть исправления находится в CSS внутри VPK: замены DLL недостаточно. Список sw plugins list показывает версии серверных плагинов и не подтверждает актуальность ресурсов у клиента
 
 1. Скопируйте содержимое `resources/hud/messages/content/panorama/` в `content/csgo_addons/<addon>/panorama/` на машине с CS2 Workshop Tools
-2. Скомпилируйте `layout/custom_game/elysium_messages_v4_r2.xml` и `styles/custom_game/elysium_messages_v4_r2.css`
-3. Упакуйте SVG из `images/custom_game/elysium/banners/` вместе с layout и styles. В VPK должны попасть `panorama/layout/custom_game/elysium_messages_v4_r2.vxml_c` и `panorama/styles/custom_game/elysium_messages_v4_r2.vcss_c`
+2. Скомпилируйте `layout/custom_game/elysium_messages_v4_r3.xml` и `styles/custom_game/elysium_messages_v4_r3.css`
+3. Упакуйте SVG из `images/custom_game/elysium/banners/` вместе с layout и styles. В VPK должны попасть `panorama/layout/custom_game/elysium_messages_v4_r3.vxml_c` и `panorama/styles/custom_game/elysium_messages_v4_r3.vcss_c`
 4. Доставьте обновлённый VPK серверу и клиентам, затем смените карту
 5. Выполните `custom_hud status`, затем `custom_hud test TopCenter`
 
