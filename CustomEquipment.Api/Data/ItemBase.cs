@@ -24,4 +24,19 @@ public abstract class ItemBase : IItem
     public abstract Slot Slot { get; }
     
     public abstract string Model { get; }
+
+    /// <summary>
+    /// Восстанавливает модель и имя уже выданного экземпляра после подбора или экипировки.
+    /// Не выдаёт новый предмет и не проверяет привилегии покупки нового владельца.
+    /// </summary>
+    public virtual void ReapplyCustomization()
+    {
+        var entity = AttachedEntity;
+        if (!string.IsNullOrWhiteSpace(Model)) entity.SetModel(Model);
+
+        var item = entity.AttributeManager.Item;
+        item.CustomName = DisplayName;
+        item.CustomNameOverride = DisplayName;
+        item.CustomNameUpdated();
+    }
 }

@@ -19,13 +19,14 @@ internal sealed class KnifeService(
     IPlayerKnifeService playerKnifeService,
     IZombiePlagueApi zombiePlagueApi,
     IKnifeAuthorizationService authorizationService
-) : IKnifeService
+) : IKnifeService, IDisposable
 {
     private const string DefaultKnifeName = "weapon_knife";
     private const string CustomKnifeName = "weapon_knife_t";
 
     private const float DefaultSpeed = 250f;
     private const float DefaultGravity = 800f;
+    private bool _disposed;
     
 
     public bool TryGiveKnife(IPlayer player)
@@ -197,7 +198,8 @@ internal sealed class KnifeService(
 
     private bool CanHaveKnife(IPlayer player)
     {
-        return player.IsValid && player.IsAlive && player.PlayerPawn is { IsValid: true } && !zombiePlagueApi.IsInfected(player);
+        return !_disposed && player.IsValid && player.IsAlive &&
+               player.PlayerPawn is { IsValid: true } && !zombiePlagueApi.IsInfected(player);
     }
 
     private void RemoveOldAndGiveNewKnife(CCSPlayer_WeaponServices weaponService, CCSPlayer_ItemServices itemService)
@@ -233,9 +235,11 @@ internal sealed class KnifeService(
 
         core.Scheduler.NextWorldUpdate(() =>
         {
+            if (_disposed) return;
+
             var currentPlayer = core.PlayerManager.GetPlayerFromSessionId(sessionId);
 
-            if (currentPlayer is null || !currentPlayer.IsValid || !currentPlayer.IsAlive || !knife.IsValid)
+            if (currentPlayer is null || !CanHaveKnife(currentPlayer) || !knife.IsValid)
             {
                 return;
             }
@@ -263,16 +267,22 @@ internal sealed class KnifeService(
 
     private void GiveKnife(IPlayer player)
     {
+        var sessionId = player.SessionId;
+        var pawnAddress = player.RequiredPlayerPawn.Address;
+
         core.Scheduler.NextWorldUpdate(() =>
         {
-            if (!player.IsValid)
+            if (_disposed) return;
+
+            var currentPlayer = core.PlayerManager.GetPlayerFromSessionId(sessionId);
+            if (currentPlayer is null || !CanHaveKnife(currentPlayer))
             {
                 return;
             }
 
-            var playerPawn = player.PlayerPawn;
+            var playerPawn = currentPlayer.PlayerPawn;
 
-            if (playerPawn == null || !playerPawn.IsValid)
+            if (playerPawn == null || playerPawn.Address != pawnAddress)
             {
                 return;
             }
@@ -285,13 +295,15 @@ internal sealed class KnifeService(
                 return;
             }
 
-            var knife = GetKnife(player);
+            var knife = GetKnife(currentPlayer);
 
             RemoveOldAndGiveNewKnife(weaponService, itemService);
 
-            var newKnife = ModifyKnife(player, knife);
+            var newKnife = ModifyKnife(currentPlayer, knife);
 
-            SelectKnifeOnNextWorldUpdate(player, newKnife);
+            SelectKnifeOnNextWorldUpdate(currentPlayer, newKnife);
         });
     }
+
+    public void Dispose() => _disposed = true;
 }

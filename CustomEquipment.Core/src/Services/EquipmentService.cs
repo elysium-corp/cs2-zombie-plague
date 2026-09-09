@@ -15,6 +15,7 @@ using CustomEquipment.Registry;
 using CustomEquipment.Utils;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Events;
+using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.GameHooks;
 using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Players;
@@ -37,6 +38,10 @@ internal sealed class EquipmentService(
     private const string PlantedC4DesignerName = "planted_c4";
     private readonly List<ItemBase> _items = [];
     private readonly HashSet<int> _laserMineGrantPlayers = [];
+    private readonly HashSet<(ulong SessionId, nint PawnAddress)> _pendingReapplications = [];
+    private Guid _itemPickupHook;
+    private Guid _itemEquipHook;
+    private int _generation;
     private bool _initialized;
 
     public void Initialize()
@@ -47,11 +52,14 @@ internal sealed class EquipmentService(
         }
 
         _initialized = true;
+        _generation++;
         core.Event.OnEntityCreated += OnEntityCreated;
         core.Event.OnEntityDeleted += OnEntityDeleted;
         core.Event.OnMapLoad += OnMapLoad;
 
         core.GameHooks.Weapons.CanUse.Pre += OnWeaponCanUsePre;
+        _itemPickupHook = core.GameEvent.HookPost<EventItemPickup>(OnItemPickup);
+        _itemEquipHook = core.GameEvent.HookPost<EventItemEquip>(OnItemEquip);
 
         var playerEvents = zombiePlagueApi().Events.Players;
         playerEvents.Infected.Hook(OnPlayerInfected);
@@ -71,11 +79,14 @@ internal sealed class EquipmentService(
         }
 
         _initialized = false;
+        _generation++;
         core.Event.OnEntityCreated -= OnEntityCreated;
         core.Event.OnEntityDeleted -= OnEntityDeleted;
         core.Event.OnMapLoad -= OnMapLoad;
 
         core.GameHooks.Weapons.CanUse.Pre -= OnWeaponCanUsePre;
+        core.GameEvent.Unhook(_itemPickupHook);
+        core.GameEvent.Unhook(_itemEquipHook);
 
         var playerEvents = zombiePlagueApi().Events.Players;
         playerEvents.Infected.Unhook(OnPlayerInfected);
@@ -86,6 +97,7 @@ internal sealed class EquipmentService(
 
         _items.Clear();
         _laserMineGrantPlayers.Clear();
+        _pendingReapplications.Clear();
     }
 
     public bool CanUseItem(IPlayer player, ItemBase item)
@@ -530,6 +542,61 @@ internal sealed class EquipmentService(
         _items.RemoveAll(wp => wp.AttachedEntity.Index == entity.Index);
     }
 
+    private HookResult OnItemPickup(EventItemPickup @event)
+    {
+        ScheduleCustomizationReapply(@event.UserIdPlayer);
+        return HookResult.Continue;
+    }
+
+    private HookResult OnItemEquip(EventItemEquip @event)
+    {
+        ScheduleCustomizationReapply(@event.UserIdPlayer);
+        return HookResult.Continue;
+    }
+
+    internal void ScheduleCustomizationReapply(IPlayer? player)
+    {
+        if (!_initialized || player is not { IsValid: true, IsAlive: true } ||
+            player.PlayerPawn is not { IsValid: true } pawn)
+        {
+            return;
+        }
+
+        var key = (player.SessionId, pawn.Address);
+        var generation = _generation;
+        if (!_pendingReapplications.Add(key)) return;
+
+        core.Scheduler.NextWorldUpdate(() =>
+        {
+            if (!_initialized || generation != _generation) return;
+
+            try
+            {
+                var currentPlayer = core.PlayerManager.GetPlayerFromSessionId(key.SessionId);
+                if (currentPlayer is not { IsValid: true, IsAlive: true } ||
+                    currentPlayer.PlayerPawn is not { IsValid: true } currentPawn ||
+                    currentPawn.Address != key.Address)
+                {
+                    return;
+                }
+
+                // Параметры принадлежат выданному экземпляру. Роли ограничивают покупку
+                // в Shop, а здесь сохраняются только ограничения стороны и каталога.
+                foreach (var item in GetPlayerItems<ItemBase>(currentPlayer))
+                {
+                    if (item.AttachedEntity.IsValid && CanUseItem(currentPlayer, item))
+                    {
+                        item.ReapplyCustomization();
+                    }
+                }
+            }
+            finally
+            {
+                _pendingReapplications.Remove(key);
+            }
+        });
+    }
+
     private void OnWeaponCanUsePre(ref CanUseWeaponPreContext context)
     {
         var weapon = context.Params.Weapon;
@@ -702,6 +769,8 @@ internal sealed class EquipmentService(
 
     private void OnMapLoad(IOnMapLoadEvent _)
     {
+        _generation++;
+        _pendingReapplications.Clear();
         core.Scheduler.NextWorldUpdate(RemoveForbiddenBombsAndLegacyCarriers);
     }
 

@@ -23,6 +23,7 @@ internal sealed class PlayerService(
     private Guid _playerSpawnGuid = Guid.Empty;
     private Guid _playerDeathGuid = Guid.Empty;
     private Guid _playerDisconnectGuid = Guid.Empty;
+    private Guid _playerTeamPreGuid = Guid.Empty;
     private Guid _playerTeamGuid = Guid.Empty;
 
     public void Register()
@@ -31,6 +32,7 @@ internal sealed class PlayerService(
         _playerSpawnGuid = core.GameEvent.HookPost<EventPlayerSpawn>(OnPlayerSpawn);
         _playerDeathGuid = core.GameEvent.HookPost<EventPlayerDeath>(OnPlayerDeath);
         _playerDisconnectGuid = core.GameEvent.HookPre<EventPlayerDisconnect>(OnPlayerDisconnect);
+        _playerTeamPreGuid = core.GameEvent.HookPre<EventPlayerTeam>(OnPlayerTeamPre);
         _playerTeamGuid = core.GameEvent.HookPost<EventPlayerTeam>(OnPlayerTeam);
 
         core.Event.OnClientPutInServer += OnClientPutInServer;
@@ -42,6 +44,7 @@ internal sealed class PlayerService(
         core.GameEvent.Unhook(_playerSpawnGuid);
         core.GameEvent.Unhook(_playerDeathGuid);
         core.GameEvent.Unhook(_playerDisconnectGuid);
+        core.GameEvent.Unhook(_playerTeamPreGuid);
         core.GameEvent.Unhook(_playerTeamGuid);
 
         core.Event.OnClientPutInServer -= OnClientPutInServer;
@@ -127,6 +130,14 @@ internal sealed class PlayerService(
 
         playerPreferencesCoordinator.SaveAndRemove(player);
         playerManager.Remove(player);
+
+        return HookResult.Continue;
+    }
+
+    private static HookResult OnPlayerTeamPre(EventPlayerTeam @event)
+    {
+        // Скрываем сообщение до рассылки события; игровая логика выполняется в Post-хуке.
+        @event.Silent = true;
 
         return HookResult.Continue;
     }
