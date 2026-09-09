@@ -22,6 +22,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="../Common.Database/Common.Database.csproj" Private="true" />
         <ProjectReference Include="..\Common.Hooks\Common.Hooks.csproj" Private="true" />
         <ProjectReference Include="..\CustomEquipment.Api\CustomEquipment.Api.csproj" Private="true" />
         <ProjectReference Include="..\Economy.Api\Economy.Api.csproj" Private="true" />
@@ -36,8 +37,8 @@
 
     <ItemGroup>
         <Content Include="..\Shop.Core\resources\templates\template.jsonc" Link="Fixtures\template.jsonc" CopyToOutputDirectory="PreserveNewest" />
-        <Content Include="../Shop.Core/resources/hud/shop/content/panorama/layout/custom_game/elysium_shop_v4_r2.xml" Link="Fixtures/elysium_shop_v4_r2.xml" CopyToOutputDirectory="PreserveNewest" />
-        <Content Include="../Shop.Core/resources/hud/shop/content/panorama/styles/custom_game/elysium_shop_v4_r2.css" Link="Fixtures/elysium_shop_v4_r2.css" CopyToOutputDirectory="PreserveNewest" />
+        <Content Include="../Shop.Core/resources/hud/shop/content/panorama/layout/custom_game/elysium_shop_v4_r3.xml" Link="Fixtures/elysium_shop_v4_r3.xml" CopyToOutputDirectory="PreserveNewest" />
+        <Content Include="../Shop.Core/resources/hud/shop/content/panorama/styles/custom_game/elysium_shop_v4_r3.css" Link="Fixtures/elysium_shop_v4_r3.css" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
 
 </Project>

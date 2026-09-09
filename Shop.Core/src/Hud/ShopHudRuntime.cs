@@ -20,8 +20,8 @@ internal interface IShopHudRuntime : IDisposable
 
 internal sealed class ShopHudRuntime : IShopHudRuntime
 {
-    internal const string Layout = "panorama/layout/custom_game/elysium_shop_v4_r2.vxml_c";
-    internal const string Style = "panorama/styles/custom_game/elysium_shop_v4_r2.vcss_c";
+    internal const string Layout = "panorama/layout/custom_game/elysium_shop_v4_r3.vxml_c";
+    internal const string Style = "panorama/styles/custom_game/elysium_shop_v4_r3.vcss_c";
     private readonly CCSCustomHudLayout _entity;
     private readonly int _playerId;
     private readonly Dictionary<string, string> _text = [];

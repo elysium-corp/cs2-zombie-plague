@@ -17,6 +17,13 @@ ICONS = re.findall(r'"([a-z0-9_]+)"',
                    (HUD / 'ShopHudIcons.cs').read_text(encoding='utf-8').split('internal static string Normalize')[0])
 COLORS = dict(Common='#b0c3d9', Uncommon='#5e98d9', Rare='#4b69ff', Restricted='#8847ff',
               Classified='#d32ce6', Elite='#eb4b4b', Prototype='#ff8c00', Legendary='#e4ae39')
+SCALES = [int(x) for x in re.search(r'Scales = \[([^]]+)\]',
+          (HUD / 'ShopHudPreferences.cs').read_text(encoding='utf-8'))[1].split(',')]
+
+
+def page_buttons(parent, id, cls):
+    return [ET.SubElement(parent, 'Button', {'id': bank + '_' + id, 'class': cls + ' Hit' + bank})
+            for bank in ('A', 'B')]
 
 
 def panel(parent, cls, id=None):
@@ -36,8 +43,8 @@ def label(parent, cls, id=None, text='{s:value}'):
 def nav(parent, id, button, glyph):
     node = panel(parent, 'Nav', id)
     label(node, 'NavGlyph', text=glyph)
-    hit = ET.SubElement(node, 'Button', {'id': button, 'class': 'NavHit'})
-    label(hit, 'NavGlyph', text=glyph)
+    for hit in page_buttons(node, button, 'NavHit'):
+        label(hit, 'NavGlyph', text=glyph)
 
 
 root = ET.Element('root')
@@ -55,9 +62,17 @@ label(brand, 'BrandName', text='ELYSIUM')
 label(brand, 'StoreTitle', 'StoreTitle')
 wallet = panel(header, 'Wallet')
 label(wallet, 'Balance', 'Balance')
+settings = ET.SubElement(header, 'Button', {'id': 'Settings', 'class': 'SettingsButton'})
+gear = panel(settings, 'Gear')
+gear.set('hittest', 'false')
+for tooth in range(4):
+    panel(gear, f'GearTooth Tooth{tooth}').set('hittest', 'false')
+panel(gear, 'GearHub').set('hittest', 'false')
+panel(gear, 'GearHole').set('hittest', 'false')
 close = ET.SubElement(header, 'Button', {'id': 'Close', 'class': 'Close'})
 label(close, 'CloseLabel', text='×')
-body = panel(window, 'Body')
+stack = panel(window, 'ContentStack')
+body = panel(stack, 'Body')
 columns = panel(body, 'Columns')
 for col in range(COLUMNS):
     column = panel(columns, 'Column', f'Column{col}')
@@ -81,13 +96,21 @@ for col in range(COLUMNS):
         panel(details, 'RarityMark')
         label(details, 'Status', f'Status{slot}')
         label(details, 'Price', f'Price{slot}')
-        ET.SubElement(surface, 'Button', {'id': f'Buy{slot}', 'class': 'BuyHit'})
+        page_buttons(surface, f'Buy{slot}', 'BuyHit')
     pager_space = panel(column, 'PagerSpace')
     pager = panel(pager_space, 'ItemPager', f'ItemPager{col}')
     nav(pager, f'Prev{col}', f'Previous{col}', '‹')
     label(pager, 'PageText', f'Page{col}')
     nav(pager, f'Next{col}', f'NextItems{col}', '›')
 label(body, 'Empty', 'Empty')
+settings_panel = panel(stack, 'SettingsPanel', 'SettingsPanel')
+label(settings_panel, 'SettingsTitle', 'SettingsTitle')
+scale_options = panel(settings_panel, 'ScaleOptions')
+for index, scale in enumerate(SCALES):
+    option = panel(scale_options, 'ScaleOption', f'ScaleOption{index}')
+    label(option, 'ScaleLabel', text=f'{scale}%')
+    ET.SubElement(option, 'Button', {'id': f'SetScale{index}', 'class': 'ScaleHit'})
+label(settings_panel, 'SettingsStatus', 'SettingsStatus')
 footer = panel(window, 'Footer')
 label(footer, 'Hint', 'Hint')
 pages = panel(footer, 'CategoryPager', 'CategoryPager')
@@ -113,10 +136,34 @@ css = '''/* Создано scripts/generate-shop-hud.py */
 .Close { width: 44px; height: 44px; vertical-align: center; border: 1px solid #6b839455; border-radius: 4px; background-color: #15212a; }
 .Close:hover { background-color: #553038; border-color: #d07e84; }
 .CloseLabel { horizontal-align: center; vertical-align: center; color: #b9cbd4; font-family: Arial; font-size: 30px; }
-.Body { width: 100%; height: fill-parent-flow(1); padding: 18px 18px 10px; }
+.SettingsButton { width: 44px; height: 44px; vertical-align: center; margin-right: 8px; border: 1px solid #6b839455; border-radius: 4px; background-color: #15212a; }
+.SettingsButton:hover { background-color: #243e48; border-color: #76d9cc; }
+.SettingsOpen .SettingsButton { border-color: #76d9cc; }
+.Gear { width: 26px; height: 26px; horizontal-align: center; vertical-align: center; }
+.GearTooth { width: 8px; height: 26px; horizontal-align: center; vertical-align: center; border-radius: 2px; background-color: #b9cbd4; }
+.Tooth1 { transform: rotateZ(45deg); }
+.Tooth2 { transform: rotateZ(90deg); }
+.Tooth3 { transform: rotateZ(135deg); }
+.GearHub { width: 21px; height: 21px; horizontal-align: center; vertical-align: center; border-radius: 50%; background-color: #b9cbd4; }
+.GearHole { width: 9px; height: 9px; horizontal-align: center; vertical-align: center; border-radius: 50%; background-color: #15212a; }
+.ContentStack { width: 100%; height: fill-parent-flow(1); }
+.Body { width: 100%; height: 100%; padding: 18px 18px 10px; }
+.SettingsPanel { width: 376px; max-width: 96%; height: 150px; horizontal-align: right; margin: 12px 24px; padding: 16px; visibility: collapse; flow-children: down; background-color: #0d1d29fe; border: 1px solid #76d9cc88; border-radius: 6px; box-shadow: #000000aa 0px 6px 18px 0px; }
+.SettingsOpen .SettingsPanel { visibility: visible; }
+.SettingsTitle { width: 100%; height: 28px; color: #dcefed; font-size: 19px; }
+.ScaleOptions { width: 100%; height: 38px; flow-children: right; margin-top: 8px; }
+.ScaleOption { width: fill-parent-flow(1); height: 36px; margin-right: 4px; background-color: #1d303e; border: 1px solid #6c8b9a44; border-radius: 3px; }
+.ScaleOption.Selected { border-color: #76d9cc; background-color: #76d9cc20; }
+.ScaleLabel { horizontal-align: center; vertical-align: center; font-size: 17px; color: #b7cbd6; }
+.ScaleOption.Selected .ScaleLabel { color: #bbfff0; }
+.ScaleHit { width: 100%; height: 100%; visibility: collapse; }
+.CanEdit .ScaleHit { visibility: visible; }
+.ScaleHit:hover { background-color: #76d9cc22; }
+.SettingsStatus { width: 100%; height: 24px; margin-top: 8px; font-size: 13px; color: #8cabb9; text-overflow: ellipsis; }
+.SettingsStatus.Failed { color: #eab5a3; }
 .Columns { width: 100%; height: 100%; flow-children: right; }
 .Columns1 .Columns { width: 340px; horizontal-align: center; }
-.Column { width: fill-parent-flow(1); height: 100%; margin: 0px 6px; flow-children: down; visibility: collapse; }
+.Column { height: 100%; padding: 0px 6px; flow-children: down; visibility: collapse; }
 .Column.Visible { visibility: visible; }
 .CategoryHeader { width: 100%; height: 40px; flow-children: right; }
 .CategoryAccent { width: 3px; height: 15px; margin: 4px 9px 0px 1px; background-color: #76d9cc; }
@@ -141,7 +188,7 @@ css = '''/* Создано scripts/generate-shop-hud.py */
 .Price { vertical-align: center; color: #687582; font-size: 17px; font-weight: bold; margin-left: 4px; }
 .Card.Available .Price { color: #f2d38d; }
 .BuyHit { width: 100%; height: 100%; visibility: collapse; }
-.Card.Available .BuyHit { visibility: visible; border: 1px solid #00000000; border-radius: 4px; }
+.BankA .Card.Available .BuyHit.HitA, .BankB .Card.Available .BuyHit.HitB { visibility: visible; border: 1px solid #00000000; border-radius: 4px; }
 .BuyHit:hover { background-color: #a2e5e20a; border-color: #a7e7e080; }
 .BuyHit:active { background-color: #bdece51c; border-color: #d9fff3; }
 .PagerSpace { width: 100%; height: 0px; }
@@ -151,7 +198,7 @@ css = '''/* Создано scripts/generate-shop-hud.py */
 .Nav { width: 32px; height: 28px; }
 .NavGlyph { color: #435464; font-size: 24px; horizontal-align: center; vertical-align: center; }
 .NavHit { width: 100%; height: 100%; visibility: collapse; }
-.Nav.Available .NavHit { visibility: visible; background-color: #76d9cc12; border: 1px solid #76d9cc33; border-radius: 3px; }
+.BankA .Nav.Available .NavHit.HitA, .BankB .Nav.Available .NavHit.HitB { visibility: visible; background-color: #76d9cc12; border: 1px solid #76d9cc33; border-radius: 3px; }
 .Nav.Available .NavHit .NavGlyph { color: #a6dad6; }
 .NavHit:hover { background-color: #76d9cc2d; }
 .PageText { width: fill-parent-flow(1); vertical-align: center; text-align: center; color: #718b9c; font-size: 13px; }
@@ -161,10 +208,14 @@ css = '''/* Создано scripts/generate-shop-hud.py */
 .Hint { width: fill-parent-flow(1); vertical-align: center; font-size: 13px; color: #7d96a7; text-overflow: ellipsis; }
 .CategoryPager { width: 144px; height: 28px; margin-left: 18px; flow-children: right; visibility: collapse; }
 .CategoryPager.Visible { visibility: visible; }
+.ShopRoot.SettingsOpen .Card.Available .BuyHit, .ShopRoot.SettingsOpen .Nav.Available .NavHit { visibility: collapse; }
 '''
 for columns in range(1, COLUMNS + 1):
     width = min(1720, max(720, columns * 224 + 48))
     css += f'.Columns{columns} .ShopWindow {{ width: {width}px; }}\n'
+    css += f'.Columns{columns} .Column {{ width: {100 / columns:.6f}%; }}\n'
+for scale in SCALES:
+    css += f'.Scale{scale} .ShopWindow {{ ui-scale: {scale}%; }}\n'
 for rows in range(1, ROWS + 1):
     height = 236 + rows * 124
     css += f'.Rows{rows} .ShopWindow {{ height: {height}px; }}\n'

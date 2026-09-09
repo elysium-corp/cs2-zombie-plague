@@ -79,6 +79,8 @@ internal sealed class ShopModule(ISwiftlyCore core) : BaseModule(core)
         AddSingleton<ShopPurchaseService>(services);
         AddSingleton<ShopMenu>(services);
         AddSingleton<ShopHudState>(services);
+        services.AddSingleton<IShopHudPreferenceStore, ShopHudPreferenceStore>();
+        AddSingleton<ShopHudPreferences>(services);
         AddSingleton<ShopHudCatalog>(services);
         AddSingleton<ShopHudMenu>(services);
         AddSingleton<ShopApi>(services);

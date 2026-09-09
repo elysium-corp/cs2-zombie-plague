@@ -22,6 +22,7 @@ internal sealed class ShopHudMenu(
     ShopSnapshotCache cache,
     ShopPurchaseService purchases,
     ShopHudState state,
+    ShopHudPreferences preferences,
     ShopMenu classic,
     Func<IZombiePlagueApi> zombiePlagueApi,
     ILogger<ShopHudMenu> logger) : IDisposable
@@ -32,6 +33,11 @@ internal sealed class ShopHudMenu(
     private CancellationTokenSource? _timer;
     private Guid _commandHook;
     private Guid _deathHook;
+    private Guid _buyOpenHook;
+    private int _buyOpenEvents;
+    private int _nativeRequests;
+    private int _nativeTimeouts;
+    private double _traceUntil;
     private IZombiePlagueApi? _subscribedZombiePlague;
     private bool _active;
     private string? _failure;
@@ -52,6 +58,7 @@ internal sealed class ShopHudMenu(
         core.Event.OnMapUnload += OnMapUnload;
         core.Event.OnMapLoad += OnMapLoad;
         _deathHook = core.GameEvent.HookPost<EventPlayerDeath>(OnPlayerDeath);
+        _buyOpenHook = core.GameEvent.HookPre<EventBuymenuOpen>(OnBuyMenuOpen);
         RebindExternalEvents();
         _timer = core.Scheduler.RepeatBySeconds(0.05f, Tick);
     }
@@ -88,6 +95,11 @@ internal sealed class ShopHudMenu(
     {
         if (!_active || !catalog.CanOpen(player)) return;
         if (state.IsOpen(player)) return;
+        if (options.Value.Enabled && options.Value.ReplaceNativeBuyMenu && player.PlayerPawn?.IsBuyMenuOpen == true)
+        {
+            RequestNativeClose(player, true);
+            return;
+        }
         // Запоздалое отключение прежнего владельца слота не должно оставлять его сущность в мире.
         if (_sessions.ContainsKey(player.PlayerID)) Close(player.PlayerID);
         if (player.PlayerPawn?.IsBuyMenuOpen == true) player.ExecuteCommand("cancelselect");
@@ -116,12 +128,18 @@ internal sealed class ShopHudMenu(
     {
         state.Close(playerId);
         if (!_sessions.Remove(playerId, out var session)) return;
-        try { session.Runtime?.Dispose(); }
+        try { session.Pages.Dispose(); }
         finally { session.NativeVisibility?.Dispose(); }
     }
 
     private void Toggle(IPlayer player)
     {
+        var native = GetNativeState(player);
+        if (native.Buy.Waiting)
+        {
+            native.Buy.Request(!native.Buy.OpenAfterClose, Now);
+            return;
+        }
         if (state.IsOpen(player)) Close(player.PlayerID);
         else Open(player);
     }
@@ -175,14 +193,43 @@ internal sealed class ShopHudMenu(
         var now = Now;
         if (now - native.LastToggle < 0.2) return;
         native.LastToggle = now;
-        // buymenu — клиентская команда. cancelselect разрешена SERVER_CAN_EXECUTE.
-        // Не изменяем IsBuyMenuOpen сами: ждём подтверждённое состояние клиента.
-        if (state.IsOpen(player))
+        if (player.PlayerPawn?.IsBuyMenuOpen == true)
         {
-            if (player.PlayerPawn?.IsBuyMenuOpen == true) player.ExecuteCommand("cancelselect");
-            Close(player.PlayerID);
+            RequestNativeClose(player, !state.IsOpen(player));
+            return;
         }
-        else Open(player);
+        Toggle(player);
+    }
+
+    private void RequestNativeClose(IPlayer player, bool openAfterClose)
+    {
+        var action = GetNativeState(player).Buy.Request(openAfterClose, Now);
+        if (action == ShopNativeBuyAction.CloseNative) CloseNative(player);
+    }
+
+    private void CloseNative(IPlayer player)
+    {
+        Close(player.PlayerID);
+        _nativeRequests++;
+        // В отличие от cancelselect, buymenu адресует именно окно закупа,
+        // независимо от того, какое меню получило фокус. SERVER_CAN_EXECUTE.
+        player.ExecuteCommand("buymenu");
+        Trace($"native close requested: player={player.PlayerID}");
+    }
+
+    private HookResult OnBuyMenuOpen(EventBuymenuOpen ev)
+    {
+        if (!_active || !options.Value.Enabled || !options.Value.ReplaceNativeBuyMenu) return HookResult.Continue;
+        _buyOpenEvents++;
+        Trace("buymenu_open received and stopped (event has no userid)");
+        // Это отмена серверного уведомления, а не клиентского Panorama.
+        // Владельца определяем только по его IsBuyMenuOpen, не по этому событию.
+        return HookResult.Stop;
+    }
+
+    private void Trace(string message)
+    {
+        if (Now < _traceUntil) logger.LogInformation("[Shop HUD trace] {Message}", message);
     }
 
     private NativeState GetNativeState(IPlayer player)
@@ -207,9 +254,18 @@ internal sealed class ShopHudMenu(
                 {
                     var native = GetNativeState(player);
                     var open = player.PlayerPawn?.IsBuyMenuOpen == true;
-                    var rising = open && !native.WasOpen;
-                    native.WasOpen = open;
-                    if (rising) NativeToggle(player);
+                    var action = native.Buy.Observe(open, state.IsOpen(player), now);
+                    if (action == ShopNativeBuyAction.CloseNative) CloseNative(player);
+                    else if (action == ShopNativeBuyAction.OpenCustom)
+                    {
+                        Trace($"native close confirmed: player={player.PlayerID}");
+                        Open(player);
+                    }
+                    else if (action == ShopNativeBuyAction.TimedOut)
+                    {
+                        _nativeTimeouts++;
+                        Trace($"native close timed out: player={player.PlayerID}");
+                    }
                 }
                 if (!_sessions.TryGetValue(player.PlayerID, out var session)) continue;
                 if (session.SessionId != player.SessionId || !catalog.CanOpen(player)
@@ -238,20 +294,25 @@ internal sealed class ShopHudMenu(
             Close(player.PlayerID);
             return;
         }
-        // Новый пул кнопок получает новую сущность. Запоздалый клик со старой страницы
-        // не должен приобрести другой предмет, занявший тот же визуальный слот.
-        if (session.Runtime is null || !SameSlots(session.View, view) || !ReferenceEquals(session.Snapshot, snapshot))
-        {
-            session.Runtime?.Dispose();
-            session.Runtime = null;
+        if (session.Pages.Bind(view, session.NavigationVersion, () => new ShopHudRuntime(core, player.PlayerID)))
             session.Choices.Clear();
-            session.Runtime = new ShopHudRuntime(core, player.PlayerID);
-        }
         session.Snapshot = snapshot;
         session.View = view;
-        var hud = session.Runtime;
-        Choice(session, "ShopRoot", "columns", "Columns" + Math.Max(1, view.Columns.Count));
-        Choice(session, "ShopRoot", "rows", "Rows" + Math.Max(1, view.Columns.Select(x => x.Cards.Count).DefaultIfEmpty().Max()));
+        var hud = session.Runtime!;
+        session.LayoutColumns = Math.Max(session.LayoutColumns, view.Columns.Count);
+        session.LayoutRows = Math.Max(session.LayoutRows, view.Columns.Select(x => x.Cards.Count).DefaultIfEmpty().Max());
+        Choice(session, "ShopRoot", "columns", "Columns" + session.LayoutColumns);
+        Choice(session, "ShopRoot", "rows", "Rows" + session.LayoutRows);
+        var settings = preferences.Get(player);
+        Choice(session, "ShopRoot", "scale", "Scale" + settings.ScalePercent);
+        hud.Class("ShopRoot", "SettingsOpen", session.SettingsOpen);
+        hud.Class("SettingsPanel", "CanEdit", settings.CanEdit);
+        hud.Text("SettingsTitle", catalog.Text(player, "Shop.Hud.Settings.Size"));
+        hud.Text("SettingsStatus", settings.Status == ShopHudSaveStatus.Ready ? ""
+            : catalog.Text(player, "Shop.Hud.Settings." + settings.Status));
+        hud.Class("SettingsStatus", "Failed", settings.Status == ShopHudSaveStatus.Failed);
+        for (var index = 0; index < ShopHudPreference.Scales.Length; index++)
+            hud.Class("ScaleOption" + index, "Selected", ShopHudPreference.Scales[index] == settings.ScalePercent);
         hud.Class("ShopRoot", "HasItemPages", view.Columns.Any(x => x.PageCount > 1));
         hud.Text("StoreTitle", catalog.Title(player));
         hud.Text("Balance", catalog.Balance(player));
@@ -287,6 +348,7 @@ internal sealed class ShopHudMenu(
                 Choice(session, $"Icon{slot}", "icon", "Icon_" + card.Icon);
             }
         }
+        Choice(session, "ShopRoot", "bank", "Bank" + session.Pages.Bank);
         hud.Class("ShopRoot", "Visible", true);
         hud.Capture(true);
         if (options.Value.HideNativeHudWhileOpen)
@@ -322,6 +384,19 @@ internal sealed class ShopHudMenu(
             session.LastInteraction = Now;
             if (ev.ButtonId == "Close") { Close(ev.PlayerId); return; }
             if (!catalog.CanOpen(player)) { Close(ev.PlayerId); return; }
+            if (ev.ButtonId == "Settings")
+            {
+                session.SettingsOpen = !session.SettingsOpen;
+                Render(player, session);
+                return;
+            }
+            if (session.SettingsOpen && TryIndex(ev.ButtonId, "SetScale", ShopHudPreference.Scales.Length, out var scale))
+            {
+                preferences.Set(player, ShopHudPreference.Scales[scale]);
+                Render(player, session);
+                return;
+            }
+            if (session.SettingsOpen || !session.Pages.TryButton(ev.ButtonId, out var button)) return;
             if (session.View is not { } view) return;
             var current = catalog.Build(player, session.Navigation);
             if (!ReferenceEquals(session.Snapshot, cache.Current) || !SameSlots(view, current))
@@ -329,19 +404,33 @@ internal sealed class ShopHudMenu(
                 Render(player, session);
                 return;
             }
-            if (ev.ButtonId == "CategoriesPrevious" && view.Page > 0) session.Navigation.Page--;
-            else if (ev.ButtonId == "CategoriesNext" && view.Page + 1 < view.PageCount) session.Navigation.Page++;
-            else if (TryIndex(ev.ButtonId, "Previous", ShopHudCatalog.ColumnCount, out var previous))
+            if (button == "CategoriesPrevious" && view.Page > 0)
+            {
+                session.Navigation.Page--;
+                session.NavigationVersion++;
+            }
+            else if (button == "CategoriesNext" && view.Page + 1 < view.PageCount)
+            {
+                session.Navigation.Page++;
+                session.NavigationVersion++;
+            }
+            else if (TryIndex(button, "Previous", ShopHudCatalog.ColumnCount, out var previous))
             {
                 if (view.Columns.ElementAtOrDefault(previous) is { Page: > 0 } column)
+                {
                     session.Navigation.ItemPages[column.Key] = column.Page - 1;
+                    session.NavigationVersion++;
+                }
             }
-            else if (TryIndex(ev.ButtonId, "NextItems", ShopHudCatalog.ColumnCount, out var next))
+            else if (TryIndex(button, "NextItems", ShopHudCatalog.ColumnCount, out var next))
             {
                 if (view.Columns.ElementAtOrDefault(next) is { } column && column.Page + 1 < column.PageCount)
+                {
                     session.Navigation.ItemPages[column.Key] = column.Page + 1;
+                    session.NavigationVersion++;
+                }
             }
-            else if (TryIndex(ev.ButtonId, "Buy", ShopHudCatalog.SlotCount, out var slot))
+            else if (TryIndex(button, "Buy", ShopHudCatalog.SlotCount, out var slot))
             {
                 var card = view.Columns.ElementAtOrDefault(slot / ShopHudCatalog.RowCount)?.Cards
                     .ElementAtOrDefault(slot % ShopHudCatalog.RowCount);
@@ -367,11 +456,17 @@ internal sealed class ShopHudMenu(
 
     private void OnKey(IOnClientKeyStateChangedEvent ev)
     {
-        if (ev.Key == KeyKind.Esc && ev.Pressed) Close(ev.PlayerId);
+        if (ev.Key == KeyKind.Esc && ev.Pressed)
+        {
+            if (_native.TryGetValue(ev.PlayerId, out var native)) native.Buy.CancelOpen();
+            Close(ev.PlayerId);
+        }
     }
 
     private void CloseForPlayer(IPlayer player)
     {
+        if (_native.TryGetValue(player.PlayerID, out var native) && native.SessionId == player.SessionId)
+            native.Buy.CancelOpen();
         if (_active && _sessions.TryGetValue(player.PlayerID, out var session) && session.SessionId == player.SessionId)
             Close(player.PlayerID);
     }
@@ -388,12 +483,18 @@ internal sealed class ShopHudMenu(
     private void OnPlayerBecameNemesis(ref PlayerBecameNemesisContext context) => CloseForPlayer(context.Player);
     private void OnPlayerBecameSurvivor(ref PlayerBecameSurvivorContext context) => CloseForPlayer(context.Player);
 
-    private void OnDisconnected(IOnClientDisconnectedEvent ev) { Close(ev.PlayerId); _native.Remove(ev.PlayerId); }
+    private void OnDisconnected(IOnClientDisconnectedEvent ev)
+    {
+        Close(ev.PlayerId);
+        _native.Remove(ev.PlayerId);
+        preferences.Forget(ev.PlayerId);
+    }
     private void OnMapUnload(IOnMapUnloadEvent ev) { CloseAll(); _native.Clear(); }
     private void OnMapLoad(IOnMapLoadEvent ev) { _failure = null; _native.Clear(); }
 
     private void CloseAll()
     {
+        foreach (var native in _native.Values) native.Buy.CancelOpen();
         foreach (var id in _sessions.Keys.ToArray())
         {
             try { Close(id); }
@@ -411,12 +512,14 @@ internal sealed class ShopHudMenu(
 
     private void AdminCommand(ICommandContext context)
     {
+        if (context.Args.FirstOrDefault()?.Equals("trace", StringComparison.OrdinalIgnoreCase) == true)
+            _traceUntil = Now + 30;
         if (context.Args.FirstOrDefault()?.Equals("reload", StringComparison.OrdinalIgnoreCase) == true)
         {
             CloseAll();
             _failure = null;
         }
-        context.Reply($"Shop HUD: enabled={options.Value.Enabled}; replace_buy={options.Value.ReplaceNativeBuyMenu}; open={_sessions.Count}; error={_failure ?? "-"}");
+        context.Reply($"Shop HUD: enabled={options.Value.Enabled}; replace_buy={options.Value.ReplaceNativeBuyMenu}; open={_sessions.Count}; buymenu_open_events={_buyOpenEvents}; native_close_requests={_nativeRequests}; native_close_timeouts={_nativeTimeouts}; trace={Now < _traceUntil}; error={_failure ?? "-"}");
     }
 
     public void Dispose()
@@ -428,6 +531,8 @@ internal sealed class ShopHudMenu(
         UnsubscribeZombiePlague();
         if (_deathHook != Guid.Empty) core.GameEvent.Unhook(_deathHook);
         _deathHook = Guid.Empty;
+        if (_buyOpenHook != Guid.Empty) core.GameEvent.Unhook(_buyOpenHook);
+        _buyOpenHook = Guid.Empty;
         core.Event.OnCustomHudClicked -= OnClicked;
         core.Event.OnClientKeyStateChanged -= OnKey;
         core.Event.OnClientDisconnected -= OnDisconnected;
@@ -439,26 +544,32 @@ internal sealed class ShopHudMenu(
         _commands.Clear();
         CloseAll();
         _native.Clear();
+        preferences.Dispose();
     }
 
     private sealed class Session(ulong sessionId)
     {
         public ulong SessionId { get; } = sessionId;
-        public IShopHudRuntime? Runtime { get; set; }
+        public ShopHudPages Pages { get; } = new();
+        public IShopHudRuntime? Runtime => Pages.Runtime;
         public ShopHudNativeVisibility? NativeVisibility { get; set; }
         public ShopHudView? View { get; set; }
         public ShopSnapshot? Snapshot { get; set; }
         public ShopHudNavigation Navigation { get; set; } = new();
+        public int NavigationVersion { get; set; }
         public Dictionary<(string, string), string> Choices { get; } = [];
         public double LastInteraction { get; set; }
         public double LastPurchase { get; set; } = double.NegativeInfinity;
         public bool Purchasing { get; set; }
+        public bool SettingsOpen { get; set; }
+        public int LayoutColumns { get; set; } = 1;
+        public int LayoutRows { get; set; } = 1;
     }
 
     private sealed class NativeState(ulong sessionId)
     {
         public ulong SessionId { get; } = sessionId;
-        public bool WasOpen { get; set; }
+        public ShopHudNativeBuy Buy { get; } = new();
         public double LastToggle { get; set; } = double.NegativeInfinity;
     }
 }

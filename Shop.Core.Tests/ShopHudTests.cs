@@ -237,12 +237,22 @@ public sealed class ShopHudTests
         Assert.Equal(ids.Length, ids.Distinct().Count());
         Assert.True(ids.Length < 1024);
         for (var slot = 0; slot < ShopHudCatalog.SlotCount; slot++)
-        foreach (var prefix in new[] { "Card", "Buy", "Icon", "Name", "Price", "Status" })
+        foreach (var prefix in new[] { "Card", "A_Buy", "B_Buy", "Icon", "Name", "Price", "Status" })
             Assert.Contains(prefix + slot, ids);
         for (var column = 0; column < ShopHudCatalog.ColumnCount; column++)
-        foreach (var prefix in new[] { "Column", "Category", "Page", "Prev", "Next", "Previous", "NextItems", "ItemPager" })
+        foreach (var prefix in new[] { "Column", "Category", "Page", "Prev", "Next", "A_Previous", "B_Previous", "A_NextItems", "B_NextItems", "ItemPager" })
             Assert.Contains(prefix + column, ids);
         Assert.Contains("CategoryPager", ids);
+        Assert.Contains("Settings", ids);
+        Assert.Contains("SettingsPanel", ids);
+        for (var index = 0; index < ShopHudPreference.Scales.Length; index++)
+        {
+            Assert.Contains("SetScale" + index, ids);
+            Assert.Contains("ScaleOption" + index, ids);
+        }
+        foreach (var bank in new[] { "A", "B" })
+        foreach (var direction in new[] { "Previous", "Next" })
+            Assert.Contains(bank + "_Categories" + direction, ids);
         var css = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures",
             Path.GetFileName(Path.ChangeExtension(ShopHudRuntime.Style, ".css"))));
         Assert.Contains(".BuyHit { width: 100%; height: 100%; visibility: collapse; }", css);

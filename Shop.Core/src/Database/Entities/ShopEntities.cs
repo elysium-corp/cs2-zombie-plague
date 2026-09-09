@@ -3,6 +3,16 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Shop.Core.Database.Entities;
 
+[Table("player_preferences", Schema = ShopDbContext.SchemaName)]
+internal sealed class ShopPlayerPreferenceEntity
+{
+    [Key, Column("steam_id")]
+    public long SteamId { get; set; }
+
+    [Column("hud_scale")]
+    public int HudScale { get; set; } = 100;
+}
+
 [Table("storefronts", Schema = ShopDbContext.SchemaName)]
 internal sealed class ShopStorefrontEntity
 {

@@ -133,6 +133,22 @@ public sealed class ShopLocalizationContractTests
             StringComparison.OrdinalIgnoreCase);
     }
 
+    [Fact]
+    public void ShopHudSettingsHaveDatabaseAndValidatedFallbackTranslations()
+    {
+        var snapshot = FallbackLocalizationProvider.Load(ReadFallbackConfig());
+        var script = GenerateScript("20260908220000_AddShopHudLocalization", "20260909020100_AddShopHudSettingsLocalization");
+        foreach (var name in new[] { "Size", "Loading", "Saving", "Failed" })
+        {
+            var key = "Shop.Hud.Settings." + name;
+            Assert.Contains("'" + key + "'", script);
+            Assert.False(string.IsNullOrWhiteSpace(snapshot.Entries[key].Translations["ru"]));
+            Assert.False(string.IsNullOrWhiteSpace(snapshot.Entries[key].Translations["en"]));
+        }
+        Assert.Contains("ON CONFLICT (entry_id, language_code) DO NOTHING", script);
+        Assert.DoesNotContain("UPDATE localization.translations", script);
+    }
+
     private static string GenerateScript(string fromMigration, string toMigration)
     {
         var options = new DbContextOptionsBuilder<LocalizationDbContext>()
