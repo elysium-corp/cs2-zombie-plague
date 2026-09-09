@@ -37,6 +37,7 @@ internal sealed class ShopHudMenu(
     private int _buyOpenEvents;
     private int _nativeRequests;
     private int _nativeTimeouts;
+    private int _nativePulseTests;
     private double _traceUntil;
     private IZombiePlagueApi? _subscribedZombiePlague;
     private bool _active;
@@ -92,18 +93,22 @@ internal sealed class ShopHudMenu(
     }
 
     // Внешний API открывает магазин идемпотентно; пользовательские команды переключают его.
-    public void Open(IPlayer player)
+    public void Open(IPlayer player) => Open(player, nativeCloseAlreadyRequested: false);
+
+    private void Open(IPlayer player, bool nativeCloseAlreadyRequested)
     {
         if (!_active || !catalog.CanOpen(player)) return;
         if (state.IsOpen(player)) return;
-        if (options.Value.Enabled && options.Value.ReplaceNativeBuyMenu && player.PlayerPawn?.IsBuyMenuOpen == true)
+        if (!nativeCloseAlreadyRequested && options.Value.Enabled && options.Value.ReplaceNativeBuyMenu
+            && player.PlayerPawn?.IsBuyMenuOpen == true)
         {
             RequestNativeClose(player, true);
             return;
         }
         // Запоздалое отключение прежнего владельца слота не должно оставлять его сущность в мире.
         if (_sessions.ContainsKey(player.PlayerID)) Close(player.PlayerID);
-        if (player.PlayerPawn?.IsBuyMenuOpen == true) player.ExecuteCommand("cancelselect");
+        if (!nativeCloseAlreadyRequested && player.PlayerPawn?.IsBuyMenuOpen == true)
+            player.ExecuteCommand("cancelselect");
         if (!options.Value.Enabled || _failure is not null)
         {
             classic.Open(player);
@@ -207,7 +212,10 @@ internal sealed class ShopHudMenu(
         native.LastToggle = now;
         if (player.PlayerPawn?.IsBuyMenuOpen == true)
         {
-            RequestNativeClose(player, !state.IsOpen(player));
+            var customWasOpen = state.IsOpen(player);
+            CloseNative(player);
+            native.Buy.CancelOpen();
+            if (!customWasOpen) Open(player, nativeCloseAlreadyRequested: true);
             return;
         }
         Toggle(player);
@@ -266,7 +274,13 @@ internal sealed class ShopHudMenu(
                 var native = GetNativeState(player);
                 var open = player.PlayerPawn?.IsBuyMenuOpen == true;
                 var action = native.Buy.Observe(open, state.IsOpen(player), now);
-                if (action == ShopNativeBuyAction.CloseNative) CloseNative(player);
+                if (action == ShopNativeBuyAction.CloseNative)
+                {
+                    var customWasOpen = state.IsOpen(player);
+                    CloseNative(player);
+                    native.Buy.CancelOpen();
+                    if (!customWasOpen) Open(player, nativeCloseAlreadyRequested: true);
+                }
                 else if (action == ShopNativeBuyAction.OpenCustom)
                 {
                     Trace($"native close confirmed: player={player.PlayerID}");
@@ -593,14 +607,34 @@ internal sealed class ShopHudMenu(
 
     private void AdminCommand(ICommandContext context)
     {
-        if (context.Args.FirstOrDefault()?.Equals("trace", StringComparison.OrdinalIgnoreCase) == true)
+        var arg = context.Args.FirstOrDefault();
+        if (arg?.Equals("trace", StringComparison.OrdinalIgnoreCase) == true)
             _traceUntil = Now + 30;
-        if (context.Args.FirstOrDefault()?.Equals("reload", StringComparison.OrdinalIgnoreCase) == true)
+        if (arg?.Equals("reload", StringComparison.OrdinalIgnoreCase) == true)
         {
             CloseAll();
             _failure = null;
         }
-        context.Reply($"Shop HUD: enabled={options.Value.Enabled}; replace_buy={options.Value.ReplaceNativeBuyMenu}; open={_sessions.Count}; buymenu_open_events={_buyOpenEvents}; native_close_requests={_nativeRequests}; native_close_timeouts={_nativeTimeouts}; trace={Now < _traceUntil}; error={_failure ?? "-"}");
+        if (arg?.Equals("native-pulse", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            if (context.Sender is not { IsValid: true, IsFakeClient: false } player)
+            {
+                context.Reply("Shop HUD native-pulse: command requires a real player");
+                return;
+            }
+            if (player.PlayerPawn?.IsBuyMenuOpen == true)
+            {
+                context.Reply("Shop HUD native-pulse: native buy is already open; close it before testing");
+                return;
+            }
+            _nativePulseTests++;
+            player.ExecuteCommand("buymenu");
+            player.ExecuteCommand("buymenu");
+            Trace($"native pulse sent in one server tick: player={player.PlayerID}");
+            context.Reply("Shop HUD native-pulse: sent buymenu twice in the same server tick (closed -> open -> closed theory)");
+            return;
+        }
+        context.Reply($"Shop HUD: enabled={options.Value.Enabled}; replace_buy={options.Value.ReplaceNativeBuyMenu}; open={_sessions.Count}; buymenu_open_events={_buyOpenEvents}; native_close_requests={_nativeRequests}; native_close_timeouts={_nativeTimeouts}; native_pulse_tests={_nativePulseTests}; trace={Now < _traceUntil}; error={_failure ?? "-"}");
     }
 
     public void Dispose()
