@@ -129,6 +129,8 @@ $RECYCLE.BIN/
 ~$*
 
 # Local tooling
+__pycache__/
+*.pyc
 .tye/
 .fake/
 **/.ionide/

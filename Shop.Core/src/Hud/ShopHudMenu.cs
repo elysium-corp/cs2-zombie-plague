@@ -133,6 +133,17 @@ internal sealed class ShopHudMenu(
         finally { session.NativeVisibility?.Dispose(); }
     }
 
+    private void CloseWithAnimation(int playerId)
+    {
+        if (!_sessions.TryGetValue(playerId, out var session) || session.Closing) return;
+        var appearance = session.View is { } view && cache.Current.Storefronts.TryGetValue(view.ShopType, out var store)
+            ? store.Appearance : ShopHudAppearance.Default;
+        if (appearance.CloseAnimation == "none" || session.Runtime?.IsValid != true) { Close(playerId); return; }
+        session.Closing = true;
+        session.CloseAt = Now + appearance.Duration;
+        session.Runtime.Class("ShopRoot", "Closing", true);
+    }
+
     private void Toggle(IPlayer player)
     {
         var native = GetNativeState(player);
@@ -141,7 +152,7 @@ internal sealed class ShopHudMenu(
             native.Buy.Request(!native.Buy.OpenAfterClose, Now);
             return;
         }
-        if (state.IsOpen(player)) Close(player.PlayerID);
+        if (state.IsOpen(player)) CloseWithAnimation(player.PlayerID);
         else Open(player);
     }
 
@@ -210,7 +221,7 @@ internal sealed class ShopHudMenu(
 
     private void CloseNative(IPlayer player)
     {
-        Close(player.PlayerID);
+        CloseWithAnimation(player.PlayerID);
         _nativeRequests++;
         // В отличие от cancelselect, buymenu адресует именно окно закупа,
         // независимо от того, какое меню получило фокус. SERVER_CAN_EXECUTE.
@@ -290,6 +301,11 @@ internal sealed class ShopHudMenu(
                     Close(player.PlayerID);
                     continue;
                 }
+                if (session.Closing)
+                {
+                    if (now >= session.CloseAt) Close(player.PlayerID);
+                    continue;
+                }
                 if (refresh) Render(player, session);
             }
         }
@@ -314,11 +330,11 @@ internal sealed class ShopHudMenu(
         session.Snapshot = snapshot;
         session.View = view;
         var hud = session.Runtime!;
-        session.LayoutColumns = Math.Max(session.LayoutColumns, view.Columns.Count);
-        session.LayoutRows = Math.Max(session.LayoutRows, view.Columns.Select(x => x.Cards.Count).DefaultIfEmpty().Max());
-        Choice(session, "ShopRoot", "columns", "Columns" + session.LayoutColumns);
-        Choice(session, "ShopRoot", "rows", "Rows" + session.LayoutRows);
-        var settings = preferences.Get(player);
+        var appearance = snapshot.Storefronts[view.ShopType].Appearance.WithFrame(snapshot.Frame);
+        foreach (var (group, name) in appearance.Classes()) Choice(session, "ShopRoot", group, name);
+        Choice(session, "ShopRoot", "columns", "Columns" + appearance.Columns);
+        Choice(session, "ShopRoot", "rows", "Rows" + appearance.Rows);
+        var settings = preferences.Get(player, snapshot.Frame.DefaultScale);
         Choice(session, "ShopRoot", "scale", "Scale" + settings.ScalePercent);
         hud.Class("ShopRoot", "SettingsOpen", session.SettingsOpen);
         hud.Class("SettingsPanel", "CanEdit", settings.CanEdit);
@@ -331,13 +347,22 @@ internal sealed class ShopHudMenu(
         hud.Class("ShopRoot", "HasItemPages", view.Columns.Any(x => x.PageCount > 1));
         hud.Text("StoreTitle", catalog.Title(player));
         hud.Text("Balance", catalog.Balance(player));
-        hud.Text("Hint", catalog.Text(player, "Shop.Hud.Hint"));
+        hud.Text("Hint", catalog.Text(player, appearance.ClickBehavior == "confirm" ? "Shop.Hud.SelectHint" : "Shop.Hud.Hint"));
+        var selected = view.Columns.SelectMany(x => x.Cards).FirstOrDefault(x => x.Offer.Id == session.SelectedOfferId);
+        hud.Class("ShopRoot", "HasSelection", appearance.ClickBehavior == "confirm" && selected is not null);
+        hud.Text("SelectionName", selected is null ? "" : selected.Name + " · " + selected.Price);
+        hud.Text("ConfirmLabel", catalog.Text(player, "Shop.Hud.Confirm"));
+        hud.Class("Confirm", "Available", selected is { Enabled: true });
+        var selectedSlot = view.Columns.SelectMany((column, index) => column.Cards.Select((card, row) =>
+            (card.Offer.Id, Slot: index * ShopHudCatalog.RowCount + row))).FirstOrDefault(x => x.Id == session.SelectedOfferId, (Id: 0L, Slot: -1)).Slot;
+        Choice(session, "Confirm", "slot", "ConfirmSlot" + selectedSlot);
+        Choice(session, "ShopRoot", "selectionPulse", "Pulse" + session.SelectionPulse);
         hud.Text("Empty", catalog.Text(player, "Shop.Menu.Empty"));
         hud.Class("Empty", "Visible", view.Columns.Count == 0);
         hud.Class("CategoryPager", "Visible", view.PageCount > 1);
         hud.Text("CategoryPage", $"{view.Page + 1} / {view.PageCount}");
-        hud.Class("CategoryPrev", "Available", view.Page > 0);
-        hud.Class("CategoryNext", "Available", view.Page + 1 < view.PageCount);
+        hud.Class("CategoryPrev", "Available", (appearance.WrapPages && view.PageCount > 1) || view.Page > 0);
+        hud.Class("CategoryNext", "Available", (appearance.WrapPages && view.PageCount > 1) || view.Page + 1 < view.PageCount);
         for (var column = 0; column < ShopHudCatalog.ColumnCount; column++)
         {
             var model = view.Columns.ElementAtOrDefault(column);
@@ -346,8 +371,8 @@ internal sealed class ShopHudMenu(
             hud.Text($"Category{column}", model.Title);
             hud.Text($"Page{column}", $"{model.Page + 1} / {model.PageCount}");
             hud.Class($"ItemPager{column}", "Visible", model.PageCount > 1);
-            hud.Class($"Prev{column}", "Available", model.Page > 0);
-            hud.Class($"Next{column}", "Available", model.Page + 1 < model.PageCount);
+            hud.Class($"Prev{column}", "Available", (appearance.WrapPages && model.PageCount > 1) || model.Page > 0);
+            hud.Class($"Next{column}", "Available", (appearance.WrapPages && model.PageCount > 1) || model.Page + 1 < model.PageCount);
             for (var row = 0; row < ShopHudCatalog.RowCount; row++)
             {
                 var slot = column * ShopHudCatalog.RowCount + row;
@@ -359,6 +384,7 @@ internal sealed class ShopHudMenu(
                 hud.Text($"Price{slot}", card.Price);
                 hud.Text($"Status{slot}", card.Status);
                 hud.Class(panel, "Available", card.Enabled);
+                hud.Class(panel, "Selected", card.Offer.Id == session.HighlightOfferId);
                 Choice(session, panel, "rarity", "Rarity" + card.Rarity);
                 Choice(session, $"Icon{slot}", "icon", "Icon_" + card.Icon);
             }
@@ -393,11 +419,11 @@ internal sealed class ShopHudMenu(
         if (!_active || !_sessions.TryGetValue(ev.PlayerId, out var session)
             || session.Runtime?.Owns(ev.CustomHudLayout) != true
             || core.PlayerManager.GetPlayer(ev.PlayerId) is not { IsValid: true } player
-            || session.SessionId != player.SessionId) return;
+            || session.SessionId != player.SessionId || session.Closing) return;
         try
         {
             session.LastInteraction = Now;
-            if (ev.ButtonId == "Close") { Close(ev.PlayerId); return; }
+            if (ev.ButtonId == "Close") { CloseWithAnimation(ev.PlayerId); return; }
             if (!catalog.CanOpen(player)) { Close(ev.PlayerId); return; }
             if (ev.ButtonId == "Settings")
             {
@@ -419,46 +445,76 @@ internal sealed class ShopHudMenu(
                 Render(player, session);
                 return;
             }
-            if (button == "CategoriesPrevious" && view.Page > 0)
+            var appearance = cache.Current.Storefronts[view.ShopType].Appearance;
+            var wrap = appearance.WrapPages;
+            var navigationVersion = session.NavigationVersion;
+            if (button == "CategoriesPrevious" && (wrap || view.Page > 0))
             {
-                session.Navigation.Page--;
+                session.Navigation.Page = ShopHudAppearance.MovePage(view.Page, view.PageCount, -1, wrap);
                 session.NavigationVersion++;
             }
-            else if (button == "CategoriesNext" && view.Page + 1 < view.PageCount)
+            else if (button == "CategoriesNext" && (wrap || view.Page + 1 < view.PageCount))
             {
-                session.Navigation.Page++;
+                session.Navigation.Page = ShopHudAppearance.MovePage(view.Page, view.PageCount, 1, wrap);
                 session.NavigationVersion++;
             }
             else if (TryIndex(button, "Previous", ShopHudCatalog.ColumnCount, out var previous))
             {
-                if (view.Columns.ElementAtOrDefault(previous) is { Page: > 0 } column)
+                if (view.Columns.ElementAtOrDefault(previous) is { } column && (wrap || column.Page > 0))
                 {
-                    session.Navigation.ItemPages[column.Key] = column.Page - 1;
+                    session.Navigation.ItemPages[column.Key] = ShopHudAppearance.MovePage(column.Page, column.PageCount, -1, wrap);
                     session.NavigationVersion++;
                 }
             }
             else if (TryIndex(button, "NextItems", ShopHudCatalog.ColumnCount, out var next))
             {
-                if (view.Columns.ElementAtOrDefault(next) is { } column && column.Page + 1 < column.PageCount)
+                if (view.Columns.ElementAtOrDefault(next) is { } column && (wrap || column.Page + 1 < column.PageCount))
                 {
-                    session.Navigation.ItemPages[column.Key] = column.Page + 1;
+                    session.Navigation.ItemPages[column.Key] = ShopHudAppearance.MovePage(column.Page, column.PageCount, 1, wrap);
                     session.NavigationVersion++;
                 }
             }
+            else if (TryIndex(button, "Confirm", ShopHudCatalog.SlotCount, out var confirmationSlot))
+            {
+                var selected = current.Columns.ElementAtOrDefault(confirmationSlot / ShopHudCatalog.RowCount)?.Cards
+                    .ElementAtOrDefault(confirmationSlot % ShopHudCatalog.RowCount);
+                if (appearance.ClickBehavior != "confirm" || selected is not { Enabled: true } || selected.Offer.Id != session.SelectedOfferId) return;
+                if (PurchaseCard(player, session, selected)) session.SelectedOfferId = null;
+            }
             else if (TryIndex(button, "Buy", ShopHudCatalog.SlotCount, out var slot))
             {
-                var card = view.Columns.ElementAtOrDefault(slot / ShopHudCatalog.RowCount)?.Cards
+                var card = current.Columns.ElementAtOrDefault(slot / ShopHudCatalog.RowCount)?.Cards
                     .ElementAtOrDefault(slot % ShopHudCatalog.RowCount);
-                if (card is not { Enabled: true } || session.Purchasing || Now - session.LastPurchase < 0.25) return;
-                session.Purchasing = true;
-                session.LastPurchase = Now;
-                try { purchases.TryPurchase(player, card.Offer.Id); }
-                finally { session.Purchasing = false; }
+                if (card is not { Enabled: true }) return;
+                session.HighlightOfferId = card.Offer.Id;
+                session.SelectionPulse = session.SelectionPulse == "A" ? "B" : "A";
+                if (appearance.ClickBehavior == "confirm") session.SelectedOfferId = card.Offer.Id;
+                else if (PurchaseCard(player, session, card) && appearance.ClickBehavior == "buy_close")
+                {
+                    Render(player, session);
+                    if (_sessions.TryGetValue(player.PlayerID, out var active) && ReferenceEquals(active, session))
+                        CloseWithAnimation(player.PlayerID);
+                    return;
+                }
             }
             else return;
+            if (navigationVersion != session.NavigationVersion)
+            {
+                session.SelectedOfferId = null;
+                session.HighlightOfferId = null;
+            }
             Render(player, session);
         }
         catch (Exception error) { Fail(error); }
+    }
+
+    private bool PurchaseCard(IPlayer player, Session session, ShopHudCard card)
+    {
+        if (session.Purchasing || Now - session.LastPurchase < 0.25) return false;
+        session.Purchasing = true;
+        session.LastPurchase = Now;
+        try { return purchases.TryPurchase(player, card.Offer.Id); }
+        finally { session.Purchasing = false; }
     }
 
     internal static bool TryIndex(string button, string prefix, int count, out int value)
@@ -474,7 +530,7 @@ internal sealed class ShopHudMenu(
         if (ev.Key == KeyKind.Esc && ev.Pressed)
         {
             if (_native.TryGetValue(ev.PlayerId, out var native)) native.Buy.CancelOpen();
-            Close(ev.PlayerId);
+            CloseWithAnimation(ev.PlayerId);
         }
     }
 
@@ -576,10 +632,13 @@ internal sealed class ShopHudMenu(
         public Dictionary<(string, string), string> Choices { get; } = [];
         public double LastInteraction { get; set; }
         public double LastPurchase { get; set; } = double.NegativeInfinity;
+        public long? SelectedOfferId { get; set; }
+        public long? HighlightOfferId { get; set; }
+        public string SelectionPulse { get; set; } = "A";
         public bool Purchasing { get; set; }
         public bool SettingsOpen { get; set; }
-        public int LayoutColumns { get; set; } = 1;
-        public int LayoutRows { get; set; } = 1;
+        public bool Closing { get; set; }
+        public double CloseAt { get; set; }
     }
 
     private sealed class NativeState(ulong sessionId)

@@ -44,6 +44,9 @@ internal sealed class WeaponEntity
     [MaxLength(2048), Column("image_url")]
     public string? ImageUrl { get; set; }
 
+    [MaxLength(512), Column("hud_icon_path")]
+    public string? HudIconPath { get; set; }
+
     [Column("item_price")]
     public int ItemPrice { get; set; }
 

@@ -3,7 +3,7 @@
 .ShopRoot { width: 100%; height: 100%; visibility: collapse; background-color: #050b1266; }
 .ShopRoot.Visible { visibility: visible; }
 .ShopWindow { width: 1720px; max-width: 94%; height: 980px; max-height: 96%; horizontal-align: center; vertical-align: center; flow-children: down; background-color: gradient(linear, 0% 0%, 100% 100%, from(#12222bf5), to(#080f17fa)); border: 1px solid #698fa144; border-radius: 8px; box-shadow: #000000bb 0px 10px 36px 0px; }
-.ShopRoot Label { font-family: Stratum2, Arial; }
+.ShopRoot Label { font-family: Arial; }
 .Header { width: 100%; height: 88px; padding: 16px 22px; flow-children: right; background-color: #0a131deb; border-bottom: 1px solid #76d9cc88; }
 .BrandMark { width: 48px; height: 48px; vertical-align: center; margin-right: 14px; border: 1px solid #75daceaa; border-radius: 6px; background-color: #69d9c912; }
 .BrandGlyph { horizontal-align: center; vertical-align: center; color: #a4f3e7; font-size: 34px; font-weight: bold; }
@@ -41,7 +41,6 @@
 .SettingsStatus { width: 100%; height: 24px; margin-top: 8px; font-size: 13px; color: #8cabb9; text-overflow: ellipsis; }
 .SettingsStatus.Failed { color: #eab5a3; }
 .Columns { width: 100%; height: 100%; flow-children: right; }
-.Columns1 .Columns { width: 340px; horizontal-align: center; }
 .Column { height: 100%; padding: 0px 6px; flow-children: down; visibility: collapse; }
 .Column.Visible { visibility: visible; }
 .CategoryHeader { width: 100%; height: 40px; flow-children: right; }
@@ -88,38 +87,102 @@
 .CategoryPager { width: 144px; height: 28px; margin-left: 18px; flow-children: right; visibility: collapse; }
 .CategoryPager.Visible { visibility: visible; }
 .ShopRoot.SettingsOpen .Card.Available .BuyHit, .ShopRoot.SettingsOpen .Nav.Available .NavHit { visibility: collapse; }
-.Columns1 .ShopWindow { width: 720px; }
+
+.Selection { width: 400px; height: 28px; margin-right: 18px; flow-children: right; visibility: collapse; }
+.HasSelection .Selection { visibility: visible; }
+.SelectionName { width: fill-parent-flow(1); vertical-align: center; font-size: 13px; color: #dfebf2; text-overflow: ellipsis; }
+.Confirm { width: 112px; height: 28px; margin-left: 12px; background-color: #34424b; border-radius: 3px; }
+.Confirm.Available { background-color: #285b51; }
+.ConfirmLabel { horizontal-align: center; vertical-align: center; font-size: 14px; color: #ffffff; }
+.ConfirmHit { width: 100%; height: 100%; visibility: collapse; }
+.ConfirmHit:hover { background-color: #ffffff22; }
+.SettingsOpen .ConfirmHit { visibility: collapse; }
+.Card.Selected .CardSurface { border-color: #d7f8ee; }
+.Selection_none .Card.Selected .CardSurface { animation-name: none; }
+.Selection_pulse.PulseA .Card.Selected .CardSurface { animation-name: shop-selection-pulse-A; animation-timing-function: ease-out; }
+@keyframes 'shop-selection-pulse-A' { 0% { brightness: 1.7; } 100% { brightness: 1; } }
+.Selection_lift.PulseA .Card.Selected .CardSurface { animation-name: shop-selection-lift-A; animation-timing-function: ease-out; }
+@keyframes 'shop-selection-lift-A' { 0% { transform: translateY(-4px); } 100% { transform: translateY(0px); } }
+.Selection_pulse.PulseB .Card.Selected .CardSurface { animation-name: shop-selection-pulse-B; animation-timing-function: ease-out; }
+@keyframes 'shop-selection-pulse-B' { 0% { brightness: 1.7; } 100% { brightness: 1; } }
+.Selection_lift.PulseB .Card.Selected .CardSurface { animation-name: shop-selection-lift-B; animation-timing-function: ease-out; }
+@keyframes 'shop-selection-lift-B' { 0% { transform: translateY(-4px); } 100% { transform: translateY(0px); } }
+.Confirm.Available.ConfirmSlot0 .ConfirmHit0 { visibility: visible; }
+.Confirm.Available.ConfirmSlot1 .ConfirmHit1 { visibility: visible; }
+.Confirm.Available.ConfirmSlot2 .ConfirmHit2 { visibility: visible; }
+.Confirm.Available.ConfirmSlot3 .ConfirmHit3 { visibility: visible; }
+.Confirm.Available.ConfirmSlot4 .ConfirmHit4 { visibility: visible; }
+.Confirm.Available.ConfirmSlot5 .ConfirmHit5 { visibility: visible; }
+.Confirm.Available.ConfirmSlot6 .ConfirmHit6 { visibility: visible; }
+.Confirm.Available.ConfirmSlot7 .ConfirmHit7 { visibility: visible; }
+.Confirm.Available.ConfirmSlot8 .ConfirmHit8 { visibility: visible; }
+.Confirm.Available.ConfirmSlot9 .ConfirmHit9 { visibility: visible; }
+.Confirm.Available.ConfirmSlot10 .ConfirmHit10 { visibility: visible; }
+.Confirm.Available.ConfirmSlot11 .ConfirmHit11 { visibility: visible; }
+.Confirm.Available.ConfirmSlot12 .ConfirmHit12 { visibility: visible; }
+.Confirm.Available.ConfirmSlot13 .ConfirmHit13 { visibility: visible; }
+.Confirm.Available.ConfirmSlot14 .ConfirmHit14 { visibility: visible; }
+.Confirm.Available.ConfirmSlot15 .ConfirmHit15 { visibility: visible; }
+.Confirm.Available.ConfirmSlot16 .ConfirmHit16 { visibility: visible; }
+.Confirm.Available.ConfirmSlot17 .ConfirmHit17 { visibility: visible; }
+.Confirm.Available.ConfirmSlot18 .ConfirmHit18 { visibility: visible; }
+.Confirm.Available.ConfirmSlot19 .ConfirmHit19 { visibility: visible; }
+.Confirm.Available.ConfirmSlot20 .ConfirmHit20 { visibility: visible; }
+.Confirm.Available.ConfirmSlot21 .ConfirmHit21 { visibility: visible; }
+.Confirm.Available.ConfirmSlot22 .ConfirmHit22 { visibility: visible; }
+.Confirm.Available.ConfirmSlot23 .ConfirmHit23 { visibility: visible; }
+.Confirm.Available.ConfirmSlot24 .ConfirmHit24 { visibility: visible; }
+.Confirm.Available.ConfirmSlot25 .ConfirmHit25 { visibility: visible; }
+.Confirm.Available.ConfirmSlot26 .ConfirmHit26 { visibility: visible; }
+.Confirm.Available.ConfirmSlot27 .ConfirmHit27 { visibility: visible; }
+.Confirm.Available.ConfirmSlot28 .ConfirmHit28 { visibility: visible; }
+.Confirm.Available.ConfirmSlot29 .ConfirmHit29 { visibility: visible; }
+.Confirm.Available.ConfirmSlot30 .ConfirmHit30 { visibility: visible; }
+.Confirm.Available.ConfirmSlot31 .ConfirmHit31 { visibility: visible; }
+.Confirm.Available.ConfirmSlot32 .ConfirmHit32 { visibility: visible; }
+.Confirm.Available.ConfirmSlot33 .ConfirmHit33 { visibility: visible; }
+.Confirm.Available.ConfirmSlot34 .ConfirmHit34 { visibility: visible; }
+.Confirm.Available.ConfirmSlot35 .ConfirmHit35 { visibility: visible; }
+.Confirm.Available.ConfirmSlot36 .ConfirmHit36 { visibility: visible; }
+.Confirm.Available.ConfirmSlot37 .ConfirmHit37 { visibility: visible; }
+.Confirm.Available.ConfirmSlot38 .ConfirmHit38 { visibility: visible; }
+.Confirm.Available.ConfirmSlot39 .ConfirmHit39 { visibility: visible; }
+.Confirm.Available.ConfirmSlot40 .ConfirmHit40 { visibility: visible; }
+.Confirm.Available.ConfirmSlot41 .ConfirmHit41 { visibility: visible; }
+.Confirm.Available.ConfirmSlot42 .ConfirmHit42 { visibility: visible; }
+.Confirm.Available.ConfirmSlot43 .ConfirmHit43 { visibility: visible; }
+.Confirm.Available.ConfirmSlot44 .ConfirmHit44 { visibility: visible; }
+.Confirm.Available.ConfirmSlot45 .ConfirmHit45 { visibility: visible; }
+.Confirm.Available.ConfirmSlot46 .ConfirmHit46 { visibility: visible; }
+.Confirm.Available.ConfirmSlot47 .ConfirmHit47 { visibility: visible; }
 .Columns1 .Column { width: 100.000000%; }
-.Columns2 .ShopWindow { width: 720px; }
 .Columns2 .Column { width: 50.000000%; }
-.Columns3 .ShopWindow { width: 720px; }
 .Columns3 .Column { width: 33.333333%; }
-.Columns4 .ShopWindow { width: 944px; }
 .Columns4 .Column { width: 25.000000%; }
-.Columns5 .ShopWindow { width: 1168px; }
 .Columns5 .Column { width: 20.000000%; }
-.Columns6 .ShopWindow { width: 1392px; }
 .Columns6 .Column { width: 16.666667%; }
-.Columns7 .ShopWindow { width: 1616px; }
 .Columns7 .Column { width: 14.285714%; }
-.Columns8 .ShopWindow { width: 1720px; }
 .Columns8 .Column { width: 12.500000%; }
+.Width960 .ShopWindow { width: 960px; }
+.Width1120 .ShopWindow { width: 1120px; }
+.Width1280 .ShopWindow { width: 1280px; }
+.Width1440 .ShopWindow { width: 1440px; }
+.Width1600 .ShopWindow { width: 1600px; }
+.Width1720 .ShopWindow { width: 1720px; }
+.Height640 .ShopWindow { height: 640px; }
+.Height760 .ShopWindow { height: 760px; }
+.Height880 .ShopWindow { height: 880px; }
+.Height980 .ShopWindow { height: 980px; }
 .Scale75 .ShopWindow { ui-scale: 75%; }
 .Scale85 .ShopWindow { ui-scale: 85%; }
 .Scale100 .ShopWindow { ui-scale: 100%; }
 .Scale115 .ShopWindow { ui-scale: 115%; }
 .Scale125 .ShopWindow { ui-scale: 125%; }
-.Rows1 .ShopWindow { height: 360px; }
 .Rows1 .Card { height: 100.000000%; }
-.Rows2 .ShopWindow { height: 484px; }
 .Rows2 .Card { height: 50.000000%; }
-.Rows3 .ShopWindow { height: 608px; }
 .Rows3 .Card { height: 33.333333%; }
-.Rows4 .ShopWindow { height: 732px; }
 .Rows4 .Card { height: 25.000000%; }
-.Rows5 .ShopWindow { height: 856px; }
 .Rows5 .Card { height: 20.000000%; }
-.Rows6 .ShopWindow { height: 980px; }
 .Rows6 .Card { height: 16.666667%; }
 .Card.Available.RarityCommon .IconHalo { wash-color: #b0c3d9; }
 .Card.Available.RarityCommon .RarityMark { background-color: #b0c3d9; }
@@ -189,3 +252,73 @@
 .Icon_ump45 .WeaponLayer { background-image: url("s2r://panorama/images/icons/equipment/ump45.vsvg"); }
 .Icon_usp_silencer .WeaponLayer { background-image: url("s2r://panorama/images/icons/equipment/usp_silencer.vsvg"); }
 .Icon_xm1014 .WeaponLayer { background-image: url("s2r://panorama/images/icons/equipment/xm1014.vsvg"); }
+
+.Theme_minimal .ShopWindow { background-color: #10151bf7; border-radius: 2px; box-shadow: none; }
+.Theme_minimal .Card.Available .CardSurface { background-color: #19222a; border-color: #ffffff18; }
+.Theme_minimal .BrandMark { visibility: collapse; }
+.Theme_tactical .ShopWindow { background-color: #101d1bf7; border-radius: 0px; border: 2px solid #6d8a7855; }
+.Theme_tactical .CardSurface, .Theme_tactical .BrandMark { border-radius: 0px; }
+.Theme_tactical .Card.Available .CardSurface { background-color: #1b2b25; }
+.Names_left .ItemName { text-align: left; }
+.Names_center .ItemName { text-align: center; }
+.Names_right .ItemName { text-align: right; }
+.Icons_silhouette .Card .IconHalo, .Icons_hidden .Card .ItemIcon { visibility: collapse; }
+.Highlight_none .Card .IconHalo, .Highlight_none .Card .RarityMark { visibility: collapse; }
+.Highlight_none .Card.Available .BuyHit:hover { border-color: #b7cbd655; box-shadow: none; }
+.Open_none.Visible .ShopWindow { animation-name: none; }
+.Accent_mint .Header { border-bottom-color: #76d9cc88; }
+.Accent_mint .CategoryAccent { background-color: #76d9cc; }
+.Accent_mint .BrandMark { border-color: #76d9ccaa; }
+.Accent_mint.Highlight_accent .Card.Available .IconHalo { wash-color: #76d9cc; }
+.Accent_mint.Highlight_accent .Card.Available .RarityMark { background-color: #76d9cc; }
+.Accent_mint.Highlight_accent .Card.Available .BuyHit:hover { border-color: #76d9cc; box-shadow: #76d9cc33 0px 0px 9px 0px; }
+.Accent_gold .Header { border-bottom-color: #e4ae3988; }
+.Accent_gold .CategoryAccent { background-color: #e4ae39; }
+.Accent_gold .BrandMark { border-color: #e4ae39aa; }
+.Accent_gold.Highlight_accent .Card.Available .IconHalo { wash-color: #e4ae39; }
+.Accent_gold.Highlight_accent .Card.Available .RarityMark { background-color: #e4ae39; }
+.Accent_gold.Highlight_accent .Card.Available .BuyHit:hover { border-color: #e4ae39; box-shadow: #e4ae3933 0px 0px 9px 0px; }
+.Accent_violet .Header { border-bottom-color: #b696ff88; }
+.Accent_violet .CategoryAccent { background-color: #b696ff; }
+.Accent_violet .BrandMark { border-color: #b696ffaa; }
+.Accent_violet.Highlight_accent .Card.Available .IconHalo { wash-color: #b696ff; }
+.Accent_violet.Highlight_accent .Card.Available .RarityMark { background-color: #b696ff; }
+.Accent_violet.Highlight_accent .Card.Available .BuyHit:hover { border-color: #b696ff; box-shadow: #b696ff33 0px 0px 9px 0px; }
+.Accent_blue .Header { border-bottom-color: #68b5ff88; }
+.Accent_blue .CategoryAccent { background-color: #68b5ff; }
+.Accent_blue .BrandMark { border-color: #68b5ffaa; }
+.Accent_blue.Highlight_accent .Card.Available .IconHalo { wash-color: #68b5ff; }
+.Accent_blue.Highlight_accent .Card.Available .RarityMark { background-color: #68b5ff; }
+.Accent_blue.Highlight_accent .Card.Available .BuyHit:hover { border-color: #68b5ff; box-shadow: #68b5ff33 0px 0px 9px 0px; }
+.Accent_red .Header { border-bottom-color: #f07b8388; }
+.Accent_red .CategoryAccent { background-color: #f07b83; }
+.Accent_red .BrandMark { border-color: #f07b83aa; }
+.Accent_red.Highlight_accent .Card.Available .IconHalo { wash-color: #f07b83; }
+.Accent_red.Highlight_accent .Card.Available .RarityMark { background-color: #f07b83; }
+.Accent_red.Highlight_accent .Card.Available .BuyHit:hover { border-color: #f07b83; box-shadow: #f07b8333 0px 0px 9px 0px; }
+.Open_fade.Visible .ShopWindow { animation-name: shop-open-fade; animation-timing-function: ease-out; }
+@keyframes 'shop-open-fade' { 0% { opacity: 0; } 100% { opacity: 1; } }
+.Open_slide.Visible .ShopWindow { animation-name: shop-open-slide; animation-timing-function: ease-out; }
+@keyframes 'shop-open-slide' { 0% { opacity: 0; transform: translateY(18px); } 100% { opacity: 1; transform: translateY(0px); } }
+.Open_zoom.Visible .ShopWindow { animation-name: shop-open-zoom; animation-timing-function: ease-out; }
+@keyframes 'shop-open-zoom' { 0% { opacity: 0; transform: scale3d(0.96, 0.96, 1); } 100% { opacity: 1; transform: scale3d(1, 1, 1); } }
+.Close_fade.Closing .ShopWindow { animation-name: shop-close-fade; animation-timing-function: ease-in; animation-fill-mode: forwards; }
+@keyframes 'shop-close-fade' { 0% { opacity: 1; } 100% { opacity: 0; } }
+.Close_slide.Closing .ShopWindow { animation-name: shop-close-slide; animation-timing-function: ease-in; animation-fill-mode: forwards; }
+@keyframes 'shop-close-slide' { 0% { opacity: 1; transform: translateY(0px); } 100% { opacity: 0; transform: translateY(18px); } }
+.Close_zoom.Closing .ShopWindow { animation-name: shop-close-zoom; animation-timing-function: ease-in; animation-fill-mode: forwards; }
+@keyframes 'shop-close-zoom' { 0% { opacity: 1; transform: scale3d(1, 1, 1); } 100% { opacity: 0; transform: scale3d(0.96, 0.96, 1); } }
+.Close_none.Closing .ShopWindow { animation-name: none; }
+.Closing .BuyHit, .Closing .NavHit, .Closing .ConfirmHit, .Closing .ScaleHit { visibility: collapse; }
+.Page_fade.BankA .Cards { animation-name: shop-page-fade-A; animation-timing-function: ease-out; }
+@keyframes 'shop-page-fade-A' { 0% { opacity: 0; } 100% { opacity: 1; } }
+.Page_slide.BankA .Cards { animation-name: shop-page-slide-A; animation-timing-function: ease-out; }
+@keyframes 'shop-page-slide-A' { 0% { opacity: 0; transform: translateX(18px); } 100% { opacity: 1; transform: translateX(0px); } }
+.Page_fade.BankB .Cards { animation-name: shop-page-fade-B; animation-timing-function: ease-out; }
+@keyframes 'shop-page-fade-B' { 0% { opacity: 0; } 100% { opacity: 1; } }
+.Page_slide.BankB .Cards { animation-name: shop-page-slide-B; animation-timing-function: ease-out; }
+@keyframes 'shop-page-slide-B' { 0% { opacity: 0; transform: translateX(18px); } 100% { opacity: 1; transform: translateX(0px); } }
+.Speed_fast .ShopWindow, .Speed_fast .Cards, .Speed_fast .CardSurface { animation-duration: 0.15s; animation-iteration-count: 1; }
+.Speed_normal .ShopWindow, .Speed_normal .Cards, .Speed_normal .CardSurface { animation-duration: 0.3s; animation-iteration-count: 1; }
+.Speed_slow .ShopWindow, .Speed_slow .Cards, .Speed_slow .CardSurface { animation-duration: 0.6s; animation-iteration-count: 1; }
+.ShopRoot.BankA .Confirm .HitB, .ShopRoot.BankB .Confirm .HitA, .ShopRoot.Closing .Confirm .ConfirmHit, .ShopRoot.SettingsOpen .Confirm .ConfirmHit { visibility: collapse; }

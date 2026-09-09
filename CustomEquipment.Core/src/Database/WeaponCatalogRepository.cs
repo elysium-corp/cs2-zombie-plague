@@ -1,5 +1,6 @@
 using CustomEquipment.Api.Data.Models;
 using CustomEquipment.Api.Enums;
+using CustomEquipment.Api.Utils;
 using CustomEquipment.Data.DatabaseWeapons;
 using CustomEquipment.Data.Equipments.Models;
 using CustomEquipment.Database.Entities;
@@ -84,7 +85,8 @@ internal sealed class WeaponCatalogRepository(
                 .ThenBy(sound => sound.Id)
                 .Select(MapSound)
                 .ToArray(),
-            Rarity: rarity
+            Rarity: rarity,
+            HudIconPath: EquipmentHudIcon.NormalizePath(entity.HudIconPath)
         );
 
         return new DatabaseWeaponItem(definition);

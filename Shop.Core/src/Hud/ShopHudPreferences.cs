@@ -8,7 +8,8 @@ namespace Shop.Core.Hud;
 internal sealed class ShopHudPreference
 {
     internal static readonly int[] Scales = [75, 85, 100, 115, 125];
-    public int ScalePercent { get; set; } = 100;
+    public int ScalePercent { get; set; }
+    // Ноль означает выбор серверного масштаба по умолчанию, без личного переопределения.
     internal static int Normalize(int value) => Scales.Contains(value) ? value : 100;
 }
 
@@ -25,14 +26,14 @@ internal sealed class ShopHudPreferences(
     private readonly Dictionary<int, Entry> _players = [];
     private bool _disposed;
 
-    public ShopHudSettingsView Get(IPlayer player)
+    public ShopHudSettingsView Get(IPlayer player, int defaultScale = 100)
     {
         var entry = Ensure(player);
-        if (entry is null) return new(100, false, ShopHudSaveStatus.Ready);
+        if (entry is null) return new(defaultScale, false, ShopHudSaveStatus.Ready);
         var snapshot = entry.Session.CreateSnapshot(x => x.ScalePercent);
         var status = entry.Failed ? ShopHudSaveStatus.Failed : !snapshot.IsLoaded
             ? ShopHudSaveStatus.Loading : snapshot.IsDirty ? ShopHudSaveStatus.Saving : ShopHudSaveStatus.Ready;
-        return new(snapshot.Data, true, status);
+        return new(snapshot.Data == 0 ? defaultScale : snapshot.Data, true, status);
     }
 
     public bool Set(IPlayer player, int scalePercent)
@@ -60,7 +61,7 @@ internal sealed class ShopHudPreferences(
             try
             {
                 var scale = await store.LoadAsync(entry.SteamId, token).ConfigureAwait(false);
-                entry.Session.CompleteLoad(x => x.ScalePercent = ShopHudPreference.Normalize(scale ?? 100));
+                entry.Session.CompleteLoad(x => x.ScalePercent = scale is null ? 0 : ShopHudPreference.Normalize(scale.Value));
             }
             catch
             {

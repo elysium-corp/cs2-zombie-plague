@@ -61,6 +61,8 @@ public sealed class ShopHudControlsTests
         var next = view with { Columns = [view.Columns[0] with { Page = 1, Cards = [card with { Offer = offer with { Id = 2 } }] }] };
         pages.Bind(next, 1, Create);
         Assert.False(pages.TryButton("A_Buy0", out _));
+        Assert.False(pages.TryButton("A_Confirm0", out _));
+        Assert.True(pages.TryButton("B_Confirm0", out _));
         Assert.False(pages.TryButton("A_NextItems0", out _));
         Assert.False(pages.TryButton("A_CategoriesNext", out _));
         Assert.True(pages.TryButton("B_Buy0", out _));

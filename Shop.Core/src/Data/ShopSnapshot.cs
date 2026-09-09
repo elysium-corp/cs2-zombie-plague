@@ -1,4 +1,5 @@
 using Shop.Api.Data;
+using Shop.Core.Hud;
 
 namespace Shop.Core.Data;
 
@@ -14,7 +15,10 @@ internal sealed record ShopStorefrontDefinition(
     string TitleKey,
     bool Enabled,
     ShopSortMode SortMode
-);
+)
+{
+    public ShopHudAppearance Appearance { get; init; } = ShopHudAppearance.Default;
+}
 
 internal sealed record ShopCategoryDefinition(
     long Id,
@@ -46,6 +50,10 @@ internal sealed record ShopSnapshot(
     DateTimeOffset LoadedAt
 )
 {
+    // Геометрия едина для обеих сторон, включая внешние fallback с разными значениями.
+    public ShopHudAppearance Frame => Storefronts.TryGetValue(ShopType.Human, out var human)
+        ? human.Appearance : ShopHudAppearance.Default;
+
     public static ShopSnapshot Empty(string source = "empty")
     {
         var storefronts = Enum.GetValues<ShopType>().ToDictionary(

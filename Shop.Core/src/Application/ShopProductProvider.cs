@@ -10,7 +10,8 @@ using Shop.Core.Hud;
 
 namespace Shop.Core.Application;
 
-internal sealed class ShopProductProvider(Func<ICustomEquipmentApi> equipmentApi)
+internal sealed class ShopProductProvider(Func<ICustomEquipmentApi> equipmentApi,
+    Func<string, bool>? hudResourceExists = null)
 {
     private const string CustomEquipmentProvider = "custom_equipment";
     private const string BuiltinProvider = "builtin";
@@ -19,6 +20,7 @@ internal sealed class ShopProductProvider(Func<ICustomEquipmentApi> equipmentApi
     public bool IsHudProduct(ShopOfferDefinition offer) => offer.Contract.ProviderKey switch
     {
         CustomEquipmentProvider => equipmentApi().TryGetRegisteredItem(offer.Contract.ItemKey, out _),
+        BuiltinProvider => offer.Contract.ItemKey == ArmorItem,
         StandardWeaponCatalog.ProviderKey => offer.ShopType == ShopType.Human &&
             StandardWeaponCatalog.Weapons.ContainsKey(offer.Contract.ItemKey),
         _ => false
@@ -26,11 +28,16 @@ internal sealed class ShopProductProvider(Func<ICustomEquipmentApi> equipmentApi
 
     public string GetHudIcon(ShopOfferDefinition offer)
     {
+        if (ShopHudIcons.Override(offer.SettingsJson, hudResourceExists) is { } iconOverride) return iconOverride;
         if (offer.Contract.ProviderKey == BuiltinProvider && offer.Contract.ItemKey == ArmorItem) return "kevlar";
         var name = offer.Contract.ItemKey;
         if (offer.Contract.ProviderKey == CustomEquipmentProvider &&
             equipmentApi().TryGetRegisteredItem(offer.Contract.ItemKey, out var item))
         {
+            if (item is IHasHudIcon icon &&
+                CustomEquipment.Api.Utils.EquipmentHudIcon.NormalizePath(icon.HudIconPath) is { } custom &&
+                (hudResourceExists is null || hudResourceExists(custom + "_c")))
+                return CustomEquipment.Api.Utils.EquipmentHudIcon.CssName(custom);
             name = item switch
             {
                 IWeapon weapon => weapon.InheritorName,

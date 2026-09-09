@@ -74,7 +74,10 @@ internal sealed class ShopHudCatalog(
         if (!snapshot.Storefronts.TryGetValue(type, out var store) || !store.Enabled)
             return new(type, 0, 1, []);
 
-        // Показываем зарегистрированные предметы CustomEquipment и обычные пушки
+        var columnCount = store.Appearance.Columns;
+        var rowCount = store.Appearance.Rows;
+
+        // Показываем зарегистрированные предметы, обычные пушки и встроенную броню
         // из предложений Shop. Доступность покупки определяет только состояние карточки.
         var offers = snapshot.Offers.Where(x => x.ShopType == type && x.Enabled && isHudProduct(x)).ToArray();
         var categories = snapshot.Categories.Where(x => x.ShopType == type && x.Enabled)
@@ -84,10 +87,10 @@ internal sealed class ShopHudCatalog(
         if (offers.Any(x => x.CategoryId is null))
             categories.Add(("uncategorized", text("Shop.Hud.Other"), null));
 
-        var pageCount = Math.Max(1, (categories.Count + ColumnCount - 1) / ColumnCount);
+        var pageCount = Math.Max(1, (categories.Count + columnCount - 1) / columnCount);
         navigation.Page = Math.Clamp(navigation.Page, 0, pageCount - 1);
         var columns = new List<ShopHudColumn>();
-        foreach (var category in categories.Skip(navigation.Page * ColumnCount).Take(ColumnCount))
+        foreach (var category in categories.Skip(navigation.Page * columnCount).Take(columnCount))
         {
             var source = offers.Where(x => x.CategoryId == category.Id);
             // Сортировка совпадает с настройкой существующей витрины магазина.
@@ -101,11 +104,11 @@ internal sealed class ShopHudCatalog(
                     .ThenBy(x => text(x.Contract.DisplayNameKey), StringComparer.CurrentCultureIgnoreCase)
             };
             var items = sorted.ThenBy(x => x.Id).ToArray();
-            var count = Math.Max(1, (items.Length + RowCount - 1) / RowCount);
+            var count = Math.Max(1, (items.Length + rowCount - 1) / rowCount);
             var page = Math.Clamp(navigation.ItemPages.GetValueOrDefault(category.Key), 0, count - 1);
             navigation.ItemPages[category.Key] = page;
             columns.Add(new(category.Key, category.Title, page, count,
-                items.Skip(page * RowCount).Take(RowCount).Select(card).ToArray()));
+                items.Skip(page * rowCount).Take(rowCount).Select(card).ToArray()));
         }
         return new(type, navigation.Page, pageCount, columns);
     }

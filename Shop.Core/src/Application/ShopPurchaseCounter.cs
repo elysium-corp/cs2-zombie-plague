@@ -7,6 +7,9 @@ namespace Shop.Core.Application;
 internal sealed class ShopPurchaseCounter
 {
     private readonly Dictionary<(ulong Player, long Offer), int> _roundCounts = [];
+    private readonly Dictionary<(ulong Player, ShopType Shop), int> _shopRoundCounts = [];
+
+    public int RoundCount(IPlayer player, ShopType shopType) => _shopRoundCounts.GetValueOrDefault((PlayerKey(player), shopType));
     private readonly Dictionary<(ulong Player, long Offer), int> _mapCounts = [];
     private readonly Dictionary<(ulong Player, long Offer), long> _lastPurchases = [];
 
@@ -45,15 +48,21 @@ internal sealed class ShopPurchaseCounter
     {
         var key = (PlayerKey(player), offer.Id);
         _roundCounts[key] = _roundCounts.GetValueOrDefault(key) + 1;
+        var shop = (PlayerKey(player), offer.ShopType);
+        _shopRoundCounts[shop] = _shopRoundCounts.GetValueOrDefault(shop) + 1;
         _mapCounts[key] = _mapCounts.GetValueOrDefault(key) + 1;
         _lastPurchases[key] = Stopwatch.GetTimestamp();
     }
 
-    public void ResetRound() => _roundCounts.Clear();
+    public void ResetRound()
+    {
+        _roundCounts.Clear();
+        _shopRoundCounts.Clear();
+    }
 
     public void ResetMap()
     {
-        _roundCounts.Clear();
+        ResetRound();
         _mapCounts.Clear();
         _lastPurchases.Clear();
     }

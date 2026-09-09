@@ -1,8 +1,8 @@
 {
   "schemaVersion": 4,
-  "version": 14,
-  "generatedAt": "2026-09-09T02:01:00Z",
-  "checksum": "sha256:43e8d895ad0c90640f378e3908c64ccce3c306dc92a495f829040f7e9ee28682",
+  "version": 15,
+  "generatedAt": "2026-09-09T12:30:00Z",
+  "checksum": "sha256:e0845230ae66587eb1b608460323eed160bc9f40a580b60328c7710e22a2e31b",
   "serverFallbackLanguage": "ru",
   "languages": [
     "ru",
@@ -1732,6 +1732,14 @@
     "Shop.Hud.Hint": {
       "ru": "ЛКМ — купить · B / !weapons — закрыть · Стрелки — страницы товаров",
       "en": "Click to buy · B / !weapons to close · Arrows for more items"
+    },
+    "Shop.Hud.SelectHint": {
+      "ru": "Выберите предмет и подтвердите покупку",
+      "en": "Select an item and confirm the purchase"
+    },
+    "Shop.Hud.Confirm": {
+      "ru": "Купить",
+      "en": "Buy"
     },
     "Shop.Hud.Settings.Size": {
       "ru": "Размер меню",

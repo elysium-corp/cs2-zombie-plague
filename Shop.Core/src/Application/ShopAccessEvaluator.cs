@@ -60,6 +60,10 @@ internal sealed class ShopAccessEvaluator(
             return ShopAvailability.Rejected(ShopAvailabilityReason.InsufficientFunds);
         }
 
+        if (storefront.Appearance.MaxPurchasesPerRound > 0 &&
+            counters.RoundCount(player, currentType) >= storefront.Appearance.MaxPurchasesPerRound)
+            return ShopAvailability.Rejected(ShopAvailabilityReason.RoundLimitReached);
+
         return counters.Evaluate(player, offer.Contract);
     }
 
