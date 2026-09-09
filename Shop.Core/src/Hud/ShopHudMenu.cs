@@ -116,7 +116,8 @@ internal sealed class ShopHudMenu(
     {
         state.Close(playerId);
         if (!_sessions.Remove(playerId, out var session)) return;
-        session.Runtime?.Dispose();
+        try { session.Runtime?.Dispose(); }
+        finally { session.NativeVisibility?.Dispose(); }
     }
 
     private void Toggle(IPlayer player)
@@ -249,11 +250,15 @@ internal sealed class ShopHudMenu(
         session.Snapshot = snapshot;
         session.View = view;
         var hud = session.Runtime;
+        Choice(session, "ShopRoot", "columns", "Columns" + Math.Max(1, view.Columns.Count));
+        Choice(session, "ShopRoot", "rows", "Rows" + Math.Max(1, view.Columns.Select(x => x.Cards.Count).DefaultIfEmpty().Max()));
+        hud.Class("ShopRoot", "HasItemPages", view.Columns.Any(x => x.PageCount > 1));
         hud.Text("StoreTitle", catalog.Title(player));
         hud.Text("Balance", catalog.Balance(player));
         hud.Text("Hint", catalog.Text(player, "Shop.Hud.Hint"));
         hud.Text("Empty", catalog.Text(player, "Shop.Menu.Empty"));
         hud.Class("Empty", "Visible", view.Columns.Count == 0);
+        hud.Class("CategoryPager", "Visible", view.PageCount > 1);
         hud.Text("CategoryPage", $"{view.Page + 1} / {view.PageCount}");
         hud.Class("CategoryPrev", "Available", view.Page > 0);
         hud.Class("CategoryNext", "Available", view.Page + 1 < view.PageCount);
@@ -264,6 +269,7 @@ internal sealed class ShopHudMenu(
             if (model is null) continue;
             hud.Text($"Category{column}", model.Title);
             hud.Text($"Page{column}", $"{model.Page + 1} / {model.PageCount}");
+            hud.Class($"ItemPager{column}", "Visible", model.PageCount > 1);
             hud.Class($"Prev{column}", "Available", model.Page > 0);
             hud.Class($"Next{column}", "Available", model.Page + 1 < model.PageCount);
             for (var row = 0; row < ShopHudCatalog.RowCount; row++)
@@ -283,6 +289,8 @@ internal sealed class ShopHudMenu(
         }
         hud.Class("ShopRoot", "Visible", true);
         hud.Capture(true);
+        if (options.Value.HideNativeHudWhileOpen)
+            session.NativeVisibility ??= ShopHudNativeVisibility.Capture(player);
     }
 
     internal static bool SameSlots(ShopHudView? previous, ShopHudView current) => previous is not null
@@ -437,6 +445,7 @@ internal sealed class ShopHudMenu(
     {
         public ulong SessionId { get; } = sessionId;
         public IShopHudRuntime? Runtime { get; set; }
+        public ShopHudNativeVisibility? NativeVisibility { get; set; }
         public ShopHudView? View { get; set; }
         public ShopSnapshot? Snapshot { get; set; }
         public ShopHudNavigation Navigation { get; set; } = new();

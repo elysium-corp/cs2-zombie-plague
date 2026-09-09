@@ -16,9 +16,13 @@ internal sealed class ShopProductProvider(Func<ICustomEquipmentApi> equipmentApi
     private const string BuiltinProvider = "builtin";
     private const string ArmorItem = "armor";
 
-    public bool IsRegisteredEquipment(ShopOfferDefinition offer) =>
-        offer.Contract.ProviderKey == CustomEquipmentProvider &&
-        equipmentApi().TryGetRegisteredItem(offer.Contract.ItemKey, out _);
+    public bool IsHudProduct(ShopOfferDefinition offer) => offer.Contract.ProviderKey switch
+    {
+        CustomEquipmentProvider => equipmentApi().TryGetRegisteredItem(offer.Contract.ItemKey, out _),
+        StandardWeaponCatalog.ProviderKey => offer.ShopType == ShopType.Human &&
+            StandardWeaponCatalog.Weapons.ContainsKey(offer.Contract.ItemKey),
+        _ => false
+    };
 
     public string GetHudIcon(ShopOfferDefinition offer)
     {

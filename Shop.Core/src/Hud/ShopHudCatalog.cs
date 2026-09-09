@@ -40,7 +40,7 @@ internal sealed class ShopHudCatalog(
 
     public ShopHudView Build(IPlayer player, ShopHudNavigation navigation) => Project(
         cache.Current, access.GetShopType(player), navigation, key => Text(player, key),
-        products.IsRegisteredEquipment, offer => Card(player, offer));
+        products.IsHudProduct, offer => Card(player, offer));
 
     public string Text(IPlayer player, string key) => localization().GetForPlayer(player, key) ?? key;
 
@@ -68,15 +68,15 @@ internal sealed class ShopHudCatalog(
     }
 
     internal static ShopHudView Project(ShopSnapshot snapshot, ShopType type, ShopHudNavigation navigation,
-        Func<string, string> text, Func<ShopOfferDefinition, bool> isRegisteredEquipment,
+        Func<string, string> text, Func<ShopOfferDefinition, bool> isHudProduct,
         Func<ShopOfferDefinition, ShopHudCard> card)
     {
         if (!snapshot.Storefronts.TryGetValue(type, out var store) || !store.Enabled)
             return new(type, 0, 1, []);
 
-        // Наличие предмета в CustomEquipment определяет состав каталога, а доступность
-        // покупки — состояние карточки: нехватка денег не должна скрывать товар.
-        var offers = snapshot.Offers.Where(x => x.ShopType == type && x.Enabled && isRegisteredEquipment(x)).ToArray();
+        // Показываем зарегистрированные предметы CustomEquipment и обычные пушки
+        // из предложений Shop. Доступность покупки определяет только состояние карточки.
+        var offers = snapshot.Offers.Where(x => x.ShopType == type && x.Enabled && isHudProduct(x)).ToArray();
         var categories = snapshot.Categories.Where(x => x.ShopType == type && x.Enabled)
             .OrderBy(x => x.SortOrder).ThenBy(x => text(x.DisplayNameKey), StringComparer.CurrentCultureIgnoreCase)
             .Where(x => offers.Any(offer => offer.CategoryId == x.Id))
