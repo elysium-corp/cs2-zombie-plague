@@ -140,10 +140,15 @@ internal sealed class Heal(ISwiftlyCore core, HealConfig config, Func<ILocalizat
             );
         }
 
-        _particleDestroyToken = core.Scheduler.DelayBySeconds(
+        CancellationTokenSource? token = null;
+        token = core.Scheduler.DelayBySeconds(
             config.DurationParticleEffect,
-            DestroyParticle
+            () =>
+            {
+                if (ReferenceEquals(_particleDestroyToken, token)) DestroyParticle();
+            }
         );
+        _particleDestroyToken = token;
     }
 
     public override void DestroyParticle()

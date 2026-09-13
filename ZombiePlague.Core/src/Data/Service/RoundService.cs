@@ -101,16 +101,20 @@ internal sealed class RoundService(
 
     private void OnTakeDamage(ref TakeDamageEntityPreContext context)
     {
-        if (_isRoundEnded)
+        // Отсутствующий режим означает также прерванную подготовку раунда:
+        // в этом состоянии штатный PvP CS2 не должен проходить.
+        if (_isRoundEnded ||
+            (roundManager.CurrentRound is null &&
+             core.EntitySystem.GetGameRules()?.WarmupPeriod != true))
         {
             var victim = context.Params.Entity.Address.FindPlayerByPawnAddress();
-            if (victim is not { IsValid: true }) return;
-
-            var attacker = context.Params.Info.Attacker.ResolvePlayerFromHandle();
-            if (attacker is not { IsValid: true }) return;
-
-            context.Params.Info.Damage = 0;
-            context.SetHookResult(HookResult.CancelOriginal);
+            if (victim is { IsValid: true } &&
+                context.Params.Info.Attacker.ResolvePlayerFromHandle() is { IsValid: true })
+            {
+                context.Params.Info.Damage = 0;
+                context.SetHookResult(HookResult.CancelOriginal);
+                return;
+            }
         }
 
         roundManager.OnTakeDamage(ref context);

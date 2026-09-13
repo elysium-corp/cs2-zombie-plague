@@ -23,18 +23,22 @@ internal sealed class Blind(ISwiftlyCore core, BlindConfig config) : BasePassive
 
     public override void UnHook()
     {
-        if (_abilityCallbackGuid != Guid.Empty)
+        var callbackGuid = _abilityCallbackGuid;
+        _abilityCallbackGuid = Guid.Empty;
+        try
         {
-            core.GameEvent.Unhook(_abilityCallbackGuid);
-            _abilityCallbackGuid = Guid.Empty;
+            if (callbackGuid != Guid.Empty) core.GameEvent.Unhook(callbackGuid);
         }
-
-        base.UnHook();
+        finally
+        {
+            base.UnHook();
+        }
     }
 
     public override void Use()
     {
-        if (!IsEnabled || Target == null) return;
+        if (!IsEnabled || Caster is not { IsValid: true, IsAlive: true } ||
+            Target is not { IsValid: true, IsAlive: true }) return;
 
         core.NetMessage.SendCUserMessageFade(
             playerId: Target.PlayerID,
@@ -60,10 +64,10 @@ internal sealed class Blind(ISwiftlyCore core, BlindConfig config) : BasePassive
         var victim = @event.UserIdPlayer;
 
         if (
-            IsActive ||
+            !IsHooked || IsActive ||
             !Caster.IsValid ||
             victim is not { IsValid: true, IsAlive: true } ||
-            victim.PlayerID != Caster.PlayerID ||
+            victim.SessionId != Caster.SessionId ||
             attacker is not { IsValid: true, IsAlive: true } ||
             attacker.Controller.Team == victim.Controller.Team
         )

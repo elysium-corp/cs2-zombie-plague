@@ -25,6 +25,7 @@ internal sealed class Catch(ISwiftlyCore core, CatchConfig config, Func<ILocaliz
     private Vector _oldPosition;
     private MoveType_t? _targetMoveType;
     private MoveType_t? _targetActualMoveType;
+    private uint? _targetPawnHandle;
 
     private static readonly Vector BodyPositionZ = new(0f, 0f, 48);
     private const float UpdateIntervalSeconds = 0.1f;
@@ -32,8 +33,14 @@ internal sealed class Catch(ISwiftlyCore core, CatchConfig config, Func<ILocaliz
 
     public override void UnHook()
     {
-        CancelCatching();
-        base.UnHook();
+        try
+        {
+            CancelCatching();
+        }
+        finally
+        {
+            base.UnHook();
+        }
     }
 
     public override void Use()
@@ -55,6 +62,7 @@ internal sealed class Catch(ISwiftlyCore core, CatchConfig config, Func<ILocaliz
 
         if (casterPawn == null || !casterPawn.IsValid)
         {
+            CancelCatching();
             base.Use();
             return;
         }
@@ -63,7 +71,7 @@ internal sealed class Catch(ISwiftlyCore core, CatchConfig config, Func<ILocaliz
 
         if (!TryFreeze())
         {
-            Target = null;
+            CancelCatching();
 
             base.Use();
 
@@ -103,17 +111,35 @@ internal sealed class Catch(ISwiftlyCore core, CatchConfig config, Func<ILocaliz
 
     private void CancelCatching()
     {
-        Unfreeze();
-
-        _catchToken?.Cancel();
+        var token = _catchToken;
+        var beam = _catchBeam;
         _catchToken = null;
-
-        if (_catchBeam != null && _catchBeam.IsValidEntity)
-        {
-            _catchBeam?.Despawn();
-        }
-
         _catchBeam = null;
+
+        // Сначала останавливаем callback, даже если цель уже отключилась.
+        try
+        {
+            token?.Cancel();
+        }
+        catch (ObjectDisposedException)
+        {
+            // Scheduler мог освободить уже отменённый таймер.
+        }
+        finally
+        {
+            try
+            {
+                Unfreeze();
+            }
+            finally
+            {
+                Target = null;
+                if (beam is { IsValidEntity: true })
+                {
+                    beam.Despawn();
+                }
+            }
+        }
     }
 
     private TraceResult LaunchTraceFromCaster(CCSPlayerPawn casterPawn, Vector start)
@@ -164,7 +190,15 @@ internal sealed class Catch(ISwiftlyCore core, CatchConfig config, Func<ILocaliz
 
     private void CreateCatchingHandler()
     {
-        _catchToken = core.Scheduler.RepeatBySeconds(UpdateIntervalSeconds, CatchHandler);
+        CancellationTokenSource? token = null;
+        token = core.Scheduler.RepeatBySeconds(UpdateIntervalSeconds, () =>
+        {
+            if (ReferenceEquals(_catchToken, token))
+            {
+                CatchHandler();
+            }
+        });
+        _catchToken = token;
     }
 
     private void CatchHandler()
@@ -200,6 +234,9 @@ internal sealed class Catch(ISwiftlyCore core, CatchConfig config, Func<ILocaliz
         
         if (Target == null || !Target.IsValid || !Target.IsAlive) return false;
 
+        if (Target.PlayerPawn is not { IsValid: true } targetPawn ||
+            core.EntitySystem.GetRefEHandle(targetPawn).Raw != _targetPawnHandle) return false;
+
         if (Target.Controller.Team == Caster.Controller.Team) return false;
 
         return true;
@@ -227,12 +264,15 @@ internal sealed class Catch(ISwiftlyCore core, CatchConfig config, Func<ILocaliz
 
     private bool TryFreeze()
     {
+        if (Target is not { IsValid: true, IsAlive: true }) return false;
+
         var targetPawn = Target?.PlayerPawn;
 
         if (targetPawn == null || !targetPawn.IsValid) return false;
 
         _targetMoveType = targetPawn.MoveType;
         _targetActualMoveType = targetPawn.ActualMoveType;
+        _targetPawnHandle = core.EntitySystem.GetRefEHandle(targetPawn).Raw;
 
         targetPawn.MoveType = MoveType_t.MOVETYPE_FLYGRAVITY;
         targetPawn.ActualMoveType = MoveType_t.MOVETYPE_FLYGRAVITY;
@@ -245,16 +285,31 @@ internal sealed class Catch(ISwiftlyCore core, CatchConfig config, Func<ILocaliz
 
     private void Unfreeze()
     {
-        var targetPawn = Target?.PlayerPawn;
-
-        if (targetPawn == null || !targetPawn.IsValid) return;
-
-        targetPawn.MoveType = _targetMoveType ?? MoveType_t.MOVETYPE_WALK;
-        targetPawn.ActualMoveType = _targetActualMoveType ?? MoveType_t.MOVETYPE_WALK;
-        targetPawn.MoveTypeUpdated();
-
+        var moveType = _targetMoveType;
+        var actualMoveType = _targetActualMoveType;
+        var pawnHandle = _targetPawnHandle;
         _targetMoveType = null;
         _targetActualMoveType = null;
+        _targetPawnHandle = null;
+
+        if (moveType is null || actualMoveType is null || pawnHandle is null) return;
+
+        try
+        {
+            // Null-проверка не защищает от disposed IPlayer. Новый pawn после
+            // респавна также не должен получать параметры предыдущей жизни.
+            if (Target is not { IsValid: true, IsAlive: true } ||
+                Target.PlayerPawn is not { IsValid: true } targetPawn ||
+                core.EntitySystem.GetRefEHandle(targetPawn).Raw != pawnHandle) return;
+
+            targetPawn.MoveType = moveType.Value;
+            targetPawn.ActualMoveType = actualMoveType.Value;
+            targetPawn.MoveTypeUpdated();
+        }
+        catch (ObjectDisposedException)
+        {
+            // Отключившуюся цель больше не нужно размораживать.
+        }
     }
 
     private bool TryCatchTarget()

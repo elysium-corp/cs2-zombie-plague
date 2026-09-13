@@ -17,10 +17,19 @@ public sealed class AbilityMenuInputTests
         IMenuAPI? currentMenu = Stub<IMenuAPI>(_ => throw new InvalidOperationException());
         var menus = Stub<IMenuManagerAPI>(method => method.Name == "GetCurrentMenu"
             ? currentMenu : throw new InvalidOperationException(method.Name));
-        var core = Stub<ISwiftlyCore>(method => method.Name == "get_MenusAPI"
-            ? menus : throw new InvalidOperationException(method.Name));
-        var player = Stub<IPlayer>(method => method.Name == "get_PlayerID"
-            ? 7 : throw new InvalidOperationException(method.Name));
+        var events = Stub<IEventSubscriber>(_ => null);
+        var core = Stub<ISwiftlyCore>(method => method.Name switch
+        {
+            "get_MenusAPI" => menus,
+            "get_Event" => events,
+            _ => throw new InvalidOperationException(method.Name)
+        });
+        var player = Stub<IPlayer>(method => method.Name switch
+        {
+            "get_PlayerID" => 7,
+            "get_IsValid" or "get_IsAlive" => true,
+            _ => throw new InvalidOperationException(method.Name)
+        });
         var keyEvent = Stub<IOnClientKeyStateChangedEvent>(method => method.Name switch
         {
             "get_PlayerId" => 7,
@@ -50,7 +59,6 @@ public sealed class AbilityMenuInputTests
         public int Uses { get; private set; }
         public override KeyKind? Key => KeyKind.E;
         public override float Cooldown => 10;
-        public override void Hook() { }
         public override void Use() => Uses++;
     }
 
