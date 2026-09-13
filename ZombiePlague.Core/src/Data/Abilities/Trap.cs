@@ -1,6 +1,7 @@
 ﻿using Common.Effects;
 using Common.Effects.Effects;
 using Localization.Api;
+using Microsoft.Extensions.Logging;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.Natives;
@@ -25,21 +26,43 @@ internal sealed class Trap(ISwiftlyCore core, TrapConfig config, Func<ILocalizat
 
     public override void Use()
     {
-        _trapEntity?.Dispose();
+        StopTrap();
         var trap = new TrapEntity(core, config, Caster);
-
-        if (!trap.TrySpawn()) return;
-
         _trapEntity = trap;
+        try
+        {
+            if (!trap.TrySpawn())
+            {
+                StopTrap();
+                return;
+            }
 
-        base.Use();
+            base.Use();
+        }
+        catch
+        {
+            StopTrap();
+            throw;
+        }
     }
 
     public override void UnHook()
     {
-        _trapEntity?.Dispose();
+        try
+        {
+            StopTrap();
+        }
+        finally
+        {
+            base.UnHook();
+        }
+    }
+
+    private void StopTrap()
+    {
+        var trap = _trapEntity;
         _trapEntity = null;
-        base.UnHook();
+        trap?.Dispose();
     }
 
     protected override bool CanUse()
@@ -79,17 +102,18 @@ internal sealed class TrapEntity(ISwiftlyCore core, TrapConfig config, IPlayer c
 
     private CancellationTokenSource? _triggerTask;
     private CancellationTokenSource? _despawnTask;
+    private readonly List<TrapFreeze> _freezes = [];
     private int _disposed;
 
     private const float Delay = 0.1f;
 
     public bool TrySpawn()
     {
-        if (Entity != null) return false;
+        if (_disposed != 0 || Entity != null || caster is not { IsValid: true, IsAlive: true }) return false;
 
         var playerPawn = caster.PlayerPawn;
 
-        if (playerPawn == null) return false;
+        if (playerPawn is not { IsValid: true }) return false;
 
         Entity = core.EntitySystem.CreateEntity<CParticleSystem>();
 
@@ -102,7 +126,7 @@ internal sealed class TrapEntity(ISwiftlyCore core, TrapConfig config, IPlayer c
 
         core.Scheduler.NextWorldUpdate(() =>
         {
-            if (Entity == null || !Entity.IsValidEntity) return;
+            if (_disposed != 0 || Entity == null || !Entity.IsValidEntity) return;
 
             Entity.SetModel(config.ParticleEffectName);
         });
@@ -130,17 +154,23 @@ internal sealed class TrapEntity(ISwiftlyCore core, TrapConfig config, IPlayer c
 
     private void Despawn()
     {
-        if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
-        if (Entity != null && Entity.IsValidEntity)
+        var entity = Entity;
+        Entity = null;
+        try
         {
-            Entity.Despawn();
-            Entity = null;
+            CancelTimer(ref _triggerTask);
         }
-
-        _triggerTask?.Cancel();
-        _triggerTask = null;
-        _despawnTask?.Cancel();
-        _despawnTask = null;
+        finally
+        {
+            try
+            {
+                CancelTimer(ref _despawnTask);
+            }
+            finally
+            {
+                if (entity is { IsValidEntity: true }) entity.Despawn();
+            }
+        }
     }
 
     private void StartTriggerHandler()
@@ -155,6 +185,8 @@ internal sealed class TrapEntity(ISwiftlyCore core, TrapConfig config, IPlayer c
 
     private void Trigger()
     {
+        if (_disposed != 0) return;
+
         if (Entity == null || !Entity.IsValidEntity || Entity.AbsOrigin == null)
         {
             Despawn();
@@ -163,7 +195,7 @@ internal sealed class TrapEntity(ISwiftlyCore core, TrapConfig config, IPlayer c
 
         if (!caster.IsValid || !caster.IsAlive)
         {
-            Despawn();
+            Dispose();
             return;
         }
 
@@ -174,42 +206,93 @@ internal sealed class TrapEntity(ISwiftlyCore core, TrapConfig config, IPlayer c
             foundPlayer.IsValid && foundPlayer.IsAlive && foundPlayer.PlayerID != caster.PlayerID &&
             foundPlayer.Controller.Team != caster.Controller.Team).ToList();
 
-        if (foundPlayers.Any())
+        if (foundPlayers.Count > 0)
         {
-            foreach (var player in foundPlayers)
+            try
             {
-                Trap(player);
+                foreach (var player in foundPlayers) Trap(player);
             }
-
-            Despawn();
+            finally
+            {
+                // Визуальная ловушка исчезает сразу, а её эффекты остаются
+                // учтёнными до тайм-аута или снятия способности владельца.
+                Despawn();
+            }
         }
     }
 
     private void Trap(IPlayer target)
     {
+        if (target is not { IsValid: true, IsAlive: true }) return;
+
         var targetPawn = target.PlayerPawn;
 
         if (targetPawn == null || !targetPawn.IsValid) return;
+
+        // Не сохраняем MOVETYPE_NONE как исходное состояние, иначе вложенные
+        // ловушки могут оставить цель обездвиженной после снятия эффектов.
+        if (targetPawn.MoveType == MoveType_t.MOVETYPE_NONE ||
+            targetPawn.ActualMoveType == MoveType_t.MOVETYPE_NONE) return;
         
         var effectService = EffectService.Provide(core);
-        
-        targetPawn.MoveType = MoveType_t.MOVETYPE_NONE;
-        targetPawn.ActualMoveType = MoveType_t.MOVETYPE_NONE;
-        targetPawn.MoveTypeUpdated();
-        
-        effectService.ApplyEffect<Disorient>(caster, target);
-
-        targetPawn.AbsVelocity = Vector.Zero;
-
-        core.Scheduler.DelayBySeconds(config.EffectDuration, () =>
+        var reference = new PlayerPawnReference(target.SessionId, core.EntitySystem.GetRefEHandle(targetPawn).Raw);
+        var freeze = new TrapFreeze(core, reference, targetPawn.MoveType, targetPawn.ActualMoveType,
+            finished => _freezes.Remove(finished));
+        _freezes.Add(freeze);
+        try
         {
-            if (!targetPawn.IsValid) return;
-
-            targetPawn.MoveType = MoveType_t.MOVETYPE_WALK;
-            targetPawn.ActualMoveType = MoveType_t.MOVETYPE_WALK;
+            targetPawn.MoveType = MoveType_t.MOVETYPE_NONE;
+            targetPawn.ActualMoveType = MoveType_t.MOVETYPE_NONE;
             targetPawn.MoveTypeUpdated();
-        });
+            targetPawn.AbsVelocity = Vector.Zero;
+
+            freeze.Schedule(config.EffectDuration);
+            freeze.Disorientation = effectService.ApplyEffect<Disorient>(caster, target);
+        }
+        catch
+        {
+            freeze.Dispose();
+            throw;
+        }
     }
 
-    public void Dispose() => Despawn();
+    public void Dispose()
+    {
+        if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
+        try
+        {
+            Despawn();
+        }
+        catch (Exception exception)
+        {
+            core.Logger.LogWarning(exception, "Не удалось удалить визуальную сущность ловушки");
+        }
+
+        foreach (var freeze in _freezes.ToArray())
+        {
+            try
+            {
+                freeze.Dispose();
+            }
+            catch (Exception exception)
+            {
+                core.Logger.LogWarning(exception, "Не удалось завершить эффект ловушки");
+            }
+        }
+        _freezes.Clear();
+    }
+
+    private static void CancelTimer(ref CancellationTokenSource? source)
+    {
+        var timer = source;
+        source = null;
+        try
+        {
+            timer?.Cancel();
+        }
+        catch (ObjectDisposedException)
+        {
+            // Отмена не должна мешать очистке остальных ресурсов ловушки.
+        }
+    }
 }

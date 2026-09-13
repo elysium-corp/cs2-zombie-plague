@@ -17,11 +17,15 @@ internal sealed class Charge(ISwiftlyCore core, ChargeConfig config, Func<ILocal
 
     private CancellationTokenSource? _chargeToken;
     private float? _speedBeforeCharge;
+    private PlayerPawnReference? _chargePawn;
 
     private const uint DurationEffectAbility = 500;
 
     public override void Use()
     {
+        StopCharge(restoreSpeed: true);
+        if (!CanUse()) return;
+
         var pawn = Caster.RequiredPlayerPawn;
         var startSpeed = pawn.VelocityModifier * 250f;
         var maxSpeed = config.MaxSpeed;
@@ -29,6 +33,8 @@ internal sealed class Charge(ISwiftlyCore core, ChargeConfig config, Func<ILocal
         var speedUpdatePerTimeTick = config.SpeedUpdatePerTimeTick;
 
         _speedBeforeCharge = startSpeed;
+        var pawnReference = new PlayerPawnReference(Caster.SessionId, core.EntitySystem.GetRefEHandle(pawn).Raw);
+        _chargePawn = pawnReference;
 
         var holdTime = (uint)Math.Clamp(
             config.ChargeTime * 1000L - DurationEffectAbility * 2L,
@@ -46,9 +52,12 @@ internal sealed class Charge(ISwiftlyCore core, ChargeConfig config, Func<ILocal
 
         var elapsedTime = 0f;
 
-        _chargeToken = core.Scheduler.RepeatBySeconds(speedUpdatePerTimeTick, () =>
+        CancellationTokenSource? token = null;
+        token = core.Scheduler.RepeatBySeconds(speedUpdatePerTimeTick, () =>
         {
-            if (!Caster.IsValid || !Caster.IsAlive)
+            if (!ReferenceEquals(_chargeToken, token)) return;
+
+            if (!pawnReference.TryResolve(core, out var currentPawn))
             {
                 StopCharge(restoreSpeed: false);
                 return;
@@ -64,8 +73,10 @@ internal sealed class Charge(ISwiftlyCore core, ChargeConfig config, Func<ILocal
 
             var progress = elapsedTime / chargeTime;
             var currentSpeed = startSpeed + (maxSpeed - startSpeed) * progress;
-            Caster.SetSpeed(currentSpeed);
+            currentPawn.VelocityModifier = currentSpeed / 250f;
+            currentPawn.VelocityModifierUpdated();
         });
+        _chargeToken = token;
 
         base.Use();
     }
@@ -80,8 +91,14 @@ internal sealed class Charge(ISwiftlyCore core, ChargeConfig config, Func<ILocal
 
     public override void UnHook()
     {
-        StopCharge(restoreSpeed: true);
-        base.UnHook();
+        try
+        {
+            StopCharge(restoreSpeed: true);
+        }
+        finally
+        {
+            base.UnHook();
+        }
     }
 
     public override void PlaySound()
@@ -110,18 +127,29 @@ internal sealed class Charge(ISwiftlyCore core, ChargeConfig config, Func<ILocal
 
     private void StopCharge(bool restoreSpeed)
     {
-        _chargeToken?.Cancel();
+        var token = _chargeToken;
+        var speed = _speedBeforeCharge;
+        var pawnReference = _chargePawn;
         _chargeToken = null;
-
-        if (
-            restoreSpeed &&
-            _speedBeforeCharge is { } speed &&
-            Caster is { IsValid: true, IsAlive: true }
-        )
-        {
-            Caster.SetSpeed(speed);
-        }
-
         _speedBeforeCharge = null;
+        _chargePawn = null;
+
+        try
+        {
+            token?.Cancel();
+        }
+        catch (ObjectDisposedException)
+        {
+            // Освобождённый таймер не должен мешать снятию способности.
+        }
+        finally
+        {
+            if (restoreSpeed && speed is { } originalSpeed && pawnReference is { } reference &&
+                reference.TryResolve(core, out var pawn))
+            {
+                pawn.VelocityModifier = originalSpeed / 250f;
+                pawn.VelocityModifierUpdated();
+            }
+        }
     }
 }

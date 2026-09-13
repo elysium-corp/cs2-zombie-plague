@@ -21,7 +21,7 @@ internal sealed class DoubleJump(
 
     public override void Hook()
     {
-        if (!IsEnabled) return;
+        if (!IsEnabled || IsHooked || Caster is not { IsValid: true }) return;
         
         if (Caster.IsFakeClient) return;
 
@@ -32,9 +32,16 @@ internal sealed class DoubleJump(
 
     public override void UnHook()
     {
-        core.GameHooks.Movement.SetupMove.Pre -= Move;
-
-        base.UnHook();
+        try
+        {
+            if (IsHooked) core.GameHooks.Movement.SetupMove.Pre -= Move;
+        }
+        finally
+        {
+            _jumpNum = 1;
+            _jumpPressed = false;
+            base.UnHook();
+        }
     }
 
     public override void Use()
@@ -65,9 +72,8 @@ internal sealed class DoubleJump(
     {
         var player = context.Params.Player;
 
-        if (player.PlayerID != Caster.PlayerID) return;
-
-        if (!player.IsAlive) return;
+        if (!IsHooked || player.SessionId != Caster.SessionId ||
+            Caster is not { IsValid: true, IsAlive: true } || player is not { IsValid: true, IsAlive: true }) return;
 
         var pawn = player.Pawn;
 

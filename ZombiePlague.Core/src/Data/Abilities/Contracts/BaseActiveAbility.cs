@@ -113,7 +113,8 @@ internal abstract class BaseActiveAbility(
 
     public void OnClientKeyStateChanged(IOnClientKeyStateChangedEvent @event)
     {
-        if (@event.PlayerId == Caster.PlayerID && @event.Pressed && @event.Key == Key)
+        if (_isHooked && @event.PlayerId == Caster.PlayerID && @event.Pressed && @event.Key == Key &&
+            Caster is { IsValid: true, IsAlive: true })
         {
             OnClientButtonClickHandler(@event.PlayerId, @event.Key, @event.Pressed);
         }
@@ -121,7 +122,9 @@ internal abstract class BaseActiveAbility(
 
     private void OnRunCommand(ref RunCommandMovementPreContext context)
     {
-        if (context.Params.Player.PlayerID == Caster.PlayerID)
+        // Проверяем владельца до вызова Leap, который читает pawn напрямую.
+        if (_isHooked && context.Params.Player.SessionId == Caster.SessionId &&
+            Caster is { IsValid: true, IsAlive: true })
         {
             OnRunCommandHandler(ref context);
         }
@@ -141,7 +144,8 @@ internal abstract class BaseActiveAbility(
 
     private void TryUse()
     {
-        if (!IsEnabled || core.MenusAPI.GetCurrentMenu(Caster) is not null)
+        if (!IsEnabled || Caster is not { IsValid: true, IsAlive: true } ||
+            core.MenusAPI.GetCurrentMenu(Caster) is not null)
         {
             return;
         }
@@ -166,8 +170,11 @@ internal abstract class BaseActiveAbility(
         _cooldownElapsedTime = 0f;
         StopCooldownTimerInternal();
 
-        _cooldownToken = core.Scheduler.RepeatBySeconds(TickInterval, () =>
+        CancellationTokenSource? token = null;
+        token = core.Scheduler.RepeatBySeconds(TickInterval, () =>
         {
+            if (!ReferenceEquals(_cooldownToken, token)) return;
+
             _cooldownElapsedTime += TickInterval;
 
             if (ShouldResetCooldown())
@@ -175,6 +182,7 @@ internal abstract class BaseActiveAbility(
                 ResetCooldown();
             }
         });
+        _cooldownToken = token;
     }
 
     public bool ShouldResetCooldown()
@@ -215,17 +223,15 @@ internal abstract class BaseActiveAbility(
 
     private void StopCooldownTimerInternal()
     {
+        var token = _cooldownToken;
+        _cooldownToken = null;
         try
         {
-            _cooldownToken?.Cancel();
+            token?.Cancel();
         }
         catch
         {
             // игнорируем, чтобы не падать при гонках scheduler'а
-        }
-        finally
-        {
-            _cooldownToken = null;
         }
     }
 }

@@ -28,6 +28,7 @@ internal abstract class BasePassiveAbility(ISwiftlyCore core, IAbilityConfig con
     public virtual bool IsCooldownNotify => false;
 
     private bool _isHooked;
+    protected bool IsHooked => _isHooked;
 
     private const float TickInterval = 1.0f;
 
@@ -84,8 +85,11 @@ internal abstract class BasePassiveAbility(ISwiftlyCore core, IAbilityConfig con
         _cooldownElapsedTime = 0f;
         StopCooldownTimerInternal();
 
-        _cooldownToken = core.Scheduler.RepeatBySeconds(TickInterval, () =>
+        CancellationTokenSource? token = null;
+        token = core.Scheduler.RepeatBySeconds(TickInterval, () =>
         {
+            if (!ReferenceEquals(_cooldownToken, token)) return;
+
             _cooldownElapsedTime += TickInterval;
 
             if (ShouldResetCooldown())
@@ -93,6 +97,7 @@ internal abstract class BasePassiveAbility(ISwiftlyCore core, IAbilityConfig con
                 ResetCooldown();
             }
         });
+        _cooldownToken = token;
     }
 
     public bool ShouldResetCooldown()
@@ -133,17 +138,15 @@ internal abstract class BasePassiveAbility(ISwiftlyCore core, IAbilityConfig con
 
     private void StopCooldownTimerInternal()
     {
+        var token = _cooldownToken;
+        _cooldownToken = null;
         try
         {
-            _cooldownToken?.Cancel();
+            token?.Cancel();
         }
         catch
         {
             // игнорируем, чтобы не падать при гонках scheduler'а
-        }
-        finally
-        {
-            _cooldownToken = null;
         }
     }
 }
