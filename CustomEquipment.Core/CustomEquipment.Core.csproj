@@ -65,6 +65,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="resources\panorama\images\custom_game\" />
       <Folder Include="src\Data\Equipments\Weapons\Equipments\Contracts\" />
     </ItemGroup>
 
