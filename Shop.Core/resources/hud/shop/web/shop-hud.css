@@ -417,7 +417,7 @@
 .elysium-shop-game .TimerShape_bar .TimerProgress { display: grid; }
 .elysium-shop-game .TimerPosition_auto.TimerShape_circle .Cooldown { justify-self: center; align-self: center; margin: 0px; }
 .elysium-shop-game .TimerPosition_auto.TimerShape_square .Cooldown { justify-self: center; align-self: center; margin: 0px; }
-.elysium-shop-game .TimerPosition_auto.TimerShape_bar .Cooldown { justify-self: center; align-self: end; }
+.elysium-shop-game .TimerPosition_auto.TimerShape_bar .Cooldown { justify-self: center; align-self: end; margin-bottom: 34px; }
 .elysium-shop-game .TimerPosition_auto.TimerShape_pill .Cooldown { align-self: start; }
 .elysium-shop-game .TimerAnimation_none .Cooldown { animation-name: none; }
 .elysium-shop-game .TimerAnimation_pulse .Cooldown.Visible { animation-name: shop-timer-pulse; animation-iteration-count: infinite; }

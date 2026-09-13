@@ -386,7 +386,7 @@
 .TimerProgress { height: 100%; background-color: #76d9cc38; visibility: collapse; }
 .TimerShape_bar .TimerProgress { visibility: visible; }
 .TimerPosition_auto.TimerShape_circle .Cooldown, .TimerPosition_auto.TimerShape_square .Cooldown { horizontal-align: center; vertical-align: center; margin: 0px; }
-.TimerPosition_auto.TimerShape_bar .Cooldown { horizontal-align: center; vertical-align: bottom; }
+.TimerPosition_auto.TimerShape_bar .Cooldown { horizontal-align: center; vertical-align: bottom; margin-bottom: 34px; }
 .TimerPosition_auto.TimerShape_pill .Cooldown { vertical-align: top; }
 .TimerAnimation_none .Cooldown { animation-name: none; }
 .TimerAnimation_pulse .Cooldown.Visible { animation-name: shop-timer-pulse; animation-iteration-count: infinite; }
