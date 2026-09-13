@@ -2,6 +2,9 @@
 .ShopViewport { width: 100%; height: 100%; }
 .ShopRoot { width: 100%; height: 100%; visibility: collapse; background-color: #050b1266; }
 .ShopRoot.Visible { visibility: visible; }
+/* Класс NativeBuyTrigger сервер задаёт только владельцу подготовленного HUD.
+   Фон остаётся непрозрачным даже во время анимации окна и не масштабируется. */
+.HUD_BUYMENU_VISIBLE .ShopRoot.NativeBuyTrigger { visibility: visible; background-color: #050b12; }
 .ShopWindow { width: 1720px; max-width: 94%; height: 980px; max-height: 96%; horizontal-align: center; vertical-align: center; flow-children: down; background-color: gradient(linear, 0% 0%, 100% 100%, from(#12222bf5), to(#080f17fa)); border: 1px solid #698fa144; border-radius: 8px; box-shadow: #000000bb 0px 10px 36px 0px; }
 .ShopRoot Label { font-family: Arial; }
 .Header { width: 100%; height: 88px; padding: 16px 22px; flow-children: right; background-color: #0a131deb; border-bottom: 1px solid #76d9cc88; }
@@ -266,7 +269,7 @@
 .Icons_silhouette .Card .IconHalo, .Icons_hidden .Card .ItemIcon { visibility: collapse; }
 .Highlight_none .Card .IconHalo, .Highlight_none .Card .RarityMark { visibility: collapse; }
 .Hover_none .Card.Available .BuyHit:hover { border-color: #00000000; box-shadow: none; }
-.Open_none.Visible .ShopWindow { animation-name: none; }
+.Open_none.Visible .ShopWindow, .HUD_BUYMENU_VISIBLE .Open_none.NativeBuyTrigger .ShopWindow { animation-name: none; }
 .Accent_mint .Header { border-bottom-color: #76d9cc88; }
 .Accent_mint .CategoryAccent { background-color: #76d9cc; }
 .Accent_mint .BrandMark { border-color: #76d9ccaa; }
@@ -302,31 +305,31 @@
 .Hover_violet .Card.Available .BuyHit:hover { border-color: #b696ff; box-shadow: #b696ff33 0px 0px 9px 0px; }
 .Hover_blue .Card.Available .BuyHit:hover { border-color: #68b5ff; box-shadow: #68b5ff33 0px 0px 9px 0px; }
 .Hover_red .Card.Available .BuyHit:hover { border-color: #f07b83; box-shadow: #f07b8333 0px 0px 9px 0px; }
-.Open_fade.Visible .ShopWindow { animation-name: shop-open-fade; animation-timing-function: ease-out; }
+.Open_fade.Visible .ShopWindow, .HUD_BUYMENU_VISIBLE .Open_fade.NativeBuyTrigger .ShopWindow { animation-name: shop-open-fade; animation-timing-function: ease-out; }
 @keyframes 'shop-open-fade' { 0% { opacity: 0; } 100% { opacity: 1; } }
-.Open_slide.Visible .ShopWindow { animation-name: shop-open-slide; animation-timing-function: ease-out; }
+.Open_slide.Visible .ShopWindow, .HUD_BUYMENU_VISIBLE .Open_slide.NativeBuyTrigger .ShopWindow { animation-name: shop-open-slide; animation-timing-function: ease-out; }
 @keyframes 'shop-open-slide' { 0% { opacity: 0; transform: translateY(18px); } 100% { opacity: 1; transform: translateY(0px); } }
-.Open_zoom.Visible .ShopWindow { animation-name: shop-open-zoom; animation-timing-function: ease-out; }
+.Open_zoom.Visible .ShopWindow, .HUD_BUYMENU_VISIBLE .Open_zoom.NativeBuyTrigger .ShopWindow { animation-name: shop-open-zoom; animation-timing-function: ease-out; }
 @keyframes 'shop-open-zoom' { 0% { opacity: 0; transform: scale3d(0.96, 0.96, 1); } 100% { opacity: 1; transform: scale3d(1, 1, 1); } }
-.Open_rise.Visible .ShopWindow { animation-name: shop-open-rise; animation-timing-function: ease-out; }
+.Open_rise.Visible .ShopWindow, .HUD_BUYMENU_VISIBLE .Open_rise.NativeBuyTrigger .ShopWindow { animation-name: shop-open-rise; animation-timing-function: ease-out; }
 @keyframes 'shop-open-rise' { 0% { opacity: 0; transform: translateY(60px); } 100% { opacity: 1; transform: translateY(0px); } }
-.Open_unfold.Visible .ShopWindow { animation-name: shop-open-unfold; animation-timing-function: ease-out; }
+.Open_unfold.Visible .ShopWindow, .HUD_BUYMENU_VISIBLE .Open_unfold.NativeBuyTrigger .ShopWindow { animation-name: shop-open-unfold; animation-timing-function: ease-out; }
 @keyframes 'shop-open-unfold' { 0% { opacity: 0; transform: scale3d(1, 0.85, 1); } 100% { opacity: 1; transform: scale3d(1, 1, 1); } }
-.Open_drift.Visible .ShopWindow { animation-name: shop-open-drift; animation-timing-function: ease-out; }
+.Open_drift.Visible .ShopWindow, .HUD_BUYMENU_VISIBLE .Open_drift.NativeBuyTrigger .ShopWindow { animation-name: shop-open-drift; animation-timing-function: ease-out; }
 @keyframes 'shop-open-drift' { 0% { opacity: 0; transform: translateX(64px); } 100% { opacity: 1; transform: translateX(0px); } }
-.Close_fade.Closing .ShopWindow { animation-name: shop-close-fade; animation-timing-function: ease-in; animation-fill-mode: forwards; }
+.ShopRoot.Close_fade.Closing .ShopWindow { animation-name: shop-close-fade; animation-timing-function: ease-in; animation-fill-mode: forwards; }
 @keyframes 'shop-close-fade' { 0% { opacity: 1; } 100% { opacity: 0; } }
-.Close_slide.Closing .ShopWindow { animation-name: shop-close-slide; animation-timing-function: ease-in; animation-fill-mode: forwards; }
+.ShopRoot.Close_slide.Closing .ShopWindow { animation-name: shop-close-slide; animation-timing-function: ease-in; animation-fill-mode: forwards; }
 @keyframes 'shop-close-slide' { 0% { opacity: 1; transform: translateY(0px); } 100% { opacity: 0; transform: translateY(18px); } }
-.Close_zoom.Closing .ShopWindow { animation-name: shop-close-zoom; animation-timing-function: ease-in; animation-fill-mode: forwards; }
+.ShopRoot.Close_zoom.Closing .ShopWindow { animation-name: shop-close-zoom; animation-timing-function: ease-in; animation-fill-mode: forwards; }
 @keyframes 'shop-close-zoom' { 0% { opacity: 1; transform: scale3d(1, 1, 1); } 100% { opacity: 0; transform: scale3d(0.96, 0.96, 1); } }
-.Close_rise.Closing .ShopWindow { animation-name: shop-close-rise; animation-timing-function: ease-in; animation-fill-mode: forwards; }
+.ShopRoot.Close_rise.Closing .ShopWindow { animation-name: shop-close-rise; animation-timing-function: ease-in; animation-fill-mode: forwards; }
 @keyframes 'shop-close-rise' { 0% { opacity: 1; transform: translateY(0px); } 100% { opacity: 0; transform: translateY(60px); } }
-.Close_unfold.Closing .ShopWindow { animation-name: shop-close-unfold; animation-timing-function: ease-in; animation-fill-mode: forwards; }
+.ShopRoot.Close_unfold.Closing .ShopWindow { animation-name: shop-close-unfold; animation-timing-function: ease-in; animation-fill-mode: forwards; }
 @keyframes 'shop-close-unfold' { 0% { opacity: 1; transform: scale3d(1, 1, 1); } 100% { opacity: 0; transform: scale3d(1, 0.85, 1); } }
-.Close_drift.Closing .ShopWindow { animation-name: shop-close-drift; animation-timing-function: ease-in; animation-fill-mode: forwards; }
+.ShopRoot.Close_drift.Closing .ShopWindow { animation-name: shop-close-drift; animation-timing-function: ease-in; animation-fill-mode: forwards; }
 @keyframes 'shop-close-drift' { 0% { opacity: 1; transform: translateX(0px); } 100% { opacity: 0; transform: translateX(64px); } }
-.Close_none.Closing .ShopWindow { animation-name: none; }
+.ShopRoot.Close_none.Closing .ShopWindow { animation-name: none; }
 .Closing .BuyHit, .Closing .NavHit, .Closing .ConfirmHit, .Closing .ScaleHit { visibility: collapse; }
 .Page_fade .MotionOutNext { animation-name: shop-page-fade-Out-Next; animation-timing-function: ease-in-out; animation-fill-mode: both; }
 @keyframes 'shop-page-fade-Out-Next' { 0% { opacity: 1; } 100% { opacity: 0; } }

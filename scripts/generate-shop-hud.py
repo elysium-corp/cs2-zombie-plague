@@ -137,6 +137,9 @@ css = '''/* Создано scripts/generate-shop-hud.py */
 .ShopViewport { width: 100%; height: 100%; }
 .ShopRoot { width: 100%; height: 100%; visibility: collapse; background-color: #050b1266; }
 .ShopRoot.Visible { visibility: visible; }
+/* Класс NativeBuyTrigger сервер задаёт только владельцу подготовленного HUD.
+   Фон остаётся непрозрачным даже во время анимации окна и не масштабируется. */
+.HUD_BUYMENU_VISIBLE .ShopRoot.NativeBuyTrigger { visibility: visible; background-color: #050b12; }
 .ShopWindow { width: 1720px; max-width: 94%; height: 980px; max-height: 96%; horizontal-align: center; vertical-align: center; flow-children: down; background-color: gradient(linear, 0% 0%, 100% 100%, from(#12222bf5), to(#080f17fa)); border: 1px solid #698fa144; border-radius: 8px; box-shadow: #000000bb 0px 10px 36px 0px; }
 .ShopRoot Label { font-family: Arial; }
 .Header { width: 100%; height: 88px; padding: 16px 22px; flow-children: right; background-color: #0a131deb; border-bottom: 1px solid #76d9cc88; }
@@ -271,7 +274,7 @@ css += """
 .Icons_silhouette .Card .IconHalo, .Icons_hidden .Card .ItemIcon { visibility: collapse; }
 .Highlight_none .Card .IconHalo, .Highlight_none .Card .RarityMark { visibility: collapse; }
 .Hover_none .Card.Available .BuyHit:hover { border-color: #00000000; box-shadow: none; }
-.Open_none.Visible .ShopWindow { animation-name: none; }
+.Open_none.Visible .ShopWindow, .HUD_BUYMENU_VISIBLE .Open_none.NativeBuyTrigger .ShopWindow { animation-name: none; }
 """
 for accent, color in APPEARANCE['accents'].items():
     css += f'.Accent_{accent} .Header {{ border-bottom-color: {color}88; }}\n'
@@ -289,12 +292,12 @@ frames = dict(fade=('opacity: 0;', 'opacity: 1;'),
               unfold=('opacity: 0; transform: scale3d(1, 0.85, 1);', 'opacity: 1; transform: scale3d(1, 1, 1);'),
               drift=('opacity: 0; transform: translateX(64px);', 'opacity: 1; transform: translateX(0px);'))
 for effect, (start, end) in frames.items():
-    css += f".Open_{effect}.Visible .ShopWindow {{ animation-name: shop-open-{effect}; animation-timing-function: ease-out; }}\n"
+    css += f".Open_{effect}.Visible .ShopWindow, .HUD_BUYMENU_VISIBLE .Open_{effect}.NativeBuyTrigger .ShopWindow {{ animation-name: shop-open-{effect}; animation-timing-function: ease-out; }}\n"
     css += f"@keyframes 'shop-open-{effect}' {{ 0% {{ {start} }} 100% {{ {end} }} }}\n"
 for effect, (start, end) in frames.items():
-    css += f".Close_{effect}.Closing .ShopWindow {{ animation-name: shop-close-{effect}; animation-timing-function: ease-in; animation-fill-mode: forwards; }}\n"
+    css += f".ShopRoot.Close_{effect}.Closing .ShopWindow {{ animation-name: shop-close-{effect}; animation-timing-function: ease-in; animation-fill-mode: forwards; }}\n"
     css += f"@keyframes 'shop-close-{effect}' {{ 0% {{ {end} }} 100% {{ {start} }} }}\n"
-css += '.Close_none.Closing .ShopWindow { animation-name: none; }\n'
+css += '.ShopRoot.Close_none.Closing .ShopWindow { animation-name: none; }\n'
 css += '.Closing .BuyHit, .Closing .NavHit, .Closing .ConfirmHit, .Closing .ScaleHit { visibility: collapse; }\n'
 # Выход и вход применяются только к Columns или Cards выбранной колонки.
 # В scroll нет прозрачности: элементы действительно уезжают за границу области.

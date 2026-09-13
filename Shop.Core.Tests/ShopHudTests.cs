@@ -172,7 +172,9 @@ public sealed class ShopHudTests
     }
 
     [Theory]
-    [InlineData("buymenu", 1)]
+    [InlineData("buymenu", 0)]
+    [InlineData("  BUYMENU", 0)]
+    [InlineData("\"buymenu\"", 0)]
     [InlineData("  BUY ak47", 2)]
     [InlineData("\"buy\" ak47", 2)]
     [InlineData("buyrandom", 2)]
@@ -267,6 +269,9 @@ public sealed class ShopHudTests
         var css = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures",
             Path.GetFileName(Path.ChangeExtension(ShopHudRuntime.Style, ".css"))));
         Assert.Contains(".BuyHit { width: 100%; height: 100%; visibility: collapse; }", css);
+        Assert.Contains(".ShopRoot.Visible { visibility: visible; }", css);
+        Assert.Contains(".HUD_BUYMENU_VISIBLE .ShopRoot.NativeBuyTrigger { visibility: visible; background-color: #050b12; }", css);
+        Assert.DoesNotContain("NativeBuyTrigger", rootPanel.ToString());
         foreach (var icon in ShopHudIcons.Names) Assert.Contains(".Icon_" + icon + " ", css);
         foreach (var rarity in Enum.GetValues<ItemRarity>()) Assert.Contains(".Rarity" + rarity, css);
     }
