@@ -1,8 +1,8 @@
 {
   "schemaVersion": 4,
-  "version": 15,
-  "generatedAt": "2026-09-09T12:30:00Z",
-  "checksum": "sha256:e0845230ae66587eb1b608460323eed160bc9f40a580b60328c7710e22a2e31b",
+  "version": 16,
+  "generatedAt": "2026-09-13T16:57:00Z",
+  "checksum": "sha256:c56a1b70c9e5423bfc938585db4ce83bc614b3efd61c5794239defbd7881e91e",
   "serverFallbackLanguage": "ru",
   "languages": [
     "ru",
@@ -1737,6 +1737,10 @@
       "ru": "Выберите предмет и подтвердите покупку",
       "en": "Select an item and confirm the purchase"
     },
+    "Shop.Hud.Timer.Seconds": {"ru": "с", "en": "s"},
+    "Shop.Hud.Timer.Minutes": {"ru": "м", "en": "m"},
+    "Shop.Hud.Timer.Hours": {"ru": "ч", "en": "h"},
+    "Shop.Hud.Timer.Days": {"ru": "д", "en": "d"},
     "Shop.Hud.Confirm": {
       "ru": "Купить",
       "en": "Buy"

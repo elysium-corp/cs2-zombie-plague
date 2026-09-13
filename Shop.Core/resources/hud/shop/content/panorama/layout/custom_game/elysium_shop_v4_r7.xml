@@ -1,6 +1,6 @@
 <root>
     <styles>
-        <include src="s2r://panorama/styles/custom_game/elysium_shop_v4_r5.vcss_c" />
+        <include src="s2r://panorama/styles/custom_game/elysium_shop_v4_r7.vcss_c" />
         <include src="s2r://panorama/styles/custom_game/elysium_equipment_icons_v4.vcss_c" />
     </styles>
     <Panel class="ShopViewport">
@@ -52,6 +52,7 @@
                                             <Button id="A_Buy0" class="BuyHit HitA" />
                                             <Button id="B_Buy0" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown0" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown0" />
                                             </Panel>
                                         </Panel>
@@ -75,6 +76,7 @@
                                             <Button id="A_Buy1" class="BuyHit HitA" />
                                             <Button id="B_Buy1" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown1" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown1" />
                                             </Panel>
                                         </Panel>
@@ -98,6 +100,7 @@
                                             <Button id="A_Buy2" class="BuyHit HitA" />
                                             <Button id="B_Buy2" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown2" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown2" />
                                             </Panel>
                                         </Panel>
@@ -121,6 +124,7 @@
                                             <Button id="A_Buy3" class="BuyHit HitA" />
                                             <Button id="B_Buy3" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown3" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown3" />
                                             </Panel>
                                         </Panel>
@@ -144,6 +148,7 @@
                                             <Button id="A_Buy4" class="BuyHit HitA" />
                                             <Button id="B_Buy4" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown4" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown4" />
                                             </Panel>
                                         </Panel>
@@ -167,6 +172,7 @@
                                             <Button id="A_Buy5" class="BuyHit HitA" />
                                             <Button id="B_Buy5" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown5" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown5" />
                                             </Panel>
                                         </Panel>
@@ -221,6 +227,7 @@
                                             <Button id="A_Buy6" class="BuyHit HitA" />
                                             <Button id="B_Buy6" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown6" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown6" />
                                             </Panel>
                                         </Panel>
@@ -244,6 +251,7 @@
                                             <Button id="A_Buy7" class="BuyHit HitA" />
                                             <Button id="B_Buy7" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown7" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown7" />
                                             </Panel>
                                         </Panel>
@@ -267,6 +275,7 @@
                                             <Button id="A_Buy8" class="BuyHit HitA" />
                                             <Button id="B_Buy8" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown8" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown8" />
                                             </Panel>
                                         </Panel>
@@ -290,6 +299,7 @@
                                             <Button id="A_Buy9" class="BuyHit HitA" />
                                             <Button id="B_Buy9" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown9" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown9" />
                                             </Panel>
                                         </Panel>
@@ -313,6 +323,7 @@
                                             <Button id="A_Buy10" class="BuyHit HitA" />
                                             <Button id="B_Buy10" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown10" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown10" />
                                             </Panel>
                                         </Panel>
@@ -336,6 +347,7 @@
                                             <Button id="A_Buy11" class="BuyHit HitA" />
                                             <Button id="B_Buy11" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown11" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown11" />
                                             </Panel>
                                         </Panel>
@@ -390,6 +402,7 @@
                                             <Button id="A_Buy12" class="BuyHit HitA" />
                                             <Button id="B_Buy12" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown12" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown12" />
                                             </Panel>
                                         </Panel>
@@ -413,6 +426,7 @@
                                             <Button id="A_Buy13" class="BuyHit HitA" />
                                             <Button id="B_Buy13" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown13" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown13" />
                                             </Panel>
                                         </Panel>
@@ -436,6 +450,7 @@
                                             <Button id="A_Buy14" class="BuyHit HitA" />
                                             <Button id="B_Buy14" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown14" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown14" />
                                             </Panel>
                                         </Panel>
@@ -459,6 +474,7 @@
                                             <Button id="A_Buy15" class="BuyHit HitA" />
                                             <Button id="B_Buy15" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown15" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown15" />
                                             </Panel>
                                         </Panel>
@@ -482,6 +498,7 @@
                                             <Button id="A_Buy16" class="BuyHit HitA" />
                                             <Button id="B_Buy16" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown16" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown16" />
                                             </Panel>
                                         </Panel>
@@ -505,6 +522,7 @@
                                             <Button id="A_Buy17" class="BuyHit HitA" />
                                             <Button id="B_Buy17" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown17" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown17" />
                                             </Panel>
                                         </Panel>
@@ -559,6 +577,7 @@
                                             <Button id="A_Buy18" class="BuyHit HitA" />
                                             <Button id="B_Buy18" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown18" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown18" />
                                             </Panel>
                                         </Panel>
@@ -582,6 +601,7 @@
                                             <Button id="A_Buy19" class="BuyHit HitA" />
                                             <Button id="B_Buy19" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown19" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown19" />
                                             </Panel>
                                         </Panel>
@@ -605,6 +625,7 @@
                                             <Button id="A_Buy20" class="BuyHit HitA" />
                                             <Button id="B_Buy20" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown20" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown20" />
                                             </Panel>
                                         </Panel>
@@ -628,6 +649,7 @@
                                             <Button id="A_Buy21" class="BuyHit HitA" />
                                             <Button id="B_Buy21" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown21" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown21" />
                                             </Panel>
                                         </Panel>
@@ -651,6 +673,7 @@
                                             <Button id="A_Buy22" class="BuyHit HitA" />
                                             <Button id="B_Buy22" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown22" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown22" />
                                             </Panel>
                                         </Panel>
@@ -674,6 +697,7 @@
                                             <Button id="A_Buy23" class="BuyHit HitA" />
                                             <Button id="B_Buy23" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown23" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown23" />
                                             </Panel>
                                         </Panel>
@@ -728,6 +752,7 @@
                                             <Button id="A_Buy24" class="BuyHit HitA" />
                                             <Button id="B_Buy24" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown24" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown24" />
                                             </Panel>
                                         </Panel>
@@ -751,6 +776,7 @@
                                             <Button id="A_Buy25" class="BuyHit HitA" />
                                             <Button id="B_Buy25" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown25" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown25" />
                                             </Panel>
                                         </Panel>
@@ -774,6 +800,7 @@
                                             <Button id="A_Buy26" class="BuyHit HitA" />
                                             <Button id="B_Buy26" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown26" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown26" />
                                             </Panel>
                                         </Panel>
@@ -797,6 +824,7 @@
                                             <Button id="A_Buy27" class="BuyHit HitA" />
                                             <Button id="B_Buy27" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown27" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown27" />
                                             </Panel>
                                         </Panel>
@@ -820,6 +848,7 @@
                                             <Button id="A_Buy28" class="BuyHit HitA" />
                                             <Button id="B_Buy28" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown28" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown28" />
                                             </Panel>
                                         </Panel>
@@ -843,6 +872,7 @@
                                             <Button id="A_Buy29" class="BuyHit HitA" />
                                             <Button id="B_Buy29" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown29" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown29" />
                                             </Panel>
                                         </Panel>
@@ -897,6 +927,7 @@
                                             <Button id="A_Buy30" class="BuyHit HitA" />
                                             <Button id="B_Buy30" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown30" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown30" />
                                             </Panel>
                                         </Panel>
@@ -920,6 +951,7 @@
                                             <Button id="A_Buy31" class="BuyHit HitA" />
                                             <Button id="B_Buy31" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown31" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown31" />
                                             </Panel>
                                         </Panel>
@@ -943,6 +975,7 @@
                                             <Button id="A_Buy32" class="BuyHit HitA" />
                                             <Button id="B_Buy32" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown32" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown32" />
                                             </Panel>
                                         </Panel>
@@ -966,6 +999,7 @@
                                             <Button id="A_Buy33" class="BuyHit HitA" />
                                             <Button id="B_Buy33" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown33" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown33" />
                                             </Panel>
                                         </Panel>
@@ -989,6 +1023,7 @@
                                             <Button id="A_Buy34" class="BuyHit HitA" />
                                             <Button id="B_Buy34" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown34" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown34" />
                                             </Panel>
                                         </Panel>
@@ -1012,6 +1047,7 @@
                                             <Button id="A_Buy35" class="BuyHit HitA" />
                                             <Button id="B_Buy35" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown35" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown35" />
                                             </Panel>
                                         </Panel>
@@ -1066,6 +1102,7 @@
                                             <Button id="A_Buy36" class="BuyHit HitA" />
                                             <Button id="B_Buy36" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown36" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown36" />
                                             </Panel>
                                         </Panel>
@@ -1089,6 +1126,7 @@
                                             <Button id="A_Buy37" class="BuyHit HitA" />
                                             <Button id="B_Buy37" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown37" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown37" />
                                             </Panel>
                                         </Panel>
@@ -1112,6 +1150,7 @@
                                             <Button id="A_Buy38" class="BuyHit HitA" />
                                             <Button id="B_Buy38" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown38" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown38" />
                                             </Panel>
                                         </Panel>
@@ -1135,6 +1174,7 @@
                                             <Button id="A_Buy39" class="BuyHit HitA" />
                                             <Button id="B_Buy39" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown39" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown39" />
                                             </Panel>
                                         </Panel>
@@ -1158,6 +1198,7 @@
                                             <Button id="A_Buy40" class="BuyHit HitA" />
                                             <Button id="B_Buy40" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown40" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown40" />
                                             </Panel>
                                         </Panel>
@@ -1181,6 +1222,7 @@
                                             <Button id="A_Buy41" class="BuyHit HitA" />
                                             <Button id="B_Buy41" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown41" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown41" />
                                             </Panel>
                                         </Panel>
@@ -1235,6 +1277,7 @@
                                             <Button id="A_Buy42" class="BuyHit HitA" />
                                             <Button id="B_Buy42" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown42" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown42" />
                                             </Panel>
                                         </Panel>
@@ -1258,6 +1301,7 @@
                                             <Button id="A_Buy43" class="BuyHit HitA" />
                                             <Button id="B_Buy43" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown43" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown43" />
                                             </Panel>
                                         </Panel>
@@ -1281,6 +1325,7 @@
                                             <Button id="A_Buy44" class="BuyHit HitA" />
                                             <Button id="B_Buy44" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown44" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown44" />
                                             </Panel>
                                         </Panel>
@@ -1304,6 +1349,7 @@
                                             <Button id="A_Buy45" class="BuyHit HitA" />
                                             <Button id="B_Buy45" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown45" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown45" />
                                             </Panel>
                                         </Panel>
@@ -1327,6 +1373,7 @@
                                             <Button id="A_Buy46" class="BuyHit HitA" />
                                             <Button id="B_Buy46" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown46" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown46" />
                                             </Panel>
                                         </Panel>
@@ -1350,6 +1397,7 @@
                                             <Button id="A_Buy47" class="BuyHit HitA" />
                                             <Button id="B_Buy47" class="BuyHit HitB" />
                                             <Panel class="Cooldown" id="Cooldown47" hittest="false">
+                                                <Panel class="TimerProgress" hittest="false" />
                                                 <Label class="Countdown" text="{s:value}" hittest="false" id="Countdown47" />
                                             </Panel>
                                         </Panel>

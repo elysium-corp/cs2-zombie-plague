@@ -8,40 +8,6 @@ namespace Shop.Core.Tests;
 public sealed class ShopHudControlsTests
 {
     [Fact]
-    public void NativeMenuIsClosedOnceAndCustomOpensOnlyAfterAcknowledgement()
-    {
-        var native = new ShopHudNativeBuy();
-        Assert.Equal(ShopNativeBuyAction.CloseNative, native.Observe(true, false, 0));
-        Assert.Equal(ShopNativeBuyAction.None, native.Observe(true, false, 0.5));
-        Assert.Equal(ShopNativeBuyAction.None, native.Request(true, 1));
-        Assert.Equal(ShopNativeBuyAction.OpenCustom, native.Observe(false, false, 1.5));
-        Assert.Equal(ShopNativeBuyAction.None, native.Observe(false, true, 1.6));
-        Assert.Equal(ShopNativeBuyAction.CloseNative, native.Observe(true, true, 3));
-        Assert.Equal(ShopNativeBuyAction.None, native.Observe(false, false, 3.1));
-    }
-
-    [Fact]
-    public void DeathOrInfectionDuringCloseAcknowledgementCannotReopenShop()
-    {
-        var native = new ShopHudNativeBuy();
-        native.Observe(true, false, 0);
-        native.CancelOpen();
-        Assert.Equal(ShopNativeBuyAction.None, native.Observe(false, false, 0.5));
-        Assert.False(native.Waiting);
-    }
-
-    [Fact]
-    public void MissingAcknowledgementDoesNotCaptureMouseOrRepeatedlyToggleNativeMenu()
-    {
-        var native = new ShopHudNativeBuy();
-        native.Observe(true, false, 0);
-        Assert.Equal(ShopNativeBuyAction.TimedOut, native.Observe(true, false, 2));
-        Assert.Equal(ShopNativeBuyAction.None, native.Observe(true, false, 3));
-        Assert.Equal(ShopNativeBuyAction.None, native.Observe(false, false, 4));
-        Assert.Equal(ShopNativeBuyAction.CloseNative, native.Observe(true, false, 5));
-    }
-
-    [Fact]
     public void PagesAndBalanceUpdatesKeepRuntimeAndRejectQueuedOldPageButtons()
     {
         var offer = new ShopOffer(1, ShopType.Human, "cs2_weapon", "weapon_ak47", "AK", 1,

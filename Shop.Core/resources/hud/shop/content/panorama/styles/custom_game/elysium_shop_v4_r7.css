@@ -2,6 +2,9 @@
 .ShopViewport { width: 100%; height: 100%; }
 .ShopRoot { width: 100%; height: 100%; visibility: collapse; background-color: #050b1266; }
 .ShopRoot.Visible { visibility: visible; }
+/* Класс NativeBuyTrigger сервер задаёт только владельцу подготовленного HUD.
+   Фон остаётся непрозрачным даже во время анимации окна и не масштабируется. */
+.HUD_BUYMENU_VISIBLE .ShopRoot.NativeBuyTrigger { visibility: visible; background-color: #050b12; }
 .ShopWindow { width: 1720px; max-width: 94%; height: 980px; max-height: 96%; horizontal-align: center; vertical-align: center; flow-children: down; background-color: gradient(linear, 0% 0%, 100% 100%, from(#12222bf5), to(#080f17fa)); border: 1px solid #698fa144; border-radius: 8px; box-shadow: #000000bb 0px 10px 36px 0px; }
 .ShopRoot Label { font-family: Arial; }
 .Header { width: 100%; height: 88px; padding: 16px 22px; flow-children: right; background-color: #0a131deb; border-bottom: 1px solid #76d9cc88; }
@@ -54,9 +57,9 @@
 .IconSilhouette { wash-color: #64707c; opacity: 0.45; }
 .Card.Available .IconHalo { visibility: visible; }
 .Card.Available .IconSilhouette { wash-color: #dfebf2; opacity: 1; }
-.Cooldown { visibility: collapse; horizontal-align: right; vertical-align: center; margin-right: 10px; padding: 4px 8px; background-color: #081019ed; border: 1px solid #a4c3d955; border-radius: 4px; }
+.Cooldown { visibility: collapse; width: 84px; height: 30px; horizontal-align: right; vertical-align: center; margin: 2px; background-color: #081019ed; border: 1px solid #a4c3d955; border-radius: 4px; }
 .Cooldown.Visible { visibility: visible; }
-.Countdown { color: #eaf5ff; font-size: 18px; font-weight: bold; }
+.Countdown { width: 100%; height: 22px; horizontal-align: center; vertical-align: center; text-align: center; white-space: nowrap; font-family: Consolas, monospace; color: #eaf5ff; font-size: 17px; font-weight: bold; }
 .CardDetails { width: 100%; height: 22px; flow-children: right; }
 .RarityMark { width: 13px; height: 3px; vertical-align: center; margin-right: 6px; background-color: #52606c; }
 .Status { width: fill-parent-flow(1); height: 22px; vertical-align: center; font-size: 11px; color: #7b8996; text-overflow: ellipsis; }
@@ -266,7 +269,7 @@
 .Icons_silhouette .Card .IconHalo, .Icons_hidden .Card .ItemIcon { visibility: collapse; }
 .Highlight_none .Card .IconHalo, .Highlight_none .Card .RarityMark { visibility: collapse; }
 .Hover_none .Card.Available .BuyHit:hover { border-color: #00000000; box-shadow: none; }
-.Open_none.Visible .ShopWindow { animation-name: none; }
+.Open_none.Visible .ShopWindow, .HUD_BUYMENU_VISIBLE .Open_none.NativeBuyTrigger .ShopWindow { animation-name: none; }
 .Accent_mint .Header { border-bottom-color: #76d9cc88; }
 .Accent_mint .CategoryAccent { background-color: #76d9cc; }
 .Accent_mint .BrandMark { border-color: #76d9ccaa; }
@@ -302,31 +305,31 @@
 .Hover_violet .Card.Available .BuyHit:hover { border-color: #b696ff; box-shadow: #b696ff33 0px 0px 9px 0px; }
 .Hover_blue .Card.Available .BuyHit:hover { border-color: #68b5ff; box-shadow: #68b5ff33 0px 0px 9px 0px; }
 .Hover_red .Card.Available .BuyHit:hover { border-color: #f07b83; box-shadow: #f07b8333 0px 0px 9px 0px; }
-.Open_fade.Visible .ShopWindow { animation-name: shop-open-fade; animation-timing-function: ease-out; }
+.Open_fade.Visible .ShopWindow, .HUD_BUYMENU_VISIBLE .Open_fade.NativeBuyTrigger .ShopWindow { animation-name: shop-open-fade; animation-timing-function: ease-out; }
 @keyframes 'shop-open-fade' { 0% { opacity: 0; } 100% { opacity: 1; } }
-.Open_slide.Visible .ShopWindow { animation-name: shop-open-slide; animation-timing-function: ease-out; }
+.Open_slide.Visible .ShopWindow, .HUD_BUYMENU_VISIBLE .Open_slide.NativeBuyTrigger .ShopWindow { animation-name: shop-open-slide; animation-timing-function: ease-out; }
 @keyframes 'shop-open-slide' { 0% { opacity: 0; transform: translateY(18px); } 100% { opacity: 1; transform: translateY(0px); } }
-.Open_zoom.Visible .ShopWindow { animation-name: shop-open-zoom; animation-timing-function: ease-out; }
+.Open_zoom.Visible .ShopWindow, .HUD_BUYMENU_VISIBLE .Open_zoom.NativeBuyTrigger .ShopWindow { animation-name: shop-open-zoom; animation-timing-function: ease-out; }
 @keyframes 'shop-open-zoom' { 0% { opacity: 0; transform: scale3d(0.96, 0.96, 1); } 100% { opacity: 1; transform: scale3d(1, 1, 1); } }
-.Open_rise.Visible .ShopWindow { animation-name: shop-open-rise; animation-timing-function: ease-out; }
+.Open_rise.Visible .ShopWindow, .HUD_BUYMENU_VISIBLE .Open_rise.NativeBuyTrigger .ShopWindow { animation-name: shop-open-rise; animation-timing-function: ease-out; }
 @keyframes 'shop-open-rise' { 0% { opacity: 0; transform: translateY(60px); } 100% { opacity: 1; transform: translateY(0px); } }
-.Open_unfold.Visible .ShopWindow { animation-name: shop-open-unfold; animation-timing-function: ease-out; }
+.Open_unfold.Visible .ShopWindow, .HUD_BUYMENU_VISIBLE .Open_unfold.NativeBuyTrigger .ShopWindow { animation-name: shop-open-unfold; animation-timing-function: ease-out; }
 @keyframes 'shop-open-unfold' { 0% { opacity: 0; transform: scale3d(1, 0.85, 1); } 100% { opacity: 1; transform: scale3d(1, 1, 1); } }
-.Open_drift.Visible .ShopWindow { animation-name: shop-open-drift; animation-timing-function: ease-out; }
+.Open_drift.Visible .ShopWindow, .HUD_BUYMENU_VISIBLE .Open_drift.NativeBuyTrigger .ShopWindow { animation-name: shop-open-drift; animation-timing-function: ease-out; }
 @keyframes 'shop-open-drift' { 0% { opacity: 0; transform: translateX(64px); } 100% { opacity: 1; transform: translateX(0px); } }
-.Close_fade.Closing .ShopWindow { animation-name: shop-close-fade; animation-timing-function: ease-in; animation-fill-mode: forwards; }
+.ShopRoot.Close_fade.Closing .ShopWindow { animation-name: shop-close-fade; animation-timing-function: ease-in; animation-fill-mode: forwards; }
 @keyframes 'shop-close-fade' { 0% { opacity: 1; } 100% { opacity: 0; } }
-.Close_slide.Closing .ShopWindow { animation-name: shop-close-slide; animation-timing-function: ease-in; animation-fill-mode: forwards; }
+.ShopRoot.Close_slide.Closing .ShopWindow { animation-name: shop-close-slide; animation-timing-function: ease-in; animation-fill-mode: forwards; }
 @keyframes 'shop-close-slide' { 0% { opacity: 1; transform: translateY(0px); } 100% { opacity: 0; transform: translateY(18px); } }
-.Close_zoom.Closing .ShopWindow { animation-name: shop-close-zoom; animation-timing-function: ease-in; animation-fill-mode: forwards; }
+.ShopRoot.Close_zoom.Closing .ShopWindow { animation-name: shop-close-zoom; animation-timing-function: ease-in; animation-fill-mode: forwards; }
 @keyframes 'shop-close-zoom' { 0% { opacity: 1; transform: scale3d(1, 1, 1); } 100% { opacity: 0; transform: scale3d(0.96, 0.96, 1); } }
-.Close_rise.Closing .ShopWindow { animation-name: shop-close-rise; animation-timing-function: ease-in; animation-fill-mode: forwards; }
+.ShopRoot.Close_rise.Closing .ShopWindow { animation-name: shop-close-rise; animation-timing-function: ease-in; animation-fill-mode: forwards; }
 @keyframes 'shop-close-rise' { 0% { opacity: 1; transform: translateY(0px); } 100% { opacity: 0; transform: translateY(60px); } }
-.Close_unfold.Closing .ShopWindow { animation-name: shop-close-unfold; animation-timing-function: ease-in; animation-fill-mode: forwards; }
+.ShopRoot.Close_unfold.Closing .ShopWindow { animation-name: shop-close-unfold; animation-timing-function: ease-in; animation-fill-mode: forwards; }
 @keyframes 'shop-close-unfold' { 0% { opacity: 1; transform: scale3d(1, 1, 1); } 100% { opacity: 0; transform: scale3d(1, 0.85, 1); } }
-.Close_drift.Closing .ShopWindow { animation-name: shop-close-drift; animation-timing-function: ease-in; animation-fill-mode: forwards; }
+.ShopRoot.Close_drift.Closing .ShopWindow { animation-name: shop-close-drift; animation-timing-function: ease-in; animation-fill-mode: forwards; }
 @keyframes 'shop-close-drift' { 0% { opacity: 1; transform: translateX(0px); } 100% { opacity: 0; transform: translateX(64px); } }
-.Close_none.Closing .ShopWindow { animation-name: none; }
+.ShopRoot.Close_none.Closing .ShopWindow { animation-name: none; }
 .Closing .BuyHit, .Closing .NavHit, .Closing .ConfirmHit, .Closing .ScaleHit { visibility: collapse; }
 .Page_fade .MotionOutNext { animation-name: shop-page-fade-Out-Next; animation-timing-function: ease-in-out; animation-fill-mode: both; }
 @keyframes 'shop-page-fade-Out-Next' { 0% { opacity: 1; } 100% { opacity: 0; } }
@@ -376,3 +379,132 @@
 .Speed_slow .ShopWindow, .Speed_slow .CardSurface { animation-duration: 0.6s; animation-iteration-count: 1; }
 .Speed_slow .Cards, .Speed_slow .Columns { animation-duration: 0.3s; animation-iteration-count: 1; }
 .ShopRoot.BankA .Confirm .HitB, .ShopRoot.BankB .Confirm .HitA, .ShopRoot.Closing .Confirm .ConfirmHit, .ShopRoot.SettingsOpen .Confirm .ConfirmHit { visibility: collapse; }
+
+.TimerShape_badge .Cooldown { border-radius: 4px; }
+.TimerShape_pill .Cooldown { border-radius: 18px; }
+.TimerShape_circle .Cooldown { width: 56px; height: 56px; border-radius: 50%; border-width: 3px; }
+.TimerShape_square .Cooldown { width: 56px; height: 56px; border-radius: 8px; border-width: 2px; }
+.TimerShape_circle .Countdown, .TimerShape_square .Countdown { font-size: 13px; }
+.TimerShape_bar .Cooldown { width: 100%; height: 28px; margin: 0px; border-radius: 0px; }
+.TimerProgress { height: 100%; background-color: #76d9cc38; visibility: collapse; }
+.TimerShape_bar .TimerProgress { visibility: visible; }
+.TimerPosition_auto.TimerShape_circle .Cooldown, .TimerPosition_auto.TimerShape_square .Cooldown { horizontal-align: center; vertical-align: center; margin: 0px; }
+.TimerPosition_auto.TimerShape_bar .Cooldown { horizontal-align: center; vertical-align: bottom; margin-bottom: 34px; }
+.TimerPosition_auto.TimerShape_pill .Cooldown { vertical-align: top; }
+.TimerAnimation_none .Cooldown { animation-name: none; }
+.TimerAnimation_pulse .Cooldown.Visible { animation-name: shop-timer-pulse; animation-iteration-count: infinite; }
+.TimerAnimation_blink .Cooldown.Visible { animation-name: shop-timer-blink; animation-iteration-count: infinite; }
+.TimerSpeed_fast .Cooldown { animation-duration: 0.6s; }
+.TimerSpeed_normal .Cooldown { animation-duration: 1.2s; }
+.TimerSpeed_slow .Cooldown { animation-duration: 2.4s; }
+@keyframes 'shop-timer-pulse' { 0% { brightness: 1; } 50% { brightness: 1.5; } 100% { brightness: 1; } }
+@keyframes 'shop-timer-blink' { 0% { opacity: 1; } 50% { opacity: 0.55; } 100% { opacity: 1; } }
+.TimerPosition_top_left .Cooldown { horizontal-align: left; vertical-align: top; }
+.TimerPosition_top_right .Cooldown { horizontal-align: right; vertical-align: top; }
+.TimerPosition_center .Cooldown { horizontal-align: center; vertical-align: center; }
+.TimerPosition_bottom_left .Cooldown { horizontal-align: left; vertical-align: bottom; }
+.TimerPosition_bottom_right .Cooldown { horizontal-align: right; vertical-align: bottom; }
+.Progress0 .TimerProgress { width: 0%; }
+.Progress1 .TimerProgress { width: 1%; }
+.Progress2 .TimerProgress { width: 2%; }
+.Progress3 .TimerProgress { width: 3%; }
+.Progress4 .TimerProgress { width: 4%; }
+.Progress5 .TimerProgress { width: 5%; }
+.Progress6 .TimerProgress { width: 6%; }
+.Progress7 .TimerProgress { width: 7%; }
+.Progress8 .TimerProgress { width: 8%; }
+.Progress9 .TimerProgress { width: 9%; }
+.Progress10 .TimerProgress { width: 10%; }
+.Progress11 .TimerProgress { width: 11%; }
+.Progress12 .TimerProgress { width: 12%; }
+.Progress13 .TimerProgress { width: 13%; }
+.Progress14 .TimerProgress { width: 14%; }
+.Progress15 .TimerProgress { width: 15%; }
+.Progress16 .TimerProgress { width: 16%; }
+.Progress17 .TimerProgress { width: 17%; }
+.Progress18 .TimerProgress { width: 18%; }
+.Progress19 .TimerProgress { width: 19%; }
+.Progress20 .TimerProgress { width: 20%; }
+.Progress21 .TimerProgress { width: 21%; }
+.Progress22 .TimerProgress { width: 22%; }
+.Progress23 .TimerProgress { width: 23%; }
+.Progress24 .TimerProgress { width: 24%; }
+.Progress25 .TimerProgress { width: 25%; }
+.Progress26 .TimerProgress { width: 26%; }
+.Progress27 .TimerProgress { width: 27%; }
+.Progress28 .TimerProgress { width: 28%; }
+.Progress29 .TimerProgress { width: 29%; }
+.Progress30 .TimerProgress { width: 30%; }
+.Progress31 .TimerProgress { width: 31%; }
+.Progress32 .TimerProgress { width: 32%; }
+.Progress33 .TimerProgress { width: 33%; }
+.Progress34 .TimerProgress { width: 34%; }
+.Progress35 .TimerProgress { width: 35%; }
+.Progress36 .TimerProgress { width: 36%; }
+.Progress37 .TimerProgress { width: 37%; }
+.Progress38 .TimerProgress { width: 38%; }
+.Progress39 .TimerProgress { width: 39%; }
+.Progress40 .TimerProgress { width: 40%; }
+.Progress41 .TimerProgress { width: 41%; }
+.Progress42 .TimerProgress { width: 42%; }
+.Progress43 .TimerProgress { width: 43%; }
+.Progress44 .TimerProgress { width: 44%; }
+.Progress45 .TimerProgress { width: 45%; }
+.Progress46 .TimerProgress { width: 46%; }
+.Progress47 .TimerProgress { width: 47%; }
+.Progress48 .TimerProgress { width: 48%; }
+.Progress49 .TimerProgress { width: 49%; }
+.Progress50 .TimerProgress { width: 50%; }
+.Progress51 .TimerProgress { width: 51%; }
+.Progress52 .TimerProgress { width: 52%; }
+.Progress53 .TimerProgress { width: 53%; }
+.Progress54 .TimerProgress { width: 54%; }
+.Progress55 .TimerProgress { width: 55%; }
+.Progress56 .TimerProgress { width: 56%; }
+.Progress57 .TimerProgress { width: 57%; }
+.Progress58 .TimerProgress { width: 58%; }
+.Progress59 .TimerProgress { width: 59%; }
+.Progress60 .TimerProgress { width: 60%; }
+.Progress61 .TimerProgress { width: 61%; }
+.Progress62 .TimerProgress { width: 62%; }
+.Progress63 .TimerProgress { width: 63%; }
+.Progress64 .TimerProgress { width: 64%; }
+.Progress65 .TimerProgress { width: 65%; }
+.Progress66 .TimerProgress { width: 66%; }
+.Progress67 .TimerProgress { width: 67%; }
+.Progress68 .TimerProgress { width: 68%; }
+.Progress69 .TimerProgress { width: 69%; }
+.Progress70 .TimerProgress { width: 70%; }
+.Progress71 .TimerProgress { width: 71%; }
+.Progress72 .TimerProgress { width: 72%; }
+.Progress73 .TimerProgress { width: 73%; }
+.Progress74 .TimerProgress { width: 74%; }
+.Progress75 .TimerProgress { width: 75%; }
+.Progress76 .TimerProgress { width: 76%; }
+.Progress77 .TimerProgress { width: 77%; }
+.Progress78 .TimerProgress { width: 78%; }
+.Progress79 .TimerProgress { width: 79%; }
+.Progress80 .TimerProgress { width: 80%; }
+.Progress81 .TimerProgress { width: 81%; }
+.Progress82 .TimerProgress { width: 82%; }
+.Progress83 .TimerProgress { width: 83%; }
+.Progress84 .TimerProgress { width: 84%; }
+.Progress85 .TimerProgress { width: 85%; }
+.Progress86 .TimerProgress { width: 86%; }
+.Progress87 .TimerProgress { width: 87%; }
+.Progress88 .TimerProgress { width: 88%; }
+.Progress89 .TimerProgress { width: 89%; }
+.Progress90 .TimerProgress { width: 90%; }
+.Progress91 .TimerProgress { width: 91%; }
+.Progress92 .TimerProgress { width: 92%; }
+.Progress93 .TimerProgress { width: 93%; }
+.Progress94 .TimerProgress { width: 94%; }
+.Progress95 .TimerProgress { width: 95%; }
+.Progress96 .TimerProgress { width: 96%; }
+.Progress97 .TimerProgress { width: 97%; }
+.Progress98 .TimerProgress { width: 98%; }
+.Progress99 .TimerProgress { width: 99%; }
+.Progress100 .TimerProgress { width: 100%; }
+.SoundsOn .Card.Available .BuyHit:hover { sound: "UIPanorama.buymenu_mouseover"; }
+.SoundsOn .Card.Available .BuyHit:active, .SoundsOn .Confirm.Available .ConfirmHit:active { sound: "UIPanorama.buymenu_select"; }
+.SoundsOff .BuyHit:hover, .SoundsOff .BuyHit:active, .SoundsOff .ConfirmHit:active { sound: ""; }

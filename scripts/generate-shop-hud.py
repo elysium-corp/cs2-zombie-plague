@@ -103,6 +103,7 @@ for col in range(COLUMNS):
         page_buttons(surface, f'Buy{slot}', 'BuyHit')
         cooldown = panel(surface, 'Cooldown', f'Cooldown{slot}')
         cooldown.set('hittest', 'false')
+        panel(cooldown, 'TimerProgress').set('hittest', 'false')
         label(cooldown, 'Countdown', f'Countdown{slot}')
     pager_space = panel(column, 'PagerSpace')
     pager = panel(pager_space, 'ItemPager', f'ItemPager{col}')
@@ -136,6 +137,9 @@ css = '''/* Создано scripts/generate-shop-hud.py */
 .ShopViewport { width: 100%; height: 100%; }
 .ShopRoot { width: 100%; height: 100%; visibility: collapse; background-color: #050b1266; }
 .ShopRoot.Visible { visibility: visible; }
+/* Класс NativeBuyTrigger сервер задаёт только владельцу подготовленного HUD.
+   Фон остаётся непрозрачным даже во время анимации окна и не масштабируется. */
+.HUD_BUYMENU_VISIBLE .ShopRoot.NativeBuyTrigger { visibility: visible; background-color: #050b12; }
 .ShopWindow { width: 1720px; max-width: 94%; height: 980px; max-height: 96%; horizontal-align: center; vertical-align: center; flow-children: down; background-color: gradient(linear, 0% 0%, 100% 100%, from(#12222bf5), to(#080f17fa)); border: 1px solid #698fa144; border-radius: 8px; box-shadow: #000000bb 0px 10px 36px 0px; }
 .ShopRoot Label { font-family: Arial; }
 .Header { width: 100%; height: 88px; padding: 16px 22px; flow-children: right; background-color: #0a131deb; border-bottom: 1px solid #76d9cc88; }
@@ -188,9 +192,9 @@ css = '''/* Создано scripts/generate-shop-hud.py */
 .IconSilhouette { wash-color: #64707c; opacity: 0.45; }
 .Card.Available .IconHalo { visibility: visible; }
 .Card.Available .IconSilhouette { wash-color: #dfebf2; opacity: 1; }
-.Cooldown { visibility: collapse; horizontal-align: right; vertical-align: center; margin-right: 10px; padding: 4px 8px; background-color: #081019ed; border: 1px solid #a4c3d955; border-radius: 4px; }
+.Cooldown { visibility: collapse; width: 84px; height: 30px; horizontal-align: right; vertical-align: center; margin: 2px; background-color: #081019ed; border: 1px solid #a4c3d955; border-radius: 4px; }
 .Cooldown.Visible { visibility: visible; }
-.Countdown { color: #eaf5ff; font-size: 18px; font-weight: bold; }
+.Countdown { width: 100%; height: 22px; horizontal-align: center; vertical-align: center; text-align: center; white-space: nowrap; font-family: Consolas, monospace; color: #eaf5ff; font-size: 17px; font-weight: bold; }
 .CardDetails { width: 100%; height: 22px; flow-children: right; }
 .RarityMark { width: 13px; height: 3px; vertical-align: center; margin-right: 6px; background-color: #52606c; }
 .Status { width: fill-parent-flow(1); height: 22px; vertical-align: center; font-size: 11px; color: #7b8996; text-overflow: ellipsis; }
@@ -270,7 +274,7 @@ css += """
 .Icons_silhouette .Card .IconHalo, .Icons_hidden .Card .ItemIcon { visibility: collapse; }
 .Highlight_none .Card .IconHalo, .Highlight_none .Card .RarityMark { visibility: collapse; }
 .Hover_none .Card.Available .BuyHit:hover { border-color: #00000000; box-shadow: none; }
-.Open_none.Visible .ShopWindow { animation-name: none; }
+.Open_none.Visible .ShopWindow, .HUD_BUYMENU_VISIBLE .Open_none.NativeBuyTrigger .ShopWindow { animation-name: none; }
 """
 for accent, color in APPEARANCE['accents'].items():
     css += f'.Accent_{accent} .Header {{ border-bottom-color: {color}88; }}\n'
@@ -288,12 +292,12 @@ frames = dict(fade=('opacity: 0;', 'opacity: 1;'),
               unfold=('opacity: 0; transform: scale3d(1, 0.85, 1);', 'opacity: 1; transform: scale3d(1, 1, 1);'),
               drift=('opacity: 0; transform: translateX(64px);', 'opacity: 1; transform: translateX(0px);'))
 for effect, (start, end) in frames.items():
-    css += f".Open_{effect}.Visible .ShopWindow {{ animation-name: shop-open-{effect}; animation-timing-function: ease-out; }}\n"
+    css += f".Open_{effect}.Visible .ShopWindow, .HUD_BUYMENU_VISIBLE .Open_{effect}.NativeBuyTrigger .ShopWindow {{ animation-name: shop-open-{effect}; animation-timing-function: ease-out; }}\n"
     css += f"@keyframes 'shop-open-{effect}' {{ 0% {{ {start} }} 100% {{ {end} }} }}\n"
 for effect, (start, end) in frames.items():
-    css += f".Close_{effect}.Closing .ShopWindow {{ animation-name: shop-close-{effect}; animation-timing-function: ease-in; animation-fill-mode: forwards; }}\n"
+    css += f".ShopRoot.Close_{effect}.Closing .ShopWindow {{ animation-name: shop-close-{effect}; animation-timing-function: ease-in; animation-fill-mode: forwards; }}\n"
     css += f"@keyframes 'shop-close-{effect}' {{ 0% {{ {end} }} 100% {{ {start} }} }}\n"
-css += '.Close_none.Closing .ShopWindow { animation-name: none; }\n'
+css += '.ShopRoot.Close_none.Closing .ShopWindow { animation-name: none; }\n'
 css += '.Closing .BuyHit, .Closing .NavHit, .Closing .ConfirmHit, .Closing .ScaleHit { visibility: collapse; }\n'
 # Выход и вход применяются только к Columns или Cards выбранной колонки.
 # В scroll нет прозрачности: элементы действительно уезжают за границу области.
@@ -323,6 +327,38 @@ for speed, duration in APPEARANCE['duration'].items():
     css += f'.Speed_{speed} .Cards, .Speed_{speed} .Columns {{ animation-duration: {duration / 2}s; animation-iteration-count: 1; }}\n'
 
 css += '.ShopRoot.BankA .Confirm .HitB, .ShopRoot.BankB .Confirm .HitA, .ShopRoot.Closing .Confirm .ConfirmHit, .ShopRoot.SettingsOpen .Confirm .ConfirmHit { visibility: collapse; }\n'
+
+
+# Независимые форма, позиция и анимация таймера; цифры не участвуют в расчёте размера.
+css += """
+.TimerShape_badge .Cooldown { border-radius: 4px; }
+.TimerShape_pill .Cooldown { border-radius: 18px; }
+.TimerShape_circle .Cooldown { width: 56px; height: 56px; border-radius: 50%; border-width: 3px; }
+.TimerShape_square .Cooldown { width: 56px; height: 56px; border-radius: 8px; border-width: 2px; }
+.TimerShape_circle .Countdown, .TimerShape_square .Countdown { font-size: 13px; }
+.TimerShape_bar .Cooldown { width: 100%; height: 28px; margin: 0px; border-radius: 0px; }
+.TimerProgress { height: 100%; background-color: #76d9cc38; visibility: collapse; }
+.TimerShape_bar .TimerProgress { visibility: visible; }
+.TimerPosition_auto.TimerShape_circle .Cooldown, .TimerPosition_auto.TimerShape_square .Cooldown { horizontal-align: center; vertical-align: center; margin: 0px; }
+.TimerPosition_auto.TimerShape_bar .Cooldown { horizontal-align: center; vertical-align: bottom; margin-bottom: 34px; }
+.TimerPosition_auto.TimerShape_pill .Cooldown { vertical-align: top; }
+.TimerAnimation_none .Cooldown { animation-name: none; }
+.TimerAnimation_pulse .Cooldown.Visible { animation-name: shop-timer-pulse; animation-iteration-count: infinite; }
+.TimerAnimation_blink .Cooldown.Visible { animation-name: shop-timer-blink; animation-iteration-count: infinite; }
+.TimerSpeed_fast .Cooldown { animation-duration: 0.6s; }
+.TimerSpeed_normal .Cooldown { animation-duration: 1.2s; }
+.TimerSpeed_slow .Cooldown { animation-duration: 2.4s; }
+@keyframes 'shop-timer-pulse' { 0% { brightness: 1; } 50% { brightness: 1.5; } 100% { brightness: 1; } }
+@keyframes 'shop-timer-blink' { 0% { opacity: 1; } 50% { opacity: 0.55; } 100% { opacity: 1; } }
+"""
+for position, (horizontal, vertical) in dict(top_left=('left', 'top'), top_right=('right', 'top'), center=('center', 'center'), bottom_left=('left', 'bottom'), bottom_right=('right', 'bottom')).items():
+    css += f'.TimerPosition_{position} .Cooldown {{ horizontal-align: {horizontal}; vertical-align: {vertical}; }}\n'
+for percent in range(101):
+    css += f'.Progress{percent} .TimerProgress {{ width: {percent}%; }}\n'
+# Звук запускается самим клиентом при изменении CSS-состояния кнопки, без серверного опроса курсора.
+css += '.SoundsOn .Card.Available .BuyHit:hover { sound: "' + APPEARANCE['defaults']['hoverSound'] + '"; }\n'
+css += '.SoundsOn .Card.Available .BuyHit:active, .SoundsOn .Confirm.Available .ConfirmHit:active { sound: "' + APPEARANCE['defaults']['clickSound'] + '"; }\n'
+css += '.SoundsOff .BuyHit:hover, .SoundsOff .BuyHit:active, .SoundsOff .ConfirmHit:active { sound: ""; }\n'
 
 for file, data in [(LAYOUT.replace('.vxml_c', '.xml'), xml), (STYLE.replace('.vcss_c', '.css'), css)]:
     path = CONTENT / file

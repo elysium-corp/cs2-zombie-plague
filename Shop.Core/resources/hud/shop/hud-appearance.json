@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "defaults": {
     "theme": "elysium",
     "accent": "mint",
@@ -19,7 +19,97 @@
     "clickBehavior": "buy",
     "maxPurchasesPerRound": 0,
     "closeAnimation": "fade",
-    "hoverHighlight": "rarity"
+    "hoverHighlight": "rarity",
+    "timerShape": "badge",
+    "timerPosition": "auto",
+    "timerFormat": "clock",
+    "timerAnimation": "none",
+    "timerSpeed": "normal",
+    "soundsEnabled": true,
+    "hoverSound": "UIPanorama.buymenu_mouseover",
+    "clickSound": "UIPanorama.buymenu_select",
+    "rarityStyles": {
+      "Common": {
+        "color": "",
+        "glow": true,
+        "glowWidth": 5,
+        "glowIntensity": 100,
+        "borderWidth": 0,
+        "fillOpacity": 0,
+        "hoverSound": "",
+        "clickSound": ""
+      },
+      "Uncommon": {
+        "color": "",
+        "glow": true,
+        "glowWidth": 5,
+        "glowIntensity": 100,
+        "borderWidth": 0,
+        "fillOpacity": 0,
+        "hoverSound": "",
+        "clickSound": ""
+      },
+      "Rare": {
+        "color": "",
+        "glow": true,
+        "glowWidth": 5,
+        "glowIntensity": 100,
+        "borderWidth": 0,
+        "fillOpacity": 0,
+        "hoverSound": "",
+        "clickSound": ""
+      },
+      "Restricted": {
+        "color": "",
+        "glow": true,
+        "glowWidth": 5,
+        "glowIntensity": 100,
+        "borderWidth": 0,
+        "fillOpacity": 0,
+        "hoverSound": "",
+        "clickSound": ""
+      },
+      "Classified": {
+        "color": "",
+        "glow": true,
+        "glowWidth": 5,
+        "glowIntensity": 100,
+        "borderWidth": 0,
+        "fillOpacity": 0,
+        "hoverSound": "",
+        "clickSound": ""
+      },
+      "Elite": {
+        "color": "",
+        "glow": true,
+        "glowWidth": 5,
+        "glowIntensity": 100,
+        "borderWidth": 0,
+        "fillOpacity": 0,
+        "hoverSound": "",
+        "clickSound": ""
+      },
+      "Prototype": {
+        "color": "",
+        "glow": true,
+        "glowWidth": 5,
+        "glowIntensity": 100,
+        "borderWidth": 0,
+        "fillOpacity": 0,
+        "hoverSound": "",
+        "clickSound": ""
+      },
+      "Legendary": {
+        "color": "",
+        "glow": true,
+        "glowWidth": 5,
+        "glowIntensity": 100,
+        "borderWidth": 0,
+        "fillOpacity": 0,
+        "hoverSound": "",
+        "clickSound": ""
+      }
+    }
   },
   "options": {
     "width": [
@@ -147,6 +237,36 @@
       "violet",
       "blue",
       "red"
+    ],
+    "timerShape": [
+      "badge",
+      "pill",
+      "circle",
+      "square",
+      "bar"
+    ],
+    "timerPosition": [
+      "auto",
+      "top_left",
+      "top_right",
+      "center",
+      "bottom_left",
+      "bottom_right"
+    ],
+    "timerFormat": [
+      "clock",
+      "seconds",
+      "compact"
+    ],
+    "timerAnimation": [
+      "none",
+      "pulse",
+      "blink"
+    ],
+    "timerSpeed": [
+      "fast",
+      "normal",
+      "slow"
     ]
   },
   "accents": {
@@ -183,5 +303,33 @@
     "width",
     "height",
     "defaultScale"
-  ]
+  ],
+  "rarityDefaults": {
+    "color": "",
+    "glow": true,
+    "glowWidth": 5,
+    "glowIntensity": 100,
+    "borderWidth": 0,
+    "fillOpacity": 0,
+    "hoverSound": "",
+    "clickSound": ""
+  },
+  "rarityRanges": {
+    "glowWidth": [
+      0,
+      16
+    ],
+    "glowIntensity": [
+      0,
+      200
+    ],
+    "borderWidth": [
+      0,
+      4
+    ],
+    "fillOpacity": [
+      0,
+      100
+    ]
+  }
 }
