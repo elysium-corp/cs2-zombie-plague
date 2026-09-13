@@ -215,7 +215,7 @@ internal sealed class InfectionService(
 
             // Обычный нож стороны T, включая случай восстановления ножа из инвентаря Steam.
             weapon.AcceptInput("ChangeSubclass", "59");
-            weapon.SetModel("weapons/models/knife/knife_t.vmdl");
+            weapon.SetModel("weapons/models/knife/knife_default_t/weapon_knife_default_t.vmdl");
         }
     }
 }
