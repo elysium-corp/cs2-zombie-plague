@@ -53,6 +53,8 @@ def preview_css(css):
             if ':' not in declaration:
                 continue
             key, value = [item.strip() for item in declaration.split(':', 1)]
+            if key == 'sound':
+                continue
             if key == 'flow-children':
                 values += ['display: flex', 'flex-direction: ' + ('column' if value == 'down' else 'row')]
                 continue

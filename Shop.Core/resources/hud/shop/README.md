@@ -4,7 +4,7 @@
 
 ## Ресурсы V4
 
-Магазин использует комплект `elysium_shop_v4_r5`, с той же допустимой структурой Panorama, что рабочие HUD способностей и сообщений Elysium V4
+Магазин использует комплект `elysium_shop_v4_r6`, с той же допустимой структурой Panorama, что рабочие HUD способностей и сообщений Elysium V4
 Суффикс `_v4` — обозначение ревизии ресурсов проекта; сам по себе он не переключает формат компилятора Valve
 Совместимость обеспечивают содержимое XML/CSS и компиляция актуальными CS2 Workshop Tools
 
@@ -102,8 +102,8 @@ Shop ждёт `IsBuyMenuOpen=false` и только тогда показыва�
    В VPK должны попасть
 
    ```text
-   panorama/layout/custom_game/elysium_shop_v4_r5.vxml_c
-   panorama/styles/custom_game/elysium_shop_v4_r5.vcss_c
+   panorama/layout/custom_game/elysium_shop_v4_r6.vxml_c
+   panorama/styles/custom_game/elysium_shop_v4_r6.vcss_c
    panorama/styles/custom_game/elysium_equipment_icons_v4.vcss_c
    ```
 

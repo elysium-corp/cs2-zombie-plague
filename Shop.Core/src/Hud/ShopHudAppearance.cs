@@ -19,6 +19,15 @@ internal sealed record ShopHudAppearance
     public string NameAlignment { get; init; } = "left";
     public int Columns { get; init; } = 8;
     public int Rows { get; init; } = 6;
+    public string TimerShape { get; init; } = "badge";
+    public string TimerPosition { get; init; } = "auto";
+    public string TimerFormat { get; init; } = "clock";
+    public string TimerAnimation { get; init; } = "none";
+    public string TimerSpeed { get; init; } = "normal";
+    public bool SoundsEnabled { get; init; } = true;
+    public string HoverSound { get; init; } = "UIPanorama.buymenu_mouseover";
+    public string ClickSound { get; init; } = "UIPanorama.buymenu_select";
+    public ShopHudRarityStyles RarityStyles { get; init; } = new();
     public bool WrapPages { get; init; }
     public int Width { get; init; } = 1720;
     public int Height { get; init; } = 980;
@@ -53,6 +62,13 @@ internal sealed record ShopHudAppearance
             !new[] { "none", "pulse", "lift", "press" }.Contains(value.SelectionAnimation) ||
             !new[] { "buy", "buy_close", "confirm" }.Contains(value.ClickBehavior) ||
             !new[] { 0, 1, 2, 3, 5, 10 }.Contains(value.MaxPurchasesPerRound) ||
+            !new[] { "badge", "pill", "circle", "square", "bar" }.Contains(value.TimerShape) ||
+            !new[] { "auto", "top_left", "top_right", "center", "bottom_left", "bottom_right" }.Contains(value.TimerPosition) ||
+            !new[] { "clock", "seconds", "compact" }.Contains(value.TimerFormat) ||
+            !new[] { "none", "pulse", "blink" }.Contains(value.TimerAnimation) ||
+            !new[] { "fast", "normal", "slow" }.Contains(value.TimerSpeed) ||
+            !ShopHudRarityStyle.ValidSound(value.HoverSound) || !ShopHudRarityStyle.ValidSound(value.ClickSound) ||
+            value.RarityStyles is null || !value.RarityStyles.Valid ||
             value.Columns is < 1 or > ShopHudCatalog.ColumnCount || value.Rows is < 1 or > ShopHudCatalog.RowCount)
             throw new InvalidDataException("Недопустимый вариант оформления магазина");
         return value;
@@ -60,6 +76,11 @@ internal sealed record ShopHudAppearance
 
     internal IEnumerable<(string Group, string Class)> Classes()
     {
+        yield return ("timerShape", "TimerShape_" + TimerShape);
+        yield return ("timerPosition", "TimerPosition_" + TimerPosition);
+        yield return ("timerAnimation", "TimerAnimation_" + TimerAnimation);
+        yield return ("timerSpeed", "TimerSpeed_" + TimerSpeed);
+        yield return ("sounds", SoundsEnabled ? "SoundsOn" : "SoundsOff");
         yield return ("width", "Width" + Width);
         yield return ("height", "Height" + Height);
         yield return ("selectionAnimation", "Selection_" + SelectionAnimation);

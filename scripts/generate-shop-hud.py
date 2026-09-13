@@ -103,6 +103,7 @@ for col in range(COLUMNS):
         page_buttons(surface, f'Buy{slot}', 'BuyHit')
         cooldown = panel(surface, 'Cooldown', f'Cooldown{slot}')
         cooldown.set('hittest', 'false')
+        panel(cooldown, 'TimerProgress').set('hittest', 'false')
         label(cooldown, 'Countdown', f'Countdown{slot}')
     pager_space = panel(column, 'PagerSpace')
     pager = panel(pager_space, 'ItemPager', f'ItemPager{col}')
@@ -188,9 +189,9 @@ css = '''/* Создано scripts/generate-shop-hud.py */
 .IconSilhouette { wash-color: #64707c; opacity: 0.45; }
 .Card.Available .IconHalo { visibility: visible; }
 .Card.Available .IconSilhouette { wash-color: #dfebf2; opacity: 1; }
-.Cooldown { visibility: collapse; horizontal-align: right; vertical-align: center; margin-right: 10px; padding: 4px 8px; background-color: #081019ed; border: 1px solid #a4c3d955; border-radius: 4px; }
+.Cooldown { visibility: collapse; width: 84px; height: 30px; horizontal-align: right; vertical-align: center; margin: 2px; background-color: #081019ed; border: 1px solid #a4c3d955; border-radius: 4px; }
 .Cooldown.Visible { visibility: visible; }
-.Countdown { color: #eaf5ff; font-size: 18px; font-weight: bold; }
+.Countdown { width: 100%; height: 22px; horizontal-align: center; vertical-align: center; text-align: center; white-space: nowrap; font-family: Consolas, monospace; color: #eaf5ff; font-size: 17px; font-weight: bold; }
 .CardDetails { width: 100%; height: 22px; flow-children: right; }
 .RarityMark { width: 13px; height: 3px; vertical-align: center; margin-right: 6px; background-color: #52606c; }
 .Status { width: fill-parent-flow(1); height: 22px; vertical-align: center; font-size: 11px; color: #7b8996; text-overflow: ellipsis; }
@@ -323,6 +324,38 @@ for speed, duration in APPEARANCE['duration'].items():
     css += f'.Speed_{speed} .Cards, .Speed_{speed} .Columns {{ animation-duration: {duration / 2}s; animation-iteration-count: 1; }}\n'
 
 css += '.ShopRoot.BankA .Confirm .HitB, .ShopRoot.BankB .Confirm .HitA, .ShopRoot.Closing .Confirm .ConfirmHit, .ShopRoot.SettingsOpen .Confirm .ConfirmHit { visibility: collapse; }\n'
+
+
+# Независимые форма, позиция и анимация таймера; цифры не участвуют в расчёте размера.
+css += """
+.TimerShape_badge .Cooldown { border-radius: 4px; }
+.TimerShape_pill .Cooldown { border-radius: 18px; }
+.TimerShape_circle .Cooldown { width: 56px; height: 56px; border-radius: 50%; border-width: 3px; }
+.TimerShape_square .Cooldown { width: 56px; height: 56px; border-radius: 8px; border-width: 2px; }
+.TimerShape_circle .Countdown, .TimerShape_square .Countdown { font-size: 13px; }
+.TimerShape_bar .Cooldown { width: 100%; height: 28px; margin: 0px; border-radius: 0px; }
+.TimerProgress { height: 100%; background-color: #76d9cc38; visibility: collapse; }
+.TimerShape_bar .TimerProgress { visibility: visible; }
+.TimerPosition_auto.TimerShape_circle .Cooldown, .TimerPosition_auto.TimerShape_square .Cooldown { horizontal-align: center; vertical-align: center; margin: 0px; }
+.TimerPosition_auto.TimerShape_bar .Cooldown { horizontal-align: center; vertical-align: bottom; }
+.TimerPosition_auto.TimerShape_pill .Cooldown { vertical-align: top; }
+.TimerAnimation_none .Cooldown { animation-name: none; }
+.TimerAnimation_pulse .Cooldown.Visible { animation-name: shop-timer-pulse; animation-iteration-count: infinite; }
+.TimerAnimation_blink .Cooldown.Visible { animation-name: shop-timer-blink; animation-iteration-count: infinite; }
+.TimerSpeed_fast .Cooldown { animation-duration: 0.6s; }
+.TimerSpeed_normal .Cooldown { animation-duration: 1.2s; }
+.TimerSpeed_slow .Cooldown { animation-duration: 2.4s; }
+@keyframes 'shop-timer-pulse' { 0% { brightness: 1; } 50% { brightness: 1.5; } 100% { brightness: 1; } }
+@keyframes 'shop-timer-blink' { 0% { opacity: 1; } 50% { opacity: 0.55; } 100% { opacity: 1; } }
+"""
+for position, (horizontal, vertical) in dict(top_left=('left', 'top'), top_right=('right', 'top'), center=('center', 'center'), bottom_left=('left', 'bottom'), bottom_right=('right', 'bottom')).items():
+    css += f'.TimerPosition_{position} .Cooldown {{ horizontal-align: {horizontal}; vertical-align: {vertical}; }}\n'
+for percent in range(101):
+    css += f'.Progress{percent} .TimerProgress {{ width: {percent}%; }}\n'
+# Звук запускается самим клиентом при изменении CSS-состояния кнопки, без серверного опроса курсора.
+css += '.SoundsOn .Card.Available .BuyHit:hover { sound: "' + APPEARANCE['defaults']['hoverSound'] + '"; }\n'
+css += '.SoundsOn .Card.Available .BuyHit:active, .SoundsOn .Confirm.Available .ConfirmHit:active { sound: "' + APPEARANCE['defaults']['clickSound'] + '"; }\n'
+css += '.SoundsOff .BuyHit:hover, .SoundsOff .BuyHit:active, .SoundsOff .ConfirmHit:active { sound: ""; }\n'
 
 for file, data in [(LAYOUT.replace('.vxml_c', '.xml'), xml), (STYLE.replace('.vcss_c', '.css'), css)]:
     path = CONTENT / file

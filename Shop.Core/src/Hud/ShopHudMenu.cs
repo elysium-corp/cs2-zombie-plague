@@ -332,6 +332,7 @@ internal sealed class ShopHudMenu(
         var hud = session.Runtime!;
         var appearance = snapshot.Storefronts[view.ShopType].Appearance.WithFrame(snapshot.Frame);
         foreach (var (group, name) in appearance.Classes()) Choice(session, "ShopRoot", group, name);
+        Choice(session, "ShopRoot", "storefront", "Storefront_" + view.ShopType.ToString().ToLowerInvariant());
         Choice(session, "ShopRoot", "columns", "Columns" + appearance.Columns);
         Choice(session, "ShopRoot", "rows", "Rows" + appearance.Rows);
         var settings = preferences.Get(player, snapshot.Frame.DefaultScale);
@@ -356,6 +357,7 @@ internal sealed class ShopHudMenu(
         hud.Text("SelectionName", selected is null ? "" : selected.Name + " · " + selected.Price);
         hud.Text("ConfirmLabel", catalog.Text(player, "Shop.Hud.Confirm"));
         hud.Class("Confirm", "Available", selected is { Enabled: true });
+        Choice(session, "Confirm", "rarity", "Rarity" + (selected?.Rarity.ToString() ?? "Common"));
         var selectedSlot = view.Columns.SelectMany((column, index) => column.Cards.Select((card, row) =>
             (card.Offer.Id, Slot: index * ShopHudCatalog.RowCount + row))).FirstOrDefault(x => x.Id == session.SelectedOfferId, (Id: 0L, Slot: -1)).Slot;
         Choice(session, "Confirm", "slot", "ConfirmSlot" + selectedSlot);
@@ -387,7 +389,8 @@ internal sealed class ShopHudMenu(
                 hud.Text($"Price{slot}", card.Price);
                 hud.Text($"Status{slot}", card.Status);
                 hud.Class($"Cooldown{slot}", "Visible", card.CooldownSeconds > 0);
-                hud.Text($"Countdown{slot}", $"{card.CooldownSeconds / 60:00}:{card.CooldownSeconds % 60:00}");
+                hud.Text($"Countdown{slot}", ShopHudCountdown.Format(card.CooldownSeconds, appearance.TimerFormat, key => catalog.Text(player, key)));
+                Choice(session, $"Cooldown{slot}", "progress", "Progress" + ShopHudCountdown.Progress(card.CooldownSeconds, card.Offer.CooldownSeconds));
                 hud.Class(panel, "Available", card.Enabled);
                 hud.Class(panel, "Selected", card.Offer.Id == session.HighlightOfferId);
                 Choice(session, panel, "rarity", "Rarity" + card.Rarity);

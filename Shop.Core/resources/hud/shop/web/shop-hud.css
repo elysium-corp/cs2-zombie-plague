@@ -66,9 +66,9 @@
 .elysium-shop-game .IconSilhouette { background-color: #64707c; opacity: 0.45; }
 .elysium-shop-game .Card.Available .IconHalo { display: grid; }
 .elysium-shop-game .Card.Available .IconSilhouette { background-color: #dfebf2; opacity: 1; }
-.elysium-shop-game .Cooldown { justify-self: end; align-self: center; margin-right: 10px; padding: 4px 8px; background-color: #081019ed; border: 1px solid #a4c3d955; border-radius: 4px; display: none; }
+.elysium-shop-game .Cooldown { width: 84px; height: 30px; justify-self: end; align-self: center; margin: 2px; background-color: #081019ed; border: 1px solid #a4c3d955; border-radius: 4px; display: none; }
 .elysium-shop-game .Cooldown.Visible { display: grid; }
-.elysium-shop-game .Countdown { color: #eaf5ff; font-size: 18px; font-weight: bold; }
+.elysium-shop-game .Countdown { width: 100%; height: 22px; justify-self: center; align-self: center; text-align: center; white-space: nowrap; font-family: Consolas, monospace; color: #eaf5ff; font-size: 17px; font-weight: bold; }
 .elysium-shop-game .CardDetails { width: 100%; height: 22px; display: flex; flex-direction: row; }
 .elysium-shop-game .RarityMark { width: 13px; height: 3px; align-self: center; margin-right: 6px; background-color: #52606c; }
 .elysium-shop-game .Status { flex: 1 1 0px; width: auto; height: 22px; align-self: center; font-size: 11px; color: #7b8996; text-overflow: ellipsis; }
@@ -406,3 +406,136 @@
 .elysium-shop-game .ShopRoot.BankB .Confirm .HitA { display: none; }
 .elysium-shop-game .ShopRoot.Closing .Confirm .ConfirmHit { display: none; }
 .elysium-shop-game .ShopRoot.SettingsOpen .Confirm .ConfirmHit { display: none; }
+.elysium-shop-game .TimerShape_badge .Cooldown { border-radius: 4px; }
+.elysium-shop-game .TimerShape_pill .Cooldown { border-radius: 18px; }
+.elysium-shop-game .TimerShape_circle .Cooldown { width: 56px; height: 56px; border-radius: 50%; border-width: 3px; }
+.elysium-shop-game .TimerShape_square .Cooldown { width: 56px; height: 56px; border-radius: 8px; border-width: 2px; }
+.elysium-shop-game .TimerShape_circle .Countdown { font-size: 13px; }
+.elysium-shop-game .TimerShape_square .Countdown { font-size: 13px; }
+.elysium-shop-game .TimerShape_bar .Cooldown { width: 100%; height: 28px; margin: 0px; border-radius: 0px; }
+.elysium-shop-game .TimerProgress { height: 100%; background-color: #76d9cc38; display: none; }
+.elysium-shop-game .TimerShape_bar .TimerProgress { display: grid; }
+.elysium-shop-game .TimerPosition_auto.TimerShape_circle .Cooldown { justify-self: center; align-self: center; margin: 0px; }
+.elysium-shop-game .TimerPosition_auto.TimerShape_square .Cooldown { justify-self: center; align-self: center; margin: 0px; }
+.elysium-shop-game .TimerPosition_auto.TimerShape_bar .Cooldown { justify-self: center; align-self: end; }
+.elysium-shop-game .TimerPosition_auto.TimerShape_pill .Cooldown { align-self: start; }
+.elysium-shop-game .TimerAnimation_none .Cooldown { animation-name: none; }
+.elysium-shop-game .TimerAnimation_pulse .Cooldown.Visible { animation-name: shop-timer-pulse; animation-iteration-count: infinite; }
+.elysium-shop-game .TimerAnimation_blink .Cooldown.Visible { animation-name: shop-timer-blink; animation-iteration-count: infinite; }
+.elysium-shop-game .TimerSpeed_fast .Cooldown { animation-duration: 0.6s; }
+.elysium-shop-game .TimerSpeed_normal .Cooldown { animation-duration: 1.2s; }
+.elysium-shop-game .TimerSpeed_slow .Cooldown { animation-duration: 2.4s; }
+@keyframes shop-timer-pulse { 0% { filter: brightness(1); } 50% { filter: brightness(1.5); } 100% { filter: brightness(1); } }
+@keyframes shop-timer-blink { 0% { opacity: 1; } 50% { opacity: 0.55; } 100% { opacity: 1; } }
+.elysium-shop-game .TimerPosition_top_left .Cooldown { justify-self: start; align-self: start; }
+.elysium-shop-game .TimerPosition_top_right .Cooldown { justify-self: end; align-self: start; }
+.elysium-shop-game .TimerPosition_center .Cooldown { justify-self: center; align-self: center; }
+.elysium-shop-game .TimerPosition_bottom_left .Cooldown { justify-self: start; align-self: end; }
+.elysium-shop-game .TimerPosition_bottom_right .Cooldown { justify-self: end; align-self: end; }
+.elysium-shop-game .Progress0 .TimerProgress { width: 0%; }
+.elysium-shop-game .Progress1 .TimerProgress { width: 1%; }
+.elysium-shop-game .Progress2 .TimerProgress { width: 2%; }
+.elysium-shop-game .Progress3 .TimerProgress { width: 3%; }
+.elysium-shop-game .Progress4 .TimerProgress { width: 4%; }
+.elysium-shop-game .Progress5 .TimerProgress { width: 5%; }
+.elysium-shop-game .Progress6 .TimerProgress { width: 6%; }
+.elysium-shop-game .Progress7 .TimerProgress { width: 7%; }
+.elysium-shop-game .Progress8 .TimerProgress { width: 8%; }
+.elysium-shop-game .Progress9 .TimerProgress { width: 9%; }
+.elysium-shop-game .Progress10 .TimerProgress { width: 10%; }
+.elysium-shop-game .Progress11 .TimerProgress { width: 11%; }
+.elysium-shop-game .Progress12 .TimerProgress { width: 12%; }
+.elysium-shop-game .Progress13 .TimerProgress { width: 13%; }
+.elysium-shop-game .Progress14 .TimerProgress { width: 14%; }
+.elysium-shop-game .Progress15 .TimerProgress { width: 15%; }
+.elysium-shop-game .Progress16 .TimerProgress { width: 16%; }
+.elysium-shop-game .Progress17 .TimerProgress { width: 17%; }
+.elysium-shop-game .Progress18 .TimerProgress { width: 18%; }
+.elysium-shop-game .Progress19 .TimerProgress { width: 19%; }
+.elysium-shop-game .Progress20 .TimerProgress { width: 20%; }
+.elysium-shop-game .Progress21 .TimerProgress { width: 21%; }
+.elysium-shop-game .Progress22 .TimerProgress { width: 22%; }
+.elysium-shop-game .Progress23 .TimerProgress { width: 23%; }
+.elysium-shop-game .Progress24 .TimerProgress { width: 24%; }
+.elysium-shop-game .Progress25 .TimerProgress { width: 25%; }
+.elysium-shop-game .Progress26 .TimerProgress { width: 26%; }
+.elysium-shop-game .Progress27 .TimerProgress { width: 27%; }
+.elysium-shop-game .Progress28 .TimerProgress { width: 28%; }
+.elysium-shop-game .Progress29 .TimerProgress { width: 29%; }
+.elysium-shop-game .Progress30 .TimerProgress { width: 30%; }
+.elysium-shop-game .Progress31 .TimerProgress { width: 31%; }
+.elysium-shop-game .Progress32 .TimerProgress { width: 32%; }
+.elysium-shop-game .Progress33 .TimerProgress { width: 33%; }
+.elysium-shop-game .Progress34 .TimerProgress { width: 34%; }
+.elysium-shop-game .Progress35 .TimerProgress { width: 35%; }
+.elysium-shop-game .Progress36 .TimerProgress { width: 36%; }
+.elysium-shop-game .Progress37 .TimerProgress { width: 37%; }
+.elysium-shop-game .Progress38 .TimerProgress { width: 38%; }
+.elysium-shop-game .Progress39 .TimerProgress { width: 39%; }
+.elysium-shop-game .Progress40 .TimerProgress { width: 40%; }
+.elysium-shop-game .Progress41 .TimerProgress { width: 41%; }
+.elysium-shop-game .Progress42 .TimerProgress { width: 42%; }
+.elysium-shop-game .Progress43 .TimerProgress { width: 43%; }
+.elysium-shop-game .Progress44 .TimerProgress { width: 44%; }
+.elysium-shop-game .Progress45 .TimerProgress { width: 45%; }
+.elysium-shop-game .Progress46 .TimerProgress { width: 46%; }
+.elysium-shop-game .Progress47 .TimerProgress { width: 47%; }
+.elysium-shop-game .Progress48 .TimerProgress { width: 48%; }
+.elysium-shop-game .Progress49 .TimerProgress { width: 49%; }
+.elysium-shop-game .Progress50 .TimerProgress { width: 50%; }
+.elysium-shop-game .Progress51 .TimerProgress { width: 51%; }
+.elysium-shop-game .Progress52 .TimerProgress { width: 52%; }
+.elysium-shop-game .Progress53 .TimerProgress { width: 53%; }
+.elysium-shop-game .Progress54 .TimerProgress { width: 54%; }
+.elysium-shop-game .Progress55 .TimerProgress { width: 55%; }
+.elysium-shop-game .Progress56 .TimerProgress { width: 56%; }
+.elysium-shop-game .Progress57 .TimerProgress { width: 57%; }
+.elysium-shop-game .Progress58 .TimerProgress { width: 58%; }
+.elysium-shop-game .Progress59 .TimerProgress { width: 59%; }
+.elysium-shop-game .Progress60 .TimerProgress { width: 60%; }
+.elysium-shop-game .Progress61 .TimerProgress { width: 61%; }
+.elysium-shop-game .Progress62 .TimerProgress { width: 62%; }
+.elysium-shop-game .Progress63 .TimerProgress { width: 63%; }
+.elysium-shop-game .Progress64 .TimerProgress { width: 64%; }
+.elysium-shop-game .Progress65 .TimerProgress { width: 65%; }
+.elysium-shop-game .Progress66 .TimerProgress { width: 66%; }
+.elysium-shop-game .Progress67 .TimerProgress { width: 67%; }
+.elysium-shop-game .Progress68 .TimerProgress { width: 68%; }
+.elysium-shop-game .Progress69 .TimerProgress { width: 69%; }
+.elysium-shop-game .Progress70 .TimerProgress { width: 70%; }
+.elysium-shop-game .Progress71 .TimerProgress { width: 71%; }
+.elysium-shop-game .Progress72 .TimerProgress { width: 72%; }
+.elysium-shop-game .Progress73 .TimerProgress { width: 73%; }
+.elysium-shop-game .Progress74 .TimerProgress { width: 74%; }
+.elysium-shop-game .Progress75 .TimerProgress { width: 75%; }
+.elysium-shop-game .Progress76 .TimerProgress { width: 76%; }
+.elysium-shop-game .Progress77 .TimerProgress { width: 77%; }
+.elysium-shop-game .Progress78 .TimerProgress { width: 78%; }
+.elysium-shop-game .Progress79 .TimerProgress { width: 79%; }
+.elysium-shop-game .Progress80 .TimerProgress { width: 80%; }
+.elysium-shop-game .Progress81 .TimerProgress { width: 81%; }
+.elysium-shop-game .Progress82 .TimerProgress { width: 82%; }
+.elysium-shop-game .Progress83 .TimerProgress { width: 83%; }
+.elysium-shop-game .Progress84 .TimerProgress { width: 84%; }
+.elysium-shop-game .Progress85 .TimerProgress { width: 85%; }
+.elysium-shop-game .Progress86 .TimerProgress { width: 86%; }
+.elysium-shop-game .Progress87 .TimerProgress { width: 87%; }
+.elysium-shop-game .Progress88 .TimerProgress { width: 88%; }
+.elysium-shop-game .Progress89 .TimerProgress { width: 89%; }
+.elysium-shop-game .Progress90 .TimerProgress { width: 90%; }
+.elysium-shop-game .Progress91 .TimerProgress { width: 91%; }
+.elysium-shop-game .Progress92 .TimerProgress { width: 92%; }
+.elysium-shop-game .Progress93 .TimerProgress { width: 93%; }
+.elysium-shop-game .Progress94 .TimerProgress { width: 94%; }
+.elysium-shop-game .Progress95 .TimerProgress { width: 95%; }
+.elysium-shop-game .Progress96 .TimerProgress { width: 96%; }
+.elysium-shop-game .Progress97 .TimerProgress { width: 97%; }
+.elysium-shop-game .Progress98 .TimerProgress { width: 98%; }
+.elysium-shop-game .Progress99 .TimerProgress { width: 99%; }
+.elysium-shop-game .Progress100 .TimerProgress { width: 100%; }
+.elysium-shop-game .SoundsOn .Card.Available .BuyHit:hover { ; }
+.elysium-shop-game .SoundsOn .Card.Available .BuyHit:active { ; }
+.elysium-shop-game .SoundsOn .Confirm.Available .ConfirmHit:active { ; }
+.elysium-shop-game .SoundsOff .BuyHit:hover { ; }
+.elysium-shop-game .SoundsOff .BuyHit:active { ; }
+.elysium-shop-game .SoundsOff .ConfirmHit:active { ; }

@@ -54,9 +54,9 @@
 .IconSilhouette { wash-color: #64707c; opacity: 0.45; }
 .Card.Available .IconHalo { visibility: visible; }
 .Card.Available .IconSilhouette { wash-color: #dfebf2; opacity: 1; }
-.Cooldown { visibility: collapse; horizontal-align: right; vertical-align: center; margin-right: 10px; padding: 4px 8px; background-color: #081019ed; border: 1px solid #a4c3d955; border-radius: 4px; }
+.Cooldown { visibility: collapse; width: 84px; height: 30px; horizontal-align: right; vertical-align: center; margin: 2px; background-color: #081019ed; border: 1px solid #a4c3d955; border-radius: 4px; }
 .Cooldown.Visible { visibility: visible; }
-.Countdown { color: #eaf5ff; font-size: 18px; font-weight: bold; }
+.Countdown { width: 100%; height: 22px; horizontal-align: center; vertical-align: center; text-align: center; white-space: nowrap; font-family: Consolas, monospace; color: #eaf5ff; font-size: 17px; font-weight: bold; }
 .CardDetails { width: 100%; height: 22px; flow-children: right; }
 .RarityMark { width: 13px; height: 3px; vertical-align: center; margin-right: 6px; background-color: #52606c; }
 .Status { width: fill-parent-flow(1); height: 22px; vertical-align: center; font-size: 11px; color: #7b8996; text-overflow: ellipsis; }
@@ -376,3 +376,132 @@
 .Speed_slow .ShopWindow, .Speed_slow .CardSurface { animation-duration: 0.6s; animation-iteration-count: 1; }
 .Speed_slow .Cards, .Speed_slow .Columns { animation-duration: 0.3s; animation-iteration-count: 1; }
 .ShopRoot.BankA .Confirm .HitB, .ShopRoot.BankB .Confirm .HitA, .ShopRoot.Closing .Confirm .ConfirmHit, .ShopRoot.SettingsOpen .Confirm .ConfirmHit { visibility: collapse; }
+
+.TimerShape_badge .Cooldown { border-radius: 4px; }
+.TimerShape_pill .Cooldown { border-radius: 18px; }
+.TimerShape_circle .Cooldown { width: 56px; height: 56px; border-radius: 50%; border-width: 3px; }
+.TimerShape_square .Cooldown { width: 56px; height: 56px; border-radius: 8px; border-width: 2px; }
+.TimerShape_circle .Countdown, .TimerShape_square .Countdown { font-size: 13px; }
+.TimerShape_bar .Cooldown { width: 100%; height: 28px; margin: 0px; border-radius: 0px; }
+.TimerProgress { height: 100%; background-color: #76d9cc38; visibility: collapse; }
+.TimerShape_bar .TimerProgress { visibility: visible; }
+.TimerPosition_auto.TimerShape_circle .Cooldown, .TimerPosition_auto.TimerShape_square .Cooldown { horizontal-align: center; vertical-align: center; margin: 0px; }
+.TimerPosition_auto.TimerShape_bar .Cooldown { horizontal-align: center; vertical-align: bottom; }
+.TimerPosition_auto.TimerShape_pill .Cooldown { vertical-align: top; }
+.TimerAnimation_none .Cooldown { animation-name: none; }
+.TimerAnimation_pulse .Cooldown.Visible { animation-name: shop-timer-pulse; animation-iteration-count: infinite; }
+.TimerAnimation_blink .Cooldown.Visible { animation-name: shop-timer-blink; animation-iteration-count: infinite; }
+.TimerSpeed_fast .Cooldown { animation-duration: 0.6s; }
+.TimerSpeed_normal .Cooldown { animation-duration: 1.2s; }
+.TimerSpeed_slow .Cooldown { animation-duration: 2.4s; }
+@keyframes 'shop-timer-pulse' { 0% { brightness: 1; } 50% { brightness: 1.5; } 100% { brightness: 1; } }
+@keyframes 'shop-timer-blink' { 0% { opacity: 1; } 50% { opacity: 0.55; } 100% { opacity: 1; } }
+.TimerPosition_top_left .Cooldown { horizontal-align: left; vertical-align: top; }
+.TimerPosition_top_right .Cooldown { horizontal-align: right; vertical-align: top; }
+.TimerPosition_center .Cooldown { horizontal-align: center; vertical-align: center; }
+.TimerPosition_bottom_left .Cooldown { horizontal-align: left; vertical-align: bottom; }
+.TimerPosition_bottom_right .Cooldown { horizontal-align: right; vertical-align: bottom; }
+.Progress0 .TimerProgress { width: 0%; }
+.Progress1 .TimerProgress { width: 1%; }
+.Progress2 .TimerProgress { width: 2%; }
+.Progress3 .TimerProgress { width: 3%; }
+.Progress4 .TimerProgress { width: 4%; }
+.Progress5 .TimerProgress { width: 5%; }
+.Progress6 .TimerProgress { width: 6%; }
+.Progress7 .TimerProgress { width: 7%; }
+.Progress8 .TimerProgress { width: 8%; }
+.Progress9 .TimerProgress { width: 9%; }
+.Progress10 .TimerProgress { width: 10%; }
+.Progress11 .TimerProgress { width: 11%; }
+.Progress12 .TimerProgress { width: 12%; }
+.Progress13 .TimerProgress { width: 13%; }
+.Progress14 .TimerProgress { width: 14%; }
+.Progress15 .TimerProgress { width: 15%; }
+.Progress16 .TimerProgress { width: 16%; }
+.Progress17 .TimerProgress { width: 17%; }
+.Progress18 .TimerProgress { width: 18%; }
+.Progress19 .TimerProgress { width: 19%; }
+.Progress20 .TimerProgress { width: 20%; }
+.Progress21 .TimerProgress { width: 21%; }
+.Progress22 .TimerProgress { width: 22%; }
+.Progress23 .TimerProgress { width: 23%; }
+.Progress24 .TimerProgress { width: 24%; }
+.Progress25 .TimerProgress { width: 25%; }
+.Progress26 .TimerProgress { width: 26%; }
+.Progress27 .TimerProgress { width: 27%; }
+.Progress28 .TimerProgress { width: 28%; }
+.Progress29 .TimerProgress { width: 29%; }
+.Progress30 .TimerProgress { width: 30%; }
+.Progress31 .TimerProgress { width: 31%; }
+.Progress32 .TimerProgress { width: 32%; }
+.Progress33 .TimerProgress { width: 33%; }
+.Progress34 .TimerProgress { width: 34%; }
+.Progress35 .TimerProgress { width: 35%; }
+.Progress36 .TimerProgress { width: 36%; }
+.Progress37 .TimerProgress { width: 37%; }
+.Progress38 .TimerProgress { width: 38%; }
+.Progress39 .TimerProgress { width: 39%; }
+.Progress40 .TimerProgress { width: 40%; }
+.Progress41 .TimerProgress { width: 41%; }
+.Progress42 .TimerProgress { width: 42%; }
+.Progress43 .TimerProgress { width: 43%; }
+.Progress44 .TimerProgress { width: 44%; }
+.Progress45 .TimerProgress { width: 45%; }
+.Progress46 .TimerProgress { width: 46%; }
+.Progress47 .TimerProgress { width: 47%; }
+.Progress48 .TimerProgress { width: 48%; }
+.Progress49 .TimerProgress { width: 49%; }
+.Progress50 .TimerProgress { width: 50%; }
+.Progress51 .TimerProgress { width: 51%; }
+.Progress52 .TimerProgress { width: 52%; }
+.Progress53 .TimerProgress { width: 53%; }
+.Progress54 .TimerProgress { width: 54%; }
+.Progress55 .TimerProgress { width: 55%; }
+.Progress56 .TimerProgress { width: 56%; }
+.Progress57 .TimerProgress { width: 57%; }
+.Progress58 .TimerProgress { width: 58%; }
+.Progress59 .TimerProgress { width: 59%; }
+.Progress60 .TimerProgress { width: 60%; }
+.Progress61 .TimerProgress { width: 61%; }
+.Progress62 .TimerProgress { width: 62%; }
+.Progress63 .TimerProgress { width: 63%; }
+.Progress64 .TimerProgress { width: 64%; }
+.Progress65 .TimerProgress { width: 65%; }
+.Progress66 .TimerProgress { width: 66%; }
+.Progress67 .TimerProgress { width: 67%; }
+.Progress68 .TimerProgress { width: 68%; }
+.Progress69 .TimerProgress { width: 69%; }
+.Progress70 .TimerProgress { width: 70%; }
+.Progress71 .TimerProgress { width: 71%; }
+.Progress72 .TimerProgress { width: 72%; }
+.Progress73 .TimerProgress { width: 73%; }
+.Progress74 .TimerProgress { width: 74%; }
+.Progress75 .TimerProgress { width: 75%; }
+.Progress76 .TimerProgress { width: 76%; }
+.Progress77 .TimerProgress { width: 77%; }
+.Progress78 .TimerProgress { width: 78%; }
+.Progress79 .TimerProgress { width: 79%; }
+.Progress80 .TimerProgress { width: 80%; }
+.Progress81 .TimerProgress { width: 81%; }
+.Progress82 .TimerProgress { width: 82%; }
+.Progress83 .TimerProgress { width: 83%; }
+.Progress84 .TimerProgress { width: 84%; }
+.Progress85 .TimerProgress { width: 85%; }
+.Progress86 .TimerProgress { width: 86%; }
+.Progress87 .TimerProgress { width: 87%; }
+.Progress88 .TimerProgress { width: 88%; }
+.Progress89 .TimerProgress { width: 89%; }
+.Progress90 .TimerProgress { width: 90%; }
+.Progress91 .TimerProgress { width: 91%; }
+.Progress92 .TimerProgress { width: 92%; }
+.Progress93 .TimerProgress { width: 93%; }
+.Progress94 .TimerProgress { width: 94%; }
+.Progress95 .TimerProgress { width: 95%; }
+.Progress96 .TimerProgress { width: 96%; }
+.Progress97 .TimerProgress { width: 97%; }
+.Progress98 .TimerProgress { width: 98%; }
+.Progress99 .TimerProgress { width: 99%; }
+.Progress100 .TimerProgress { width: 100%; }
+.SoundsOn .Card.Available .BuyHit:hover { sound: "UIPanorama.buymenu_mouseover"; }
+.SoundsOn .Card.Available .BuyHit:active, .SoundsOn .Confirm.Available .ConfirmHit:active { sound: "UIPanorama.buymenu_select"; }
+.SoundsOff .BuyHit:hover, .SoundsOff .BuyHit:active, .SoundsOff .ConfirmHit:active { sound: ""; }

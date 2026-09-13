@@ -1737,6 +1737,10 @@
       "ru": "Выберите предмет и подтвердите покупку",
       "en": "Select an item and confirm the purchase"
     },
+    "Shop.Hud.Timer.Seconds": {"ru": "с", "en": "s"},
+    "Shop.Hud.Timer.Minutes": {"ru": "м", "en": "m"},
+    "Shop.Hud.Timer.Hours": {"ru": "ч", "en": "h"},
+    "Shop.Hud.Timer.Days": {"ru": "д", "en": "d"},
     "Shop.Hud.Confirm": {
       "ru": "Купить",
       "en": "Buy"
