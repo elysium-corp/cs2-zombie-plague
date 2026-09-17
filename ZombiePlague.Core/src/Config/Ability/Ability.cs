@@ -15,6 +15,10 @@ public sealed class AbilityConfig
     public CatchConfig Catch { get; set; } = new();
     
     public DoubleJumpConfig DoubleJump { get; set; } = new();
+    
+    public DisarmConfig Disarm { get; set; } = new();
+    
+    public FireBombConfig FireBomb { get; set; } = new();
 }
 
 public sealed class HealConfig : IAbilityConfig
@@ -203,4 +207,68 @@ public sealed class DoubleJumpConfig : IAbilityConfig
     public bool Enable { get; set; } = true;
 
     public float BaseJumpUnits { get; set; } = 54f;
+}
+
+public sealed class DisarmConfig : IAbilityConfig
+{
+    public bool Enable { get; set; } = true;
+
+    public float CooldownTime { get; set; } = 3f;
+
+    // Основной летящий снаряд
+    public string ParticleProjectileEffectName { get; set; } =
+        "particles/kolka/part10_acid2.vpcf";
+
+    // Эффект при запуске
+    public string ParticleBurstEffectName { get; set; } =
+        "particles/kolka/part10_acid2_burst.vpcf";
+
+    // Эффект попадания
+    public string ParticleExplodeEffectName { get; set; } =
+        "particles/kolka/part10_acid2_explode.vpcf";
+
+    public float ProjectileSpeed { get; set; } = 600f;
+
+    public float MaxDistance { get; set; } = 1000f;
+
+    public float SpawnOffset { get; set; } = 50f;
+
+    public float UpdateIntervalSeconds { get; set; } = 0.02f;
+}
+
+public sealed class FireBombConfig : IAbilityConfig
+{
+    public bool Enable { get; set; } = true;
+
+    public float CooldownTime { get; set; } = 15f;
+
+    public string ParticleProjectileEffectName { get; set; } =
+        "particles/kolka/part10.vpcf";
+
+    public string ParticleExplosionEffectName { get; set; } =
+        "particles/kolka/overdrive_buff_start.vpcf";
+    
+    // Начальная скорость ТОЧНО вдоль прицела.
+    public float ProjectileSpeed { get; set; } = 1000f;
+    
+    // Определяет насколько быстро projectile начнёт падать.
+    public float ProjectileGravity { get; set; } = 600f;
+
+    public float MaxDistance { get; set; } = 2000f;
+
+    public float SpawnOffset { get; set; } = 40f;
+
+    public float UpdateIntervalSeconds { get; set; } = 0.02f;
+
+    public float ExplosionRadius { get; set; } = 215f;
+
+    public float KnockbackPower { get; set; } = 400f;
+
+    public float KnockbackUp { get; set; } = 250f;
+
+    public float ExplosionParticleDuration { get; set; } = 1.5f;
+    
+    public float BurnMaxDamage { get; set; } = 18f;
+    
+    public float BurnDuration { get; set; } = 3.1f;
 }

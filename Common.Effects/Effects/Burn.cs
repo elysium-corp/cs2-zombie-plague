@@ -6,87 +6,196 @@ using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace Common.Effects.Effects;
 
-public sealed class Burn(ISwiftlyCore core, Action<IEffect> callback, IPlayer? caster, IPlayer target, BurnSettings? settings) : BaseTickEffect(core, callback, caster, target)
+public sealed class Burn(
+    ISwiftlyCore core,
+    Action<IEffect> callback,
+    IPlayer? caster,
+    IPlayer target,
+    BurnSettings? settings
+) : BaseTickEffect(core, callback, caster, target)
 {
-    private const string ParticleName = "particles/inferno_fx/molotov_child_flame01a.vpcf";
-    public BurnSettings Settings { get; } = settings ?? new BurnSettings();
-    public override float Duration => Settings.Duration;
-    
+    private const string ParticleName =
+        "particles/inferno_fx/molotov_child_flame01a.vpcf";
+
+    public BurnSettings Settings { get; } =
+        settings ?? new BurnSettings();
+
+    public override float Duration =>
+        Settings.Duration;
+
+    protected override float TickInterval =>
+        0.5f;
+
     public override void Destroy()
     {
         DestroyEffect();
     }
 
-    protected override float TickInterval => 0.5f;
-    
     protected override bool CanApply()
     {
-        if (!Target.IsValid || !Target.IsAlive) return false;
-
-        return true;
+        return
+            Target.IsValid &&
+            Target.IsAlive &&
+            Target.PlayerPawn is
+            {
+                IsValid: true
+            };
     }
 
     protected override void ApplyEffect()
     {
         CreateParticle();
 
-        ApplyInstantDamage();
+        ApplyBurnDamage(
+            Settings.InstantDamageInPercent
+        );
+    }
+
+    protected override void TickEffect()
+    {
+        ApplyBurnDamage(
+            Settings.DamagePerTickInPercent
+        );
     }
 
     protected override void DestroyEffect()
     {
         DestroyParticle();
+
         base.DestroyEffect();
     }
 
-    protected override void TickEffect()
+    private void ApplyBurnDamage(
+        float percent
+    )
     {
-        Target.PlayerPawn?.TakeDamage(
-            GetFireDamage(Settings.DamagePerTickInPercent),
-            DamageTypes_t.DMG_ACID,
-            inflictor: null,
-            attacker: Caster?.PlayerPawn
-        );
-    }
-
-    private int GetFireDamage(float percent)
-    {
-        return (int)(Target.PlayerPawn!.MaxHealth * (percent / 100));
-    }
-
-    protected override void CreateParticle()
-    {
-        var playerPawn = Target.PlayerPawn;
-        if (playerPawn == null)
+        if (percent <= 0f)
         {
             return;
         }
 
-        Particle = Core.EntitySystem.CreateEntity<CParticleSystem>();
-        Particle.EffectName = ParticleName;
-        Particle.StartActive = true;
+        var targetPawn =
+            Target.PlayerPawn;
+
+        if (
+            targetPawn == null ||
+            !targetPawn.IsValid
+        )
+        {
+            return;
+        }
+
+        var damage =
+            GetFireDamage(
+                targetPawn,
+                percent
+            );
+
+        if (damage <= 0)
+        {
+            return;
+        }
+        
+        var casterPawn =
+            Caster?.PlayerPawn;
+
+        if (
+            casterPawn != null &&
+            casterPawn.IsValid
+        )
+        {
+            targetPawn.TakeDamage(
+                damage,
+                DamageTypes_t.DMG_ACID,
+                inflictor: casterPawn,
+                attacker: casterPawn
+            );
+
+            return;
+        }
+        
+        targetPawn.TakeDamage(
+            damage,
+            DamageTypes_t.DMG_ACID,
+            inflictor: targetPawn,
+            attacker: null
+        );
+    }
+
+    private static int GetFireDamage(
+        CCSPlayerPawn targetPawn,
+        float percent
+    )
+    {
+        if (targetPawn.MaxHealth <= 0)
+        {
+            return 0;
+        }
+
+        return Math.Max(
+            1,
+            (int)MathF.Round(
+                targetPawn.MaxHealth *
+                (percent / 100f)
+            )
+        );
+    }
+
+    protected override void CreateParticle()
+    {
+        var playerPawn =
+            Target.PlayerPawn;
+
+        if (
+            playerPawn == null ||
+            !playerPawn.IsValid
+        )
+        {
+            return;
+        }
+
+        Particle =
+            Core.EntitySystem
+                .CreateEntity<CParticleSystem>();
+
+        Particle.EffectName =
+            ParticleName;
+
+        Particle.StartActive =
+            true;
+
         Particle.DispatchSpawn();
 
-        Particle.Teleport(playerPawn.AbsOrigin, null, null);
-        Particle.AcceptInput("SetParent", "!activator", playerPawn, Particle);
-        Particle.AcceptInput("SetParentAttachment", "knife", playerPawn);
+        Particle.Teleport(
+            playerPawn.AbsOrigin,
+            null,
+            null
+        );
+
+        Particle.AcceptInput(
+            "SetParent",
+            "!activator",
+            playerPawn,
+            Particle
+        );
+
+        Particle.AcceptInput(
+            "SetParentAttachment",
+            "knife",
+            playerPawn
+        );
     }
 
     protected override void DestroyParticle()
     {
-        if (Particle != null && Particle.IsValidEntity)
+        if (
+            Particle != null &&
+            Particle.IsValidEntity
+        )
         {
             Particle.Despawn();
         }
-    }
 
-    private void ApplyInstantDamage()
-    {
-        Target.PlayerPawn?.TakeDamage(
-            GetFireDamage(Settings.InstantDamageInPercent),
-            DamageTypes_t.DMG_ACID,
-            inflictor: null,
-            attacker: Caster?.PlayerPawn
-        );
+        Particle = null;
     }
 }
