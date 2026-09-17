@@ -18,7 +18,7 @@ internal static class AbilityParameters
             "catch" => typeof(CatchConfig),
             "disarm" => typeof(DisarmConfig),
             "double_jump" => typeof(DoubleJumpConfig),
-            "blood_bomb" => typeof(FireBombConfig),
+            "fire_bomb" => typeof(FireBombConfig),
             
             _ => throw new InvalidDataException(
                 $"Неизвестная механика способности {definition.Kind}"
