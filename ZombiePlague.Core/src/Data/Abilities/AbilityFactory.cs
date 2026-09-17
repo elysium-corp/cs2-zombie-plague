@@ -32,6 +32,8 @@ internal sealed class AbilityFactory(
             TrapConfig config => new Trap(core, config, localization),
             CatchConfig config => new Catch(core, config, localization),
             DoubleJumpConfig config => new DoubleJump(core, config),
+            DisarmConfig config => new Disarm(core, config, localization),
+            FireBombConfig config => new FireBomb(core, config, localization),
             _ => throw new NotSupportedException($"Неизвестная механика {definition.Kind}")
         };
         if (ability is IPresentedAbility presented)
