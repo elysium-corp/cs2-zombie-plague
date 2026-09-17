@@ -19,12 +19,17 @@ internal sealed class PlayerService(
     IPlayerPreferencesCoordinator playerPreferencesCoordinator
 ) : IPlayerService
 {
+    private readonly Dictionary<int, CancellationTokenSource> _playerReadyTimers = [];
+
     private Guid _playerConnectGuid = Guid.Empty;
     private Guid _playerSpawnGuid = Guid.Empty;
     private Guid _playerDeathGuid = Guid.Empty;
     private Guid _playerDisconnectGuid = Guid.Empty;
     private Guid _playerTeamPreGuid = Guid.Empty;
     private Guid _playerTeamGuid = Guid.Empty;
+
+    private const int MaxPlayerReadyAttempts = 30;
+    private const float PlayerReadyRetryDelaySeconds = 0.1f;
 
     public void Register()
     {
@@ -49,6 +54,13 @@ internal sealed class PlayerService(
 
         core.Event.OnClientPutInServer -= OnClientPutInServer;
 
+        foreach (var timer in _playerReadyTimers.Values)
+        {
+            timer.Cancel();
+        }
+
+        _playerReadyTimers.Clear();
+
         playerPreferencesCoordinator.SaveAllAndWait();
         playerManager.Clear();
     }
@@ -68,20 +80,75 @@ internal sealed class PlayerService(
         }
     }
 
-    // Pre используется специально: следующие Post-хуки увидят уже созданную роль игрока.
+    // player_connect_full может прийти до появления валидного Pawn. В SwiftlyS2 IsValid
+    // требует одновременно Controller и Pawn, поэтому одноразовая проверка теряла late-join игроков.
     private HookResult OnPlayerConnectFull(EventPlayerConnectFull @event)
     {
         var player = @event.UserIdPlayer;
 
-        if (player?.IsValid != true)
+        if (player is null)
         {
             return HookResult.Continue;
         }
 
-        playerPreferencesCoordinator.Initialize(player);
-        playerManager.TrySetHuman(player);
+        InitializePlayerWhenReady(player.PlayerID, player.SessionId, attempt: 0);
 
         return HookResult.Continue;
+    }
+
+    private void InitializePlayerWhenReady(int playerId, ulong sessionId, int attempt)
+    {
+        var player = core.PlayerManager.GetPlayer(playerId);
+
+        if (player is null || player.SessionId != sessionId)
+        {
+            CancelPlayerReadyTimer(playerId);
+            return;
+        }
+
+        if (player.IsValid)
+        {
+            CancelPlayerReadyTimer(playerId);
+
+            playerPreferencesCoordinator.Initialize(player);
+
+            if (!playerManager.TrySetHuman(player))
+            {
+                return;
+            }
+
+            // Если игрок подключился во время preparation или активного Infection/Plague
+            // уже мёртвым, сразу передаём его текущему round lifecycle.
+            if (!player.IsAlive)
+            {
+                roundManager.TryRespawnPlayer(player);
+            }
+
+            return;
+        }
+
+        if (attempt >= MaxPlayerReadyAttempts)
+        {
+            CancelPlayerReadyTimer(playerId);
+            return;
+        }
+
+        CancelPlayerReadyTimer(playerId);
+
+        CancellationTokenSource? timer = null;
+        timer = core.Scheduler.DelayBySeconds(PlayerReadyRetryDelaySeconds, () =>
+        {
+            if (!_playerReadyTimers.TryGetValue(playerId, out var currentTimer) ||
+                !ReferenceEquals(currentTimer, timer))
+            {
+                return;
+            }
+
+            _playerReadyTimers.Remove(playerId);
+            InitializePlayerWhenReady(playerId, sessionId, attempt + 1);
+        });
+
+        _playerReadyTimers[playerId] = timer;
     }
 
     private HookResult OnPlayerSpawn(EventPlayerSpawn @event)
@@ -121,6 +188,8 @@ internal sealed class PlayerService(
 
     private HookResult OnPlayerDisconnect(EventPlayerDisconnect @event)
     {
+        CancelPlayerReadyTimer(@event.PlayerID);
+
         var player = @event.UserIdPlayer;
 
         if (player is null)
@@ -145,5 +214,13 @@ internal sealed class PlayerService(
     private HookResult OnPlayerTeam(EventPlayerTeam @event)
     {
         return roundManager.OnPlayerTeam(@event);
+    }
+
+    private void CancelPlayerReadyTimer(int playerId)
+    {
+        if (_playerReadyTimers.Remove(playerId, out var timer))
+        {
+            timer.Cancel();
+        }
     }
 }

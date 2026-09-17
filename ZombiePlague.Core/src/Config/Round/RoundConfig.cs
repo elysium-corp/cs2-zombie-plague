@@ -1,4 +1,4 @@
-﻿namespace ZombiePlague.Core.Config.Round;
+namespace ZombiePlague.Core.Config.Round;
 
 public sealed class RoundConfig
 {
@@ -16,7 +16,7 @@ public sealed class RoundConfig
     }
 }
 
-public sealed class InfectionConfig : IRoundConfig
+public sealed class InfectionConfig : IRoundConfig, IZombieRespawnConfig
 {
     /// <summary>
     /// Включён ли раунд «Инфекция» в пуле доступных раундов.
@@ -34,11 +34,16 @@ public sealed class InfectionConfig : IRoundConfig
     public int Weight { get; set; } = 20;
 
     /// <summary>
-    /// Разрешено ли возрождение умерших зомби в течение раунда.
-    /// Подключившиеся во время раунда игроки возрождаются зомби
-    /// независимо от этого параметра.
+    /// Разрешено ли автоматическое возрождение умерших зомби в течение раунда.
+    /// Подключившийся впервые игрок всё ещё может войти в активный раунд зомби.
     /// </summary>
     public bool ZombieRevived { get; set; } = true;
+
+    /// <summary>
+    /// Максимальное количество автоматических возрождений одного зомби за раунд.
+    /// Reconnect не сбрасывает это значение; новый игровой раунд начинает счётчик заново.
+    /// </summary>
+    public int ZombieRespawnLimit { get; set; } = 3;
 
     /// <summary>
     /// Доступен ли рывок (Leap) первому зомби в этом раунде.
@@ -76,7 +81,7 @@ public sealed class InfectionConfig : IRoundConfig
     public float InvisibleDuration { get; set; } = 10.0f;
 }
 
-public sealed class PlagueConfig : IRoundConfig
+public sealed class PlagueConfig : IRoundConfig, IZombieRespawnConfig
 {
     /// <summary>
     /// Включён ли раунд «Чума» (массовое заражение) в пуле доступных раундов.
@@ -94,11 +99,15 @@ public sealed class PlagueConfig : IRoundConfig
     public int Weight { get; set; } = 15;
 
     /// <summary>
-    /// Разрешено ли возрождение зомби в течение раунда.
-    /// Если <c>true</c>, умершие/подключившиеся игроки возрождаются зомби
-    /// (через <see cref="ZombieSpawnTime"/>).
+    /// Разрешено ли автоматическое возрождение умерших зомби в течение раунда.
     /// </summary>
     public bool ZombieRevived { get; set; } = true;
+
+    /// <summary>
+    /// Максимальное количество автоматических возрождений одного зомби за раунд.
+    /// Reconnect не сбрасывает это значение; новый игровой раунд начинает счётчик заново.
+    /// </summary>
+    public int ZombieRespawnLimit { get; set; } = 3;
 
     /// <summary>
     /// Доля игроков, заражаемых в начале раунда, от 0 до 1.

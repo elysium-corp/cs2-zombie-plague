@@ -1,10 +1,7 @@
-using Common.Hooks.Abstractions;
 using Localization.Api;
 using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;
-using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Misc;
-using SwiftlyS2.Shared.Players;
 using ZombiePlague.Api.Data.Rounds;
 using ZombiePlague.Core.Config.Core;
 using ZombiePlague.Core.Config.Round;
@@ -20,10 +17,8 @@ internal sealed class Plague(
     PlagueConfig config,
     IOptions<ZombiePlagueCoreConfig> coreConfig,
     Func<ILocalizationApi> localization
-) : InfectionBase(core, playerManager, coreConfig, localization)
+) : InfectionBase(core, playerManager, coreConfig, localization, config)
 {
-    private readonly Dictionary<int, CancellationTokenSource> _respawnTimers = [];
-    
     public override string Id => RoundIds.Plague;
     
     public override string Name => config.Name;
@@ -81,20 +76,12 @@ internal sealed class Plague(
             SoundExt.PlayGlobal(config.MusicSoundName);
         }
 
-
         return true;
     }
     
     protected override void OnEnd()
     {
-        var timers = _respawnTimers.Values.ToArray();
-        _respawnTimers.Clear();
-
-        foreach (var timer in timers)
-        {
-            timer.Cancel();
-        }
-        
+        ClearRespawns();
         PlayWinnerSound();
     }
     
@@ -103,73 +90,5 @@ internal sealed class Plague(
         var humansCount = PlayerManager.GetAllAliveHumans().Count();
         
         return humansCount >= config.MinimumHumansRequired;
-    }
-    
-    protected override HookResult OnPlayerDeath(EventPlayerDeath @event)
-    {
-        var player = @event.UserIdPlayer;
-
-        if (player is not { IsValid: true }) return HookResult.Continue;
-        
-        if (PlayerManager.IsZombie(player) ||
-            PlayerManager.IsHuman(player) &&
-            PlayerManager.GetAllAliveHumans().Any() &&
-            PlayerManager.TryInfect(player)
-           )
-        {
-            ScheduleZombieRespawn(player);
-        }
-
-        return HookResult.Continue;
-    }
-
-    protected override HookResult OnPlayerDisconnect(EventPlayerDisconnect @event)
-    {
-        var playerId = @event.PlayerID;
-        
-        CancelRespawnTimer(playerId);
-
-        return HookResult.Continue;
-    }
-    
-    private void ScheduleZombieRespawn(IPlayer player)
-    {
-        if (!config.ZombieRevived || !player.IsValid || player.IsAlive || !PlayerManager.IsZombie(player)) return;
-
-        CancelRespawnTimer(player.PlayerID);
-
-        if (config.ZombieSpawnTime <= 0)
-        {
-            Core.Scheduler.NextWorldUpdate(() => Respawn(player));
-
-            return;
-        }
-
-        var playerId = player.PlayerID;
-
-        _respawnTimers[playerId] = Core.Scheduler.DelayBySeconds(config.ZombieSpawnTime, () =>
-            {
-                _respawnTimers.Remove(playerId);
-                Respawn(player);
-            }
-        );
-    }
-    
-    private void Respawn(IPlayer player)
-    {
-        if (!player.IsValid || player.IsAlive || !PlayerManager.IsZombie(player))
-        {
-            return;
-        }
-
-        PlayerManager.TryRespawn(player);
-    }
-
-    private void CancelRespawnTimer(int playerId)
-    {
-        if (_respawnTimers.Remove(playerId, out var timer))
-        {
-            timer.Cancel();
-        }
     }
 }
