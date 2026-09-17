@@ -111,7 +111,7 @@ internal abstract class RoundBase(
         return false;
     }
 
-    private void TryRequestRoundEnd()
+    protected void TryRequestRoundEnd()
     {
         if (_isRoundEnded)
         {
