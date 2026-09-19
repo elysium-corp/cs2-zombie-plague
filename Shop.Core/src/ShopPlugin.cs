@@ -37,6 +37,9 @@ namespace Shop.Core;
     Description = "Memory-snapshot shop for human and zombie equipment")]
 internal sealed class ShopPlugin(ISwiftlyCore core) : Plugin<ShopModule>(core)
 {
+    private const string AmmoEmptyNotificationEventKey = "InfoNotify.Periodic";
+    private const string AmmoEmptyMessage = "докупить патрона на \"E\"";
+
     private readonly Lazy<BannerNotificationClient> _notifications = GetRequiredServiceLazy<BannerNotificationClient>();
 
     private readonly Lazy<ShopApi> _api = GetRequiredServiceLazy<ShopApi>();
@@ -48,6 +51,8 @@ internal sealed class ShopPlugin(ISwiftlyCore core) : Plugin<ShopModule>(core)
     private readonly Lazy<ShopPurchaseCounter> _counters = GetRequiredServiceLazy<ShopPurchaseCounter>();
     private readonly Lazy<ShopSnapshotCoordinator> _coordinator = GetRequiredServiceLazy<ShopSnapshotCoordinator>();
     private readonly Lazy<ShopAdminApiProxy> _admin = GetRequiredServiceLazy<ShopAdminApiProxy>();
+    private readonly Lazy<Func<ICustomEquipmentApi>> _equipment =
+        GetRequiredServiceLazy<Func<ICustomEquipmentApi>>();
     private readonly Lazy<Func<ILocalizationApi>> _localization =
         GetRequiredServiceLazy<Func<ILocalizationApi>>();
     private readonly Lazy<DatabaseMigrator<ShopDbContext>> _migrator =
@@ -59,6 +64,7 @@ internal sealed class ShopPlugin(ISwiftlyCore core) : Plugin<ShopModule>(core)
     private readonly HashSet<Task> _tasks = [];
     private IDisposable? _mainMenuSubscription;
     private Guid _roundStartHook;
+    private Guid _weaponFireHook;
 
     protected override void OnConfigureSharedInterfaces(IInterfaceManager interfaceManager)
     {
@@ -122,6 +128,7 @@ internal sealed class ShopPlugin(ISwiftlyCore core) : Plugin<ShopModule>(core)
         Core.Event.OnClientKeyStateChanged += OnClientKeyStateChanged;
         Core.Event.OnMapUnload += OnMapUnload;
         _roundStartHook = Core.GameEvent.HookPost<EventRoundStart>(OnRoundStart);
+        _weaponFireHook = Core.GameEvent.HookPost<EventWeaponFire>(OnWeaponFire);
         RegisterCommands();
         Core.Logger.LogInformation("[Shop] Shop.Core 1.9.0 загружен");
     }
@@ -141,6 +148,11 @@ internal sealed class ShopPlugin(ISwiftlyCore core) : Plugin<ShopModule>(core)
         {
             Core.GameEvent.Unhook(_roundStartHook);
             _roundStartHook = Guid.Empty;
+        }
+        if (_weaponFireHook != Guid.Empty)
+        {
+            Core.GameEvent.Unhook(_weaponFireHook);
+            _weaponFireHook = Guid.Empty;
         }
 
         _mainMenuSubscription?.Dispose();
@@ -204,6 +216,51 @@ internal sealed class ShopPlugin(ISwiftlyCore core) : Plugin<ShopModule>(core)
         }
 
         _purchases.Value.TryPurchaseActiveWeaponAmmo(player);
+    }
+
+    private HookResult OnWeaponFire(EventWeaponFire @event)
+    {
+        if (@event.UserIdPlayer is not { IsValid: true, IsFakeClient: false } player)
+        {
+            return HookResult.Continue;
+        }
+
+        var playerId = player.PlayerID;
+        var steamId = player.SteamID;
+        Core.Scheduler.NextTick(() => TryNotifyAmmoEmpty(playerId, steamId));
+        return HookResult.Continue;
+    }
+
+    private void TryNotifyAmmoEmpty(int playerId, ulong steamId)
+    {
+        if (_lifetime.IsCancellationRequested ||
+            Core.PlayerManager.GetPlayer(playerId) is not { IsValid: true, IsAlive: true, IsFakeClient: false } player ||
+            player.SteamID != steamId ||
+            !_equipment.Value().TryGetActiveWeapon(player, out var weapon))
+        {
+            return;
+        }
+
+        var shopType = _access.Value.GetShopType(player);
+        var offer = _cache.Value.Current.Offers.FirstOrDefault(candidate =>
+            candidate.ShopType == shopType &&
+            candidate.Contract.ProviderKey == "custom_equipment" &&
+            candidate.Contract.ItemKey.Equals(weapon.InternalName, StringComparison.OrdinalIgnoreCase));
+        if (offer?.Contract.AmmoPrice is null)
+        {
+            return;
+        }
+
+        var activeWeapon = player.PlayerPawn?.WeaponServices?.ActiveWeapon.Value;
+        if (activeWeapon is null || activeWeapon.Clip1 > 0 || activeWeapon.ReserveAmmo[0] > 0)
+        {
+            return;
+        }
+
+        _notifications.Value.Publish(
+            player,
+            AmmoEmptyNotificationEventKey,
+            new Dictionary<string, object?> { ["message"] = AmmoEmptyMessage });
     }
 
     private HookResult OnRoundStart(EventRoundStart @event)
