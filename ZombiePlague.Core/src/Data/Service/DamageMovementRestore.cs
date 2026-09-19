@@ -8,9 +8,11 @@ namespace ZombiePlague.Core.Data.Service;
 
 internal sealed class DamageMovementRestore(ISwiftlyCore core, IPlayerManager playerManager)
 {
+    private const int PlayerDamageRestoreDelay = 20;
+
     private readonly Dictionary<ulong, PendingRestore> _pending = [];
 
-    public void Schedule(IPlayer? player)
+    public void Schedule(IPlayer? player, bool afterPlayerDamage = false)
     {
         if (player is not { IsValid: true, IsAlive: true } ||
             player.PlayerPawn is not { IsValid: true } pawn ||
@@ -20,15 +22,25 @@ internal sealed class DamageMovementRestore(ISwiftlyCore core, IPlayerManager pl
         }
 
         var sessionId = player.SessionId;
-        if (_pending.TryGetValue(sessionId, out var pending) &&
+        if (!afterPlayerDamage &&
+            _pending.TryGetValue(sessionId, out var pending) &&
             pending.PawnAddress == pawn.Address && ReferenceEquals(pending.Zombie, zombie))
         {
             return;
         }
 
-        // Несколько попаданий за один тик требуют только одного восстановления.
         var restore = new PendingRestore(pawn.Address, zombie);
         _pending[sessionId] = restore;
+
+        if (afterPlayerDamage)
+        {
+            // Player damage applies movement penalties after TakeDamage.Pre.
+            // Every new hit replaces the pending restore so we restore only after the latest hit.
+            core.Scheduler.Delay(PlayerDamageRestoreDelay, () => Restore(sessionId, restore));
+            return;
+        }
+
+        // Несколько непользовательских попаданий за один тик требуют только одного восстановления.
         core.Scheduler.NextWorldUpdate(() => Restore(sessionId, restore));
     }
 
