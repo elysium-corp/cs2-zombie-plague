@@ -131,7 +131,9 @@ internal sealed class RoundMenu(
             return;
         }
 
-        var result = roundManager.TryStartRandomRound();
+        var result = roundManager.NextRound is { } nextRound
+            ? roundManager.TryStartRound(nextRound)
+            : roundManager.TryStartRandomRound();
 
         SendRoundStartResult(administrator, result);
     }
