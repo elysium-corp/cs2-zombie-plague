@@ -234,6 +234,12 @@ public sealed class DisarmConfig : IAbilityConfig
     public float SpawnOffset { get; set; } = 50f;
 
     public float UpdateIntervalSeconds { get; set; } = 0.02f;
+
+    // Сила, с которой выброшенное оружие отлетает вперёд
+    public float ThrowForce { get; set; } = 650f;
+
+    // Вертикальный импульс выброшенного оружия
+    public float ThrowUpForce { get; set; } = 180f;
 }
 
 public sealed class FireBombConfig : IAbilityConfig
