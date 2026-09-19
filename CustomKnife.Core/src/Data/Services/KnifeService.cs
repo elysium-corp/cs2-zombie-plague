@@ -24,8 +24,6 @@ internal sealed class KnifeService(
     private const string DefaultKnifeName = "weapon_knife";
     private const string CustomKnifeName = "weapon_knife_t";
 
-    private const float DefaultSpeed = 250f;
-    private const float DefaultGravity = 800f;
     private bool _disposed;
     
 
@@ -85,7 +83,7 @@ internal sealed class KnifeService(
 
         if (!isKnife)
         {
-            ApplyDefaultProperties(player);
+            zombiePlagueApi.TryApplyClassMovement(player);
 
             return false;
         }
@@ -188,12 +186,6 @@ internal sealed class KnifeService(
         var knife = GetKnife(player);
         player.SetSpeed(knife.Speed);
         player.SetGravity(knife.Gravity);
-    }
-
-    private void ApplyDefaultProperties(IPlayer player)
-    {
-        player.SetSpeed(DefaultSpeed);
-        player.SetGravity(DefaultGravity);
     }
 
     private bool CanHaveKnife(IPlayer player)
