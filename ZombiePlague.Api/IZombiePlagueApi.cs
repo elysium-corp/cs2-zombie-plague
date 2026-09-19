@@ -16,6 +16,8 @@ public interface IZombiePlagueApi
 
     public bool IsInfected(IPlayer player);
 
+    public bool TryApplyClassMovement(IPlayer player);
+
     public bool IsNemesisRound(IRound round);
     
     public bool IsSurvivorRound(IRound round);
