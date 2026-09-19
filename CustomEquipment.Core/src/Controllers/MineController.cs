@@ -9,6 +9,7 @@ using CustomEquipment.Utils;
 using Localization.Api;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Events;
+using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.GameHooks;
 using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Players;
@@ -28,6 +29,8 @@ internal sealed class MineController(
     : IMineController, IDisposable
 {
     private readonly Dictionary<CBaseModelEntity, (IPlayer Owner, LaserMineEntityBase Mine)> _mines = [];
+    private Guid _roundEndHook = Guid.Empty;
+    private Guid _gameRestartHook = Guid.Empty;
     private bool _initialized;
 
     public void Initialize()
@@ -41,6 +44,8 @@ internal sealed class MineController(
         events.Items.Giving.Hook(OnItemGiving);
         events.Items.Given.Hook(OnItemGiven);
         events.Mines.Placed.Hook(OnMinePlaced);
+        _roundEndHook = core.GameEvent.HookPost<EventRoundEnd>(OnRoundEnd);
+        _gameRestartHook = core.GameEvent.HookPost<EventCsPreRestart>(OnGameRestart);
         core.GameHooks.Entities.TakeDamage.Pre += OnEntityTakeDamage;
         core.GameHooks.Movement.RunCommand.Pre += OnRunCommand;
         core.GameHooks.Weapons.CanUse.Pre += OnWeaponCanUse;
@@ -61,6 +66,10 @@ internal sealed class MineController(
         events.Items.Giving.Unhook(OnItemGiving);
         events.Items.Given.Unhook(OnItemGiven);
         events.Mines.Placed.Unhook(OnMinePlaced);
+        core.GameEvent.Unhook(_roundEndHook);
+        core.GameEvent.Unhook(_gameRestartHook);
+        _roundEndHook = Guid.Empty;
+        _gameRestartHook = Guid.Empty;
         core.GameHooks.Entities.TakeDamage.Pre -= OnEntityTakeDamage;
         core.GameHooks.Movement.RunCommand.Pre -= OnRunCommand;
         core.GameHooks.Weapons.CanUse.Pre -= OnWeaponCanUse;
@@ -69,8 +78,7 @@ internal sealed class MineController(
         playerEvents.Infected.Unhook(OnPlayerInfected);
         playerEvents.BecameNemesis.Unhook(OnPlayerBecameNemesis);
 
-        foreach (var mine in _mines.Values) mine.Mine.Dispose();
-        _mines.Clear();
+        RemoveAllMines();
     }
 
     private void OnItemGiving(ref ItemGivingContext context)
@@ -94,6 +102,18 @@ internal sealed class MineController(
 
         context.Player.SendAlert(
             localization.GetForPlayerOrKey(context.Player, "Equipment.LaserMine.Granted"));
+    }
+
+    private HookResult OnRoundEnd(EventRoundEnd @event)
+    {
+        RemoveAllMines();
+        return HookResult.Continue;
+    }
+
+    private HookResult OnGameRestart(EventCsPreRestart @event)
+    {
+        RemoveAllMines();
+        return HookResult.Continue;
     }
 
     private void OnMinePlaced(ref MinePlacedContext context)
@@ -211,6 +231,29 @@ internal sealed class MineController(
     private void OnPlayerBecameNemesis(ref PlayerBecameNemesisContext context)
     {
         RemovePlayerMines(context.Player);
+    }
+
+    private void RemoveAllMines()
+    {
+        // Незавершённая установка не должна перенести spawn мины через границу раунда.
+        foreach (var player in core.PlayerManager.GetAllPlayers())
+        {
+            laserMineInstallerService.Cancel(player);
+        }
+
+        // Сначала убираем native entities из lookup-карты контроллера, затем despawn.
+        // Это не даёт damage hooks повторно получить мину во время её удаления.
+        var mines = _mines.Values
+            .Select(entry => entry.Mine)
+            .Distinct()
+            .ToArray();
+
+        _mines.Clear();
+
+        foreach (var mine in mines)
+        {
+            mine.Dispose();
+        }
     }
 
     private void RemovePlayerMines(IPlayer player)
