@@ -17,6 +17,7 @@ using ZombiePlague.Core.Data.Managers.Contracts;
 using ZombiePlague.Core.Data.Rounds;
 using ZombiePlague.Core.Data.Rounds.Contracts;
 using ZombiePlague.Core.Data.Rounds.Registrator;
+using ZombiePlague.Core.Data.Service;
 using ZombiePlague.Core.Utils.Extensions;
 
 namespace ZombiePlague.Core.Data.Managers;
@@ -25,6 +26,7 @@ internal sealed class RoundManager(
     ISwiftlyCore core,
     IOptions<ZombiePlagueCoreConfig> config,
     IPlayerManager playerManager,
+    DamageMovementRestore damageMovementRestore,
     IRoundRegistrator roundRegistrator,
     IRoundFactory roundFactory,
     IHookPublisher hooks,
@@ -147,6 +149,7 @@ internal sealed class RoundManager(
 
         if (round is null)
         {
+            damageMovementRestore.Clear();
             StopPreparation();
             return;
         }
@@ -160,6 +163,7 @@ internal sealed class RoundManager(
             return;
         }
 
+        damageMovementRestore.Clear();
         StopPreparation();
 
         try
@@ -177,6 +181,7 @@ internal sealed class RoundManager(
 
     public void ForceStop(bool dispatchEndedEvent = false)
     {
+        damageMovementRestore.Clear();
         var round = CurrentRound;
         CurrentRound = null;
         StopPreparation();
@@ -262,25 +267,14 @@ internal sealed class RoundManager(
     {
         var victim = context.Params.Entity.Address.FindPlayerByPawnAddress();
 
+        damageMovementRestore.Schedule(victim);
+
         if (victim is { IsValid: true } &&
             playerManager.IsZombie(victim) &&
             (context.Params.Info.DamageType & DamageTypes_t.DMG_FALL) != 0)
         {
             context.Params.Info.Damage = 0;
             context.SetHookResult(HookResult.CancelOriginal);
-
-            core.Scheduler.NextWorldUpdate(() =>
-            {
-                if (victim is not { IsValid: true, IsAlive: true } ||
-                    !playerManager.TryGetZombie(victim, out var zombie))
-                {
-                    return;
-                }
-
-                victim.SetSpeed(zombie.ZClass.Speed);
-                victim.SetGravity(zombie.ZClass.Gravity);
-            });
-
             return;
         }
 
