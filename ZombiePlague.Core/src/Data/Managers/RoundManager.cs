@@ -26,6 +26,7 @@ internal sealed class RoundManager(
     ISwiftlyCore core,
     IOptions<ZombiePlagueCoreConfig> config,
     IPlayerManager playerManager,
+    DamageMovementRestore damageMovementRestore,
     IRoundRegistrator roundRegistrator,
     IRoundFactory roundFactory,
     IHookPublisher hooks,
@@ -38,8 +39,6 @@ internal sealed class RoundManager(
     public RoundBase? NextRound { get; private set; }
 
     public bool IsPreparing => _preparationTimer is not null;
-
-    private readonly DamageMovementRestore _damageMovementRestore = new(core, playerManager);
 
     private CancellationTokenSource? _preparationTimer;
     private readonly Dictionary<int, CancellationTokenSource> _preparationRespawns = [];
@@ -150,7 +149,7 @@ internal sealed class RoundManager(
 
         if (round is null)
         {
-            _damageMovementRestore.Clear();
+            damageMovementRestore.Clear();
             StopPreparation();
             return;
         }
@@ -164,7 +163,7 @@ internal sealed class RoundManager(
             return;
         }
 
-        _damageMovementRestore.Clear();
+        damageMovementRestore.Clear();
         StopPreparation();
 
         try
@@ -182,7 +181,7 @@ internal sealed class RoundManager(
 
     public void ForceStop(bool dispatchEndedEvent = false)
     {
-        _damageMovementRestore.Clear();
+        damageMovementRestore.Clear();
         var round = CurrentRound;
         CurrentRound = null;
         StopPreparation();
@@ -268,7 +267,7 @@ internal sealed class RoundManager(
     {
         var victim = context.Params.Entity.Address.FindPlayerByPawnAddress();
 
-        _damageMovementRestore.Capture(victim);
+        damageMovementRestore.Capture(victim);
 
         if (victim is { IsValid: true } &&
             playerManager.IsZombie(victim) &&

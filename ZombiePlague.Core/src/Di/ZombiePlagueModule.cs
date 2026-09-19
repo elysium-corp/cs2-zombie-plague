@@ -131,6 +131,7 @@ public sealed class ZombiePlagueModule(ISwiftlyCore core) : BaseModule(core)
         AddSingleton<IRoundService, RoundService>(service);
         AddSingleton<IInfectionService, InfectionService>(service);
         AddSingleton<IKnockbackService, KnockbackService>(service);
+        AddSingleton<DamageMovementRestore>(service);
         AddSingleton<ICommandService, CommandService>(service);
         AddSingleton<IZombiePlagueCoordinator, ZombiePlagueCoordinator>(service);
 
