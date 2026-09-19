@@ -336,9 +336,23 @@ internal sealed class Disarm(
         }
 
         var activeWeapon =
-            weaponServices.ActiveWeapon.Value;
+            weaponServices.ActiveWeapon.Value?.As<CCSWeaponBase>();
 
-        if (activeWeapon == null)
+        if (
+            activeWeapon == null ||
+            !activeWeapon.IsValidEntity
+        )
+        {
+            return;
+        }
+
+        var gearSlot =
+            activeWeapon.WeaponBaseVData.GearSlot;
+
+        if (
+            gearSlot != gear_slot_t.GEAR_SLOT_RIFLE &&
+            gearSlot != gear_slot_t.GEAR_SLOT_PISTOL
+        )
         {
             return;
         }
@@ -354,6 +368,29 @@ internal sealed class Disarm(
         weaponServices.DropWeaponByDesignerName(
             weaponName
         );
+
+        var throwVelocity = new Vector(
+            _direction.X * config.ThrowForce,
+            _direction.Y * config.ThrowForce,
+            config.ThrowUpForce
+        );
+
+        core.Scheduler.NextWorldUpdate(() =>
+        {
+            if (
+                !activeWeapon.IsValidEntity ||
+                activeWeapon.OwnerEntity.IsValid
+            )
+            {
+                return;
+            }
+
+            activeWeapon.Teleport(
+                null,
+                null,
+                throwVelocity
+            );
+        });
     }
 
     private void StopProjectile()
