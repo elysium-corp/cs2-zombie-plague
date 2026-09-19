@@ -2,7 +2,9 @@
 using SwiftlyS2.Shared.Players;
 using ZombiePlague.Core.Config.Ability;
 using ZombiePlague.Core.Data.Abilities;
+using ZombiePlague.Core.Data.Entities.Human.Classes;
 using ZombiePlague.Core.Utils.Extensions;
+using ZombiePlague.Core.Utils.Helpers;
 
 namespace ZombiePlague.Core.Data.Entities.Human;
 
@@ -35,6 +37,11 @@ internal sealed class Human : IHuman
     {
         _isBindScheduled = false;
 
+        if (HClass is HSurvivor && Owner.PlayerPawn is { IsValid: true } pawn)
+        {
+            PlayerGlowHelper.Clear(pawn);
+        }
+
         foreach (var ability in HClass.Abilities)
         {
             ability.UnHook();
@@ -63,6 +70,11 @@ internal sealed class Human : IHuman
         if (!string.IsNullOrWhiteSpace(HClass.Model))
         {
             pawn.SetModel(HClass.Model);
+        }
+
+        if (HClass is HSurvivor)
+        {
+            PlayerGlowHelper.Apply(pawn, PlayerGlowHelper.SurvivorColor);
         }
 
         foreach (var ability in HClass.Abilities)
