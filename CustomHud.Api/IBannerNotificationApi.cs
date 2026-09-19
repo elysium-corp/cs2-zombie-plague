@@ -15,6 +15,8 @@ public interface IBannerNotificationApi
     IDisposable RegisterContext(string owner, Func<IPlayer, IReadOnlyDictionary<string, object?>> provider);
     /// <summary>Отменяет ожидающие и видимые экземпляры события у всех игроков.</summary>
     void Clear(string eventKey);
+    /// <summary>Отменяет ожидающие и видимые экземпляры события только у указанного игрока. Старые поставщики могут не поддерживать досрочное скрытие.</summary>
+    void Hide(IPlayer player, string eventKey) { }
     /// <summary>Возвращает настройки постоянного HUD из того же снимка CMS.</summary>
     HudWidgetOptions? GetWidget(string key);
     /// <summary>Подписывает потребителя на применение нового снимка, на игровом потоке. Освободите токен при выгрузке.</summary>
@@ -53,6 +55,8 @@ public sealed class BannerNotificationClient
         _api?.Broadcast(eventKey, parameters) ?? 0;
     /// <summary>Снимает все экземпляры события.</summary>
     public void Clear(string eventKey) => _api?.Clear(eventKey);
+    /// <summary>Снимает экземпляры события у одного игрока, сохраняя уведомления остальных.</summary>
+    public void Hide(IPlayer player, string eventKey) => _api?.Hide(player, eventKey);
 }
 
 /// <summary>Снимок настройки события. Сериализуется в fallback вместе с дизайном, без запросов БД при показе.</summary>

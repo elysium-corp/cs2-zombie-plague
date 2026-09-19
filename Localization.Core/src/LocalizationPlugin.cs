@@ -19,7 +19,7 @@ namespace Localization.Core;
 
 [PluginMetadata(
     Id = "Localization.Core",
-    Version = "1.7.2",
+    Version = "1.8.0",
     Name = "Elysium Localization",
     Author = "Elysium",
     Description = "Единая локализация Elysium с языком игрока, PostgreSQL и fallback-конфигурацией.")]

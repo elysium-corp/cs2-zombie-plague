@@ -79,6 +79,11 @@ internal sealed class BannerNotificationService(ISwiftlyCore core, Advertisement
     }
 
     public void Clear(string eventKey) { _queue.ClearEvent(eventKey); _hud?.ClearChannel(Channel(eventKey)); }
+    public void Hide(IPlayer player, string eventKey)
+    {
+        _queue.ClearEvent(player.PlayerID, player.SteamID, eventKey);
+        _hud?.Hide(player, Channel(eventKey));
+    }
 
     internal Dictionary<string, object?> Context(IPlayer player)
     {

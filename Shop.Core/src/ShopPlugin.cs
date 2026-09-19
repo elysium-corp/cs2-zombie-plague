@@ -31,13 +31,14 @@ namespace Shop.Core;
 
 [PluginMetadata(
     Id = "Shop.Core",
-    Version = "1.9.0",
+    Version = "1.10.0",
     Name = "Elysium Shop",
     Author = "Elysium",
     Description = "Memory-snapshot shop for human and zombie equipment")]
 internal sealed class ShopPlugin(ISwiftlyCore core) : Plugin<ShopModule>(core)
 {
     private readonly Lazy<BannerNotificationClient> _notifications = GetRequiredServiceLazy<BannerNotificationClient>();
+    private readonly Lazy<ShopAmmoHintService> _ammoHint = GetRequiredServiceLazy<ShopAmmoHintService>();
 
     private readonly Lazy<ShopApi> _api = GetRequiredServiceLazy<ShopApi>();
     private readonly Lazy<ShopMenu> _menu = GetRequiredServiceLazy<ShopMenu>();
@@ -77,6 +78,7 @@ internal sealed class ShopPlugin(ISwiftlyCore core) : Plugin<ShopModule>(core)
     {
         interfaceManager.TryGetSharedInterface<IBannerNotificationApi>(IBannerNotificationApi.SharedApiKey, out var notificationApi);
         _notifications.Value.Bind(notificationApi);
+        _ammoHint.Value.Bind(notificationApi);
 
         if (interfaceManager.TryGetSharedInterface<IAdminApi>(IAdminApi.SharedApiKey, out var adminApi))
         {
@@ -119,15 +121,17 @@ internal sealed class ShopPlugin(ISwiftlyCore core) : Plugin<ShopModule>(core)
         _menu.Value.RegisterCommands();
         _menu.Value.Initialize();
         _hud.Value.Initialize();
+        _ammoHint.Value.Start();
         Core.Event.OnClientKeyStateChanged += OnClientKeyStateChanged;
         Core.Event.OnMapUnload += OnMapUnload;
         _roundStartHook = Core.GameEvent.HookPost<EventRoundStart>(OnRoundStart);
         RegisterCommands();
-        Core.Logger.LogInformation("[Shop] Shop.Core 1.9.0 загружен");
+        Core.Logger.LogInformation("[Shop] Shop.Core 1.10.0 загружен");
     }
 
     protected override void OnUnload()
     {
+        if (_ammoHint.IsValueCreated) _ammoHint.Value.Dispose();
         if (_notifications.IsValueCreated) _notifications.Value.Bind(null);
         foreach (var command in _commands)
         {
@@ -203,7 +207,7 @@ internal sealed class ShopPlugin(ISwiftlyCore core) : Plugin<ShopModule>(core)
             return;
         }
 
-        _purchases.Value.TryPurchaseActiveWeaponAmmo(player);
+        if (_purchases.Value.TryPurchaseActiveWeaponAmmo(player)) _ammoHint.Value.Hide(player);
     }
 
     private HookResult OnRoundStart(EventRoundStart @event)

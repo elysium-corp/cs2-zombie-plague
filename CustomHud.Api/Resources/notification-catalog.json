@@ -1355,6 +1355,26 @@
       "delivery": "stack",
       "cooldown": 0,
       "plugin": "InfoNotify.Core"
+    },
+    {
+      "key": "Shop.Ammo.Empty",
+      "name": "Shop.Ammo.Empty",
+      "name_key": "elysium_advertisements.ammo.empty",
+      "category": "Shop",
+      "category_key": "elysium_advertisements.ammo.category",
+      "parameters": [
+        "product",
+        "product_id",
+        "price"
+      ],
+      "source_key": "Shop.Ammo.Empty",
+      "default_template": "Notifications.Ammo",
+      "localization_key": "Notifications.Shop.Ammo.Empty",
+      "position": "bottom_right",
+      "duration": 6,
+      "delivery": "replace",
+      "cooldown": 0,
+      "plugin": "Shop.Core"
     }
   ]
 }

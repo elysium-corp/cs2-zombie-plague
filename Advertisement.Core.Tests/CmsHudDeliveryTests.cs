@@ -232,9 +232,19 @@ public sealed class CmsHudDeliveryTests
         // Выполняем саму миграцию Localization, затем миграции зависимого модуля.
         var localizationType = Assembly.Load("Localization.Core").GetType("Localization.Core.Database.Migrations.AddNotificationLocalization", true)!;
         var localizationMigration = (Microsoft.EntityFrameworkCore.Migrations.Migration)Activator.CreateInstance(localizationType, nonPublic: true)!;
+        var ammoLocalizationType = Assembly.Load("Localization.Core").GetType("Localization.Core.Database.Migrations.AddAmmoHintLocalization", true)!;
+        var ammoLocalization = (Microsoft.EntityFrameworkCore.Migrations.Migration)Activator.CreateInstance(ammoLocalizationType, nonPublic: true)!;
         foreach (var migration in new Microsoft.EntityFrameworkCore.Migrations.Migration[]
-                 { localizationMigration, new AddHudDelivery(), new AddBannerTemplates(), new AddNotificationRules() })
+                 { localizationMigration, ammoLocalization, new AddHudDelivery(), new AddBannerTemplates(), new AddNotificationRules(), new AddAmmoHintBanner() })
             foreach (var operation in migration.UpOperations.Cast<SqlOperation>()) await Execute(operation.Sql);
+        Assert.Equal("Notifications.Shop.Ammo.Empty", await Scalar("SELECT description_key FROM advertisement.notification_rules WHERE event_key = 'Shop.Ammo.Empty'"));
+        Assert.Equal("key_e", await Scalar("SELECT design->>'Icon' FROM advertisement.banner_templates WHERE key = 'Notifications.Ammo'"));
+        await Execute("UPDATE localization.translations SET text = 'Custom ammo text' WHERE entry_id = (SELECT id FROM localization.entries WHERE key = 'Notifications.Shop.Ammo.Empty') AND language_code = 'ru'");
+        await Execute("UPDATE advertisement.notification_rules SET settings = jsonb_set(settings, '{Options,DurationSeconds}', '12') WHERE event_key = 'Shop.Ammo.Empty'");
+        foreach (var migration in new Microsoft.EntityFrameworkCore.Migrations.Migration[] { ammoLocalization, new AddAmmoHintBanner() })
+            foreach (var operation in migration.UpOperations.Cast<SqlOperation>()) await Execute(operation.Sql);
+        Assert.Equal("Custom ammo text", await Scalar("SELECT text FROM localization.translations WHERE entry_id = (SELECT id FROM localization.entries WHERE key = 'Notifications.Shop.Ammo.Empty') AND language_code = 'ru'"));
+        Assert.Equal("12", await Scalar("SELECT settings #>> '{Options,DurationSeconds}' FROM advertisement.notification_rules WHERE event_key = 'Shop.Ammo.Empty'"));
         await Execute("UPDATE advertisement.notification_rules SET settings = jsonb_set(settings, '{Options,Priority}', '999') WHERE event_key = 'Shop.Errors.Cooldown'");
         foreach (var operation in new StackNotifications().UpOperations.Cast<SqlOperation>()) await Execute(operation.Sql);
         Assert.Equal("300", await Scalar("SELECT settings #>> '{Options,Priority}' FROM advertisement.notification_rules WHERE event_key = 'Game.Round.Started'"));

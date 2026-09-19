@@ -126,4 +126,32 @@ public sealed class NotificationQueueTests
         foreach (var rule in NotificationCatalog.Defaults.Values) NotificationCatalog.Validate(rule);
         Assert.Contains("roundName", NotificationCatalog.Aliases["round_name"]);
     }
+
+    [Theory]
+    [InlineData("queue")]
+    [InlineData("replace")]
+    [InlineData("stack")]
+    public void TargetedHideClearsActiveAndPendingInstancesOnlyForThatPlayer(string delivery)
+    {
+        var queue = new NotificationQueue(new Clock());
+        var rule = Rule("Shop.Ammo.Empty", delivery);
+        queue.Enqueue(1, 11, rule, new Dictionary<string, object?>());
+        queue.Enqueue(2, 22, rule, new Dictionary<string, object?>());
+        foreach (var item in queue.Ready()) queue.Shown(item);
+        queue.Enqueue(1, 11, rule, new Dictionary<string, object?>());
+        queue.ClearEvent(1, 11, rule.EventKey);
+        Assert.Empty(queue.Ready());
+        Assert.Contains(rule.EventKey, queue.EventKeys);
+        queue.Enqueue(1, 11, Rule("next"), new Dictionary<string, object?>());
+        Assert.Equal("next", Assert.Single(queue.Ready()).Rule.EventKey);
+    }
+
+    [Fact]
+    public void TargetedHideIgnoresAnOldSessionInAReusedSlot()
+    {
+        var queue = new NotificationQueue(new Clock());
+        queue.Enqueue(1, 22, Rule("Shop.Ammo.Empty"), new Dictionary<string, object?>());
+        queue.ClearEvent(1, 11, "Shop.Ammo.Empty");
+        Assert.Equal((ulong)22, Assert.Single(queue.Ready()).SteamId);
+    }
 }

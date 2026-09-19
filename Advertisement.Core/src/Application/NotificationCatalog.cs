@@ -9,6 +9,7 @@ internal static class NotificationCatalog
     internal static readonly JsonElement Document = Load();
     internal static readonly FrozenDictionary<string, HudBannerTemplate> Templates = new Dictionary<string, HudBannerTemplate>
     {
+        ["Notifications.Ammo"] = new() { Variant = "icon", Icon = "key_e", Theme = "glass", Accent = "white", WidthPixels = 320, Padding = 12, Gap = 8, Size = "small", IconSize = 32, Border = "none" },
         ["Notifications.Notice"] = new() { Variant = "icon", Icon = "info", Width = "small", Size = "small" },
         ["Notifications.Success"] = new() { Variant = "icon", Icon = "shield", Accent = "mint", Width = "small", Size = "small" },
         ["Notifications.Warning"] = new() { Variant = "icon", Icon = "warning", Accent = "gold", Width = "small", Size = "small" },
