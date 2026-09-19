@@ -201,7 +201,7 @@ public sealed class NemesisConfig : IRoundConfig, INemesisConfig
     /// <summary>
     /// Минимальное количество людей, необходимое для начала раунда.
     /// </summary>
-    public int MinimumHumansRequired { get; init; } = 10;
+    public int MinimumHumansRequired { get; init; } = 5;
 }
 
 public sealed class SurvivorConfig : IRoundConfig, ISurvivorConfig
@@ -238,5 +238,5 @@ public sealed class SurvivorConfig : IRoundConfig, ISurvivorConfig
     /// <summary>
     /// Минимальное количество людей, необходимое для начала раунда.
     /// </summary>
-    public int MinimumHumansRequired { get; init; } = 10;
+    public int MinimumHumansRequired { get; init; } = 5;
 }
