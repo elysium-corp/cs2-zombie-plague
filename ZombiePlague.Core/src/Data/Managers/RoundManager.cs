@@ -268,10 +268,10 @@ internal sealed class RoundManager(
         var victim = context.Params.Entity.Address.FindPlayerByPawnAddress();
         var attacker = context.Params.Info.Attacker.ResolvePlayerFromHandle();
 
-        damageMovementRestore.Schedule(
-            victim,
-            afterPlayerDamage: attacker is { IsValid: true }
-        );
+        if (attacker is not { IsValid: true })
+        {
+            damageMovementRestore.Schedule(victim);
+        }
 
         if (victim is { IsValid: true } &&
             playerManager.IsZombie(victim) &&
