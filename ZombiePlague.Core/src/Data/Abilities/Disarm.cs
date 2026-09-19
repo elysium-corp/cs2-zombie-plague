@@ -327,10 +327,17 @@ internal sealed class Disarm(
             return;
         }
 
-        var weaponServices =
-            target.PlayerPawn?.WeaponServices;
+        var targetPawn =
+            target.PlayerPawn;
 
-        if (weaponServices == null)
+        var weaponServices =
+            targetPawn?.WeaponServices;
+
+        if (
+            targetPawn == null ||
+            !targetPawn.IsValid ||
+            weaponServices == null
+        )
         {
             return;
         }
@@ -369,9 +376,13 @@ internal sealed class Disarm(
             weaponName
         );
 
+        var throwDirection = MathAlgorithm
+            .ForwardFromAngles(targetPawn.EyeAngles)
+            .Normalized();
+
         var throwVelocity = new Vector(
-            _direction.X * config.ThrowForce,
-            _direction.Y * config.ThrowForce,
+            throwDirection.X * config.ThrowForce,
+            throwDirection.Y * config.ThrowForce,
             config.ThrowUpForce
         );
 
