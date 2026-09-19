@@ -9,6 +9,7 @@ using ZombiePlague.Core.Api.Events;
 using ZombiePlague.Core.Data.Managers.Contracts;
 using ZombiePlague.Core.Data.Rounds;
 using ZombiePlague.Core.Data.Service.Contracts;
+using ZombiePlague.Core.Utils.Extensions;
 
 namespace ZombiePlague.Core.Api;
 
@@ -26,6 +27,32 @@ internal sealed class ZombiePlagueApi(
     public bool IsInfected(IPlayer player)
     {
         return player.IsValid && playerManager.IsZombie(player);
+    }
+
+    public bool TryApplyClassMovement(IPlayer player)
+    {
+        if (!player.IsValid || !player.IsAlive || player.PlayerPawn is not { IsValid: true })
+        {
+            return false;
+        }
+
+        if (playerManager.TryGetHuman(player, out var human))
+        {
+            player.SetSpeed(human.HClass.Speed);
+            player.SetGravity(human.HClass.Gravity);
+
+            return true;
+        }
+
+        if (playerManager.TryGetZombie(player, out var zombie))
+        {
+            player.SetSpeed(zombie.ZClass.Speed);
+            player.SetGravity(zombie.ZClass.Gravity);
+
+            return true;
+        }
+
+        return false;
     }
     
     public bool IsSurvivor(IPlayer player)
