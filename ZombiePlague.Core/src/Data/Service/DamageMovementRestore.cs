@@ -10,7 +10,7 @@ internal sealed class DamageMovementRestore(ISwiftlyCore core, IPlayerManager pl
 {
     private readonly Dictionary<ulong, PendingRestore> _pending = [];
 
-    public void Capture(IPlayer? player)
+    public void Schedule(IPlayer? player)
     {
         if (player is not { IsValid: true, IsAlive: true } ||
             player.PlayerPawn is not { IsValid: true } pawn ||
@@ -26,8 +26,8 @@ internal sealed class DamageMovementRestore(ISwiftlyCore core, IPlayerManager pl
             return;
         }
 
-        // Несколько попаданий за один тик не должны сохранять уже замедленную скорость.
-        var restore = new PendingRestore(pawn.Address, zombie, pawn.VelocityModifier * 250f);
+        // Несколько попаданий за один тик требуют только одного восстановления.
+        var restore = new PendingRestore(pawn.Address, zombie);
         _pending[sessionId] = restore;
         core.Scheduler.NextWorldUpdate(() => Restore(sessionId, restore));
     }
@@ -52,10 +52,10 @@ internal sealed class DamageMovementRestore(ISwiftlyCore core, IPlayerManager pl
             return;
         }
 
-        // Восстанавливаем значение до урона, включая улучшения и активные способности.
-        // Гравитацию урон не меняет: повторно применять базовые свойства класса нельзя.
-        player.SetSpeed(restore.Speed);
+        // Параметры берём из класса зомби на момент восстановления.
+        player.SetSpeed(zombie.ZClass.Speed);
+        player.SetGravity(zombie.ZClass.Gravity);
     }
 
-    private sealed record PendingRestore(nint PawnAddress, IZombie Zombie, float Speed);
+    private sealed record PendingRestore(nint PawnAddress, IZombie Zombie);
 }
