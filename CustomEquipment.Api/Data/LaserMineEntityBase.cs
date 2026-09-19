@@ -29,27 +29,38 @@ public abstract class LaserMineEntityBase(ISwiftlyCore core) : IDisposable
 
     public void Spawn(IPlayer owner)
     {
-        if (LaserMine != null) return;
+        if (Volatile.Read(ref _disposed) != 0 || LaserMine != null) return;
 
         Owner = owner;
 
         var playerPawn = owner.PlayerPawn;
 
-        if (playerPawn == null) return;
+        if (playerPawn is not { IsValid: true }) return;
+
+        var team = playerPawn.Team;
+        var ownerHandle = core.EntitySystem.GetRefEHandle(playerPawn).Raw;
 
         LaserMine = core.EntitySystem.CreateEntityByDesignerName<CBaseModelEntity>("prop_dynamic_override");
 
-        LaserMine.Collision.CollisionGroup = (byte)CollisionGroup.Always;
+        LaserMine.Collision.CollisionGroup = (byte)CollisionGroup.Debris;
         LaserMine.Collision.SolidType = SolidType_t.SOLID_VPHYSICS;
 
         LaserMine.DispatchSpawn();
+        LaserMine.Team = team;
 
         core.Scheduler.NextTick(() =>
         {
             if (Volatile.Read(ref _disposed) != 0 || LaserMine is not { IsValidEntity: true }) return;
             LaserMine.SetModel(LaserMineModel);
 
-            LaserMine.OwnerEntity.Raw = playerPawn.Index;
+            // Мина остаётся доступной для попаданий, но не блокирует движение игроков.
+            LaserMine.Collision.CollisionGroup = (byte)CollisionGroup.Debris;
+            LaserMine.Collision.CollisionAttribute.CollisionGroup = (byte)CollisionGroup.Debris;
+            LaserMine.Collision.CollisionGroupUpdated();
+            LaserMine.Collision.CollisionAttribute.CollisionGroupUpdated();
+            LaserMine.CollisionRulesChanged();
+
+            LaserMine.OwnerEntity.Raw = ownerHandle;
             LaserMine.OwnerEntityUpdated();
 
             LaserMine.MaxHealth = MaxHealth;
@@ -64,7 +75,13 @@ public abstract class LaserMineEntityBase(ISwiftlyCore core) : IDisposable
             LaserMine.TakeDamageFlags = TakeDamageFlags_t.DFLAG_NONE;
             LaserMine.TakeDamageFlagsUpdated();
 
-            LaserMine.Team = playerPawn.Team;
+            LaserMine.Team = team;
+
+            // RepeatBySeconds может вызвать первый тик сразу: запускаем луч только после настройки мины.
+            if (TriggerInterval > 0)
+            {
+                StartTriggerHandler();
+            }
         });
 
         LaserMineTracer = core.EntitySystem.CreateEntity<CBeam>();
@@ -79,11 +96,6 @@ public abstract class LaserMineEntityBase(ISwiftlyCore core) : IDisposable
         }
 
         ConfigureTracer();
-
-        if (TriggerInterval > 0)
-        {
-            StartTriggerHandler();
-        }
     }
 
     protected virtual void Trigger()
@@ -193,7 +205,7 @@ public abstract class LaserMineEntityBase(ISwiftlyCore core) : IDisposable
                 InteractWith = MaskTrace.Solid,
                 InteractExclude = MaskTrace.Empty | MaskTrace.Player,
                 InteractAs = MaskTrace.Empty,
-                EntitiesToIgnore = [playerPawn]
+                EntitiesToIgnore = [playerPawn, LaserMine, LaserMineTracer]
             }
         );
 
