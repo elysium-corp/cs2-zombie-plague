@@ -8,11 +8,9 @@ namespace ZombiePlague.Core.Data.Service;
 
 internal sealed class DamageMovementRestore(ISwiftlyCore core, IPlayerManager playerManager)
 {
-    private const int PlayerDamageRestoreDelay = 20;
-
     private readonly Dictionary<ulong, PendingRestore> _pending = [];
 
-    public void Schedule(IPlayer? player, bool afterPlayerDamage = false)
+    public void Schedule(IPlayer? player)
     {
         if (player is not { IsValid: true, IsAlive: true } ||
             player.PlayerPawn is not { IsValid: true } pawn ||
@@ -22,31 +20,33 @@ internal sealed class DamageMovementRestore(ISwiftlyCore core, IPlayerManager pl
         }
 
         var sessionId = player.SessionId;
-        if (!afterPlayerDamage &&
-            _pending.TryGetValue(sessionId, out var pending) &&
+        if (_pending.TryGetValue(sessionId, out var pending) &&
             pending.PawnAddress == pawn.Address && ReferenceEquals(pending.Zombie, zombie))
         {
             return;
         }
 
+        // Несколько попаданий за один тик требуют только одного восстановления.
         var restore = new PendingRestore(pawn.Address, zombie);
         _pending[sessionId] = restore;
+        core.Scheduler.NextWorldUpdate(() => RestoreScheduled(sessionId, restore));
+    }
 
-        if (afterPlayerDamage)
+    public void Restore(IPlayer? player)
+    {
+        if (player is not { IsValid: true, IsAlive: true } ||
+            !playerManager.TryGetZombie(player, out var zombie))
         {
-            // Урон от игрока завершает применение штрафов движения уже после TakeDamage.Pre.
-            // Новое попадание заменяет ожидающее восстановление, чтобы применить его после последнего удара.
-            core.Scheduler.Delay(PlayerDamageRestoreDelay, () => Restore(sessionId, restore));
             return;
         }
 
-        // Несколько непользовательских попаданий за один тик требуют только одного восстановления.
-        core.Scheduler.NextWorldUpdate(() => Restore(sessionId, restore));
+        player.SetSpeed(zombie.ZClass.Speed);
+        player.SetGravity(zombie.ZClass.Gravity);
     }
 
     public void Clear() => _pending.Clear();
 
-    private void Restore(ulong sessionId, PendingRestore restore)
+    private void RestoreScheduled(ulong sessionId, PendingRestore restore)
     {
         if (!_pending.TryGetValue(sessionId, out var pending) || !ReferenceEquals(pending, restore))
         {
@@ -64,9 +64,7 @@ internal sealed class DamageMovementRestore(ISwiftlyCore core, IPlayerManager pl
             return;
         }
 
-        // Параметры берём из класса зомби на момент восстановления.
-        player.SetSpeed(zombie.ZClass.Speed);
-        player.SetGravity(zombie.ZClass.Gravity);
+        Restore(player);
     }
 
     private sealed record PendingRestore(nint PawnAddress, IZombie Zombie);
