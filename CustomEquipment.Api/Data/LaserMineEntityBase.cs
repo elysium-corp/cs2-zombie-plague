@@ -38,9 +38,9 @@ public abstract class LaserMineEntityBase(ISwiftlyCore core) : IDisposable
         if (playerPawn is not { IsValid: true }) return;
 
         var team = playerPawn.Team;
-        var ownerHandle = core.EntitySystem.GetRefEHandle(playerPawn).Raw;
 
         LaserMine = core.EntitySystem.CreateEntityByDesignerName<CBaseModelEntity>("prop_dynamic_override");
+        LaserMine.SetModel(LaserMineModel);
 
         LaserMine.Collision.CollisionGroup = (byte)CollisionGroup.Debris;
         LaserMine.Collision.SolidType = SolidType_t.SOLID_VPHYSICS;
@@ -51,7 +51,6 @@ public abstract class LaserMineEntityBase(ISwiftlyCore core) : IDisposable
         core.Scheduler.NextTick(() =>
         {
             if (Volatile.Read(ref _disposed) != 0 || LaserMine is not { IsValidEntity: true }) return;
-            LaserMine.SetModel(LaserMineModel);
 
             // Мина остаётся доступной для попаданий, но не блокирует движение игроков.
             LaserMine.Collision.CollisionGroup = (byte)CollisionGroup.Debris;
@@ -59,9 +58,6 @@ public abstract class LaserMineEntityBase(ISwiftlyCore core) : IDisposable
             LaserMine.Collision.CollisionGroupUpdated();
             LaserMine.Collision.CollisionAttribute.CollisionGroupUpdated();
             LaserMine.CollisionRulesChanged();
-
-            LaserMine.OwnerEntity.Raw = ownerHandle;
-            LaserMine.OwnerEntityUpdated();
 
             LaserMine.MaxHealth = MaxHealth;
             LaserMine.MaxHealthUpdated();
@@ -123,22 +119,38 @@ public abstract class LaserMineEntityBase(ISwiftlyCore core) : IDisposable
     public void Dispose()
     {
         if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
-        if (LaserMine?.IsValidEntity == true)
+
+        // Сначала останавливаем повторяющийся callback. Иначе он может снова обратиться
+        // к native entity во время её удаления или reset раунда.
+        var triggerTask = Interlocked.Exchange(ref _triggerTask, null);
+        try
         {
-            LaserMine.Despawn();
+            triggerTask?.Cancel();
+        }
+        catch (ObjectDisposedException)
+        {
+            // Scheduler владеет жизненным циклом timer; cleanup сущностей всё равно должен продолжиться.
         }
 
-        LaserMine = null;
+        Owner = null;
 
-        if (LaserMineTracer?.IsValidEntity == true)
-        {
-            LaserMineTracer.Despawn();
-        }
-
+        // Отвязываем managed-ссылки до Despawn, чтобы повторный/reentrant cleanup
+        // не мог получить entity, которая уже уходит в staging list Source 2.
+        var tracer = LaserMineTracer;
         LaserMineTracer = null;
 
-        _triggerTask?.Cancel();
-        _triggerTask = null;
+        var mine = LaserMine;
+        LaserMine = null;
+
+        if (tracer?.IsValidEntity == true)
+        {
+            tracer.Despawn();
+        }
+
+        if (mine?.IsValidEntity == true)
+        {
+            mine.Despawn();
+        }
     }
 
     private void ConfigureTracer()

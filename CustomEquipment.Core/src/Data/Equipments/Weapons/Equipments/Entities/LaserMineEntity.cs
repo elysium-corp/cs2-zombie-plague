@@ -59,7 +59,8 @@ public sealed class LaserMineEntity : LaserMineEntityBase
             return;
         }
 
-        if (Owner == null)
+        var owner = Owner;
+        if (owner is not { IsValid: true })
         {
             Destroy();
             return;
@@ -71,7 +72,7 @@ public sealed class LaserMineEntity : LaserMineEntityBase
 
         if (!foundTarget) return;
 
-        ApplyDamage(target);
+        ApplyDamage(target, owner);
 
         // CreateDamageParticle(hitPoint);
     }
@@ -118,10 +119,29 @@ public sealed class LaserMineEntity : LaserMineEntityBase
         return true;
     }
 
-    private void ApplyDamage(IPlayer target)
+    private void ApplyDamage(IPlayer target, IPlayer owner)
     {
-        if (target.PlayerPawn?.Team != LaserMine?.Team)
-            target.PlayerPawn?.TakeDamage(_settings.DamagePerTrigger, DamageType, LaserMine);
+        var targetPawn = target.PlayerPawn;
+        var ownerPawn = owner.PlayerPawn;
+        var mine = LaserMine;
+
+        if (targetPawn is not { IsValid: true } ||
+            ownerPawn is not { IsValid: true } ||
+            mine is not { IsValidEntity: true } ||
+            targetPawn.Team == mine.Team)
+        {
+            return;
+        }
+
+        // Не сохраняем временную prop_dynamic как inflictor в native damage bookkeeping.
+        // При заражении владельца мина удаляется, а Source 2 может продолжать держать
+        // damage handles до конца текущего frame/round reset.
+        targetPawn.TakeDamage(
+            _settings.DamagePerTrigger,
+            DamageType,
+            ownerPawn,
+            ownerPawn
+        );
     }
 
     private void UpdateTracer(Vector hitPoint)
