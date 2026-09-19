@@ -34,8 +34,8 @@ internal sealed class DamageMovementRestore(ISwiftlyCore core, IPlayerManager pl
 
         if (afterPlayerDamage)
         {
-            // Player damage applies movement penalties after TakeDamage.Pre.
-            // Every new hit replaces the pending restore so we restore only after the latest hit.
+            // Урон от игрока завершает применение штрафов движения уже после TakeDamage.Pre.
+            // Новое попадание заменяет ожидающее восстановление, чтобы применить его после последнего удара.
             core.Scheduler.Delay(PlayerDamageRestoreDelay, () => Restore(sessionId, restore));
             return;
         }
