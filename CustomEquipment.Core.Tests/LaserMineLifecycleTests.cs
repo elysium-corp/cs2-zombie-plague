@@ -32,7 +32,7 @@ public sealed class LaserMineLifecycleTests
 
         entity.Dispose();
 
-        Assert.Equal(["cancel", "tracer", "mine"], order);
+        Assert.Equal(new[] { "cancel", "tracer", "mine" }, order);
         Assert.True(timer.IsCancellationRequested);
         mine.Verify(value => value.Despawn(), Times.Once);
         tracer.Verify(value => value.Despawn(), Times.Once);
