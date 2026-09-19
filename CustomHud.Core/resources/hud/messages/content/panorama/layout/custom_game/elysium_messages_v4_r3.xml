@@ -22,6 +22,7 @@
                             <Image class="BannerIcon Icon_lightning" src="s2r://panorama/images/custom_game/elysium/banners/lightning.vsvg" texturewidth="64" textureheight="64" />
                             <Image class="BannerIcon Icon_clock" src="s2r://panorama/images/custom_game/elysium/banners/clock.vsvg" texturewidth="64" textureheight="64" />
                             <Image class="BannerIcon Icon_heart" src="s2r://panorama/images/custom_game/elysium/banners/heart.vsvg" texturewidth="64" textureheight="64" />
+                            <Image class="BannerIcon Icon_key_e" src="s2r://panorama/images/custom_game/elysium/banners/key_e.vsvg" texturewidth="64" textureheight="64" />
                         </Panel>
                         <Panel class="BannerTexts">
                             <Panel class="MessageLine BannerHeader" id="Message0Header">
@@ -130,6 +131,7 @@
                             <Image class="BannerIcon Icon_lightning" src="s2r://panorama/images/custom_game/elysium/banners/lightning.vsvg" texturewidth="64" textureheight="64" />
                             <Image class="BannerIcon Icon_clock" src="s2r://panorama/images/custom_game/elysium/banners/clock.vsvg" texturewidth="64" textureheight="64" />
                             <Image class="BannerIcon Icon_heart" src="s2r://panorama/images/custom_game/elysium/banners/heart.vsvg" texturewidth="64" textureheight="64" />
+                            <Image class="BannerIcon Icon_key_e" src="s2r://panorama/images/custom_game/elysium/banners/key_e.vsvg" texturewidth="64" textureheight="64" />
                         </Panel>
                         <Panel class="BannerTexts">
                             <Panel class="MessageLine BannerHeader" id="Message1Header">
@@ -238,6 +240,7 @@
                             <Image class="BannerIcon Icon_lightning" src="s2r://panorama/images/custom_game/elysium/banners/lightning.vsvg" texturewidth="64" textureheight="64" />
                             <Image class="BannerIcon Icon_clock" src="s2r://panorama/images/custom_game/elysium/banners/clock.vsvg" texturewidth="64" textureheight="64" />
                             <Image class="BannerIcon Icon_heart" src="s2r://panorama/images/custom_game/elysium/banners/heart.vsvg" texturewidth="64" textureheight="64" />
+                            <Image class="BannerIcon Icon_key_e" src="s2r://panorama/images/custom_game/elysium/banners/key_e.vsvg" texturewidth="64" textureheight="64" />
                         </Panel>
                         <Panel class="BannerTexts">
                             <Panel class="MessageLine BannerHeader" id="Message2Header">

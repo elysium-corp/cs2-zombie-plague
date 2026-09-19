@@ -360,6 +360,7 @@
 .CustomBanner.Icon_lightning .Icon_lightning { visibility: visible; }
 .CustomBanner.Icon_clock .Icon_clock { visibility: visible; }
 .CustomBanner.Icon_heart .Icon_heart { visibility: visible; }
+.CustomBanner.Icon_key_e .Icon_key_e { visibility: visible; }
 .CustomBanner.A0 .BannerSurface { border-color: #000000; }
 .CustomBanner.A0 .BannerIcon { wash-color: #000000; }
 .CustomBanner.Theme_light .MessageRun.C0 { color: #000000; }

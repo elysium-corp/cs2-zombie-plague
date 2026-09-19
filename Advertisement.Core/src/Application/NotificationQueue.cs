@@ -115,6 +115,18 @@ internal sealed class NotificationQueue(TimeProvider clock)
         }
         foreach (var key in _lastAccepted.Keys.Where(key => key.Event == eventKey).ToArray()) _lastAccepted.Remove(key);
     }
+    internal void ClearEvent(int playerId, ulong steamId, string eventKey)
+    {
+        if (!_sessions.TryGetValue(playerId, out var session) || session != steamId) return;
+        foreach (var slot in _slots.Where(pair => pair.Key.Player == playerId).Select(pair => pair.Value))
+        {
+            slot.Waiting.RemoveAll(item => item.Rule.EventKey == eventKey);
+            slot.Stacked.RemoveAll(item => item.Item.Rule.EventKey == eventKey);
+            if (slot.Active?.Rule.EventKey == eventKey) { slot.Active = null; slot.Until = default; }
+        }
+        _lastAccepted.Remove((playerId, eventKey));
+    }
+
     internal void Disconnect(int playerId)
     {
         foreach (var key in _slots.Keys.Where(key => key.Player == playerId).ToArray()) _slots.Remove(key);

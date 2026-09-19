@@ -1,8 +1,8 @@
 {
   "schemaVersion": 4,
-  "version": 16,
-  "generatedAt": "2026-09-13T16:57:00Z",
-  "checksum": "sha256:c56a1b70c9e5423bfc938585db4ce83bc614b3efd61c5794239defbd7881e91e",
+  "version": 17,
+  "generatedAt": "2026-09-19T19:00:00Z",
+  "checksum": "sha256:a48502a5f33519c658a73ae9c57bed934c26949eaa250f6a51f3f67479883cee",
   "serverFallbackLanguage": "ru",
   "languages": [
     "ru",
@@ -1760,6 +1760,12 @@
     "Shop.Hud.Settings.Failed": {
       "ru": "Ошибка сохранения · нажмите размер ещё раз",
       "en": "Save failed · select a size to retry"
+    },
+    "Notifications.Shop.Ammo.Empty": {
+      "ru": "Купить патроны",
+      "en": "Buy ammo",
+      "de": "Munition kaufen",
+      "pl": "Kup amunicję"
     }
   }
 }
