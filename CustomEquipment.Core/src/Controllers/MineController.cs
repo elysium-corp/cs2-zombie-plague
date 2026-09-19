@@ -31,6 +31,7 @@ internal sealed class MineController(
     private readonly Dictionary<CBaseModelEntity, (IPlayer Owner, LaserMineEntityBase Mine)> _mines = [];
     private Guid _roundEndHook = Guid.Empty;
     private Guid _gameRestartHook = Guid.Empty;
+    private Guid _playerDisconnectHook = Guid.Empty;
     private bool _initialized;
 
     public void Initialize()
@@ -46,6 +47,7 @@ internal sealed class MineController(
         events.Mines.Placed.Hook(OnMinePlaced);
         _roundEndHook = core.GameEvent.HookPost<EventRoundEnd>(OnRoundEnd);
         _gameRestartHook = core.GameEvent.HookPost<EventCsPreRestart>(OnGameRestart);
+        _playerDisconnectHook = core.GameEvent.HookPost<EventPlayerDisconnect>(OnPlayerDisconnect);
         core.GameHooks.Entities.TakeDamage.Pre += OnEntityTakeDamage;
         core.GameHooks.Movement.RunCommand.Pre += OnRunCommand;
         core.GameHooks.Weapons.CanUse.Pre += OnWeaponCanUse;
@@ -68,8 +70,10 @@ internal sealed class MineController(
         events.Mines.Placed.Unhook(OnMinePlaced);
         core.GameEvent.Unhook(_roundEndHook);
         core.GameEvent.Unhook(_gameRestartHook);
+        core.GameEvent.Unhook(_playerDisconnectHook);
         _roundEndHook = Guid.Empty;
         _gameRestartHook = Guid.Empty;
+        _playerDisconnectHook = Guid.Empty;
         core.GameHooks.Entities.TakeDamage.Pre -= OnEntityTakeDamage;
         core.GameHooks.Movement.RunCommand.Pre -= OnRunCommand;
         core.GameHooks.Weapons.CanUse.Pre -= OnWeaponCanUse;
@@ -113,6 +117,16 @@ internal sealed class MineController(
     private HookResult OnGameRestart(EventCsPreRestart @event)
     {
         RemoveAllMines();
+        return HookResult.Continue;
+    }
+
+    private HookResult OnPlayerDisconnect(EventPlayerDisconnect @event)
+    {
+        if (@event.UserIdPlayer is { } player)
+        {
+            RemovePlayerMines(player);
+        }
+
         return HookResult.Continue;
     }
 
