@@ -27,7 +27,7 @@ public abstract class BaseEffect(ISwiftlyCore core, Action<IEffect> callback, IP
         TryStart();
     }
 
-    internal bool TryStart()
+    internal virtual bool TryStart()
     {
         if (Interlocked.CompareExchange(ref _started, 1, 0) != 0 ||
             !Target.IsValid || !Target.IsAlive || !CanApply())

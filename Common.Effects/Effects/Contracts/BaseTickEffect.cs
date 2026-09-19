@@ -11,9 +11,18 @@ public abstract class BaseTickEffect(ISwiftlyCore core, Action<IEffect> callback
 
     public override void Start()
     {
+        TryStart();
+    }
+
+    internal override bool TryStart()
+    {
+        if (!base.TryStart())
+        {
+            return false;
+        }
+
         CreateTickTimer();
-        
-        base.Start();
+        return true;
     }
     
     protected override void DestroyEffect()
