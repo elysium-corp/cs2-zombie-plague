@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Xunit;
 using ZombiePlague.Core.Catalog;
 using ZombiePlague.Core.Config.Ability;
 

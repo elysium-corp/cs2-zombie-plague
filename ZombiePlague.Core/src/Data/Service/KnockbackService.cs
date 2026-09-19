@@ -24,8 +24,6 @@ internal sealed class KnockbackService(
     IHookPublisher hooks
 ) : IKnockbackService
 {
-    private const int SpeedRestoreDelay = 20;
-
     private static readonly IReadOnlyDictionary<string, KnockbackData> WeaponKnockback =
         new Dictionary<string, KnockbackData>
         {
@@ -66,8 +64,6 @@ internal sealed class KnockbackService(
             { "weapon_knife", new KnockbackData(450.0f, 25.0f) }
         };
 
-    private readonly Dictionary<int, CancellationTokenSource> _speedRestoreTimers = [];
-
     private Guid _playerHurtHook = Guid.Empty;
 
     public void Register()
@@ -87,8 +83,6 @@ internal sealed class KnockbackService(
             core.GameEvent.Unhook(_playerHurtHook);
             _playerHurtHook = Guid.Empty;
         }
-
-        CancelSpeedRestoreTimers();
     }
 
     public bool TryApplyKnockback(EventPlayerHurt @event, KnockbackData? knockbackData = null)
@@ -164,27 +158,6 @@ internal sealed class KnockbackService(
     private void ApplyKnockback(IPlayer victim, Vector velocity)
     {
         victim.Teleport(null, null, velocity);
-
-        var playerId = victim.PlayerID;
-
-        CancelSpeedRestoreTimer(playerId);
-
-        _speedRestoreTimers[playerId] = core.Scheduler.Delay(
-            SpeedRestoreDelay,
-            () =>
-            {
-                _speedRestoreTimers.Remove(playerId);
-
-                if (
-                    victim is { IsValid: true, IsAlive: true } &&
-                    victim.PlayerID == playerId &&
-                    playerManager.TryGetZombie(victim, out var zombie)
-                )
-                {
-                    victim.SetSpeed(zombie.ZClass.Speed);
-                }
-            }
-        );
     }
 
     private bool TryCalculateVelocity(
@@ -267,24 +240,4 @@ internal sealed class KnockbackService(
             : (float)(maxRecoil * Math.Exp(decay * (distance - peakDistance)));
     }
 
-    private void CancelSpeedRestoreTimer(int playerId)
-    {
-        if (!_speedRestoreTimers.Remove(playerId, out var timer))
-        {
-            return;
-        }
-
-        timer.Cancel();
-    }
-
-    private void CancelSpeedRestoreTimers()
-    {
-        var timers = _speedRestoreTimers.Values.ToArray();
-        _speedRestoreTimers.Clear();
-
-        foreach (var timer in timers)
-        {
-            timer.Cancel();
-        }
-    }
 }
