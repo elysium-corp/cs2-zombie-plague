@@ -25,6 +25,8 @@ internal sealed class CustomKnifeCoordinator(
     ILocalizationApi localization
 )
 {
+    private const int DamageMovementRestoreDelay = 20;
+
     private Guid _playerEquipHook = Guid.Empty;
     private Guid _playerSpawnHook = Guid.Empty;
     private Guid _playerHurtHook = Guid.Empty;
@@ -156,7 +158,13 @@ internal sealed class CustomKnifeCoordinator(
     {
         var player = @event.UserIdPlayer;
 
-        core.Scheduler.NextWorldUpdate(() => knifeService.TryApplyProperties(player));
+        if (player is not null)
+        {
+            core.Scheduler.Delay(
+                DamageMovementRestoreDelay,
+                () => knifeService.TryApplyProperties(player)
+            );
+        }
 
         knifeService.TryApplyKnifeKnockback(@event);
 
