@@ -28,6 +28,8 @@ internal sealed class KnifeMenu(
     ILogger<KnifeMenu> logger) : IDisposable
 {
     private readonly Dictionary<int, Session> _sessions = [];
+    private readonly Dictionary<int, (ulong SessionId, int Scale)> _scales = [];
+    private static readonly int[] Scales = [75, 85, 100, 115, 125];
     private readonly List<Guid> _commands = [];
     private CancellationTokenSource? _refresh;
     private Guid _deathHook;
@@ -58,18 +60,23 @@ internal sealed class KnifeMenu(
 
     private bool CanOpen(IPlayer player) => _active && !_mapUnloading
         && player.IsValid && !player.IsFakeClient && player.SteamID != 0
-        && player.Controller.Team == Team.CT && !zombies.IsInfected(player);
+        && player.Controller.Team is Team.CT or Team.T;
+
+    private bool SameRole(IPlayer player, Session session) => player.Controller.Team == session.Team
+        && zombies.IsInfected(player) == session.Infected;
 
     public bool Open(IPlayer player)
     {
         if (!CanOpen(player)) return false;
         if (_sessions.TryGetValue(player.PlayerID, out var existing))
         {
-            if (existing.SessionId == player.SessionId && existing.Hud?.IsValid == true) return true;
+            if (existing.SessionId == player.SessionId && existing.Hud?.IsValid == true && SameRole(player, existing)) return true;
             Close(player.PlayerID);
         }
         core.MenusAPI.CloseActiveMenu(player);
-        var session = new Session(player.SessionId);
+        var scale = _scales.TryGetValue(player.PlayerID, out var saved) && saved.SessionId == player.SessionId
+            ? saved.Scale : Scales.MinBy(value => Math.Abs((long)value - options.Value.DefaultScale));
+        var session = new Session(player.SessionId, player.Controller.Team, zombies.IsInfected(player), scale);
         _sessions[player.PlayerID] = session;
         try
         {
@@ -128,7 +135,7 @@ internal sealed class KnifeMenu(
             try
             {
                 var player = core.PlayerManager.GetPlayer(id);
-                if (player is null || player.SessionId != session.SessionId || !CanOpen(player)
+                if (player is null || player.SessionId != session.SessionId || !CanOpen(player) || !SameRole(player, session)
                     || session.Hud?.IsValid != true || player.PlayerPawn?.IsBuyMenuOpen == true
                     || core.MenusAPI.GetCurrentMenu(player) is not null
                     || OtherHudCaptures(id, session, layouts)
@@ -153,13 +160,19 @@ internal sealed class KnifeMenu(
     private void Render(IPlayer player, Session session)
     {
         if (!_sessions.TryGetValue(player.PlayerID, out var active) || !ReferenceEquals(active, session)) return;
-        var equipped = knives.GetKnife(player).InternalName;
+        var current = knives.GetKnife(player);
+        var equipped = current.InternalName;
+        var pending = zombies.IsInfected(player) || player.Controller.Team != Team.CT || !player.IsAlive;
         var catalog = registry.GetAll().Where(knife => knife.Enabled).ToArray();
         if (session.Selection.Bind(catalog, equipped)) ReplaceHud(session);
         var hud = session.Hud ??= createHud(player.PlayerID);
         var selection = session.Selection;
-        hud.Text("Title", text.Get(player, "Title", "KNIFE SELECTOR"));
-        hud.Text("Subtitle", text.Get(player, "Subtitle", "Choose your style. Dominate the game."));
+        hud.Text("Title", "ELYSIUM");
+        hud.Text("Subtitle", text.Get(player, "ElysiumSubtitle", "Knife selector"));
+        hud.Choice("KnifeRoot", "scale", "Scale" + session.Scale);
+        hud.Class("KnifeRoot", "SettingsOpen", session.SettingsOpen);
+        hud.Text("SettingsTitle", text.Get(player, "ScaleTitle", "MENU SCALE"));
+        for (var i = 0; i < Scales.Length; i++) hud.Class("Scale" + Scales[i], "Selected", Scales[i] == session.Scale);
         hud.Text("AvailableTitle", text.Get(player, "Available", "AVAILABLE KNIVES"));
         hud.Text("AvailableCount", $"{catalog.Count(knife => authorization.CanUse(player, knife))} / {catalog.Length}");
         hud.Text("PageLabel", text.Get(player, "Page", "PAGE {page} / {pages}", new Dictionary<string, string>
@@ -168,7 +181,8 @@ internal sealed class KnifeMenu(
         }));
         hud.Class("PreviousPage", "Available", selection.Page > 0);
         hud.Class("NextPage", "Available", selection.Page + 1 < selection.PageCount);
-        hud.Text("BenefitsTitle", text.Get(player, "Benefits", "BENEFITS"));
+        hud.Text("StatsTitle", text.Get(player, "StatsTitle", "STATS"));
+        hud.Text("ComparisonHint", text.Get(player, "ComparisonHint", "Current knife → preview"));
         hud.Text("DescriptionTitle", text.Get(player, "Description", "DESCRIPTION"));
         hud.Text("Empty", text.Get(player, "Empty", "No knives available"));
         hud.Class("KnifeRoot", "Empty", catalog.Length == 0);
@@ -182,11 +196,11 @@ internal sealed class KnifeMenu(
             hud.Class("Row" + slot, "Selected", slot == selection.SelectedSlot);
             hud.Class("Row" + slot, "Equipped", equipped == knife.InternalName);
             hud.Class("Row" + slot, "Locked", !allowed);
-            hud.Choice("Row" + slot, "rarity", "Rarity" + Rarity(appearance));
-            hud.Choice("Image" + slot, "image", "Image_" + KnifeHudImages.Resolve(appearance.Image));
+            hud.Choice("Image" + slot, "image", "Icon_" + KnifeHudImages.ResolveIcon(appearance.Icon, knife.InternalName));
             hud.Text("Name" + slot, text.Name(player, knife));
-            hud.Text("Rarity" + slot, text.Get(player, "Rarity." + Rarity(appearance), Rarity(appearance).ToString()));
-            hud.Text("Action" + slot, StateText(player, equipped == knife.InternalName, allowed));
+            hud.Text("Action" + slot, !allowed ? text.Get(player, "Locked", "LOCKED")
+                : equipped == knife.InternalName ? CurrentState(player, pending)
+                : slot == selection.SelectedSlot ? text.Get(player, "PreviewSelected", "SELECTED") : "");
         }
         var selected = selection.Selected;
         if (selected is null)
@@ -200,36 +214,43 @@ internal sealed class KnifeMenu(
         var style = Appearance(selected.InternalName);
         var canUse = authorization.CanUse(player, selected);
         var isEquipped = selected.InternalName == equipped;
-        hud.Choice("Preview", "rarity", "Rarity" + Rarity(style));
-        hud.Choice("PreviewImage", "image", "Image_" + KnifeHudImages.Resolve(style.Image));
-        hud.Text("PreviewRarity", text.Get(player, "Rarity." + Rarity(style), Rarity(style).ToString()));
+        hud.Choice("PreviewImage", "image", "Preview_" + KnifeHudImages.ResolvePreview(style.Preview ?? style.Image, selected.InternalName));
         hud.Text("PreviewName", text.Name(player, selected));
         hud.Text("PreviewSubtitle", text.Custom(player, style.SubtitleKey) ?? text.Description(player, selected));
         hud.Text("Description", text.Description(player, selected));
-        var benefits = text.Benefits(player, selected, style);
+        var comparison = KnifeHudComparison.Compare(current, selected);
+        var culture = text.Culture(player);
         for (var index = 0; index < 4; index++)
         {
-            hud.Class("BenefitRow" + index, "Visible", index < benefits.Length);
-            hud.Text("Benefit" + index, benefits.ElementAtOrDefault(index) ?? "");
+            var stat = comparison[index];
+            hud.Choice("StatRow" + index, "direction", stat.Direction);
+            hud.Text("StatName" + index, text.Get(player, "StatLabel." + stat.Key, stat.Key));
+            hud.Text("StatCurrent" + index, stat.CurrentText(culture));
+            hud.Text("StatSelected" + index, stat.SelectedText(culture));
+            hud.Text("StatDelta" + index, stat.DeltaText(culture));
         }
         hud.Class("Confirm", "Available", canUse && !isEquipped);
         hud.Choice("Confirm", "slot", "Slot" + selection.SelectedSlot);
-        hud.Text("EquipLabel", isEquipped || !canUse ? StateText(player, isEquipped, canUse) : text.Get(player, "Equip", "EQUIP"));
+        hud.Text("EquipLabel", !canUse ? text.Get(player, "Locked", "LOCKED") : isEquipped ? CurrentState(player, pending)
+            : pending ? text.Get(player, "Save", "SAVE") : text.Get(player, "Equip", "EQUIP"));
         hud.Class("Footer", "Locked", !canUse);
         hud.Class("Footer", "Equipped", isEquipped);
         hud.Text("FooterStatus", !canUse
             ? text.Get(player, "PermissionRequired", "Requires permission: {permission}", new Dictionary<string, string>
                 { ["permission"] = authorization.GetRequiredPermission(selected) ?? "" })
-            : isEquipped ? text.Get(player, "CurrentlyEquipped", "Currently equipped")
-            : text.Get(player, "Ready", "Ready to equip"));
+            : pending
+                ? text.Get(player, zombies.IsInfected(player) || player.Controller.Team != Team.CT ? "PendingHuman" : "PendingSpawn",
+                    zombies.IsInfected(player) || player.Controller.Team != Team.CT
+                        ? "For humans: {knife} · Applies when you become human" : "Saved: {knife} · Applies on respawn",
+                    new Dictionary<string, string> { ["knife"] = text.Name(player, current) })
+                : text.Get(player, "EquippedKnife", "Currently equipped: {knife}",
+                    new Dictionary<string, string> { ["knife"] = text.Name(player, current) }));
         hud.Show();
     }
 
     private KnifeHudAppearance Appearance(string id) => options.Value.Knives?.GetValueOrDefault(id) ?? new();
-    private static KnifeHudRarity Rarity(KnifeHudAppearance appearance) => Enum.IsDefined(appearance.Rarity) ? appearance.Rarity : KnifeHudRarity.Common;
-    private string StateText(IPlayer player, bool equipped, bool allowed) => !allowed
-        ? text.Get(player, "Locked", "LOCKED")
-        : equipped ? text.Get(player, "Equipped", "EQUIPPED") : text.Get(player, "Select", "SELECT");
+    private string CurrentState(IPlayer player, bool pending) => pending
+        ? text.Get(player, "Saved", "SAVED") : text.Get(player, "EquippedState", "EQUIPPED");
 
     private static void ReplaceHud(Session session)
     {
@@ -246,8 +267,26 @@ internal sealed class KnifeMenu(
         try
         {
             if (ev.ButtonId == "Close") { Close(ev.PlayerId); return; }
-            if (!CanOpen(player)) { Close(ev.PlayerId); return; }
+            if (!CanOpen(player) || !SameRole(player, session)) { Close(ev.PlayerId); return; }
             session.LastInteraction = Now;
+            if (ev.ButtonId == "Settings")
+            {
+                session.SettingsOpen = !session.SettingsOpen;
+                Render(player, session);
+                return;
+            }
+            if (session.SettingsOpen)
+            {
+                foreach (var scale in Scales)
+                {
+                    if (ev.ButtonId != "Scale" + scale) continue;
+                    session.Scale = scale;
+                    _scales[player.PlayerID] = (session.SessionId, scale);
+                    Render(player, session);
+                    break;
+                }
+                return;
+            }
             // До обработки кнопки сверяем исходные объекты каталога: reload с теми
             // же ID, но изменёнными правами/параметрами, инвалидирует старый клик.
             var snapshot = registry.GetAll().Where(knife => knife.Enabled).ToArray();
@@ -286,7 +325,7 @@ internal sealed class KnifeMenu(
     {
         if (ev.Key == KeyKind.Esc && ev.Pressed) Close(ev.PlayerId);
     }
-    private void OnDisconnected(IOnClientDisconnectedEvent ev) => Close(ev.PlayerId);
+    private void OnDisconnected(IOnClientDisconnectedEvent ev) { Close(ev.PlayerId); _scales.Remove(ev.PlayerId); }
     private void OnMapUnload(IOnMapUnloadEvent ev) { _mapUnloading = true; CloseAll(); }
     private void OnMapLoad(IOnMapLoadEvent ev) { CloseAll(); _mapUnloading = false; }
     private HookResult OnDeath(EventPlayerDeath ev) { if (ev.UserIdPlayer is { } player) Close(player.PlayerID); return HookResult.Continue; }
@@ -331,11 +370,16 @@ internal sealed class KnifeMenu(
         foreach (var command in _commands) core.Command.UnregisterCommand(command);
         _commands.Clear();
         CloseAll();
+        _scales.Clear();
     }
 
-    private sealed class Session(ulong sessionId)
+    private sealed class Session(ulong sessionId, Team team, bool infected, int scale)
     {
         public ulong SessionId { get; } = sessionId;
+        public Team Team { get; } = team;
+        public bool Infected { get; } = infected;
+        public int Scale { get; set; } = scale;
+        public bool SettingsOpen { get; set; }
         public KnifeHudSelection Selection { get; } = new();
         public IKnifeHudRuntime? Hud { get; set; }
         public double LastInteraction { get; set; } = Now;

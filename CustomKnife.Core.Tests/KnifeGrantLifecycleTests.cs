@@ -17,6 +17,7 @@ public sealed class KnifeGrantLifecycleTests
     [InlineData("disconnected")]
     [InlineData("respawned")]
     [InlineData("unloaded")]
+    [InlineData("team")]
     public void PendingHumanKnifeCannotBeGivenAfterPlayerStateChanges(string change)
     {
         using var fixture = new Fixture();
@@ -30,6 +31,7 @@ public sealed class KnifeGrantLifecycleTests
             case "disconnected": fixture.Connected = false; break;
             case "respawned": fixture.PawnAddress++; break;
             case "unloaded": fixture.Service.Dispose(); break;
+            case "team": fixture.Team = Team.T; break;
         }
 
         // Зависимости выдачи намеренно отсутствуют: устаревший callback не должен их вызывать.
@@ -45,11 +47,33 @@ public sealed class KnifeGrantLifecycleTests
         Assert.Empty(fixture.Updates);
     }
 
+    [Fact]
+    public void RepeatedRoleAndSpawnEventsQueueOnlyOneGrant()
+    {
+        using var fixture = new Fixture();
+        Assert.True(fixture.Service.TryGiveKnife(fixture.Player));
+        Assert.True(fixture.Service.TryGiveKnife(fixture.Player));
+        Assert.Single(fixture.Updates);
+    }
+
+    [Fact]
+    public void HumanizationWithoutRespawnAllowsGrantForTheSamePawn()
+    {
+        using var fixture = new Fixture { Infected = true, Team = Team.T };
+        Assert.False(fixture.Service.TryGiveKnife(fixture.Player));
+        fixture.Infected = false;
+        Assert.False(fixture.Service.TryGiveKnife(fixture.Player));
+        fixture.Team = Team.CT;
+        Assert.True(fixture.Service.TryGiveKnife(fixture.Player));
+        Assert.Single(fixture.Updates);
+    }
+
     private sealed class Fixture : IDisposable
     {
         public bool Infected { get; set; }
         public bool Alive { get; set; } = true;
         public bool Connected { get; set; } = true;
+        public Team Team { get; set; } = Team.CT;
         public nint PawnAddress { get; set; } = 100;
         public Queue<Action> Updates { get; } = new();
         public IPlayer Player { get; }
@@ -60,11 +84,14 @@ public sealed class KnifeGrantLifecycleTests
             var pawn = new Mock<CCSPlayerPawn>(MockBehavior.Strict);
             pawn.Setup(value => value.IsValid).Returns(true);
             pawn.Setup(value => value.Address).Returns(() => PawnAddress);
+            var controller = new Mock<CCSPlayerController>();
+            controller.SetupGet(value => value.Team).Returns(() => Team);
             Player = Stub<IPlayer>((method, _) => method.Name switch
             {
                 "get_IsValid" => true,
                 "get_IsAlive" => Alive,
                 "get_SessionId" => 7UL,
+                "get_Controller" => controller.Object,
                 "get_PlayerPawn" or "get_RequiredPlayerPawn" => pawn.Object,
                 _ => throw new InvalidOperationException(method.Name)
             });

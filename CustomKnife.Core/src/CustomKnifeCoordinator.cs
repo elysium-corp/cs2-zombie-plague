@@ -13,6 +13,8 @@ using SwiftlyS2.Shared.GameHooks;
 using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.SchemaDefinitions;
 using ZombiePlague.Api.Menus;
+using ZombiePlague.Api;
+using ZombiePlague.Api.Events.Contexts.Player;
 
 namespace CustomKnife;
 
@@ -22,7 +24,8 @@ internal sealed class CustomKnifeCoordinator(
     IPlayerKnifeService playerKnifeService,
     KnifeMenu knifeMenu,
     MenuApiBridge menuApiBridge,
-    ILocalizationApi localization
+    ILocalizationApi localization,
+    IZombiePlagueApi zombies
 )
 {
     private const int DamageMovementRestoreDelay = 20;
@@ -56,6 +59,10 @@ internal sealed class CustomKnifeCoordinator(
     private void RegisterEvents()
     {
         core.Event.OnClientSteamAuthorize += OnClientSteamAuthorize;
+        zombies.Events.Players.Humanized.Hook(OnHumanized);
+        zombies.Events.Players.Disinfected.Hook(OnDisinfected);
+        zombies.Events.Players.RoleApplied.Hook(OnRoleApplied);
+        zombies.Events.Players.BecameSurvivor.Hook(OnBecameSurvivor);
         
         _playerEquipHook = core.GameEvent.HookPost<EventItemEquip>(OnPlayerEquip);
         _playerSpawnHook = core.GameEvent.HookPost<EventPlayerSpawn>(OnPlayerSpawn);
@@ -77,6 +84,10 @@ internal sealed class CustomKnifeCoordinator(
     private void UnregisterEvents()
     {
         core.Event.OnClientSteamAuthorize -= OnClientSteamAuthorize;
+        zombies.Events.Players.Humanized.Unhook(OnHumanized);
+        zombies.Events.Players.Disinfected.Unhook(OnDisinfected);
+        zombies.Events.Players.RoleApplied.Unhook(OnRoleApplied);
+        zombies.Events.Players.BecameSurvivor.Unhook(OnBecameSurvivor);
         
         core.GameEvent.Unhook(_playerEquipHook);
         core.GameEvent.Unhook(_playerSpawnHook);
@@ -143,6 +154,13 @@ internal sealed class CustomKnifeCoordinator(
 
         return HookResult.Continue;
     }
+
+    // Эти события покрывают лечение и назначение человека без нового spawn.
+    // KnifeService повторно проверяет команду, роль и pawn перед самой выдачей.
+    private void OnHumanized(ref PlayerHumanizedContext context) => knifeService.TryGiveKnife(context.Player);
+    private void OnDisinfected(ref PlayerDisinfectedContext context) => knifeService.TryGiveKnife(context.Player);
+    private void OnRoleApplied(ref PlayerRoleAppliedContext context) => knifeService.TryGiveKnife(context.Player);
+    private void OnBecameSurvivor(ref PlayerBecameSurvivorContext context) => knifeService.TryGiveKnife(context.Player);
 
     private HookResult OnRoundStart(EventRoundStart @event)
     {

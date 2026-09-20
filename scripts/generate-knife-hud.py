@@ -33,15 +33,13 @@ def layout():
     overlay = node(viewport, 'Panel', 'KnifeRoot', 'KnifeRoot')
     window = node(overlay, 'Panel', 'KnifeWindow')
     header = node(window, 'Panel', 'KnifeHeader')
-    label(node(header, 'Panel', 'KnifeMonogram'), None, value='E')
     heading = node(header, 'Panel', 'KnifeHeading')
     label(heading, 'KnifeTitle', 'Title')
     label(heading, 'KnifeSubtitle', 'Subtitle')
-    brand = node(header, 'Panel', 'KnifeBrand')
-    label(brand, 'KnifeBrandName', value='ELYSIUM')
-    label(brand, 'KnifeBrandTagline', value='CUSTOM CS2 EXPERIENCE')
+    node(node(header, 'Button', 'KnifeSettingsButton', 'Settings'), 'Panel', 'KnifeGear', hittest='false')
     label(node(header, 'Button', 'KnifeClose', 'Close'), None, value='×')
-    body = node(window, 'Panel', 'KnifeBody')
+    stack = node(window, 'Panel', 'KnifeContentStack')
+    body = node(stack, 'Panel', 'KnifeBody')
     left = node(body, 'Panel', 'KnifeList')
     top = node(left, 'Panel', 'KnifeListHeader')
     label(top, 'KnifeSectionLabel KnifeListTitle', 'AvailableTitle')
@@ -51,13 +49,11 @@ def layout():
         row = node(rows, 'Panel', 'KnifeRow' + (' Last' if slot == 6 else ''), f'Row{slot}')
         surface = node(row, 'Panel', 'KnifeRowSurface', hittest='false')
         content = node(surface, 'Panel', 'KnifeRowContent', hittest='false')
-        node(content, 'Panel', 'KnifeThumb KnifeImage', f'Image{slot}', hittest='false')
+        node(content, 'Panel', 'KnifeThumb', f'Image{slot}', hittest='false')
         info = node(content, 'Panel', 'KnifeRowText', hittest='false')
         label(info, 'KnifeName', f'Name{slot}')
-        rarity = node(info, 'Panel', 'KnifeRarityLine', hittest='false')
-        node(rarity, 'Panel', 'KnifeRarityDot', hittest='false')
-        label(rarity, 'KnifeRarityText', f'Rarity{slot}')
-        label(node(content, 'Panel', 'KnifeRowAction', hittest='false'), None, f'Action{slot}')
+        label(info, 'KnifeRowAction', f'Action{slot}')
+        label(content, 'KnifeEquippedMark', value='✓')
         node(row, 'Button', 'KnifeRowHit', f'Preview{slot}')
     pager = node(left, 'Panel', 'KnifePager')
     label(node(pager, 'Button', 'KnifePageButton', 'PreviousPage'), None, value='‹')
@@ -66,25 +62,31 @@ def layout():
     right = node(body, 'Panel', 'KnifeRight')
     preview = node(right, 'Panel', 'KnifePreview', 'Preview')
     art = node(preview, 'Panel', 'KnifePreviewArt')
-    node(art, 'Panel', 'KnifePreviewGlow', hittest='false')
-    node(art, 'Panel', 'KnifeHero KnifeImage', 'PreviewImage', hittest='false')
-    rarity = node(art, 'Panel', 'KnifePreviewRarity', hittest='false')
-    node(rarity, 'Panel', 'KnifeRarityDot', hittest='false')
-    label(rarity, 'KnifeRarityText', 'PreviewRarity')
+    node(art, 'Panel', 'KnifeHero', 'PreviewImage', hittest='false')
     caption = node(preview, 'Panel', 'KnifeCaption')
     label(caption, 'KnifePreviewName', 'PreviewName')
     label(caption, 'KnifePreviewSubtitle', 'PreviewSubtitle')
     details = node(right, 'Panel', 'KnifeDetails')
-    benefits = node(details, 'Panel', 'KnifeBenefits')
-    label(benefits, 'KnifeSectionLabel', 'BenefitsTitle')
+    stats = node(details, 'Panel', 'KnifeStats')
+    label(stats, 'KnifeSectionLabel', 'StatsTitle')
+    label(stats, 'KnifeComparisonHint', 'ComparisonHint')
     for index in range(4):
-        row = node(benefits, 'Panel', 'KnifeBenefitRow', f'BenefitRow{index}')
-        label(row, 'KnifePlus', value='+')
-        label(row, 'KnifeBenefit', f'Benefit{index}')
+        row = node(stats, 'Panel', 'KnifeStatRow', f'StatRow{index}')
+        label(row, 'KnifeStatName', f'StatName{index}')
+        values = node(row, 'Panel', 'KnifeStatValues')
+        label(values, 'KnifeStatCurrent', f'StatCurrent{index}')
+        label(values, 'KnifeStatArrow', value='→')
+        label(values, 'KnifeStatSelected', f'StatSelected{index}')
+        label(values, 'KnifeStatDelta', f'StatDelta{index}')
     description = node(details, 'Panel', 'KnifeDescriptionPanel')
     label(description, 'KnifeSectionLabel', 'DescriptionTitle')
     label(node(description, 'Panel', 'KnifeDescriptionScroll'), 'KnifeDescription', 'Description')
     label(right, 'KnifeEmpty', 'Empty')
+    settings = node(stack, 'Panel', 'KnifeSettingsPanel')
+    label(settings, 'KnifeSectionLabel', 'SettingsTitle')
+    scales = node(settings, 'Panel', 'KnifeScaleOptions')
+    for scale in (75, 85, 100, 115, 125):
+        label(node(scales, 'Button', 'KnifeScaleOption', f'Scale{scale}'), None, value=f'{scale}%')
     footer = node(window, 'Panel', 'KnifeFooter', 'Footer')
     node(footer, 'Panel', 'KnifeStatusDot')
     label(footer, 'KnifeStatus', 'FooterStatus')
@@ -98,23 +100,34 @@ def layout():
 
 def images():
     assets = json.loads((RESOURCE / 'knife-hud-assets.json').read_text())
-    if 'knife' not in assets: raise ValueError('Обязателен fallback knife')
-    for key, path in assets.items():
-        if not re.fullmatch(r'[a-z][a-z0-9_]{0,63}', key): raise ValueError(f'Неверный ключ: {key}')
-        if not re.fullmatch(r's2r://panorama/images/[a-z0-9_/.-]+\.(?:vsvg|vtex)', path) or '..' in path:
-            raise ValueError(f'Неверный путь: {path}')
     css = '/* Создано scripts/generate-knife-hud.py из knife-hud-assets.json */\n'
-    css += ''.join(f'.KnifeImage.Image_{key} {{ background-image: url("{path}"); }}\n' for key, path in sorted(assets.items()))
-    names = ', '.join(json.dumps(key) for key in sorted(assets))
+    for group, panel, prefix, suffix in (('icons', 'KnifeThumb', 'Icon', '.vsvg'), ('previews', 'KnifeHero', 'Preview', '_png.vtex')):
+        entries = assets.get(group)
+        if not isinstance(entries, dict) or 'knife' not in entries: raise ValueError(f'Обязателен fallback {group}.knife')
+        for key, path in sorted(entries.items()):
+            if not re.fullmatch(r'[a-z][a-z0-9_]{0,63}', key): raise ValueError(f'Неверный ключ: {key}')
+            if not isinstance(path, str) or not re.fullmatch(r's2r://panorama/images/[a-z0-9_/.-]+', path) or '..' in path or not path.endswith(suffix):
+                raise ValueError(f'Неверный путь {group}.{key}: ожидается {suffix}')
+            css += f'.{panel}.{prefix}_{key} {{ background-image: url("{path}"); }}\n'
     cs = '''// Создано scripts/generate-knife-hud.py; редактируйте knife-hud-assets.json.
 namespace CustomKnife.Hud;
 
 internal static class KnifeHudImages
 {
-    private static readonly HashSet<string> Names = new(StringComparer.Ordinal) { NAMES };
-    public static string Resolve(string? image) => image is not null && Names.Contains(image) ? image : "knife";
+    private static readonly HashSet<string> Icons = new(StringComparer.Ordinal) { ICONS };
+    private static readonly HashSet<string> Previews = new(StringComparer.Ordinal) { PREVIEWS };
+    public static string ResolveIcon(string? image, string knifeId) => Resolve(Icons, image, knifeId);
+    public static string ResolvePreview(string? image, string knifeId) => Resolve(Previews, image, knifeId);
+
+    private static string Resolve(HashSet<string> names, string? image, string knifeId)
+    {
+        if (!string.IsNullOrWhiteSpace(image)) return names.Contains(image) ? image : "knife";
+        if (names.Contains(knifeId)) return knifeId;
+        var shortName = knifeId.StartsWith("knife_", StringComparison.Ordinal) ? knifeId[6..] : knifeId;
+        return names.Contains(shortName) ? shortName : "knife";
+    }
 }
-'''.replace('NAMES', names)
+'''.replace('ICONS', ', '.join(json.dumps(key) for key in sorted(assets['icons']))).replace('PREVIEWS', ', '.join(json.dumps(key) for key in sorted(assets['previews'])))
     return css, cs
 
 

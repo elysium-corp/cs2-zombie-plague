@@ -70,9 +70,11 @@ public sealed class KnifeHudSelectionTests
     [Fact]
     public void UnregisteredImageCannotInjectCssClass()
     {
-        Assert.Equal("knife", KnifeHudImages.Resolve("../../secret"));
-        Assert.Equal("knife", KnifeHudImages.Resolve("knife Evil"));
-        Assert.Equal("knife", KnifeHudImages.Resolve(null));
+        Assert.Equal("knife", KnifeHudImages.ResolveIcon("../../secret", "knife_axe"));
+        Assert.Equal("knife", KnifeHudImages.ResolvePreview("knife Evil", "knife_axe"));
+        Assert.Equal("knife", KnifeHudImages.ResolvePreview(null, "knife_axe"));
+        Assert.Equal("karambit", KnifeHudImages.ResolveIcon(null, "knife_karambit"));
+        Assert.Equal("m9_bayonet", KnifeHudImages.ResolvePreview("m9_bayonet", "knife_axe"));
     }
 
     private static IKnife[] Catalog(int count) => Enumerable.Range(0, count)

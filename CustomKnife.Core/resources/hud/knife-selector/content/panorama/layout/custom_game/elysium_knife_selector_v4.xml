@@ -7,208 +7,207 @@
         <Panel class="KnifeRoot" id="KnifeRoot">
             <Panel class="KnifeWindow">
                 <Panel class="KnifeHeader">
-                    <Panel class="KnifeMonogram">
-                        <Label text="E" hittest="false" />
-                    </Panel>
                     <Panel class="KnifeHeading">
                         <Label text="{s:value}" class="KnifeTitle" id="Title" hittest="false" />
                         <Label text="{s:value}" class="KnifeSubtitle" id="Subtitle" hittest="false" />
                     </Panel>
-                    <Panel class="KnifeBrand">
-                        <Label text="ELYSIUM" class="KnifeBrandName" hittest="false" />
-                        <Label text="CUSTOM CS2 EXPERIENCE" class="KnifeBrandTagline" hittest="false" />
-                    </Panel>
+                    <Button class="KnifeSettingsButton" id="Settings">
+                        <Panel hittest="false" class="KnifeGear" />
+                    </Button>
                     <Button class="KnifeClose" id="Close">
                         <Label text="×" hittest="false" />
                     </Button>
                 </Panel>
-                <Panel class="KnifeBody">
-                    <Panel class="KnifeList">
-                        <Panel class="KnifeListHeader">
-                            <Label text="{s:value}" class="KnifeSectionLabel KnifeListTitle" id="AvailableTitle" hittest="false" />
-                            <Label text="{s:value}" class="KnifeCount" id="AvailableCount" hittest="false" />
-                        </Panel>
-                        <Panel class="KnifeRows">
-                            <Panel class="KnifeRow" id="Row0">
-                                <Panel hittest="false" class="KnifeRowSurface">
-                                    <Panel hittest="false" class="KnifeRowContent">
-                                        <Panel hittest="false" class="KnifeThumb KnifeImage" id="Image0" />
-                                        <Panel hittest="false" class="KnifeRowText">
-                                            <Label text="{s:value}" class="KnifeName" id="Name0" hittest="false" />
-                                            <Panel hittest="false" class="KnifeRarityLine">
-                                                <Panel hittest="false" class="KnifeRarityDot" />
-                                                <Label text="{s:value}" class="KnifeRarityText" id="Rarity0" hittest="false" />
-                                            </Panel>
-                                        </Panel>
-                                        <Panel hittest="false" class="KnifeRowAction">
-                                            <Label text="{s:value}" id="Action0" hittest="false" />
-                                        </Panel>
-                                    </Panel>
-                                </Panel>
-                                <Button class="KnifeRowHit" id="Preview0" />
+                <Panel class="KnifeContentStack">
+                    <Panel class="KnifeBody">
+                        <Panel class="KnifeList">
+                            <Panel class="KnifeListHeader">
+                                <Label text="{s:value}" class="KnifeSectionLabel KnifeListTitle" id="AvailableTitle" hittest="false" />
+                                <Label text="{s:value}" class="KnifeCount" id="AvailableCount" hittest="false" />
                             </Panel>
-                            <Panel class="KnifeRow" id="Row1">
-                                <Panel hittest="false" class="KnifeRowSurface">
-                                    <Panel hittest="false" class="KnifeRowContent">
-                                        <Panel hittest="false" class="KnifeThumb KnifeImage" id="Image1" />
-                                        <Panel hittest="false" class="KnifeRowText">
-                                            <Label text="{s:value}" class="KnifeName" id="Name1" hittest="false" />
-                                            <Panel hittest="false" class="KnifeRarityLine">
-                                                <Panel hittest="false" class="KnifeRarityDot" />
-                                                <Label text="{s:value}" class="KnifeRarityText" id="Rarity1" hittest="false" />
+                            <Panel class="KnifeRows">
+                                <Panel class="KnifeRow" id="Row0">
+                                    <Panel hittest="false" class="KnifeRowSurface">
+                                        <Panel hittest="false" class="KnifeRowContent">
+                                            <Panel hittest="false" class="KnifeThumb" id="Image0" />
+                                            <Panel hittest="false" class="KnifeRowText">
+                                                <Label text="{s:value}" class="KnifeName" id="Name0" hittest="false" />
+                                                <Label text="{s:value}" class="KnifeRowAction" id="Action0" hittest="false" />
                                             </Panel>
-                                        </Panel>
-                                        <Panel hittest="false" class="KnifeRowAction">
-                                            <Label text="{s:value}" id="Action1" hittest="false" />
+                                            <Label text="✓" class="KnifeEquippedMark" hittest="false" />
                                         </Panel>
                                     </Panel>
+                                    <Button class="KnifeRowHit" id="Preview0" />
                                 </Panel>
-                                <Button class="KnifeRowHit" id="Preview1" />
+                                <Panel class="KnifeRow" id="Row1">
+                                    <Panel hittest="false" class="KnifeRowSurface">
+                                        <Panel hittest="false" class="KnifeRowContent">
+                                            <Panel hittest="false" class="KnifeThumb" id="Image1" />
+                                            <Panel hittest="false" class="KnifeRowText">
+                                                <Label text="{s:value}" class="KnifeName" id="Name1" hittest="false" />
+                                                <Label text="{s:value}" class="KnifeRowAction" id="Action1" hittest="false" />
+                                            </Panel>
+                                            <Label text="✓" class="KnifeEquippedMark" hittest="false" />
+                                        </Panel>
+                                    </Panel>
+                                    <Button class="KnifeRowHit" id="Preview1" />
+                                </Panel>
+                                <Panel class="KnifeRow" id="Row2">
+                                    <Panel hittest="false" class="KnifeRowSurface">
+                                        <Panel hittest="false" class="KnifeRowContent">
+                                            <Panel hittest="false" class="KnifeThumb" id="Image2" />
+                                            <Panel hittest="false" class="KnifeRowText">
+                                                <Label text="{s:value}" class="KnifeName" id="Name2" hittest="false" />
+                                                <Label text="{s:value}" class="KnifeRowAction" id="Action2" hittest="false" />
+                                            </Panel>
+                                            <Label text="✓" class="KnifeEquippedMark" hittest="false" />
+                                        </Panel>
+                                    </Panel>
+                                    <Button class="KnifeRowHit" id="Preview2" />
+                                </Panel>
+                                <Panel class="KnifeRow" id="Row3">
+                                    <Panel hittest="false" class="KnifeRowSurface">
+                                        <Panel hittest="false" class="KnifeRowContent">
+                                            <Panel hittest="false" class="KnifeThumb" id="Image3" />
+                                            <Panel hittest="false" class="KnifeRowText">
+                                                <Label text="{s:value}" class="KnifeName" id="Name3" hittest="false" />
+                                                <Label text="{s:value}" class="KnifeRowAction" id="Action3" hittest="false" />
+                                            </Panel>
+                                            <Label text="✓" class="KnifeEquippedMark" hittest="false" />
+                                        </Panel>
+                                    </Panel>
+                                    <Button class="KnifeRowHit" id="Preview3" />
+                                </Panel>
+                                <Panel class="KnifeRow" id="Row4">
+                                    <Panel hittest="false" class="KnifeRowSurface">
+                                        <Panel hittest="false" class="KnifeRowContent">
+                                            <Panel hittest="false" class="KnifeThumb" id="Image4" />
+                                            <Panel hittest="false" class="KnifeRowText">
+                                                <Label text="{s:value}" class="KnifeName" id="Name4" hittest="false" />
+                                                <Label text="{s:value}" class="KnifeRowAction" id="Action4" hittest="false" />
+                                            </Panel>
+                                            <Label text="✓" class="KnifeEquippedMark" hittest="false" />
+                                        </Panel>
+                                    </Panel>
+                                    <Button class="KnifeRowHit" id="Preview4" />
+                                </Panel>
+                                <Panel class="KnifeRow" id="Row5">
+                                    <Panel hittest="false" class="KnifeRowSurface">
+                                        <Panel hittest="false" class="KnifeRowContent">
+                                            <Panel hittest="false" class="KnifeThumb" id="Image5" />
+                                            <Panel hittest="false" class="KnifeRowText">
+                                                <Label text="{s:value}" class="KnifeName" id="Name5" hittest="false" />
+                                                <Label text="{s:value}" class="KnifeRowAction" id="Action5" hittest="false" />
+                                            </Panel>
+                                            <Label text="✓" class="KnifeEquippedMark" hittest="false" />
+                                        </Panel>
+                                    </Panel>
+                                    <Button class="KnifeRowHit" id="Preview5" />
+                                </Panel>
+                                <Panel class="KnifeRow Last" id="Row6">
+                                    <Panel hittest="false" class="KnifeRowSurface">
+                                        <Panel hittest="false" class="KnifeRowContent">
+                                            <Panel hittest="false" class="KnifeThumb" id="Image6" />
+                                            <Panel hittest="false" class="KnifeRowText">
+                                                <Label text="{s:value}" class="KnifeName" id="Name6" hittest="false" />
+                                                <Label text="{s:value}" class="KnifeRowAction" id="Action6" hittest="false" />
+                                            </Panel>
+                                            <Label text="✓" class="KnifeEquippedMark" hittest="false" />
+                                        </Panel>
+                                    </Panel>
+                                    <Button class="KnifeRowHit" id="Preview6" />
+                                </Panel>
                             </Panel>
-                            <Panel class="KnifeRow" id="Row2">
-                                <Panel hittest="false" class="KnifeRowSurface">
-                                    <Panel hittest="false" class="KnifeRowContent">
-                                        <Panel hittest="false" class="KnifeThumb KnifeImage" id="Image2" />
-                                        <Panel hittest="false" class="KnifeRowText">
-                                            <Label text="{s:value}" class="KnifeName" id="Name2" hittest="false" />
-                                            <Panel hittest="false" class="KnifeRarityLine">
-                                                <Panel hittest="false" class="KnifeRarityDot" />
-                                                <Label text="{s:value}" class="KnifeRarityText" id="Rarity2" hittest="false" />
-                                            </Panel>
-                                        </Panel>
-                                        <Panel hittest="false" class="KnifeRowAction">
-                                            <Label text="{s:value}" id="Action2" hittest="false" />
-                                        </Panel>
-                                    </Panel>
-                                </Panel>
-                                <Button class="KnifeRowHit" id="Preview2" />
-                            </Panel>
-                            <Panel class="KnifeRow" id="Row3">
-                                <Panel hittest="false" class="KnifeRowSurface">
-                                    <Panel hittest="false" class="KnifeRowContent">
-                                        <Panel hittest="false" class="KnifeThumb KnifeImage" id="Image3" />
-                                        <Panel hittest="false" class="KnifeRowText">
-                                            <Label text="{s:value}" class="KnifeName" id="Name3" hittest="false" />
-                                            <Panel hittest="false" class="KnifeRarityLine">
-                                                <Panel hittest="false" class="KnifeRarityDot" />
-                                                <Label text="{s:value}" class="KnifeRarityText" id="Rarity3" hittest="false" />
-                                            </Panel>
-                                        </Panel>
-                                        <Panel hittest="false" class="KnifeRowAction">
-                                            <Label text="{s:value}" id="Action3" hittest="false" />
-                                        </Panel>
-                                    </Panel>
-                                </Panel>
-                                <Button class="KnifeRowHit" id="Preview3" />
-                            </Panel>
-                            <Panel class="KnifeRow" id="Row4">
-                                <Panel hittest="false" class="KnifeRowSurface">
-                                    <Panel hittest="false" class="KnifeRowContent">
-                                        <Panel hittest="false" class="KnifeThumb KnifeImage" id="Image4" />
-                                        <Panel hittest="false" class="KnifeRowText">
-                                            <Label text="{s:value}" class="KnifeName" id="Name4" hittest="false" />
-                                            <Panel hittest="false" class="KnifeRarityLine">
-                                                <Panel hittest="false" class="KnifeRarityDot" />
-                                                <Label text="{s:value}" class="KnifeRarityText" id="Rarity4" hittest="false" />
-                                            </Panel>
-                                        </Panel>
-                                        <Panel hittest="false" class="KnifeRowAction">
-                                            <Label text="{s:value}" id="Action4" hittest="false" />
-                                        </Panel>
-                                    </Panel>
-                                </Panel>
-                                <Button class="KnifeRowHit" id="Preview4" />
-                            </Panel>
-                            <Panel class="KnifeRow" id="Row5">
-                                <Panel hittest="false" class="KnifeRowSurface">
-                                    <Panel hittest="false" class="KnifeRowContent">
-                                        <Panel hittest="false" class="KnifeThumb KnifeImage" id="Image5" />
-                                        <Panel hittest="false" class="KnifeRowText">
-                                            <Label text="{s:value}" class="KnifeName" id="Name5" hittest="false" />
-                                            <Panel hittest="false" class="KnifeRarityLine">
-                                                <Panel hittest="false" class="KnifeRarityDot" />
-                                                <Label text="{s:value}" class="KnifeRarityText" id="Rarity5" hittest="false" />
-                                            </Panel>
-                                        </Panel>
-                                        <Panel hittest="false" class="KnifeRowAction">
-                                            <Label text="{s:value}" id="Action5" hittest="false" />
-                                        </Panel>
-                                    </Panel>
-                                </Panel>
-                                <Button class="KnifeRowHit" id="Preview5" />
-                            </Panel>
-                            <Panel class="KnifeRow Last" id="Row6">
-                                <Panel hittest="false" class="KnifeRowSurface">
-                                    <Panel hittest="false" class="KnifeRowContent">
-                                        <Panel hittest="false" class="KnifeThumb KnifeImage" id="Image6" />
-                                        <Panel hittest="false" class="KnifeRowText">
-                                            <Label text="{s:value}" class="KnifeName" id="Name6" hittest="false" />
-                                            <Panel hittest="false" class="KnifeRarityLine">
-                                                <Panel hittest="false" class="KnifeRarityDot" />
-                                                <Label text="{s:value}" class="KnifeRarityText" id="Rarity6" hittest="false" />
-                                            </Panel>
-                                        </Panel>
-                                        <Panel hittest="false" class="KnifeRowAction">
-                                            <Label text="{s:value}" id="Action6" hittest="false" />
-                                        </Panel>
-                                    </Panel>
-                                </Panel>
-                                <Button class="KnifeRowHit" id="Preview6" />
+                            <Panel class="KnifePager">
+                                <Button class="KnifePageButton" id="PreviousPage">
+                                    <Label text="‹" hittest="false" />
+                                </Button>
+                                <Label text="{s:value}" class="KnifePageLabel" id="PageLabel" hittest="false" />
+                                <Button class="KnifePageButton" id="NextPage">
+                                    <Label text="›" hittest="false" />
+                                </Button>
                             </Panel>
                         </Panel>
-                        <Panel class="KnifePager">
-                            <Button class="KnifePageButton" id="PreviousPage">
-                                <Label text="‹" hittest="false" />
-                            </Button>
-                            <Label text="{s:value}" class="KnifePageLabel" id="PageLabel" hittest="false" />
-                            <Button class="KnifePageButton" id="NextPage">
-                                <Label text="›" hittest="false" />
-                            </Button>
+                        <Panel class="KnifeRight">
+                            <Panel class="KnifePreview" id="Preview">
+                                <Panel class="KnifePreviewArt">
+                                    <Panel hittest="false" class="KnifeHero" id="PreviewImage" />
+                                </Panel>
+                                <Panel class="KnifeCaption">
+                                    <Label text="{s:value}" class="KnifePreviewName" id="PreviewName" hittest="false" />
+                                    <Label text="{s:value}" class="KnifePreviewSubtitle" id="PreviewSubtitle" hittest="false" />
+                                </Panel>
+                            </Panel>
+                            <Panel class="KnifeDetails">
+                                <Panel class="KnifeStats">
+                                    <Label text="{s:value}" class="KnifeSectionLabel" id="StatsTitle" hittest="false" />
+                                    <Label text="{s:value}" class="KnifeComparisonHint" id="ComparisonHint" hittest="false" />
+                                    <Panel class="KnifeStatRow" id="StatRow0">
+                                        <Label text="{s:value}" class="KnifeStatName" id="StatName0" hittest="false" />
+                                        <Panel class="KnifeStatValues">
+                                            <Label text="{s:value}" class="KnifeStatCurrent" id="StatCurrent0" hittest="false" />
+                                            <Label text="→" class="KnifeStatArrow" hittest="false" />
+                                            <Label text="{s:value}" class="KnifeStatSelected" id="StatSelected0" hittest="false" />
+                                            <Label text="{s:value}" class="KnifeStatDelta" id="StatDelta0" hittest="false" />
+                                        </Panel>
+                                    </Panel>
+                                    <Panel class="KnifeStatRow" id="StatRow1">
+                                        <Label text="{s:value}" class="KnifeStatName" id="StatName1" hittest="false" />
+                                        <Panel class="KnifeStatValues">
+                                            <Label text="{s:value}" class="KnifeStatCurrent" id="StatCurrent1" hittest="false" />
+                                            <Label text="→" class="KnifeStatArrow" hittest="false" />
+                                            <Label text="{s:value}" class="KnifeStatSelected" id="StatSelected1" hittest="false" />
+                                            <Label text="{s:value}" class="KnifeStatDelta" id="StatDelta1" hittest="false" />
+                                        </Panel>
+                                    </Panel>
+                                    <Panel class="KnifeStatRow" id="StatRow2">
+                                        <Label text="{s:value}" class="KnifeStatName" id="StatName2" hittest="false" />
+                                        <Panel class="KnifeStatValues">
+                                            <Label text="{s:value}" class="KnifeStatCurrent" id="StatCurrent2" hittest="false" />
+                                            <Label text="→" class="KnifeStatArrow" hittest="false" />
+                                            <Label text="{s:value}" class="KnifeStatSelected" id="StatSelected2" hittest="false" />
+                                            <Label text="{s:value}" class="KnifeStatDelta" id="StatDelta2" hittest="false" />
+                                        </Panel>
+                                    </Panel>
+                                    <Panel class="KnifeStatRow" id="StatRow3">
+                                        <Label text="{s:value}" class="KnifeStatName" id="StatName3" hittest="false" />
+                                        <Panel class="KnifeStatValues">
+                                            <Label text="{s:value}" class="KnifeStatCurrent" id="StatCurrent3" hittest="false" />
+                                            <Label text="→" class="KnifeStatArrow" hittest="false" />
+                                            <Label text="{s:value}" class="KnifeStatSelected" id="StatSelected3" hittest="false" />
+                                            <Label text="{s:value}" class="KnifeStatDelta" id="StatDelta3" hittest="false" />
+                                        </Panel>
+                                    </Panel>
+                                </Panel>
+                                <Panel class="KnifeDescriptionPanel">
+                                    <Label text="{s:value}" class="KnifeSectionLabel" id="DescriptionTitle" hittest="false" />
+                                    <Panel class="KnifeDescriptionScroll">
+                                        <Label text="{s:value}" class="KnifeDescription" id="Description" hittest="false" />
+                                    </Panel>
+                                </Panel>
+                            </Panel>
+                            <Label text="{s:value}" class="KnifeEmpty" id="Empty" hittest="false" />
                         </Panel>
                     </Panel>
-                    <Panel class="KnifeRight">
-                        <Panel class="KnifePreview" id="Preview">
-                            <Panel class="KnifePreviewArt">
-                                <Panel hittest="false" class="KnifePreviewGlow" />
-                                <Panel hittest="false" class="KnifeHero KnifeImage" id="PreviewImage" />
-                                <Panel hittest="false" class="KnifePreviewRarity">
-                                    <Panel hittest="false" class="KnifeRarityDot" />
-                                    <Label text="{s:value}" class="KnifeRarityText" id="PreviewRarity" hittest="false" />
-                                </Panel>
-                            </Panel>
-                            <Panel class="KnifeCaption">
-                                <Label text="{s:value}" class="KnifePreviewName" id="PreviewName" hittest="false" />
-                                <Label text="{s:value}" class="KnifePreviewSubtitle" id="PreviewSubtitle" hittest="false" />
-                            </Panel>
+                    <Panel class="KnifeSettingsPanel">
+                        <Label text="{s:value}" class="KnifeSectionLabel" id="SettingsTitle" hittest="false" />
+                        <Panel class="KnifeScaleOptions">
+                            <Button class="KnifeScaleOption" id="Scale75">
+                                <Label text="75%" hittest="false" />
+                            </Button>
+                            <Button class="KnifeScaleOption" id="Scale85">
+                                <Label text="85%" hittest="false" />
+                            </Button>
+                            <Button class="KnifeScaleOption" id="Scale100">
+                                <Label text="100%" hittest="false" />
+                            </Button>
+                            <Button class="KnifeScaleOption" id="Scale115">
+                                <Label text="115%" hittest="false" />
+                            </Button>
+                            <Button class="KnifeScaleOption" id="Scale125">
+                                <Label text="125%" hittest="false" />
+                            </Button>
                         </Panel>
-                        <Panel class="KnifeDetails">
-                            <Panel class="KnifeBenefits">
-                                <Label text="{s:value}" class="KnifeSectionLabel" id="BenefitsTitle" hittest="false" />
-                                <Panel class="KnifeBenefitRow" id="BenefitRow0">
-                                    <Label text="+" class="KnifePlus" hittest="false" />
-                                    <Label text="{s:value}" class="KnifeBenefit" id="Benefit0" hittest="false" />
-                                </Panel>
-                                <Panel class="KnifeBenefitRow" id="BenefitRow1">
-                                    <Label text="+" class="KnifePlus" hittest="false" />
-                                    <Label text="{s:value}" class="KnifeBenefit" id="Benefit1" hittest="false" />
-                                </Panel>
-                                <Panel class="KnifeBenefitRow" id="BenefitRow2">
-                                    <Label text="+" class="KnifePlus" hittest="false" />
-                                    <Label text="{s:value}" class="KnifeBenefit" id="Benefit2" hittest="false" />
-                                </Panel>
-                                <Panel class="KnifeBenefitRow" id="BenefitRow3">
-                                    <Label text="+" class="KnifePlus" hittest="false" />
-                                    <Label text="{s:value}" class="KnifeBenefit" id="Benefit3" hittest="false" />
-                                </Panel>
-                            </Panel>
-                            <Panel class="KnifeDescriptionPanel">
-                                <Label text="{s:value}" class="KnifeSectionLabel" id="DescriptionTitle" hittest="false" />
-                                <Panel class="KnifeDescriptionScroll">
-                                    <Label text="{s:value}" class="KnifeDescription" id="Description" hittest="false" />
-                                </Panel>
-                            </Panel>
-                        </Panel>
-                        <Label text="{s:value}" class="KnifeEmpty" id="Empty" hittest="false" />
                     </Panel>
                 </Panel>
                 <Panel class="KnifeFooter" id="Footer">

@@ -1,2 +1,17 @@
 /* Создано scripts/generate-knife-hud.py из knife-hud-assets.json */
-.KnifeImage.Image_knife { background-image: url("s2r://panorama/images/icons/equipment/knife.vsvg"); }
+.KnifeThumb.Icon_butterfly { background-image: url("s2r://panorama/images/icons/equipment/knife_butterfly.vsvg"); }
+.KnifeThumb.Icon_falchion { background-image: url("s2r://panorama/images/icons/equipment/knife_falchion.vsvg"); }
+.KnifeThumb.Icon_huntsman { background-image: url("s2r://panorama/images/icons/equipment/knife_tactical.vsvg"); }
+.KnifeThumb.Icon_karambit { background-image: url("s2r://panorama/images/icons/equipment/knife_karambit.vsvg"); }
+.KnifeThumb.Icon_knife { background-image: url("s2r://panorama/images/icons/equipment/knife.vsvg"); }
+.KnifeThumb.Icon_m9_bayonet { background-image: url("s2r://panorama/images/icons/equipment/knife_m9_bayonet.vsvg"); }
+.KnifeThumb.Icon_shadow_daggers { background-image: url("s2r://panorama/images/icons/equipment/knife_push.vsvg"); }
+.KnifeThumb.Icon_skeleton { background-image: url("s2r://panorama/images/icons/equipment/knife_skeleton.vsvg"); }
+.KnifeHero.Preview_butterfly { background-image: url("s2r://panorama/images/econ/weapons/base_weapons/weapon_knife_butterfly_png.vtex"); }
+.KnifeHero.Preview_falchion { background-image: url("s2r://panorama/images/econ/weapons/base_weapons/weapon_knife_falchion_png.vtex"); }
+.KnifeHero.Preview_huntsman { background-image: url("s2r://panorama/images/econ/weapons/base_weapons/weapon_knife_tactical_png.vtex"); }
+.KnifeHero.Preview_karambit { background-image: url("s2r://panorama/images/econ/weapons/base_weapons/weapon_knife_karambit_png.vtex"); }
+.KnifeHero.Preview_knife { background-image: url("s2r://panorama/images/econ/weapons/base_weapons/weapon_knife_png.vtex"); }
+.KnifeHero.Preview_m9_bayonet { background-image: url("s2r://panorama/images/econ/weapons/base_weapons/weapon_knife_m9_bayonet_png.vtex"); }
+.KnifeHero.Preview_shadow_daggers { background-image: url("s2r://panorama/images/econ/weapons/base_weapons/weapon_knife_push_png.vtex"); }
+.KnifeHero.Preview_skeleton { background-image: url("s2r://panorama/images/econ/weapons/base_weapons/weapon_knife_skeleton_png.vtex"); }

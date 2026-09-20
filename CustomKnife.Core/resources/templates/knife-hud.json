@@ -2,6 +2,7 @@
   "KnifeHud": {
     "RefreshIntervalSeconds": 0.25,
     "IdleTimeoutSeconds": 120,
-    "Knives": {}
+    "Knives": {},
+    "DefaultScale": 100
   }
 }
