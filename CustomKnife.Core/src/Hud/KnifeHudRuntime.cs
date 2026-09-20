@@ -25,6 +25,7 @@ internal sealed class KnifeHudRuntime : IKnifeHudRuntime
     internal const string Layout = "panorama/layout/custom_game/elysium_knife_selector_v4.vxml_c";
     internal const string Style = "panorama/styles/custom_game/elysium_knife_selector_v4.vcss_c";
     internal const string ImagesStyle = "panorama/styles/custom_game/elysium_knife_images_v4.vcss_c";
+    internal const string CmsStyle = "panorama/styles/custom_game/elysium_knife_cms_v4.vcss_c";
     private readonly CCSCustomHudLayout _entity;
     private readonly int _playerId;
     private readonly Dictionary<string, string> _text = [];
@@ -35,7 +36,7 @@ internal sealed class KnifeHudRuntime : IKnifeHudRuntime
 
     public KnifeHudRuntime(ISwiftlyCore core, int playerId)
     {
-        foreach (var path in new[] { Layout, Style, ImagesStyle })
+        foreach (var path in new[] { Layout, Style, ImagesStyle, CmsStyle })
             if (!core.GameFileSystem.FileExists(path, "GAME"))
                 throw new FileNotFoundException("Knife HUD: отсутствует ресурс " + path);
         _playerId = playerId;

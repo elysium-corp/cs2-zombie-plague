@@ -27,7 +27,7 @@ def label(parent, cls, id=None, value='{s:value}'):
 def layout():
     root = ET.Element('root')
     styles = node(root, 'styles')
-    for name in ('elysium_knife_selector_v4', 'elysium_knife_images_v4'):
+    for name in ('elysium_knife_selector_v4', 'elysium_knife_images_v4', 'elysium_knife_cms_v4'):
         node(styles, 'include', src=f's2r://panorama/styles/custom_game/{name}.vcss_c')
     viewport = node(root, 'Panel', 'KnifeViewport', hittest='false')
     overlay = node(viewport, 'Panel', 'KnifeRoot', 'KnifeRoot')
@@ -70,15 +70,16 @@ def layout():
     stats = node(details, 'Panel', 'KnifeStats')
     label(stats, 'KnifeSectionLabel', 'StatsTitle')
     label(stats, 'KnifeComparisonHint', 'ComparisonHint')
+    stat_rows = node(stats, 'Panel', 'KnifeStatsScroll')
     for index in range(4):
-        row = node(stats, 'Panel', 'KnifeStatRow', f'StatRow{index}')
+        row = node(stat_rows, 'Panel', 'KnifeStatRow', f'StatRow{index}')
         label(row, 'KnifeStatName', f'StatName{index}')
         values = node(row, 'Panel', 'KnifeStatValues')
         label(values, 'KnifeStatCurrent', f'StatCurrent{index}')
         label(values, 'KnifeStatArrow', value='→')
         label(values, 'KnifeStatSelected', f'StatSelected{index}')
         label(values, 'KnifeStatDelta', f'StatDelta{index}')
-    description = node(details, 'Panel', 'KnifeDescriptionPanel')
+    description = node(node(details, 'Panel', 'KnifeDescriptionColumn'), 'Panel', 'KnifeDescriptionPanel')
     label(description, 'KnifeSectionLabel', 'DescriptionTitle')
     label(node(description, 'Panel', 'KnifeDescriptionScroll'), 'KnifeDescription', 'Description')
     label(right, 'KnifeEmpty', 'Empty')

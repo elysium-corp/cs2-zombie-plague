@@ -1,4 +1,5 @@
 ﻿using CustomKnife.Database.Entities;
+using CustomKnife.Hud;
 using Microsoft.EntityFrameworkCore;
 
 namespace CustomKnife.Database;
@@ -29,6 +30,8 @@ internal sealed class CustomKnifeDbContext(DbContextOptions<CustomKnifeDbContext
             SchemaName,
             table =>
             {
+                table.HasCheckConstraint("CK_knives_hud_icon_path", KnifeHudAssets.IconConstraint);
+                table.HasCheckConstraint("CK_knives_hud_preview_path", KnifeHudAssets.PreviewConstraint);
                 table.HasCheckConstraint("CK_knives_speed", "speed >= 1 AND speed <= 2000");
                 table.HasCheckConstraint(
                     "CK_knives_localization_keys",

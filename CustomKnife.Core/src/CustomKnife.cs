@@ -20,7 +20,7 @@ namespace CustomKnife;
 
 [PluginMetadata(
     Id = "CustomKnife.Core",
-    Version = "0.6.0",
+    Version = "0.7.0",
     Name = "[ZP] CustomKnife",
     Author = "illusion & fdrinv",
     Description = "Database-backed custom knives with Panorama HUD and Admin.Core permissions"
@@ -39,6 +39,8 @@ internal sealed partial class CustomKnife(ISwiftlyCore core) : Plugin<CustomKnif
     private readonly Lazy<KnifeAccessMonitor> _knifeAccessMonitor = GetRequiredServiceLazy<KnifeAccessMonitor>();
     private Guid _reloadCommand = Guid.Empty;
     private bool _isReady;
+    private CancellationTokenSource? _catalogUpdates;
+    private long _catalogRevision;
     
     protected override void OnUseSharedInterfaces(IInterfaceManager interfaceManager)
     {
@@ -89,6 +91,9 @@ internal sealed partial class CustomKnife(ISwiftlyCore core) : Plugin<CustomKnif
         _catalogSynchronizer.Value.TryReload(out _);
         Core.Event.OnMapLoad += OnMapLoad;
         _knifeAccessMonitor.Value.Tick();
+        _catalogRevision = _catalogSynchronizer.Value.Revision;
+        _catalogSynchronizer.Value.Start();
+        _catalogUpdates = Core.Scheduler.RepeatBySeconds(1, ApplyCatalogChanges);
         _reloadCommand = Core.Command.RegisterCommand(
             commandName: "custom_knife_reload",
             handler: ReloadHandler,
@@ -102,6 +107,9 @@ internal sealed partial class CustomKnife(ISwiftlyCore core) : Plugin<CustomKnif
     {
         if (_notifications.IsValueCreated) _notifications.Value.Bind(null);
         _isReady = false;
+        _catalogUpdates?.Cancel();
+        _catalogUpdates = null;
+        if (_catalogSynchronizer.IsValueCreated) _catalogSynchronizer.Value.Stop();
 
         if (_reloadCommand != Guid.Empty)
         {
@@ -131,6 +139,15 @@ internal sealed partial class CustomKnife(ISwiftlyCore core) : Plugin<CustomKnif
         }
 
         context.Reply("CustomKnife reload failed; the previous snapshot is still active.");
+    }
+
+    private void ApplyCatalogChanges()
+    {
+        if (!_isReady) return;
+        var revision = _catalogSynchronizer.Value.Revision;
+        if (revision == _catalogRevision) return;
+        _catalogRevision = revision;
+        _knifeAccessMonitor.Value.Tick();
     }
 
     private void OnMapLoad(IOnMapLoadEvent mapLoadEvent)
