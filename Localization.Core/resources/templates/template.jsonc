@@ -1,8 +1,8 @@
 {
   "schemaVersion": 4,
-  "version": 17,
-  "generatedAt": "2026-09-19T19:00:00Z",
-  "checksum": "sha256:a48502a5f33519c658a73ae9c57bed934c26949eaa250f6a51f3f67479883cee",
+  "version": 18,
+  "generatedAt": "2026-09-20T12:00:00Z",
+  "checksum": "sha256:b2ba600a499b35358801b941f06abebdefeb3ed5bbc51a02024d72a83e03c01d",
   "serverFallbackLanguage": "ru",
   "languages": [
     "ru",
@@ -417,6 +417,67 @@
         "required": true,
         "description": "Текст исходного информационного сообщения",
         "example": "Добро пожаловать"
+      }
+    ],
+    "Menu.Knife.Hud.Page": [
+      {
+        "name": "page",
+        "type": "integer",
+        "required": true,
+        "description": "Текущая страница",
+        "example": "1"
+      },
+      {
+        "name": "pages",
+        "type": "integer",
+        "required": true,
+        "description": "Количество страниц",
+        "example": "3"
+      }
+    ],
+    "Menu.Knife.Hud.PermissionRequired": [
+      {
+        "name": "permission",
+        "type": "string",
+        "required": true,
+        "description": "Необходимое разрешение",
+        "example": "customknife.vip"
+      }
+    ],
+    "Menu.Knife.Hud.Stat.Speed": [
+      {
+        "name": "value",
+        "type": "string",
+        "required": true,
+        "description": "Значение характеристики ножа",
+        "example": "250"
+      }
+    ],
+    "Menu.Knife.Hud.Stat.Damage": [
+      {
+        "name": "value",
+        "type": "string",
+        "required": true,
+        "description": "Значение характеристики ножа",
+        "example": "250"
+      }
+    ],
+    "Menu.Knife.Hud.Stat.Gravity": [
+      {
+        "name": "value",
+        "type": "string",
+        "required": true,
+        "description": "Значение характеристики ножа",
+        "example": "250"
+      }
+    ],
+    "Menu.Knife.Hud.Stat.Knockback": [
+      {
+        "name": "value",
+        "type": "string",
+        "required": true,
+        "description": "Значение характеристики ножа",
+        "example": "250"
       }
     ]
   },
@@ -1737,10 +1798,22 @@
       "ru": "Выберите предмет и подтвердите покупку",
       "en": "Select an item and confirm the purchase"
     },
-    "Shop.Hud.Timer.Seconds": {"ru": "с", "en": "s"},
-    "Shop.Hud.Timer.Minutes": {"ru": "м", "en": "m"},
-    "Shop.Hud.Timer.Hours": {"ru": "ч", "en": "h"},
-    "Shop.Hud.Timer.Days": {"ru": "д", "en": "d"},
+    "Shop.Hud.Timer.Seconds": {
+      "ru": "с",
+      "en": "s"
+    },
+    "Shop.Hud.Timer.Minutes": {
+      "ru": "м",
+      "en": "m"
+    },
+    "Shop.Hud.Timer.Hours": {
+      "ru": "ч",
+      "en": "h"
+    },
+    "Shop.Hud.Timer.Days": {
+      "ru": "д",
+      "en": "d"
+    },
     "Shop.Hud.Confirm": {
       "ru": "Купить",
       "en": "Buy"
@@ -1766,6 +1839,168 @@
       "en": "Buy ammo",
       "de": "Munition kaufen",
       "pl": "Kup amunicję"
+    },
+    "Menu.Knife.Hud.Title": {
+      "ru": "ВЫБОР НОЖА",
+      "en": "KNIFE SELECTOR",
+      "de": "MESSERAUSWAHL",
+      "pl": "WYBÓR NOŻA"
+    },
+    "Menu.Knife.Hud.Subtitle": {
+      "ru": "Выбери свой стиль. Доминируй в игре.",
+      "en": "Choose your style. Dominate the game.",
+      "de": "Wähle deinen Stil. Dominiere das Spiel.",
+      "pl": "Wybierz swój styl. Zdominuj grę."
+    },
+    "Menu.Knife.Hud.Available": {
+      "ru": "ДОСТУПНЫЕ НОЖИ",
+      "en": "AVAILABLE KNIVES",
+      "de": "VERFÜGBARE MESSER",
+      "pl": "DOSTĘPNE NOŻE"
+    },
+    "Menu.Knife.Hud.Page": {
+      "ru": "СТРАНИЦА {page} / {pages}",
+      "en": "PAGE {page} / {pages}",
+      "de": "SEITE {page} / {pages}",
+      "pl": "STRONA {page} / {pages}"
+    },
+    "Menu.Knife.Hud.Benefits": {
+      "ru": "ХАРАКТЕРИСТИКИ",
+      "en": "BENEFITS",
+      "de": "EIGENSCHAFTEN",
+      "pl": "WŁAŚCIWOŚCI"
+    },
+    "Menu.Knife.Hud.Description": {
+      "ru": "ОПИСАНИЕ",
+      "en": "DESCRIPTION",
+      "de": "BESCHREIBUNG",
+      "pl": "OPIS"
+    },
+    "Menu.Knife.Hud.Empty": {
+      "ru": "Нет доступных ножей",
+      "en": "No knives available",
+      "de": "Keine Messer verfügbar",
+      "pl": "Brak dostępnych noży"
+    },
+    "Menu.Knife.Hud.Equip": {
+      "ru": "ЭКИПИРОВАТЬ",
+      "en": "EQUIP",
+      "de": "AUSRÜSTEN",
+      "pl": "WYPOSAŻ"
+    },
+    "Menu.Knife.Hud.Equipped": {
+      "ru": "ВЫБРАН",
+      "en": "EQUIPPED",
+      "de": "AUSGERÜSTET",
+      "pl": "WYPOSAŻONO"
+    },
+    "Menu.Knife.Hud.Select": {
+      "ru": "ВЫБРАТЬ",
+      "en": "SELECT",
+      "de": "AUSWÄHLEN",
+      "pl": "WYBIERZ"
+    },
+    "Menu.Knife.Hud.Locked": {
+      "ru": "НЕДОСТУПЕН",
+      "en": "LOCKED",
+      "de": "GESPERRT",
+      "pl": "ZABLOKOWANY"
+    },
+    "Menu.Knife.Hud.CurrentlyEquipped": {
+      "ru": "Сейчас экипирован",
+      "en": "Currently equipped",
+      "de": "Derzeit ausgerüstet",
+      "pl": "Obecnie wyposażony"
+    },
+    "Menu.Knife.Hud.Ready": {
+      "ru": "Готов к экипировке",
+      "en": "Ready to equip",
+      "de": "Bereit zum Ausrüsten",
+      "pl": "Gotowy do wyposażenia"
+    },
+    "Menu.Knife.Hud.PermissionRequired": {
+      "ru": "Требуется разрешение: {permission}",
+      "en": "Requires permission: {permission}",
+      "de": "Berechtigung erforderlich: {permission}",
+      "pl": "Wymagane uprawnienie: {permission}"
+    },
+    "Menu.Knife.Hud.Unavailable": {
+      "ru": "Меню ножей недоступно. Закройте другие меню и проверьте ресурсы HUD.",
+      "en": "Knife menu unavailable. Close other menus and check the HUD resources.",
+      "de": "Messermenü nicht verfügbar. Schließe andere Menüs und prüfe die HUD-Ressourcen.",
+      "pl": "Menu noży jest niedostępne. Zamknij inne menu i sprawdź zasoby HUD."
+    },
+    "Menu.Knife.Hud.Stat.Speed": {
+      "ru": "Скорость: {value}",
+      "en": "Speed: {value}",
+      "de": "Geschwindigkeit: {value}",
+      "pl": "Szybkość: {value}"
+    },
+    "Menu.Knife.Hud.Stat.Damage": {
+      "ru": "Урон: ×{value}",
+      "en": "Damage: ×{value}",
+      "de": "Schaden: ×{value}",
+      "pl": "Obrażenia: ×{value}"
+    },
+    "Menu.Knife.Hud.Stat.Gravity": {
+      "ru": "Гравитация: {value}",
+      "en": "Gravity: {value}",
+      "de": "Schwerkraft: {value}",
+      "pl": "Grawitacja: {value}"
+    },
+    "Menu.Knife.Hud.Stat.Knockback": {
+      "ru": "Отдача: {value}",
+      "en": "Knockback: {value}",
+      "de": "Rückstoß: {value}",
+      "pl": "Odrzut: {value}"
+    },
+    "Menu.Knife.Hud.Rarity.Common": {
+      "ru": "Обычный",
+      "en": "Common",
+      "de": "Gewöhnlich",
+      "pl": "Zwykły"
+    },
+    "Menu.Knife.Hud.Rarity.Uncommon": {
+      "ru": "Необычный",
+      "en": "Uncommon",
+      "de": "Ungewöhnlich",
+      "pl": "Nietypowy"
+    },
+    "Menu.Knife.Hud.Rarity.Rare": {
+      "ru": "Редкий",
+      "en": "Rare",
+      "de": "Selten",
+      "pl": "Rzadki"
+    },
+    "Menu.Knife.Hud.Rarity.Restricted": {
+      "ru": "Запрещённый",
+      "en": "Restricted",
+      "de": "Verboten",
+      "pl": "Zakazany"
+    },
+    "Menu.Knife.Hud.Rarity.Classified": {
+      "ru": "Засекреченный",
+      "en": "Classified",
+      "de": "Vertraulich",
+      "pl": "Poufny"
+    },
+    "Menu.Knife.Hud.Rarity.Elite": {
+      "ru": "Элитный",
+      "en": "Elite",
+      "de": "Elite",
+      "pl": "Elitarny"
+    },
+    "Menu.Knife.Hud.Rarity.Prototype": {
+      "ru": "Прототип",
+      "en": "Prototype",
+      "de": "Prototyp",
+      "pl": "Prototyp"
+    },
+    "Menu.Knife.Hud.Rarity.Legendary": {
+      "ru": "Легендарный",
+      "en": "Legendary",
+      "de": "Legendär",
+      "pl": "Legendarny"
     }
   }
 }

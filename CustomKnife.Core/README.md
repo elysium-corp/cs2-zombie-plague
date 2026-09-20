@@ -33,3 +33,9 @@ custom_knife_reload
 нож выключен либо удалён, сохранённый выбор меняется на `knife_axe`, а игроку
 выдаётся стартовый дефолтный нож. Дефолтный fallback доступен даже при
 недоступной БД или Admin.Core.
+
+## Panorama HUD 0.6.0
+
+Меню ножей перенесено на Custom HUD API SwiftlyS2.
+Исходники Panorama v4, настройка изображений и нативная компиляция описаны
+в [Knife Selector](resources/hud/knife-selector/README.md).

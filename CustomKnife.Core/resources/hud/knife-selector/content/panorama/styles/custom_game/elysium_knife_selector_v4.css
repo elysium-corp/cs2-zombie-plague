@@ -1,0 +1,97 @@
+/* Panorama CS2. Размеры перенесены с макета 1703×923 в координаты высотой 1080.
+   _v4 — ревизия ресурсов Elysium. Это не CSS браузера и не версия компилятора. */
+.KnifeViewport { width: 100%; height: 100%; }
+.KnifeRoot { width: 100%; height: 100%; visibility: collapse; background-color: #04101caa; }
+.KnifeRoot.Visible { visibility: visible; }
+.KnifeRoot Label { font-family: Stratum2, Arial; }
+.KnifeWindow { width: 1376px; max-width: 96%; height: 960px; max-height: 96%; horizontal-align: center; vertical-align: center; flow-children: down; background-color: gradient(linear, 0% 0%, 100% 100%, from(#071b2cf5), to(#04131ff5)); border: 1px solid #2889bf; border-radius: 12px; box-shadow: #00000088 0px 10px 36px 0px; }
+.KnifeHeader { width: 100%; height: 100px; padding: 14px 26px 14px 28px; flow-children: right; border-bottom: 1px solid #246b93; background-color: gradient(linear, 0% 0%, 100% 0%, from(#091c2e), to(#041422)); }
+.KnifeMonogram { width: 72px; height: 72px; border: 1px solid #09d6ff; border-radius: 8px; background-color: #001a2bd9; box-shadow: #00b5e94d 0px 0px 12px 0px; }
+.KnifeMonogram Label { horizontal-align: center; vertical-align: center; font-size: 52px; font-weight: bold; color: #07c7f8; text-shadow: 0px 0px 10px 1.0 #009bde; }
+.KnifeHeading { width: fill-parent-flow(1); height: 70px; margin-left: 30px; flow-children: down; vertical-align: center; }
+.KnifeTitle { color: #c6e4ff; width: 100%; height: 40px; font-size: 34px; font-weight: bold; letter-spacing: 2px; text-overflow: shrink; }
+.KnifeSubtitle { width: 100%; height: 26px; font-size: 20px; color: #95c5e8; letter-spacing: 0.5px; text-overflow: ellipsis; }
+.KnifeBrand { width: 236px; height: 55px; vertical-align: center; flow-children: down; margin-right: 26px; }
+.KnifeBrandName { width: 100%; height: 34px; font-size: 27px; color: #67d6ff; letter-spacing: 14px; text-align: center; }
+.KnifeBrandTagline { width: 100%; font-size: 12px; color: #86d6ff; letter-spacing: 2.6px; text-align: center; }
+.KnifeClose { width: 54px; height: 54px; vertical-align: center; border: 1px solid #245d80; border-radius: 5px; background-color: #0b1e2f; }
+.KnifeClose Label { color: #c6e4ff; font-size: 28px; horizontal-align: center; vertical-align: center; }
+.KnifeClose:hover { background-color: #19384d; border-color: #19caf5; }
+.KnifeClose:active { brightness: 1.3; }
+.KnifeBody { width: 100%; height: fill-parent-flow(1); padding: 16px 16px 14px; flow-children: right; }
+.KnifeList { width: 44%; height: 100%; flow-children: down; margin-right: 16px; }
+.KnifeListHeader { width: 100%; height: 46px; padding: 9px 22px; flow-children: right; border: 1px solid #164b70; border-radius: 8px; background-color: #0a2034a8; }
+.KnifeSectionLabel { font-size: 18px; letter-spacing: 1px; color: #95cff5; }
+.KnifeListTitle { width: fill-parent-flow(1); text-overflow: shrink; }
+.KnifeCount { font-size: 18px; color: #a4d9ff; letter-spacing: 2px; }
+.KnifeRows { width: 100%; height: fill-parent-flow(1); margin: 4px 3px 10px; flow-children: down; }
+.KnifeRow { width: 100%; height: 84px; margin-bottom: 6px; visibility: collapse; }
+.KnifeRow.Last { margin-bottom: 0px; }
+.KnifeRow.Visible { visibility: visible; }
+.KnifeRowSurface { width: 100%; height: 100%; border: 1px solid #185478; border-radius: 9px; background-color: gradient(linear, 0% 0%, 100% 100%, from(#071924f2), to(#081d2bf2)); }
+.KnifeRow.Selected .KnifeRowSurface { border: 2px solid #00d8ff; box-shadow: #00c8ff33 0px 0px 10px 0px; background-color: gradient(linear, 0% 0%, 100% 0%, from(#00314af8), to(#042034f8)); }
+.KnifeRowContent { width: 100%; height: 100%; padding: 8px 18px 8px 18px; flow-children: right; }
+.KnifeThumb { width: 154px; height: 100%; margin-right: 15px; }
+.KnifeImage { background-image: url("s2r://panorama/images/icons/equipment/knife.vsvg"); background-size: contain; background-position: center; background-repeat: no-repeat; }
+.KnifeRowText { width: fill-parent-flow(1); height: 56px; vertical-align: center; flow-children: down; margin-right: 12px; }
+.KnifeName { color: #d3e8fb; width: 100%; height: 30px; font-size: 20px; font-weight: bold; letter-spacing: 0.4px; text-overflow: ellipsis; }
+.KnifeRarityLine { width: 100%; height: 23px; flow-children: right; }
+.KnifeRarityDot { width: 15px; height: 15px; margin-right: 12px; vertical-align: center; border-radius: 50%; background-color: #a8b9c8; box-shadow: #a8b9c833 0px 0px 6px 0px; }
+.KnifeRarityText { width: fill-parent-flow(1); vertical-align: center; font-size: 17px; color: #99bad8; letter-spacing: 0.3px; text-overflow: ellipsis; }
+.KnifeRowAction { width: 124px; height: 48px; vertical-align: center; border: 1px solid #28648c; border-radius: 5px; background-color: gradient(linear, 0% 0%, 0% 100%, from(#0c2941), to(#081d2c)); }
+.KnifeRowAction Label { width: 100%; vertical-align: center; text-align: center; font-size: 16px; font-weight: bold; color: #a4d8fc; text-overflow: shrink; }
+.KnifeRow.Equipped .KnifeRowAction { background-color: #264965aa; border-color: #39769f; }
+.KnifeRow.Locked .KnifeRowContent { opacity: 0.46; }
+.KnifeRowHit { width: 100%; height: 100%; border-radius: 8px; }
+.KnifeRowHit:hover { background-color: #3bcbff0c; border: 1px solid #4cd7ff77; }
+.KnifeRowHit:active { background-color: #34cbff22; }
+.KnifePager { width: 100%; height: 54px; padding: 3px 6px; flow-children: right; border: 1px solid #1b5377; border-radius: 8px; background-color: #071c2bbb; }
+.KnifePageButton { width: 66px; height: 44px; border: 1px solid #225879; border-radius: 5px; background-color: #092136; }
+.KnifePageButton Label { color: #c6e4ff; horizontal-align: center; vertical-align: center; font-size: 30px; }
+.KnifePageButton.Available:hover { background-color: #154461; border-color: #09c8f2; }
+.KnifePageButton.Available:active { brightness: 1.3; }
+.KnifePageLabel { width: fill-parent-flow(1); vertical-align: center; text-align: center; font-size: 18px; color: #91c9f4; letter-spacing: 1.8px; }
+.KnifeRight { width: fill-parent-flow(1); height: 100%; flow-children: down; }
+.KnifePreview { width: 100%; height: 476px; border: 1px solid #216896; border-radius: 9px; background-color: #051928; flow-children: down; }
+.KnifePreviewArt { width: 100%; height: fill-parent-flow(1); }
+.KnifePreviewGlow { width: 100%; height: 100%; background-color: gradient(radial, 49% 53%, 0px 0px, 58% 72%, from(#2274adb0), color-stop(0.45, #1554858a), to(#04172600)); }
+.KnifePreviewRarity { width: 90%; height: 30px; margin: 16px 22px; flow-children: right; }
+.KnifePreviewRarity .KnifeRarityDot { width: 18px; height: 18px; }
+.KnifePreviewRarity .KnifeRarityText { color: #c6e4ff; }
+.KnifeHero { width: 76%; height: 82%; horizontal-align: center; vertical-align: bottom; margin-bottom: 12px; }
+.KnifeCaption { width: 100%; height: 104px; padding: 12px 28px; flow-children: down; border-top: 1px solid #194b6e66; background-color: gradient(linear, 0% 0%, 100% 0%, from(#0d2c44aa), to(#123550d9)); }
+.KnifePreviewName { width: 100%; height: 46px; font-size: 38px; font-weight: bold; color: #ecf6ff; letter-spacing: 0.8px; text-overflow: ellipsis; }
+.KnifePreviewSubtitle { width: 100%; height: 28px; font-size: 20px; color: #9bc9ed; text-overflow: ellipsis; }
+.KnifeDetails { width: 100%; height: fill-parent-flow(1); margin-top: 16px; flow-children: right; }
+.KnifeBenefits { width: 40%; height: 100%; margin-right: 12px; padding: 11px 20px; border: 1px solid #1b4e72; border-radius: 8px; background-color: #071a28c9; flow-children: down; }
+.KnifeDescriptionPanel { width: fill-parent-flow(1); height: 100%; padding: 11px 20px; border: 1px solid #1b4e72; border-radius: 8px; background-color: #071a28c9; flow-children: down; }
+.KnifeDetails .KnifeSectionLabel { width: 100%; height: 28px; text-overflow: shrink; }
+.KnifeBenefitRow { width: 100%; height: 37px; flow-children: right; visibility: collapse; }
+.KnifeBenefitRow.Visible { visibility: visible; }
+.KnifePlus { width: 42px; font-size: 35px; color: #00bff4; vertical-align: center; }
+.KnifeBenefit { width: fill-parent-flow(1); vertical-align: center; font-size: 17px; color: #9dc5e2; text-overflow: shrink; }
+.KnifeDescriptionScroll { width: 100%; height: fill-parent-flow(1); overflow: squish scroll; }
+.KnifeDescription { width: 100%; font-size: 18px; color: #9dc5e2; line-height: 26px; white-space: normal; }
+.KnifeFooter { width: 100%; height: 86px; padding: 14px 26px 14px 32px; border-top: 1px solid #226287; background-color: gradient(linear, 0% 0%, 100% 0%, from(#0b2439d9), to(#081a28e6)); flow-children: right; }
+.KnifeStatusDot { width: 18px; height: 18px; vertical-align: center; margin-right: 16px; border-radius: 50%; background-color: #00c8f9; box-shadow: #00b5e980 0px 0px 10px 0px; }
+.KnifeStatus { width: fill-parent-flow(1); vertical-align: center; font-size: 18px; color: #a1c9e7; margin-right: 18px; text-overflow: ellipsis; }
+.KnifeConfirm { width: 304px; height: 58px; border: 1px solid #527795; border-radius: 6px; background-color: #2b4154aa; }
+.KnifeConfirm.Available { border-color: #04c7ef; background-color: gradient(linear, 0% 0%, 100% 0%, from(#075078), to(#063653)); box-shadow: #00beeb33 0px 0px 10px 0px; }
+.KnifeEquipLabel { width: 100%; text-align: center; vertical-align: center; font-size: 20px; font-weight: bold; color: #7d9ab5; letter-spacing: 2px; text-overflow: shrink; }
+.KnifeConfirm.Available .KnifeEquipLabel { color: #bcecff; }
+.KnifeEquipHit { width: 100%; height: 100%; visibility: collapse; border-radius: 5px; }
+.KnifeEquipHit:hover { background-color: #0ac8fb22; }
+.KnifeEquipHit:active { background-color: #8ce9ff22; }
+.KnifeConfirm.Available.Slot0 .EquipSlot0, .KnifeConfirm.Available.Slot1 .EquipSlot1, .KnifeConfirm.Available.Slot2 .EquipSlot2, .KnifeConfirm.Available.Slot3 .EquipSlot3, .KnifeConfirm.Available.Slot4 .EquipSlot4, .KnifeConfirm.Available.Slot5 .EquipSlot5, .KnifeConfirm.Available.Slot6 .EquipSlot6 { visibility: visible; }
+.KnifeFooter.Locked .KnifeStatusDot { background-color: #ec655f; box-shadow: #ec655f44 0px 0px 10px 0px; }
+.KnifeEmpty { visibility: collapse; horizontal-align: center; vertical-align: center; font-size: 26px; color: #a1c9e7; }
+.KnifeRoot.Empty .KnifeEmpty { visibility: visible; }
+.KnifeRoot.Empty .KnifePreview, .KnifeRoot.Empty .KnifeDetails { visibility: collapse; }
+.RarityCommon .KnifeRarityDot { background-color: #a8b9c8; box-shadow: #a8b9c844 0px 0px 7px 0px; }
+.RarityUncommon .KnifeRarityDot { background-color: #91e66d; box-shadow: #91e66d55 0px 0px 7px 0px; }
+.RarityRare .KnifeRarityDot { background-color: #4b91ff; box-shadow: #4b91ff66 0px 0px 7px 0px; }
+.RarityRestricted .KnifeRarityDot { background-color: #a65af6; box-shadow: #a65af655 0px 0px 7px 0px; }
+.RarityClassified .KnifeRarityDot { background-color: #ff69b9; box-shadow: #ff69b955 0px 0px 7px 0px; }
+.RarityElite .KnifeRarityDot { background-color: #ff585d; box-shadow: #ff585d55 0px 0px 7px 0px; }
+.RarityPrototype .KnifeRarityDot { background-color: #a269fa; box-shadow: #a269fa55 0px 0px 7px 0px; }
+.RarityLegendary .KnifeRarityDot { background-color: #ffd05d; box-shadow: #ffc74777 0px 0px 9px 0px; }

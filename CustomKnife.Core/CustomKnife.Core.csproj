@@ -94,6 +94,7 @@
 
     <ItemGroup>
         <InternalsVisibleTo Include="CustomKnife.Core.Tests" />
+        <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
     </ItemGroup>
 
 </Project>
