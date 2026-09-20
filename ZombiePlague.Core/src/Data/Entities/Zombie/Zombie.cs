@@ -3,6 +3,7 @@ using SwiftlyS2.Shared.Players;
 using ZombiePlague.Core.Data.Entities.Zombie.Classes;
 using ZombiePlague.Core.Data.Zombies.Controller;
 using ZombiePlague.Core.Utils.Extensions;
+using ZombiePlague.Core.Utils.Helpers;
 
 namespace ZombiePlague.Core.Data.Entities.Zombie;
 
@@ -37,6 +38,11 @@ internal sealed class Zombie : IZombie
     {
         _isBindScheduled = false;
 
+        if (ZClass is ZNemesis && Owner.PlayerPawn is { IsValid: true } pawn)
+        {
+            PlayerGlowHelper.Clear(pawn);
+        }
+
         foreach (var ability in ZClass.Abilities)
         {
             ability.UnHook();
@@ -67,6 +73,11 @@ internal sealed class Zombie : IZombie
         if (!string.IsNullOrWhiteSpace(ZClass.Model))
         {
             pawn.SetModel(ZClass.Model);
+        }
+
+        if (ZClass is ZNemesis)
+        {
+            PlayerGlowHelper.Apply(pawn, PlayerGlowHelper.NemesisColor);
         }
 
         itemServices.RemoveItems();
