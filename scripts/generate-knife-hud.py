@@ -27,7 +27,7 @@ def label(parent, cls, id=None, value='{s:value}'):
 def layout():
     root = ET.Element('root')
     styles = node(root, 'styles')
-    for name in ('elysium_knife_selector_v4', 'elysium_knife_images_v4'):
+    for name in ('elysium_knife_selector_v4', 'elysium_knife_images_v4', 'elysium_knife_cms_v4'):
         node(styles, 'include', src=f's2r://panorama/styles/custom_game/{name}.vcss_c')
     viewport = node(root, 'Panel', 'KnifeViewport', hittest='false')
     overlay = node(viewport, 'Panel', 'KnifeRoot', 'KnifeRoot')

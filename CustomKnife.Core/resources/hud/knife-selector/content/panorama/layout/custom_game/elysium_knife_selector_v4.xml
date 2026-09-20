@@ -2,6 +2,7 @@
     <styles>
         <include src="s2r://panorama/styles/custom_game/elysium_knife_selector_v4.vcss_c" />
         <include src="s2r://panorama/styles/custom_game/elysium_knife_images_v4.vcss_c" />
+        <include src="s2r://panorama/styles/custom_game/elysium_knife_cms_v4.vcss_c" />
     </styles>
     <Panel hittest="false" class="KnifeViewport">
         <Panel class="KnifeRoot" id="KnifeRoot">

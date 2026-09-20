@@ -1,5 +1,6 @@
 {
   "KnifeHud": {
+    "CatalogRefreshSeconds": 5,
     "RefreshIntervalSeconds": 0.25,
     "IdleTimeoutSeconds": 120,
     "Knives": {},

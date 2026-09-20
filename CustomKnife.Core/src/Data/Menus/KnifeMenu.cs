@@ -1,4 +1,6 @@
 using CustomKnife.Data.Registrator;
+using CustomKnife.Data.Knives;
+using CustomKnife.Data.Models;
 using CustomKnife.Data.Services.Contracts;
 using CustomKnife.Hud;
 using CustomKnife.Services;
@@ -197,6 +199,7 @@ internal sealed class KnifeMenu(
             hud.Class("Row" + slot, "Equipped", equipped == knife.InternalName);
             hud.Class("Row" + slot, "Locked", !allowed);
             hud.Choice("Image" + slot, "image", "Icon_" + KnifeHudImages.ResolveIcon(appearance.Icon, knife.InternalName));
+            hud.Choice("Image" + slot, "cmsImage", CmsImage(knife, preview: false));
             hud.Text("Name" + slot, text.Name(player, knife));
             hud.Text("Action" + slot, !allowed ? text.Get(player, "Locked", "LOCKED")
                 : equipped == knife.InternalName ? CurrentState(player, pending)
@@ -215,6 +218,7 @@ internal sealed class KnifeMenu(
         var canUse = authorization.CanUse(player, selected);
         var isEquipped = selected.InternalName == equipped;
         hud.Choice("PreviewImage", "image", "Preview_" + KnifeHudImages.ResolvePreview(style.Preview ?? style.Image, selected.InternalName));
+        hud.Choice("PreviewImage", "cmsImage", CmsImage(selected, preview: true));
         hud.Text("PreviewName", text.Name(player, selected));
         hud.Text("PreviewSubtitle", text.Custom(player, style.SubtitleKey) ?? text.Description(player, selected));
         hud.Text("Description", text.Description(player, selected));
@@ -249,6 +253,13 @@ internal sealed class KnifeMenu(
     }
 
     private KnifeHudAppearance Appearance(string id) => options.Value.Knives?.GetValueOrDefault(id) ?? new();
+    private string CmsImage(IKnife knife, bool preview)
+    {
+        var path = knife is KnifeDefinition definition ? preview ? definition.HudPreviewPath : definition.HudIconPath : null;
+        // Базовый класс остаётся: при старом CSS на клиенте виден встроенный нож.
+        return path is not null && core.GameFileSystem.FileExists(path + "_c", "GAME")
+            ? KnifeHudAssets.CssClass(path, preview) : "CmsUnset";
+    }
     private string CurrentState(IPlayer player, bool pending) => pending
         ? text.Get(player, "Saved", "SAVED") : text.Get(player, "EquippedState", "EQUIPPED");
 

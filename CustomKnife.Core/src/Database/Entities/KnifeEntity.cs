@@ -34,6 +34,12 @@ internal sealed class KnifeEntity
     [MaxLength(2048), Column("image_url")]
     public string? ImageUrl { get; set; }
 
+    [MaxLength(512), Column("hud_icon_path")]
+    public string? HudIconPath { get; set; }
+
+    [MaxLength(512), Column("hud_preview_path")]
+    public string? HudPreviewPath { get; set; }
+
     [Column("speed")]
     public float Speed { get; set; }
 
