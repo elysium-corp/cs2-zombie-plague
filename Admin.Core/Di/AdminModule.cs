@@ -1,4 +1,4 @@
-﻿using Admin.Core.Database;
+using Admin.Core.Database;
 using Admin.Core.Managers;
 using Admin.Core.Menus;
 using Admin.Core.Registry;
@@ -53,6 +53,13 @@ internal sealed class AdminModule(ISwiftlyCore core) : BaseModule(core)
         AddSingleton<RespawnMenu>(service);
         AddSingleton<RoundMenu>(service);
         AddSingleton<AdminMenu>(service);
+        AddSingleton<AdminMoneyService>(service);
+        AddSingleton<AdminMovementService>(service);
+        AddSingleton<CommunicationBlockRepository>(service);
+        AddSingleton<CommunicationService>(service);
+        AddSingleton<AdminPlayerActionService>(service);
+        AddSingleton<AdminActionCommands>(service);
+        AddSingleton<PlayerActionsMenu>(service);
     }
 
     private void AddDatabase(ServiceCollection service)

@@ -23,6 +23,18 @@ namespace Admin.Core.Database.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Admin.Core.Database.Entities.CommunicationBlockEntity", b =>
+                {
+                    b.Property<long>("SteamId").HasColumnType("bigint").HasColumnName("steam_id");
+                    b.Property<int>("Kind").HasColumnType("integer").HasColumnName("kind");
+                    b.Property<long?>("AdministratorSteamId").HasColumnType("bigint").HasColumnName("administrator_steam_id");
+                    b.Property<DateTime?>("ExpiresAtUtc").HasColumnType("timestamp with time zone").HasColumnName("expires_at");
+                    b.Property<string>("Reason").IsRequired().HasMaxLength(256).HasColumnType("character varying(256)").HasColumnName("reason");
+                    b.Property<DateTime>("UpdatedAtUtc").HasColumnType("timestamp with time zone").HasColumnName("updated_at");
+                    b.HasKey("SteamId", "Kind");
+                    b.ToTable("communication_blocks", "admin");
+                });
+
             modelBuilder.Entity("Admin.Core.Database.Entities.BanEntity", b =>
                 {
                     b.Property<int>("Id")
