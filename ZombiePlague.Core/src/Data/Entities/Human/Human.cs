@@ -37,9 +37,9 @@ internal sealed class Human : IHuman
     {
         _isBindScheduled = false;
 
-        if (HClass is HSurvivor && Owner.PlayerPawn is { IsValid: true } pawn)
+        if (HClass is HSurvivor)
         {
-            PlayerGlowHelper.Clear(pawn);
+            PlayerGlowHelper.Clear(Owner);
         }
 
         foreach (var ability in HClass.Abilities)
@@ -74,7 +74,7 @@ internal sealed class Human : IHuman
 
         if (HClass is HSurvivor)
         {
-            PlayerGlowHelper.Apply(pawn, PlayerGlowHelper.SurvivorColor);
+            PlayerGlowHelper.Apply(_core, Owner, PlayerGlowHelper.SurvivorColor);
         }
 
         foreach (var ability in HClass.Abilities)
