@@ -38,9 +38,9 @@ internal sealed class Zombie : IZombie
     {
         _isBindScheduled = false;
 
-        if (ZClass is ZNemesis && Owner.PlayerPawn is { IsValid: true } pawn)
+        if (ZClass is ZNemesis)
         {
-            PlayerGlowHelper.Clear(pawn);
+            PlayerGlowHelper.Clear(Owner);
         }
 
         foreach (var ability in ZClass.Abilities)
@@ -77,7 +77,7 @@ internal sealed class Zombie : IZombie
 
         if (ZClass is ZNemesis)
         {
-            PlayerGlowHelper.Apply(pawn, PlayerGlowHelper.NemesisColor);
+            PlayerGlowHelper.Apply(_core, Owner, PlayerGlowHelper.NemesisColor);
         }
 
         itemServices.RemoveItems();

@@ -76,6 +76,16 @@ namespace CustomKnife.src.Database.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("gravity");
 
+                    b.Property<string>("HudIconPath")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("hud_icon_path");
+
+                    b.Property<string>("HudPreviewPath")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("hud_preview_path");
+
                     b.Property<string>("ImageUrl")
                         .HasMaxLength(2048)
                         .HasColumnType("character varying(2048)")
@@ -129,6 +139,8 @@ namespace CustomKnife.src.Database.Migrations
 
                     b.ToTable("knives", "custom_knife", t =>
                         {
+                            t.HasCheckConstraint("CK_knives_hud_icon_path", "hud_icon_path IS NULL OR hud_icon_path ~ '^panorama/images/([a-z0-9_-]+/)*[a-z0-9_-]+\\.vsvg$'");
+                            t.HasCheckConstraint("CK_knives_hud_preview_path", "hud_preview_path IS NULL OR hud_preview_path ~ '^panorama/images/([a-z0-9_-]+/)*[a-z0-9_-]+_png\\.vtex$'");
                             t.HasCheckConstraint("CK_knives_damage_multiplier", "damage_multiplier >= 0 AND damage_multiplier <= 1000");
                             t.HasCheckConstraint("CK_knives_gravity", "gravity >= 1 AND gravity <= 10000");
                             t.HasCheckConstraint("CK_knives_image_url", "image_url IS NULL OR image_url ~ '^https://[^[:space:]]+$' OR image_url ~ '^assets/uploads/elysium-equipments/items/[a-f0-9]{40}\\.(jpg|jpeg|png|webp|avif)$'");
