@@ -1,3 +1,22 @@
 {
-  "knife": "s2r://panorama/images/icons/equipment/knife.vsvg"
+  "icons": {
+    "knife": "s2r://panorama/images/icons/equipment/knife.vsvg",
+    "karambit": "s2r://panorama/images/icons/equipment/knife_karambit.vsvg",
+    "m9_bayonet": "s2r://panorama/images/icons/equipment/knife_m9_bayonet.vsvg",
+    "butterfly": "s2r://panorama/images/icons/equipment/knife_butterfly.vsvg",
+    "huntsman": "s2r://panorama/images/icons/equipment/knife_tactical.vsvg",
+    "falchion": "s2r://panorama/images/icons/equipment/knife_falchion.vsvg",
+    "skeleton": "s2r://panorama/images/icons/equipment/knife_skeleton.vsvg",
+    "shadow_daggers": "s2r://panorama/images/icons/equipment/knife_push.vsvg"
+  },
+  "previews": {
+    "knife": "s2r://panorama/images/econ/weapons/base_weapons/weapon_knife_png.vtex",
+    "karambit": "s2r://panorama/images/econ/weapons/base_weapons/weapon_knife_karambit_png.vtex",
+    "m9_bayonet": "s2r://panorama/images/econ/weapons/base_weapons/weapon_knife_m9_bayonet_png.vtex",
+    "butterfly": "s2r://panorama/images/econ/weapons/base_weapons/weapon_knife_butterfly_png.vtex",
+    "huntsman": "s2r://panorama/images/econ/weapons/base_weapons/weapon_knife_tactical_png.vtex",
+    "falchion": "s2r://panorama/images/econ/weapons/base_weapons/weapon_knife_falchion_png.vtex",
+    "skeleton": "s2r://panorama/images/econ/weapons/base_weapons/weapon_knife_skeleton_png.vtex",
+    "shadow_daggers": "s2r://panorama/images/econ/weapons/base_weapons/weapon_knife_push_png.vtex"
+  }
 }

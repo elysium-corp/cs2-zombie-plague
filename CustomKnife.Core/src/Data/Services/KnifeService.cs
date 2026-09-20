@@ -25,6 +25,7 @@ internal sealed class KnifeService(
     private const string CustomKnifeName = "weapon_knife_t";
 
     private bool _disposed;
+    private readonly Dictionary<ulong, nint> _pendingGrants = [];
     
 
     public bool TryGiveKnife(IPlayer player)
@@ -66,7 +67,7 @@ internal sealed class KnifeService(
 
     public bool TryApplyProperties(IPlayer? player)
     {
-        if (player == null || !player.IsValid || !player.IsAlive || zombiePlagueApi.IsInfected(player))
+        if (player == null || !CanHaveKnife(player))
         {
             return false;
         }
@@ -97,7 +98,7 @@ internal sealed class KnifeService(
     {
         var attacker = @event.AttackerPlayer;
 
-        if (attacker == null || !attacker.IsValid)
+        if (attacker == null || !CanHaveKnife(attacker))
         {
             return false;
         }
@@ -144,8 +145,7 @@ internal sealed class KnifeService(
     {
         var attacker = @event.Params.Info.Attacker.ResolvePlayerFromHandle();
 
-        if (attacker == null || !attacker.IsValid || !attacker.IsAlive ||
-            zombiePlagueApi.IsInfected(attacker))
+        if (attacker == null || !CanHaveKnife(attacker))
         {
             return false;
         }
@@ -191,7 +191,8 @@ internal sealed class KnifeService(
     private bool CanHaveKnife(IPlayer player)
     {
         return !_disposed && player.IsValid && player.IsAlive &&
-               player.PlayerPawn is { IsValid: true } && !zombiePlagueApi.IsInfected(player);
+               player.PlayerPawn is { IsValid: true } && player.Controller.Team == Team.CT &&
+               !zombiePlagueApi.IsInfected(player);
     }
 
     private void RemoveOldAndGiveNewKnife(CCSPlayer_WeaponServices weaponService, CCSPlayer_ItemServices itemService)
@@ -261,10 +262,15 @@ internal sealed class KnifeService(
     {
         var sessionId = player.SessionId;
         var pawnAddress = player.RequiredPlayerPawn.Address;
+        // Spawn, смена роли и начало раунда могут попасть в один кадр.
+        // Одна отложенная выдача читает последнее сохранённое предпочтение.
+        if (_pendingGrants.TryGetValue(sessionId, out var pendingPawn) && pendingPawn == pawnAddress) return;
+        _pendingGrants[sessionId] = pawnAddress;
 
         core.Scheduler.NextWorldUpdate(() =>
         {
-            if (_disposed) return;
+            if (_disposed || !_pendingGrants.TryGetValue(sessionId, out var pending) || pending != pawnAddress) return;
+            _pendingGrants.Remove(sessionId);
 
             var currentPlayer = core.PlayerManager.GetPlayerFromSessionId(sessionId);
             if (currentPlayer is null || !CanHaveKnife(currentPlayer))
@@ -297,5 +303,9 @@ internal sealed class KnifeService(
         });
     }
 
-    public void Dispose() => _disposed = true;
+    public void Dispose()
+    {
+        _disposed = true;
+        _pendingGrants.Clear();
+    }
 }

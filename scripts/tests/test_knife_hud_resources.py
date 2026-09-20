@@ -1,10 +1,13 @@
 """Проверки контракта Panorama; не заменяют CS2 resourcecompiler."""
 from pathlib import Path
+import importlib.util
+import json
 import re
 import subprocess
 import sys
 import unittest
 import xml.etree.ElementTree as ET
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[2]
 PANORAMA = ROOT / 'CustomKnife.Core/resources/hud/knife-selector/content/panorama'
@@ -42,21 +45,37 @@ class KnifeHudResourcesTests(unittest.TestCase):
 
     def test_confirmation_has_separate_ids_for_each_visible_knife(self):
         buttons = {element.get('id') for element in self.xml.iter('Button')}
-        expected = {'Close', 'PreviousPage', 'NextPage'}
+        expected = {'Close', 'Settings', 'PreviousPage', 'NextPage'} | {f'Scale{scale}' for scale in (75, 85, 100, 115, 125)}
         for slot in range(7):
             expected.update({f'Preview{slot}', f'Equip{slot}'})
             self.assertIn(f'.KnifeConfirm.Available.Slot{slot} .EquipSlot{slot}', self.css)
         self.assertEqual(expected, buttons)
 
-    def test_no_browser_css_or_html_and_labels_are_plain_text(self):
+    def test_no_browser_css_or_disallowed_html_attribute(self):
         for pattern in (r'\bdisplay\s*:', r'(?<![-\w])position\s*:', r'\bflex[-\w]*\s*:', r'\bgrid[-\w]*\s*:', r'\b(?:var|calc|rgba|linear-gradient)\(', r':root', r'!important', r'\bbackdrop-filter\s*:'):
             self.assertIsNone(re.search(pattern, self.css))
         for label in self.xml.iter('Label'):
-            self.assertEqual('false', label.get('html'))
+            self.assertNotIn('html', label.attrib, 'Custom HUD запрещает атрибут html независимо от значения')
             self.assertEqual('false', label.get('hittest'))
         self.assertIn('flow-children: right', self.css)
         self.assertIn('fill-parent-flow(1)', self.css)
         self.assertIn('visibility: collapse', self.css)
+
+    def test_svg_list_and_png_preview_cannot_share_the_wrong_format(self):
+        resource = PANORAMA.parent.parent
+        assets = json.loads((resource / 'knife-hud-assets.json').read_text())
+        self.assertTrue(all(path.endswith('.vsvg') for path in assets['icons'].values()))
+        self.assertTrue(all(path.endswith('_png.vtex') for path in assets['previews'].values()))
+        self.assertFalse(any('Rarity' in name for name in self.ids))
+        self.assertNotIn('Rarity', self.css)
+        spec = importlib.util.spec_from_file_location('knife_hud_generator', ROOT / 'scripts/generate-knife-hud.py')
+        generator = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(generator)
+        for group, wrong_path in (('icons', assets['previews']['knife']), ('previews', assets['icons']['knife'])):
+            invalid = {name: dict(entries) for name, entries in assets.items()}
+            invalid[group]['knife'] = wrong_path
+            with patch.object(generator.json, 'loads', return_value=invalid), self.assertRaises(ValueError):
+                generator.images()
 
 
 if __name__ == '__main__':

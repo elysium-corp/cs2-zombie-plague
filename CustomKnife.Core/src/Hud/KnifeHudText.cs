@@ -22,19 +22,12 @@ internal sealed class KnifeHudText(ILocalizationApi localization)
     public string Description(IPlayer player, IKnife knife) => Field(player, knife, "Description", knife.Description);
     public string? Custom(IPlayer player, string? key) => string.IsNullOrWhiteSpace(key) ? null : localization.GetForPlayer(player, key);
 
-    public string[] Benefits(IPlayer player, IKnife knife, KnifeHudAppearance appearance)
+    public CultureInfo Culture(IPlayer player)
     {
-        var custom = (appearance.BenefitKeys ?? []).Take(4).Select(key => Custom(player, key)).Where(value => !string.IsNullOrWhiteSpace(value)).ToArray();
-        if (custom.Length > 0) return custom.Select(value => value!).ToArray();
-        return
-        [
-            Stat("Speed", "Speed: {value}", knife.Speed),
-            Stat("Damage", "Damage: ×{value}", knife.DamageMultiplier),
-            Stat("Gravity", "Gravity: {value}", knife.Gravity),
-            Stat("Knockback", "Knockback: {value}", knife.KnockbackData.Recoil)
-        ];
-        string Stat(string key, string fallback, float value) => Get(player, "Stat." + key, fallback,
-            new Dictionary<string, string> { ["value"] = value.ToString("0.##", CultureInfo.InvariantCulture) });
+        var language = localization.Resolve(player);
+        if (string.IsNullOrWhiteSpace(language)) return CultureInfo.InvariantCulture;
+        try { return CultureInfo.GetCultureInfo(language); }
+        catch (CultureNotFoundException) { return CultureInfo.InvariantCulture; }
     }
 
     private string Field(IPlayer player, IKnife knife, string field, string fallback)
