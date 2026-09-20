@@ -15,7 +15,8 @@ PANORAMA = RESOURCE / 'content/panorama'
 def node(parent, tag, cls=None, id=None, **attrs):
     if cls: attrs['class'] = cls
     if id: attrs['id'] = id
-    if tag == 'Label': attrs.update(hittest='false', html='false')
+    # Custom HUD запрещает атрибут html даже со значением false.
+    if tag == 'Label': attrs.update(hittest='false')
     return ET.SubElement(parent, tag, attrs)
 
 

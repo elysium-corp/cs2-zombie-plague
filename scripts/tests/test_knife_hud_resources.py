@@ -48,11 +48,11 @@ class KnifeHudResourcesTests(unittest.TestCase):
             self.assertIn(f'.KnifeConfirm.Available.Slot{slot} .EquipSlot{slot}', self.css)
         self.assertEqual(expected, buttons)
 
-    def test_no_browser_css_or_html_and_labels_are_plain_text(self):
+    def test_no_browser_css_or_disallowed_html_attribute(self):
         for pattern in (r'\bdisplay\s*:', r'(?<![-\w])position\s*:', r'\bflex[-\w]*\s*:', r'\bgrid[-\w]*\s*:', r'\b(?:var|calc|rgba|linear-gradient)\(', r':root', r'!important', r'\bbackdrop-filter\s*:'):
             self.assertIsNone(re.search(pattern, self.css))
         for label in self.xml.iter('Label'):
-            self.assertEqual('false', label.get('html'))
+            self.assertNotIn('html', label.attrib, 'Custom HUD запрещает атрибут html независимо от значения')
             self.assertEqual('false', label.get('hittest'))
         self.assertIn('flow-children: right', self.css)
         self.assertIn('fill-parent-flow(1)', self.css)
