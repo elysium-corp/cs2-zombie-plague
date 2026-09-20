@@ -108,6 +108,10 @@ soundevents/game_sounds_elysium_weapons.vsndevts_c
 
 В SwiftlyS2 `1.4.6-beta.8` и проверенном `master` (`ce37bdc8`) нет отдельных
 GameEvents `clip_in`/`clip_out`: доступен общий `EventWeaponReload`.
+Триггер звука `reload` отслеживается по переходу активного оружия в состояние
+`CCSWeaponBase.InReload` на серверном тике. Это учитывает ручную и автоматическую
+перезарядку после опустошения магазина и воспроизводит звук один раз за начало
+перезарядки. Пустой магазин сам по себе не запускает звук.
 Анимационное событие `AE_CL_EJECT_MAG` относится к клиенту и не является
 готовой серверной подпиской на извлечение магазина.
 `WeaponSound_t` содержит `WEAPON_SOUND_RELOAD`, а `CCSUsrMsg_ReloadEffect`

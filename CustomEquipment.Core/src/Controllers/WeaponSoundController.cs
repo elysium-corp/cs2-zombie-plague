@@ -24,6 +24,8 @@ internal sealed class WeaponSoundController(
 
     private readonly List<Guid> _gameEventHooks = [];
     private readonly Dictionary<(int PlayerId, string Trigger), int> _lastEmitTicks = [];
+    private HashSet<(ulong SessionId, WeaponItemBase Weapon)> _reloadingWeapons = [];
+    private HashSet<(ulong SessionId, WeaponItemBase Weapon)> _currentReloadingWeapons = [];
     private Guid _soundMessageHook = Guid.Empty;
     private bool _initialized;
 
@@ -36,7 +38,6 @@ internal sealed class WeaponSoundController(
 
         _initialized = true;
         _gameEventHooks.Add(core.GameEvent.HookPost<EventWeaponFire>(OnWeaponFire));
-        _gameEventHooks.Add(core.GameEvent.HookPost<EventWeaponReload>(OnWeaponReload));
         _gameEventHooks.Add(core.GameEvent.HookPost<EventWeaponFireOnEmpty>(OnWeaponFireOnEmpty));
         _gameEventHooks.Add(core.GameEvent.HookPost<EventItemEquip>(OnItemEquip));
         _gameEventHooks.Add(core.GameEvent.HookPost<EventInspectWeapon>(OnInspectWeapon));
@@ -48,6 +49,8 @@ internal sealed class WeaponSoundController(
 
         _soundMessageHook = core.NetMessage.HookServerMessage<CMsgSosStartSoundEvent>(OnStartSoundEvent);
         core.Event.OnPrecacheResource += OnPrecacheResource;
+        core.Event.OnTick += OnTick;
+        core.Event.OnMapLoad += OnMapLoad;
     }
 
     public void Dispose()
@@ -59,6 +62,8 @@ internal sealed class WeaponSoundController(
 
         _initialized = false;
         core.Event.OnPrecacheResource -= OnPrecacheResource;
+        core.Event.OnTick -= OnTick;
+        core.Event.OnMapLoad -= OnMapLoad;
 
         foreach (var hook in _gameEventHooks)
         {
@@ -67,6 +72,8 @@ internal sealed class WeaponSoundController(
 
         _gameEventHooks.Clear();
         _lastEmitTicks.Clear();
+        _reloadingWeapons.Clear();
+        _currentReloadingWeapons.Clear();
 
         if (_soundMessageHook != Guid.Empty)
         {
@@ -78,8 +85,44 @@ internal sealed class WeaponSoundController(
     private HookResult OnWeaponFire(EventWeaponFire @event) =>
         Emit(@event.UserIdPlayer, WeaponSoundTriggers.Fire);
 
-    private HookResult OnWeaponReload(EventWeaponReload @event) =>
-        Emit(@event.UserIdPlayer, WeaponSoundTriggers.Reload);
+    private void OnTick()
+    {
+        _currentReloadingWeapons.Clear();
+
+        foreach (var player in core.PlayerManager.GetAllValidPlayers())
+        {
+            if (!player.IsAlive)
+            {
+                continue;
+            }
+
+            var weapon = equipmentService.GetActiveItem<WeaponItemBase>(player);
+
+            if (weapon is null || weapon.AttachedWeapon is not { IsValid: true, InReload: true })
+            {
+                continue;
+            }
+
+            var key = (player.SessionId, weapon);
+            _currentReloadingWeapons.Add(key);
+
+            // Состояние оружия учитывает и ручную, и автоматическую перезарядку.
+            if (!_reloadingWeapons.Contains(key))
+            {
+                Emit(player, WeaponSoundTriggers.Reload);
+            }
+        }
+
+        (_reloadingWeapons, _currentReloadingWeapons) = (_currentReloadingWeapons, _reloadingWeapons);
+        _currentReloadingWeapons.Clear();
+    }
+
+    private void OnMapLoad(IOnMapLoadEvent @event)
+    {
+        _lastEmitTicks.Clear();
+        _reloadingWeapons.Clear();
+        _currentReloadingWeapons.Clear();
+    }
 
     private HookResult OnWeaponFireOnEmpty(EventWeaponFireOnEmpty @event) =>
         Emit(@event.UserIdPlayer, WeaponSoundTriggers.Empty);
