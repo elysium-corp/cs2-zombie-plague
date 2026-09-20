@@ -1,8 +1,8 @@
 {
   "schemaVersion": 4,
-  "version": 18,
-  "generatedAt": "2026-09-20T12:00:00Z",
-  "checksum": "sha256:b2ba600a499b35358801b941f06abebdefeb3ed5bbc51a02024d72a83e03c01d",
+  "version": 19,
+  "generatedAt": "2026-09-20T18:00:00Z",
+  "checksum": "sha256:a3b126398d3e138ef2facddc5a435ab8c2fba4c58810a922aa089b087f7e56dd",
   "serverFallbackLanguage": "ru",
   "languages": [
     "ru",
@@ -478,6 +478,33 @@
         "required": true,
         "description": "Значение характеристики ножа",
         "example": "250"
+      }
+    ],
+    "Menu.Knife.Hud.EquippedKnife": [
+      {
+        "name": "knife",
+        "type": "string",
+        "required": true,
+        "description": "Название сохранённого человеческого ножа",
+        "example": "Karambit"
+      }
+    ],
+    "Menu.Knife.Hud.PendingHuman": [
+      {
+        "name": "knife",
+        "type": "string",
+        "required": true,
+        "description": "Название сохранённого человеческого ножа",
+        "example": "Karambit"
+      }
+    ],
+    "Menu.Knife.Hud.PendingSpawn": [
+      {
+        "name": "knife",
+        "type": "string",
+        "required": true,
+        "description": "Название сохранённого человеческого ножа",
+        "example": "Karambit"
       }
     ]
   },
@@ -2001,6 +2028,96 @@
       "en": "Legendary",
       "de": "Legendär",
       "pl": "Legendarny"
+    },
+    "Menu.Knife.Hud.ElysiumSubtitle": {
+      "ru": "Выбор ножа",
+      "en": "Knife selector",
+      "de": "Messerauswahl",
+      "pl": "Wybór noża"
+    },
+    "Menu.Knife.Hud.StatsTitle": {
+      "ru": "ХАРАКТЕРИСТИКИ",
+      "en": "STATS",
+      "de": "EIGENSCHAFTEN",
+      "pl": "STATYSTYKI"
+    },
+    "Menu.Knife.Hud.ComparisonHint": {
+      "ru": "Текущий нож → выбранный",
+      "en": "Current knife → preview",
+      "de": "Aktuelles Messer → Vorschau",
+      "pl": "Obecny nóż → podgląd"
+    },
+    "Menu.Knife.Hud.PreviewSelected": {
+      "ru": "ВЫБРАН",
+      "en": "SELECTED",
+      "de": "AUSGEWÄHLT",
+      "pl": "WYBRANO"
+    },
+    "Menu.Knife.Hud.EquippedState": {
+      "ru": "ЭКИПИРОВАН",
+      "en": "EQUIPPED",
+      "de": "AUSGERÜSTET",
+      "pl": "WYPOSAŻONO"
+    },
+    "Menu.Knife.Hud.Saved": {
+      "ru": "СОХРАНЁН",
+      "en": "SAVED",
+      "de": "GESPEICHERT",
+      "pl": "ZAPISANO"
+    },
+    "Menu.Knife.Hud.Save": {
+      "ru": "СОХРАНИТЬ",
+      "en": "SAVE",
+      "de": "SPEICHERN",
+      "pl": "ZAPISZ"
+    },
+    "Menu.Knife.Hud.EquippedKnife": {
+      "ru": "Сейчас экипирован: {knife}",
+      "en": "Currently equipped: {knife}",
+      "de": "Derzeit ausgerüstet: {knife}",
+      "pl": "Obecnie wyposażony: {knife}"
+    },
+    "Menu.Knife.Hud.PendingHuman": {
+      "ru": "Для человека: {knife} · Применится при переходе за людей",
+      "en": "For humans: {knife} · Applies when you become human",
+      "de": "Für Menschen: {knife} · Wird beim Wechsel zum Menschen ausgerüstet",
+      "pl": "Dla człowieka: {knife} · Zostanie użyty po przejściu do ludzi"
+    },
+    "Menu.Knife.Hud.PendingSpawn": {
+      "ru": "Сохранён: {knife} · Применится при возрождении",
+      "en": "Saved: {knife} · Applies on respawn",
+      "de": "Gespeichert: {knife} · Wird beim Wiedereinstieg ausgerüstet",
+      "pl": "Zapisano: {knife} · Zostanie użyty po odrodzeniu"
+    },
+    "Menu.Knife.Hud.ScaleTitle": {
+      "ru": "МАСШТАБ МЕНЮ",
+      "en": "MENU SCALE",
+      "de": "MENÜSKALIERUNG",
+      "pl": "SKALA MENU"
+    },
+    "Menu.Knife.Hud.StatLabel.Speed": {
+      "ru": "Скорость",
+      "en": "Speed",
+      "de": "Geschwindigkeit",
+      "pl": "Szybkość"
+    },
+    "Menu.Knife.Hud.StatLabel.Damage": {
+      "ru": "Урон",
+      "en": "Damage",
+      "de": "Schaden",
+      "pl": "Obrażenia"
+    },
+    "Menu.Knife.Hud.StatLabel.Gravity": {
+      "ru": "Гравитация",
+      "en": "Gravity",
+      "de": "Schwerkraft",
+      "pl": "Grawitacja"
+    },
+    "Menu.Knife.Hud.StatLabel.Knockback": {
+      "ru": "Отбрасывание",
+      "en": "Knockback",
+      "de": "Rückstoß",
+      "pl": "Odrzut"
     }
   }
 }

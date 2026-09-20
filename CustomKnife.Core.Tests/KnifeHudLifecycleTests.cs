@@ -112,6 +112,61 @@ public sealed class KnifeHudLifecycleTests
         f.Knives.Verify(service => service.SelectKnife(f.Player.Object, f.Catalog[1]), Times.Once);
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void ZombieCanSaveSelectionAndReopenItBeforeBecomingHuman(bool alive)
+    {
+        using var f = new Fixture { Infected = true, Team = Team.T, Alive = alive };
+        Assert.True(f.Menu.Open(f.Player.Object));
+        f.Click("Preview1");
+        f.Huds[^1].Verify(hud => hud.Text("EquipLabel", "SAVE"), Times.AtLeastOnce);
+        f.Click("Equip1");
+        f.Knives.Verify(service => service.SelectKnife(f.Player.Object, f.Catalog[1]), Times.Once);
+        f.Huds[^1].Verify(hud => hud.Text("EquipLabel", "SAVED"), Times.AtLeastOnce);
+        f.Huds[^1].Verify(hud => hud.Text("FooterStatus", It.Is<string>(value => value.Contains("Applies when you become human"))), Times.AtLeastOnce);
+        f.Click("Close");
+        Assert.True(f.Menu.Open(f.Player.Object));
+        f.Huds[^1].Verify(hud => hud.Class("Row1", "Selected", true), Times.AtLeastOnce);
+        f.Infected = false;
+        f.Team = Team.CT;
+        f.Click("Equip0");
+        f.Huds[^1].Verify(hud => hud.Dispose(), Times.Once);
+        f.Knives.Verify(service => service.SelectKnife(It.IsAny<IPlayer>(), It.IsAny<IKnife>()), Times.Once);
+    }
+
+    [Fact]
+    public void SettingsBlockEquipmentAndKeepScaleUntilDisconnect()
+    {
+        using var f = new Fixture();
+        f.Menu.Open(f.Player.Object);
+        f.Click("Preview1");
+        f.Click("Settings");
+        f.Click("Equip1");
+        f.Knives.Verify(service => service.SelectKnife(It.IsAny<IPlayer>(), It.IsAny<IKnife>()), Times.Never);
+        f.Click("Scale85");
+        f.Click("Close");
+        f.Menu.Open(f.Player.Object);
+        f.Huds[^1].Verify(hud => hud.Choice("KnifeRoot", "scale", "Scale85"), Times.AtLeastOnce);
+        f.Core.Raise(core => core.Event.OnClientDisconnected += null, Mock.Of<IOnClientDisconnectedEvent>(ev => ev.PlayerId == 3));
+        f.SessionId++;
+        f.Menu.Open(f.Player.Object);
+        f.Huds[^1].Verify(hud => hud.Choice("KnifeRoot", "scale", "Scale100"), Times.AtLeastOnce);
+    }
+
+    [Fact]
+    public void ZombieStillNeedsPermissionAndSpectatorsCannotOpenMenu()
+    {
+        using var f = new Fixture { Infected = true, Team = Team.T, Allowed = false };
+        Assert.True(f.Menu.Open(f.Player.Object));
+        f.Click("Preview1");
+        f.Click("Equip1");
+        f.Knives.Verify(service => service.SelectKnife(It.IsAny<IPlayer>(), It.IsAny<IKnife>()), Times.Never);
+        f.Click("Close");
+        f.Team = Team.Spectator;
+        Assert.False(f.Menu.Open(f.Player.Object));
+    }
+
     [Fact]
     public void MissingResourceDoesNotStartTimerOrLeaveSessionOpen()
     {
@@ -140,6 +195,7 @@ public sealed class KnifeHudLifecycleTests
         public Team Team { get; set; } = Team.CT;
         public bool Infected { get; set; }
         public bool CreateFailure { get; set; }
+        private IKnife? _selected;
         public CancellationTokenSource? Timer { get; private set; }
         public Action? Update { get; private set; }
 
@@ -160,7 +216,9 @@ public sealed class KnifeHudLifecycleTests
                 .Returns((float _, Action update) => { Update = update; return Timer = new(); });
             var registry = new Mock<IKnivesRegistry>();
             registry.Setup(value => value.GetAll()).Returns(() => Catalog);
-            Knives.Setup(value => value.GetKnife(Player.Object)).Returns(() => Catalog[0]);
+            Knives.Setup(value => value.GetKnife(Player.Object)).Returns(() => _selected ?? Catalog[0]);
+            Knives.Setup(value => value.SelectKnife(Player.Object, It.IsAny<IKnife>()))
+                .Callback<IPlayer, IKnife>((_, knife) => _selected = knife);
             var authorization = new Mock<IKnifeAuthorizationService>();
             authorization.Setup(value => value.CanUse(Player.Object, It.IsAny<IKnife>())).Returns(() => Allowed);
             var zombies = new Mock<IZombiePlagueApi> { DefaultValue = DefaultValue.Mock };

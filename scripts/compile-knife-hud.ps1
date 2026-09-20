@@ -15,8 +15,12 @@ Copy-Item -LiteralPath $resource -Destination $source -Recurse -Force
 $images = Join-Path $source 'panorama/images/custom_game/elysium/knives'
 if (Test-Path -LiteralPath $images) {
     foreach ($image in Get-ChildItem -LiteralPath $images -Recurse -File | Where-Object { $_.Extension -in '.png', '.svg' }) {
+        $relative = [System.IO.Path]::GetRelativePath($source, $image.FullName)
+        $extension = if ($image.Extension -eq '.png') { '_png.vtex_c' } else { '.vsvg_c' }
+        $output = Join-Path $compiled ($relative.Substring(0, $relative.Length - $image.Extension.Length) + $extension)
+        if (Test-Path -LiteralPath $output) { Remove-Item -LiteralPath $output }
         & $compiler -i $image.FullName -r
-        if ($LASTEXITCODE -ne 0) { throw "Ошибка компиляции изображения: $($image.Name)" }
+        if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $output)) { throw "Не скомпилировано изображение: $($image.Name)" }
     }
 }
 $inputs = @(
