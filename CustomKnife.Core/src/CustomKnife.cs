@@ -20,10 +20,10 @@ namespace CustomKnife;
 
 [PluginMetadata(
     Id = "CustomKnife.Core",
-    Version = "0.5.0",
+    Version = "0.6.0",
     Name = "[ZP] CustomKnife",
     Author = "illusion & fdrinv",
-    Description = "Database-backed custom knives with Admin.Core permissions"
+    Description = "Database-backed custom knives with Panorama HUD and Admin.Core permissions"
 )]
 internal sealed partial class CustomKnife(ISwiftlyCore core) : Plugin<CustomKnifeModule>(core)
 {

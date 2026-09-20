@@ -16,6 +16,7 @@ using CustomKnife.Data.Store;
 using CustomKnife.Database;
 using CustomKnife.Database.Entities;
 using CustomKnife.Initializer;
+using CustomKnife.Hud;
 using CustomKnife.Services;
 using Menu.Api.Extensions;
 using Localization.Api;
@@ -48,6 +49,7 @@ internal sealed class CustomKnifeModule(ISwiftlyCore core) : BaseModule(core)
 
     private void BuildConfigs(ServiceCollection service)
     {
+        AddConfig<KnifeHudOptions>(service, "knife-hud.json", "KnifeHud");
         AddConfig<KnifeConfig>(
             service: service,
             name: "knives.json",
@@ -66,6 +68,8 @@ internal sealed class CustomKnifeModule(ISwiftlyCore core) : BaseModule(core)
         AddSingleton<KnifeAccessMonitor>(service);
         
         AddSingleton<KnifeMenu>(service);
+        AddSingleton<KnifeHudText>(service);
+        service.AddSingleton<Func<int, IKnifeHudRuntime>>(_ => playerId => new KnifeHudRuntime(core, playerId));
         AddSingleton<CustomKnifeCoordinator>(service);
         AddSingleton<IKnifeService, KnifeService>(service);
         AddSingleton<IKnivesRegistry, KnivesRegistry>(service);

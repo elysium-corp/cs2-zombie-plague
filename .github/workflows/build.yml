@@ -69,6 +69,9 @@ jobs:
       - name: Test Panorama packaging
         run: python3 -m unittest discover -s scripts/tests -p 'test_package_panorama.py' -v
 
+      - name: Validate Knife HUD resource contracts
+        run: python3 -m unittest discover -s scripts/tests -p 'test_knife_hud_resources.py' -v
+
       - name: Package Panorama resources
         run: python3 scripts/package-panorama.py --configuration Release
 
