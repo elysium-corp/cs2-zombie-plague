@@ -1,4 +1,4 @@
-﻿namespace Admin.Api.Permissions;
+namespace Admin.Api.Permissions;
 
 /// <summary>
 /// Содержит стандартные ключи разрешений административной системы.
@@ -45,4 +45,19 @@ public static class AdminPermissions
     /// Разрешает управлять текущим раундом.
     /// </summary>
     public const string Round = "admin.round";
+
+    /// <summary>Разрешает начислять серверные деньги онлайн-игрокам.</summary>
+    public const string Money = "admin.money";
+
+    /// <summary>Разрешает включать и снимать noclip у игроков.</summary>
+    public const string Noclip = "admin.noclip";
+
+    /// <summary>Разрешает удерживать и перемещать игроков через Grab.</summary>
+    public const string Grab = "admin.grab";
+
+    /// <summary>Разрешает блокировать и восстанавливать голосовой чат.</summary>
+    public const string Mute = "admin.mute";
+
+    /// <summary>Разрешает блокировать и восстанавливать текстовый чат.</summary>
+    public const string Gag = "admin.gag";
 }

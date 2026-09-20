@@ -1,8 +1,8 @@
 {
   "schemaVersion": 4,
-  "version": 19,
-  "generatedAt": "2026-09-20T18:00:00Z",
-  "checksum": "sha256:a3b126398d3e138ef2facddc5a435ab8c2fba4c58810a922aa089b087f7e56dd",
+  "version": 20,
+  "generatedAt": "2026-09-20T19:00:00Z",
+  "checksum": "sha256:16bd743fd72464511c3c89af630bfcd6096dd82befadcb716a03e9ffc09c206d",
   "serverFallbackLanguage": "ru",
   "languages": [
     "ru",
@@ -29,6 +29,24 @@
     }
   },
   "parameters": {
+    "Admin.Actions.MoneyGranted": [
+      {
+        "name": "amount",
+        "type": "integer",
+        "required": true,
+        "description": "Количество",
+        "example": "30"
+      }
+    ],
+    "Admin.Actions.Minutes": [
+      {
+        "name": "amount",
+        "type": "integer",
+        "required": true,
+        "description": "Количество",
+        "example": "30"
+      }
+    ],
     "Shop.Menu.Balance": [
       {
         "name": "balance",
@@ -890,6 +908,78 @@
     "Ammo.Warning.EnoughAmmo": {
       "ru": "Боезапас заполнен",
       "en": "Ammo full"
+    },
+    "Admin.Actions.Money": {
+      "ru": "Выдать деньги",
+      "en": "Give money"
+    },
+    "Admin.Actions.Noclip": {
+      "ru": "Управление noclip",
+      "en": "Manage noclip"
+    },
+    "Admin.Actions.Grab": {
+      "ru": "Захватить игрока (Grab)",
+      "en": "Grab player"
+    },
+    "Admin.Actions.Mute": {
+      "ru": "Заблокировать голос (Mute)",
+      "en": "Mute voice"
+    },
+    "Admin.Actions.Gag": {
+      "ru": "Заблокировать чат (Gag)",
+      "en": "Gag chat"
+    },
+    "Admin.Actions.Release": {
+      "ru": "Отпустить игрока",
+      "en": "Release player"
+    },
+    "Admin.Actions.Enable": {
+      "ru": "Включить",
+      "en": "Enable"
+    },
+    "Admin.Actions.Disable": {
+      "ru": "Выключить",
+      "en": "Disable"
+    },
+    "Admin.Actions.Minutes": {
+      "ru": "{amount} мин.",
+      "en": "{amount} min."
+    },
+    "Admin.Actions.Permanent": {
+      "ru": "Бессрочно",
+      "en": "Permanent"
+    },
+    "Admin.Actions.Remove": {
+      "ru": "Снять блокировку",
+      "en": "Remove restriction"
+    },
+    "Admin.Actions.Denied": {
+      "ru": "Недостаточно прав.",
+      "en": "Permission denied."
+    },
+    "Admin.Actions.TargetMissing": {
+      "ru": "Игрок не найден или имя неоднозначно. Используйте #слот или SteamID64.",
+      "en": "Player not found or name is ambiguous. Use #slot or SteamID64."
+    },
+    "Admin.Actions.Failed": {
+      "ru": "Действие не выполнено. Проверьте состояние игрока, доступность экономики и лимит баланса.",
+      "en": "Action failed. Check player state, economy availability and balance limit."
+    },
+    "Admin.Actions.Success": {
+      "ru": "Действие выполнено.",
+      "en": "Action completed."
+    },
+    "Admin.Actions.Unavailable": {
+      "ru": "Хранилище блокировок недоступно или параметры некорректны.",
+      "en": "Restriction storage is unavailable or parameters are invalid."
+    },
+    "Admin.Actions.MoneyGranted": {
+      "ru": "Начислено: {amount}.",
+      "en": "Credited: {amount}."
+    },
+    "Admin.Actions.InvalidArguments": {
+      "ru": "Неверные параметры: деньги > 0; noclip 0/1; срок 0–525600 минут (0 — бессрочно); причина до 256 символов.",
+      "en": "Invalid arguments: money > 0; noclip 0/1; duration 0–525600 minutes (0 = permanent); reason up to 256 characters."
     },
     "Admin.Menu.Title": {
       "ru": "Админ-меню",

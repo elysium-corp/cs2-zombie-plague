@@ -96,6 +96,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomHud.Core", "CustomHud
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomHud.Core.Tests", "CustomHud.Core.Tests\CustomHud.Core.Tests.csproj", "{7043898B-080B-5076-88C0-61023FD5602D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Admin.Core.Tests", "Admin.Core.Tests\Admin.Core.Tests.csproj", "{AEFCE4CF-37D0-4B37-912E-F24A3729ABD1}"
+EndProject
 Global
     GlobalSection(SolutionConfigurationPlatforms) = preSolution
         Debug|Any CPU = Debug|Any CPU
@@ -290,6 +292,10 @@ Global
         {EDC22FC7-AE83-45D5-A973-F4F6D159C61D}.Debug|Any CPU.Build.0 = Debug|Any CPU
         {EDC22FC7-AE83-45D5-A973-F4F6D159C61D}.Release|Any CPU.ActiveCfg = Release|Any CPU
         {EDC22FC7-AE83-45D5-A973-F4F6D159C61D}.Release|Any CPU.Build.0 = Release|Any CPU
+        {AEFCE4CF-37D0-4B37-912E-F24A3729ABD1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+        {AEFCE4CF-37D0-4B37-912E-F24A3729ABD1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+        {AEFCE4CF-37D0-4B37-912E-F24A3729ABD1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+        {AEFCE4CF-37D0-4B37-912E-F24A3729ABD1}.Release|Any CPU.Build.0 = Release|Any CPU
     EndGlobalSection
     GlobalSection(SolutionProperties) = preSolution
         HideSolutionNode = FALSE

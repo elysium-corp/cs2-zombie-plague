@@ -1,4 +1,5 @@
-﻿using Admin.Api.Menus;
+using Admin.Api.Menus;
+using Admin.Core.Data;
 using Admin.Api.Permissions;
 using Admin.Core.Services;
 using Localization.Api;
@@ -27,6 +28,7 @@ internal sealed class AdminMenu(
     KillMenu killMenu,
     RespawnMenu respawnMenu,
     RoundMenu roundMenu,
+    PlayerActionsMenu playerActionsMenu,
     ILocalizationApi localization
 ) : DynamicOptionsMenu(core, extensionDispatcher)
 {
@@ -82,6 +84,23 @@ internal sealed class AdminMenu(
         if (privilegeService.HasPermission(player.SteamID, AdminPermissions.Round))
         {
             options.Add(BuildRoundOption(player), 5);
+        }
+
+        var order = 6;
+        foreach (var action in new[] { PlayerAction.Money, PlayerAction.Noclip, PlayerAction.Grab, PlayerAction.Mute, PlayerAction.Gag })
+        {
+            if (!privilegeService.HasPermission(player.SteamID, PlayerActionPermissions.For(action))) continue;
+            var option = new ButtonMenuOption(localization.GetForPlayerOrKey(player, $"Admin.Actions.{action}"));
+            option.Click += (_, args) =>
+            {
+                var reference = PlayerActionTarget.From(args.Player);
+                Core.Scheduler.NextTick(() =>
+                {
+                    if (reference.Resolve(Core) is { } administrator) playerActionsMenu.Open(administrator, action);
+                });
+                return ValueTask.CompletedTask;
+            };
+            options.Add(option, order++);
         }
     }
     
