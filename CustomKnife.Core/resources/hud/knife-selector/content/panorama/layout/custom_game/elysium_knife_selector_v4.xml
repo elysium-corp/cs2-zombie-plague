@@ -143,47 +143,51 @@
                                 <Panel class="KnifeStats">
                                     <Label text="{s:value}" class="KnifeSectionLabel" id="StatsTitle" hittest="false" />
                                     <Label text="{s:value}" class="KnifeComparisonHint" id="ComparisonHint" hittest="false" />
-                                    <Panel class="KnifeStatRow" id="StatRow0">
-                                        <Label text="{s:value}" class="KnifeStatName" id="StatName0" hittest="false" />
-                                        <Panel class="KnifeStatValues">
-                                            <Label text="{s:value}" class="KnifeStatCurrent" id="StatCurrent0" hittest="false" />
-                                            <Label text="→" class="KnifeStatArrow" hittest="false" />
-                                            <Label text="{s:value}" class="KnifeStatSelected" id="StatSelected0" hittest="false" />
-                                            <Label text="{s:value}" class="KnifeStatDelta" id="StatDelta0" hittest="false" />
+                                    <Panel class="KnifeStatsScroll">
+                                        <Panel class="KnifeStatRow" id="StatRow0">
+                                            <Label text="{s:value}" class="KnifeStatName" id="StatName0" hittest="false" />
+                                            <Panel class="KnifeStatValues">
+                                                <Label text="{s:value}" class="KnifeStatCurrent" id="StatCurrent0" hittest="false" />
+                                                <Label text="→" class="KnifeStatArrow" hittest="false" />
+                                                <Label text="{s:value}" class="KnifeStatSelected" id="StatSelected0" hittest="false" />
+                                                <Label text="{s:value}" class="KnifeStatDelta" id="StatDelta0" hittest="false" />
+                                            </Panel>
                                         </Panel>
-                                    </Panel>
-                                    <Panel class="KnifeStatRow" id="StatRow1">
-                                        <Label text="{s:value}" class="KnifeStatName" id="StatName1" hittest="false" />
-                                        <Panel class="KnifeStatValues">
-                                            <Label text="{s:value}" class="KnifeStatCurrent" id="StatCurrent1" hittest="false" />
-                                            <Label text="→" class="KnifeStatArrow" hittest="false" />
-                                            <Label text="{s:value}" class="KnifeStatSelected" id="StatSelected1" hittest="false" />
-                                            <Label text="{s:value}" class="KnifeStatDelta" id="StatDelta1" hittest="false" />
+                                        <Panel class="KnifeStatRow" id="StatRow1">
+                                            <Label text="{s:value}" class="KnifeStatName" id="StatName1" hittest="false" />
+                                            <Panel class="KnifeStatValues">
+                                                <Label text="{s:value}" class="KnifeStatCurrent" id="StatCurrent1" hittest="false" />
+                                                <Label text="→" class="KnifeStatArrow" hittest="false" />
+                                                <Label text="{s:value}" class="KnifeStatSelected" id="StatSelected1" hittest="false" />
+                                                <Label text="{s:value}" class="KnifeStatDelta" id="StatDelta1" hittest="false" />
+                                            </Panel>
                                         </Panel>
-                                    </Panel>
-                                    <Panel class="KnifeStatRow" id="StatRow2">
-                                        <Label text="{s:value}" class="KnifeStatName" id="StatName2" hittest="false" />
-                                        <Panel class="KnifeStatValues">
-                                            <Label text="{s:value}" class="KnifeStatCurrent" id="StatCurrent2" hittest="false" />
-                                            <Label text="→" class="KnifeStatArrow" hittest="false" />
-                                            <Label text="{s:value}" class="KnifeStatSelected" id="StatSelected2" hittest="false" />
-                                            <Label text="{s:value}" class="KnifeStatDelta" id="StatDelta2" hittest="false" />
+                                        <Panel class="KnifeStatRow" id="StatRow2">
+                                            <Label text="{s:value}" class="KnifeStatName" id="StatName2" hittest="false" />
+                                            <Panel class="KnifeStatValues">
+                                                <Label text="{s:value}" class="KnifeStatCurrent" id="StatCurrent2" hittest="false" />
+                                                <Label text="→" class="KnifeStatArrow" hittest="false" />
+                                                <Label text="{s:value}" class="KnifeStatSelected" id="StatSelected2" hittest="false" />
+                                                <Label text="{s:value}" class="KnifeStatDelta" id="StatDelta2" hittest="false" />
+                                            </Panel>
                                         </Panel>
-                                    </Panel>
-                                    <Panel class="KnifeStatRow" id="StatRow3">
-                                        <Label text="{s:value}" class="KnifeStatName" id="StatName3" hittest="false" />
-                                        <Panel class="KnifeStatValues">
-                                            <Label text="{s:value}" class="KnifeStatCurrent" id="StatCurrent3" hittest="false" />
-                                            <Label text="→" class="KnifeStatArrow" hittest="false" />
-                                            <Label text="{s:value}" class="KnifeStatSelected" id="StatSelected3" hittest="false" />
-                                            <Label text="{s:value}" class="KnifeStatDelta" id="StatDelta3" hittest="false" />
+                                        <Panel class="KnifeStatRow" id="StatRow3">
+                                            <Label text="{s:value}" class="KnifeStatName" id="StatName3" hittest="false" />
+                                            <Panel class="KnifeStatValues">
+                                                <Label text="{s:value}" class="KnifeStatCurrent" id="StatCurrent3" hittest="false" />
+                                                <Label text="→" class="KnifeStatArrow" hittest="false" />
+                                                <Label text="{s:value}" class="KnifeStatSelected" id="StatSelected3" hittest="false" />
+                                                <Label text="{s:value}" class="KnifeStatDelta" id="StatDelta3" hittest="false" />
+                                            </Panel>
                                         </Panel>
                                     </Panel>
                                 </Panel>
-                                <Panel class="KnifeDescriptionPanel">
-                                    <Label text="{s:value}" class="KnifeSectionLabel" id="DescriptionTitle" hittest="false" />
-                                    <Panel class="KnifeDescriptionScroll">
-                                        <Label text="{s:value}" class="KnifeDescription" id="Description" hittest="false" />
+                                <Panel class="KnifeDescriptionColumn">
+                                    <Panel class="KnifeDescriptionPanel">
+                                        <Label text="{s:value}" class="KnifeSectionLabel" id="DescriptionTitle" hittest="false" />
+                                        <Panel class="KnifeDescriptionScroll">
+                                            <Label text="{s:value}" class="KnifeDescription" id="Description" hittest="false" />
+                                        </Panel>
                                     </Panel>
                                 </Panel>
                             </Panel>
