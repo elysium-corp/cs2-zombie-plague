@@ -25,6 +25,8 @@ public abstract class WeaponItemBase : ItemBase, IWeapon, IHasParticle
 
     public virtual WeaponTiming? WeaponTiming => null;
 
+    public virtual WeaponFiring? WeaponFiring => null;
+
     public virtual WeaponParticle? Particle => null;
 
     public virtual Ammunition? Ammunition => null; 
@@ -87,6 +89,7 @@ public abstract class WeaponItemBase : ItemBase, IWeapon, IHasParticle
         
         vData.SetAmmo(Ammunition?.Clip, Ammunition?.ReserveAmmo, weapon);
         vData.SetTiming(WeaponTiming?.CycleTime, WeaponTiming?.DeployDuration, weapon);
+        vData.SetFiring(WeaponFiring);
         vData.SetDamage(WeaponDamage?.NumBullets, WeaponDamage?.Penetration, WeaponDamage?.Range,
             WeaponDamage?.RangeModifier);
         base.ReapplyCustomization();
