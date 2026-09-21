@@ -15,6 +15,8 @@ public interface IWeapon : IItem
     WeaponDamage? WeaponDamage { get; }
     
     WeaponTiming? WeaponTiming { get; }
+
+    WeaponFiring? WeaponFiring => null;
     
     Ammunition? Ammunition { get; }
 
