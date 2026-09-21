@@ -1,4 +1,5 @@
-﻿using SwiftlyS2.Shared.SchemaDefinitions;
+﻿using CustomEquipment.Api.Data.Models;
+using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace CustomEquipment.Utils;
 
@@ -36,6 +37,27 @@ internal static class CcsWeaponBaseVDataExt
             }
         }
 
+        internal void SetFiring(WeaponFiring? firing)
+        {
+            if (firing == null)
+            {
+                return;
+            }
+
+            SetFiringMode(data.Spread, firing.Spread);
+            SetFiringMode(data.InaccuracyCrouch, firing.InaccuracyCrouch);
+            SetFiringMode(data.InaccuracyStand, firing.InaccuracyStand);
+            SetFiringMode(data.InaccuracyJump, firing.InaccuracyJump);
+            SetFiringMode(data.InaccuracyLand, firing.InaccuracyLand);
+            SetFiringMode(data.InaccuracyLadder, firing.InaccuracyLadder);
+            SetFiringMode(data.InaccuracyFire, firing.InaccuracyFire);
+            SetFiringMode(data.InaccuracyMove, firing.InaccuracyMove);
+            SetFiringMode(data.RecoilAngle, firing.RecoilAngle);
+            SetFiringMode(data.RecoilAngleVariance, firing.RecoilAngleVariance);
+            SetFiringMode(data.RecoilMagnitude, firing.RecoilMagnitude);
+            SetFiringMode(data.RecoilMagnitudeVariance, firing.RecoilMagnitudeVariance);
+        }
+
         internal void SetDamage(int? bullets, float? penetration, float? range, float? rangeModifier)
         {
             if (bullets != null)
@@ -63,6 +85,17 @@ internal static class CcsWeaponBaseVDataExt
             }
 
             if (deployDuration != null) data.DeployDuration = (float)deployDuration;
+        }
+    }
+
+    private static void SetFiringMode(CFiringModeFloat data, IReadOnlyList<float> values)
+    {
+        var firingModeValues = data.Values;
+        var count = Math.Min(values.Count, 2);
+
+        for (byte index = 0; index < count; index++)
+        {
+            firingModeValues[index] = values[index];
         }
     }
 }
