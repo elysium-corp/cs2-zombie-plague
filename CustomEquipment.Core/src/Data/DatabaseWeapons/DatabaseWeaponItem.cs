@@ -33,6 +33,8 @@ internal sealed class DatabaseWeaponItem(DatabaseWeaponDefinition definition)
 
     public override WeaponTiming? WeaponTiming => definition.WeaponTiming;
 
+    public override WeaponFiring? WeaponFiring => definition.WeaponFiring;
+
     public override WeaponParticle? Particle => definition.Particle;
 
     public override Ammunition? Ammunition => definition.Ammunition;
@@ -56,6 +58,7 @@ internal sealed record DatabaseWeaponDefinition(
     string Model,
     WeaponDamage? WeaponDamage,
     WeaponTiming? WeaponTiming,
+    WeaponFiring? WeaponFiring,
     WeaponParticle? Particle,
     Ammunition? Ammunition,
     IReadOnlyCollection<WeaponSound> Sounds,
