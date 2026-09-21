@@ -15,6 +15,12 @@ public interface IWeapon : IItem
     WeaponDamage? WeaponDamage { get; }
     
     WeaponTiming? WeaponTiming { get; }
+
+    /// <summary>Параметры отдачи; null сохраняет исходные значения подкласса оружия.</summary>
+    WeaponRecoil? WeaponRecoil => null;
+
+    /// <summary>Параметры разброса и неточности; null сохраняет исходные значения подкласса.</summary>
+    WeaponAccuracy? WeaponAccuracy => null;
     
     Ammunition? Ammunition { get; }
 

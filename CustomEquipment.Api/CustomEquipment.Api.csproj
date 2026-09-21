@@ -14,4 +14,8 @@
       <ProjectReference Include="..\Common.Hooks\Common.Hooks.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <InternalsVisibleTo Include="CustomEquipment.Core.Tests" />
+    </ItemGroup>
+
 </Project>

@@ -61,6 +61,8 @@ public sealed class CustomEquipmentDbContext(DbContextOptions<CustomEquipmentDbC
                 table.HasCheckConstraint("CK_weapons_display_name_key", "display_name_key ~ '^[A-Z0-9][A-Za-z0-9]*(\\.[A-Z0-9][A-Za-z0-9]*)*$'");
                 table.HasCheckConstraint("CK_weapons_image_url", "image_url IS NULL OR image_url ~ '^https://[^[:space:]]+$' OR image_url ~ '^assets/uploads/elysium-equipments/items/[a-f0-9]{40}\\.(jpg|jpeg|png|webp|avif)$'");
                 table.HasCheckConstraint("CK_weapons_item_price", "item_price >= 0");
+                table.HasCheckConstraint("CK_weapons_recoil_object", "recoil IS NULL OR jsonb_typeof(recoil) = 'object'");
+                table.HasCheckConstraint("CK_weapons_accuracy_object", "accuracy IS NULL OR jsonb_typeof(accuracy) = 'object'");
                 table.HasCheckConstraint("CK_weapons_ammo_price", "ammo_price IS NULL OR ammo_price >= 0");
                 table.HasCheckConstraint("CK_weapons_ammunition", "(clip_size IS NULL OR clip_size >= 0) AND (reserve_ammo IS NULL OR reserve_ammo >= 0)");
                 table.HasCheckConstraint("CK_weapons_timing", "(cycle_time_primary IS NULL OR cycle_time_primary > 0) AND (cycle_time_secondary IS NULL OR (cycle_time_secondary > 0 AND cycle_time_primary IS NOT NULL)) AND (deploy_duration IS NULL OR deploy_duration >= 0)");
