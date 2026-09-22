@@ -159,7 +159,7 @@ internal sealed class AdminMovementService(ISwiftlyCore core, IPrivilegeService 
                 continue;
             }
 
-            // Коллизия MOVETYPE_FLY и трассировка не позволяют тащить игрока через стены.
+            // Точка удержания следует за прицелом, а трассировка ограничивает её препятствиями.
             var pitch = caster.EyeAngles.Pitch * MathF.PI / 180f;
             var yaw = caster.EyeAngles.Yaw * MathF.PI / 180f;
             var forward = new Vector(MathF.Cos(pitch) * MathF.Cos(yaw), MathF.Cos(pitch) * MathF.Sin(yaw), -MathF.Sin(pitch));
@@ -188,7 +188,8 @@ internal sealed class AdminMovementService(ISwiftlyCore core, IPrivilegeService 
                 Release(session);
                 continue;
             }
-            pawn.AbsVelocity = distance < 2f ? Vector.Zero : delta.Normalized() * Math.Min(distance * 8f, 600f);
+            // Удерживаем игрока в рассчитанной точке и сбрасываем остаточную скорость.
+            pawn.Teleport(destinationOrigin, null, Vector.Zero);
         }
     }
 
