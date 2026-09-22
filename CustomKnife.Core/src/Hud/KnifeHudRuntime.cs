@@ -16,6 +16,8 @@ internal interface IKnifeHudRuntime : IDisposable
     void Class(string panel, string name, bool enabled);
     /// <summary>Заменяет предыдущий класс в одной группе оформления.</summary>
     void Choice(string panel, string group, string value);
+    /// <summary>Проверяет наличие класса в таблице загруженного движком макета для диагностики VPK.</summary>
+    bool SupportsClass(string name);
     /// <summary>Показывает меню и захватывает мышь владельца.</summary>
     void Show();
 }
@@ -57,6 +59,14 @@ internal sealed class KnifeHudRuntime : IKnifeHudRuntime
 
     public bool IsValid => !_disposed && _entity.IsValidEntity;
     public bool Owns(CCSCustomHudLayout entity) => IsValid && entity.IsValidEntity && entity.Address == _entity.Address;
+
+    public bool SupportsClass(string name)
+    {
+        if (!IsValid) return false;
+        for (var index = 0; index < _entity.ClassNames.Count; index++)
+            if (_entity.ClassNames[index] == name) return true;
+        return false;
+    }
 
     public void Text(string panel, string value)
     {
