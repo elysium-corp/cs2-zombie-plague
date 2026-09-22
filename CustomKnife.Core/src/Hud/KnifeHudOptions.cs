@@ -2,6 +2,8 @@ namespace CustomKnife.Hud;
 
 internal sealed class KnifeHudOptions
 {
+    // Ноль отключает фоновую синхронизацию каталога Flute CMS.
+    public int CatalogRefreshSeconds { get; set; } = 5;
     public float RefreshIntervalSeconds { get; set; } = 0.25f;
     public int IdleTimeoutSeconds { get; set; } = 120;
     public int DefaultScale { get; set; } = 100;

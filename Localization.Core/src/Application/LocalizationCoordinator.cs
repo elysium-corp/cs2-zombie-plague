@@ -13,10 +13,25 @@ internal sealed class LocalizationCoordinator(
     private readonly object _taskSync = new();
     private readonly HashSet<Task> _tasks = [];
     private int _stopped;
+    private int _started;
 
     public void Start()
     {
-        Track(ReloadFromSourcesAsync(_lifetime.Token));
+        if (Interlocked.Exchange(ref _started, 1) != 0 || Volatile.Read(ref _stopped) != 0) return;
+        Track(Task.Run(async () =>
+        {
+            try
+            {
+                await ReloadFromSourcesAsync(_lifetime.Token);
+                while (!_lifetime.IsCancellationRequested)
+                {
+                    var seconds = Math.Clamp(cache.Current?.Settings.RefreshIntervalSeconds ?? 30, 5, 3600);
+                    await Task.Delay(TimeSpan.FromSeconds(seconds), _lifetime.Token);
+                    await ReloadFromSourcesAsync(_lifetime.Token, preserveCurrent: true);
+                }
+            }
+            catch (OperationCanceledException) when (_lifetime.IsCancellationRequested) { }
+        }, _lifetime.Token));
     }
 
     public void OnMapEnded()
@@ -37,7 +52,7 @@ internal sealed class LocalizationCoordinator(
     }
 
     private async Task<(bool Success, string Message)> ReloadFromSourcesAsync(
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken, bool preserveCurrent = false)
     {
         try
         {
@@ -64,6 +79,13 @@ internal sealed class LocalizationCoordinator(
             }
             catch (Exception databaseException)
             {
+                if (preserveCurrent && cache.Current is not null)
+                {
+                    rateLimitedLogger.Warning("database:poll-failed", TimeSpan.FromMinutes(2),
+                        "[Localization] Фоновое обновление не удалось; предыдущие переводы сохранены: {DatabaseError}",
+                        databaseException.Message);
+                    return (false, "Сохранён предыдущий snapshot локализации.");
+                }
                 try
                 {
                     var configSnapshot = fallbackProvider.Load();

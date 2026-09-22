@@ -40,20 +40,49 @@ public sealed class ZombieCosmeticsLifecycleTests
     }
 
     [Theory]
-    [InlineData("human")]
+    [InlineData("disinfected")]
+    [InlineData("humanized")]
+    [InlineData("respawned")]
+    [InlineData("survivor")]
+    public void EveryHumanRoleApplicationSchedulesCosmeticsReset(string reason)
+    {
+        using var fixture = new Fixture { Zombie = false, Human = true };
+        switch (reason)
+        {
+            case "disinfected":
+                var disinfection = new PlayerDisinfectedContext(fixture.Player);
+                fixture.Hooks.Dispatch(ref disinfection);
+                break;
+            case "humanized":
+                var humanization = new PlayerHumanizedContext(fixture.Player);
+                fixture.Hooks.Dispatch(ref humanization);
+                break;
+            case "respawned":
+                fixture.ApplyRole();
+                break;
+            case "survivor":
+                var survivor = new PlayerBecameSurvivorContext(fixture.Player);
+                fixture.Hooks.Dispatch(ref survivor);
+                break;
+        }
+        Assert.Single(fixture.Updates);
+    }
+
+    [Theory]
+    [InlineData("unassigned")]
     [InlineData("dead")]
     [InlineData("disconnected")]
     [InlineData("new_pawn")]
     [InlineData("unloaded")]
     [InlineData("restarted")]
-    public void PendingResetDoesNotModifyAnotherLifeOrHuman(string change)
+    public void PendingResetDoesNotModifyAnotherLifeOrUnassignedPlayer(string change)
     {
         using var fixture = new Fixture();
         fixture.ApplyRole();
         Assert.Single(fixture.Updates);
         switch (change)
         {
-            case "human": fixture.Zombie = false; break;
+            case "unassigned": fixture.Zombie = false; break;
             case "dead": fixture.Alive = false; break;
             case "disconnected": fixture.Connected = false; break;
             case "new_pawn": fixture.PawnAddress++; break;
@@ -65,7 +94,7 @@ public sealed class ZombieCosmeticsLifecycleTests
     }
 
     [Fact]
-    public void HumanRoleAndStoppedServiceDoNotScheduleReset()
+    public void UnassignedRoleAndStoppedServiceDoNotScheduleReset()
     {
         using var fixture = new Fixture { Zombie = false };
         fixture.ApplyRole();
@@ -79,16 +108,19 @@ public sealed class ZombieCosmeticsLifecycleTests
     private sealed class Fixture : IDisposable
     {
         public bool Zombie { get; set; } = true;
+        public bool Human { get; set; }
         public bool Alive { get; set; } = true;
         public bool Connected { get; set; } = true;
         public nint PawnAddress { get; set; } = 100;
         public Queue<Action> Updates { get; } = new();
-        public HookService Hooks { get; } = new();
+        public HookService Hooks { get; }
         public IPlayer Player { get; }
         public InfectionService Service { get; }
+        private readonly List<Exception> _hookErrors = [];
 
         public Fixture()
         {
+            Hooks = new((exception, _, _) => _hookErrors.Add(exception));
             var pawn = new Mock<CCSPlayerPawn>(MockBehavior.Strict);
             pawn.Setup(value => value.IsValid).Returns(true);
             pawn.Setup(value => value.Address).Returns(() => PawnAddress);
@@ -115,8 +147,12 @@ public sealed class ZombieCosmeticsLifecycleTests
                 "get_GameHooks" => Stub(method.ReturnType, NoopHooks),
                 _ => throw new InvalidOperationException(method.Name)
             });
-            var roles = Stub<RoleManager>((method, _) => method.Name == "IsZombie"
-                ? Zombie : throw new InvalidOperationException(method.Name));
+            var roles = Stub<RoleManager>((method, _) => method.Name switch
+            {
+                "IsZombie" => Zombie,
+                "IsHuman" => Human,
+                _ => throw new InvalidOperationException(method.Name)
+            });
             var players = new ZombiePlaguePlayerEvents(Hooks);
             var events = Stub<IZombiePlagueEvents>((method, _) => method.Name == "get_Players"
                 ? players : throw new InvalidOperationException(method.Name));
@@ -130,7 +166,11 @@ public sealed class ZombieCosmeticsLifecycleTests
             Hooks.Dispatch(ref context);
         }
 
-        public void Dispose() => Service.Unregister();
+        public void Dispose()
+        {
+            Service.Unregister();
+            Assert.Empty(_hookErrors);
+        }
     }
 
     private static object? NoopHooks(MethodInfo method, object?[]? _) =>

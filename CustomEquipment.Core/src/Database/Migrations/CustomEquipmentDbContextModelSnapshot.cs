@@ -505,6 +505,8 @@ internal sealed class CustomEquipmentDbContextModelSnapshot : ModelSnapshot
 
             b.Property<int?>("AmmoPrice").HasColumnType("integer").HasColumnName("ammo_price");
             b.Property<int?>("ClipSize").HasColumnType("integer").HasColumnName("clip_size");
+            b.Property<string>("RecoilJson").HasColumnType("jsonb").HasColumnName("recoil");
+            b.Property<string>("AccuracyJson").HasColumnType("jsonb").HasColumnName("accuracy");
             b.Property<float?>("CycleTimePrimary").HasColumnType("real").HasColumnName("cycle_time_primary");
             b.Property<float?>("CycleTimeSecondary").HasColumnType("real").HasColumnName("cycle_time_secondary");
 
@@ -635,6 +637,8 @@ internal sealed class CustomEquipmentDbContextModelSnapshot : ModelSnapshot
                 t.HasCheckConstraint("CK_weapons_display_name_key", "display_name_key ~ '^[A-Z0-9][A-Za-z0-9]*(\\.[A-Z0-9][A-Za-z0-9]*)*$'");
                 t.HasCheckConstraint("CK_weapons_image_url", "image_url IS NULL OR image_url ~ '^https://[^[:space:]]+$' OR image_url ~ '^assets/uploads/elysium-equipments/items/[a-f0-9]{40}\\.(jpg|jpeg|png|webp|avif)$'");
                 t.HasCheckConstraint("CK_weapons_item_price", "item_price >= 0");
+                t.HasCheckConstraint("CK_weapons_recoil_object", "recoil IS NULL OR jsonb_typeof(recoil) = 'object'");
+                t.HasCheckConstraint("CK_weapons_accuracy_object", "accuracy IS NULL OR jsonb_typeof(accuracy) = 'object'");
                 t.HasCheckConstraint("CK_weapons_timing", "(cycle_time_primary IS NULL OR cycle_time_primary > 0) AND (cycle_time_secondary IS NULL OR (cycle_time_secondary > 0 AND cycle_time_primary IS NOT NULL)) AND (deploy_duration IS NULL OR deploy_duration >= 0)");
             });
         });

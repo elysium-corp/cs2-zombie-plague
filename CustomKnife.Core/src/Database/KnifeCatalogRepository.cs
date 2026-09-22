@@ -1,6 +1,7 @@
 using CustomKnife.Data.Knives;
 using CustomKnife.Data.Models;
 using CustomKnife.Database.Entities;
+using CustomKnife.Hud;
 using Microsoft.EntityFrameworkCore;
 using ZombiePlague.Api.Data;
 
@@ -24,7 +25,15 @@ internal sealed class KnifeCatalogRepository(
             .ToArray();
     }
 
-    private static IKnife Map(KnifeEntity entity)
+    public async Task<IReadOnlyCollection<IKnife>> GetEnabledKnivesAsync(CancellationToken cancellationToken)
+    {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+        var entities = await context.Knives.AsNoTracking().Where(knife => knife.Enabled)
+            .OrderBy(knife => knife.SortOrder).ThenBy(knife => knife.Id).ToArrayAsync(cancellationToken);
+        return entities.Select(Map).ToArray();
+    }
+
+    internal static IKnife Map(KnifeEntity entity)
     {
         var internalName = Required(entity.InternalName, nameof(entity.InternalName), 64);
         var displayName = Required(entity.DisplayName, nameof(entity.DisplayName), 128);
@@ -68,7 +77,9 @@ internal sealed class KnifeCatalogRepository(
             ),
             Gravity: entity.Gravity,
             DamageMultiplier: entity.DamageMultiplier,
-            RequiredPermission: requiredPermission
+            RequiredPermission: requiredPermission,
+            HudIconPath: KnifeHudAssets.Validate(entity.HudIconPath, preview: false),
+            HudPreviewPath: KnifeHudAssets.Validate(entity.HudPreviewPath, preview: true)
         );
     }
 

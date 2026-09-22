@@ -21,7 +21,7 @@ namespace CustomEquipment;
 
 [PluginMetadata(
     Id = "CustomEquipment.Core",
-    Version = "0.7.0",
+    Version = "0.8.0",
     Name = "[ZP] CustomEquipment",
     Author = "illusion & fdrinv",
     Description = "Database-backed custom weapons, grenades and gameplay equipment"

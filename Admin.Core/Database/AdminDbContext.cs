@@ -8,6 +8,7 @@ public sealed class AdminDbContext(DbContextOptions<AdminDbContext> options) : D
     public const string SchemaName = "admin";
 
     internal DbSet<BanEntity> Bans => Set<BanEntity>();
+    internal DbSet<CommunicationBlockEntity> CommunicationBlocks => Set<CommunicationBlockEntity>();
 
     internal DbSet<PermissionEntity> Permissions => Set<PermissionEntity>();
     internal DbSet<PrivilegeEntity> Privileges => Set<PrivilegeEntity>();

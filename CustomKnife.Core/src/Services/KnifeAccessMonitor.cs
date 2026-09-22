@@ -35,6 +35,7 @@ internal sealed class KnifeAccessMonitor(
             if (knivesRegistry.TryGet(selectedKnifeId, out var knife) &&
                 authorizationService.CanUse(player, knife))
             {
+                knifeService.TryApplyProperties(player);
                 continue;
             }
 

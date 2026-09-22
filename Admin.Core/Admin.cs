@@ -1,4 +1,5 @@
-﻿using Admin.Api;
+using Admin.Api;
+using Economy.Api;
 using Admin.Core.Api;
 using Admin.Core.Database;
 using Admin.Core.Di;
@@ -42,6 +43,12 @@ internal sealed partial class Admin(ISwiftlyCore core) : Plugin<AdminModule>(cor
     private readonly Lazy<AdminMenu> _adminMenu = GetRequiredServiceLazy<AdminMenu>();
     private readonly Lazy<MenuExtensionDispatcherProxy> _menuApiBridge = GetRequiredServiceLazy<MenuExtensionDispatcherProxy>();
     
+    private readonly Lazy<AdminMoneyService> _money = GetRequiredServiceLazy<AdminMoneyService>();
+    private readonly Lazy<AdminMovementService> _movement = GetRequiredServiceLazy<AdminMovementService>();
+    private readonly Lazy<CommunicationService> _communication = GetRequiredServiceLazy<CommunicationService>();
+    private readonly Lazy<AdminPlayerActionService> _actions = GetRequiredServiceLazy<AdminPlayerActionService>();
+    private readonly Lazy<AdminActionCommands> _actionCommands = GetRequiredServiceLazy<AdminActionCommands>();
+
     protected override void OnStart()
     {
         if (!TryMigrateDatabase())
@@ -64,6 +71,10 @@ internal sealed partial class Admin(ISwiftlyCore core) : Plugin<AdminModule>(cor
         _guidOnPlayerConnectFullPost = Core.GameEvent.HookPost<EventPlayerConnectFull>(OnPlayerConnectFull);
         _guidOnPlayerDisconnectPre = Core.GameEvent.HookPre<EventPlayerDisconnect>(OnPlayerDisconnect);
 
+        _movement.Value.Start();
+        _communication.Value.Start();
+        _actions.Value.Start();
+        _actionCommands.Value.Start();
         _adminMenu.Value.RegisterCommands();
         _playerPrivilegeRefreshService.Value.Start();
     }
@@ -72,6 +83,11 @@ internal sealed partial class Admin(ISwiftlyCore core) : Plugin<AdminModule>(cor
     {
         Core.Event.OnClientSteamAuthorize -= OnClientSteamAuthorize;
 
+        _actions.Value.Stop();
+        _actionCommands.Value.Dispose();
+        _movement.Value.Dispose();
+        _communication.Value.Dispose();
+        _money.Value.Economy = null;
         _adminMenu.Value.UnregisterCommands();
 
         Core.GameEvent.Unhook(_guidOnPlayerConnectFullPost);
@@ -86,6 +102,15 @@ internal sealed partial class Admin(ISwiftlyCore core) : Plugin<AdminModule>(cor
         var menuApi = interfaceManager.GetSharedInterface<IMenuApi>(IMenuApi.SharedApiKey);
 
         _menuApiBridge.Value.Initialize(menuApi);
+        try
+        {
+            _money.Value.Economy = interfaceManager.GetSharedInterface<IEconomyApi>(IEconomyApi.SharedApiKey);
+        }
+        catch (Exception exception)
+        {
+            _money.Value.Economy = null;
+            Core.Logger.LogWarning(exception, "Economy API is unavailable; admin money grants are disabled");
+        }
     }
     
     protected override void OnConfigureSharedInterfaces(IInterfaceManager interfaceManager)

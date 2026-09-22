@@ -15,5 +15,7 @@ internal sealed record KnifeDefinition(
     KnockbackData KnockbackData,
     int Gravity,
     float DamageMultiplier,
-    string? RequiredPermission
+    string? RequiredPermission,
+    string? HudIconPath = null,
+    string? HudPreviewPath = null
 ) : IKnife, IAccessControlledKnife, ILocalizedKnife;
