@@ -21,6 +21,46 @@ namespace CustomKnife.Core.Tests;
 public sealed class KnifeHudLifecycleTests
 {
     [Fact]
+    public void CmsImagesReplaceStockClassesAndSelectionCanReturnToStock()
+    {
+        using var f = new Fixture();
+        const string icon = "panorama/images/custom_game/elysium/equipment/katana.vsvg";
+        const string preview = "panorama/images/custom_game/elysium/knife_previews/katana_png.vtex";
+        f.Catalog[0] = KnifeDefaults.Fallback with { HudIconPath = icon, HudPreviewPath = preview };
+        f.Core.Setup(core => core.GameFileSystem.FileExists(It.IsAny<string>(), "GAME")).Returns(true);
+        Assert.True(f.Menu.Open(f.Player.Object));
+        var hud = f.Huds.Single();
+        hud.Verify(value => value.Choice("Image0", "image", KnifeHudAssets.CssClass(icon, false)), Times.Once);
+        hud.Verify(value => value.Choice("Image0", "image", "Icon_knife"), Times.Never);
+        hud.Verify(value => value.Choice("PreviewImage", "image", KnifeHudAssets.CssClass(preview, true)), Times.Once);
+        hud.Verify(value => value.Choice(It.IsAny<string>(), "cmsImage", It.IsAny<string>()), Times.Never);
+
+        f.Click("Preview1");
+        hud.Verify(value => value.Choice("PreviewImage", "image", "Preview_knife"), Times.Once);
+    }
+
+    [Fact]
+    public void MissingCompiledResourceUsesStockAndDiagnosticsIdentifyTheFailedSide()
+    {
+        using var f = new Fixture();
+        const string icon = "panorama/images/custom_game/elysium/equipment/katana.vsvg";
+        const string preview = "panorama/images/custom_game/elysium/knife_previews/katana_png.vtex";
+        f.Catalog[0] = KnifeDefaults.Fallback with { HudIconPath = icon, HudPreviewPath = preview };
+        f.Core.Setup(core => core.GameFileSystem.FileExists(icon + "_c", "GAME")).Returns(true);
+        Assert.True(f.Menu.Open(f.Player.Object));
+        var hud = f.Huds.Single();
+        hud.Verify(value => value.Choice("Image0", "image", KnifeHudAssets.CssClass(icon, false)), Times.Once);
+        hud.Verify(value => value.Choice("PreviewImage", "image", "Preview_knife"), Times.Once);
+        var status = f.Menu.AssetStatus().ToArray();
+        Assert.Contains(status, line => line.Contains("kind=icon") && line.Contains("resource=present") && line.Contains("layout_class=present"));
+        Assert.Contains(status, line => line.Contains("kind=preview") && line.Contains("resource=missing"));
+        hud.Setup(value => value.SupportsClass(KnifeHudAssets.CssClass(icon, false))).Returns(false);
+        f.Update!();
+        hud.Verify(value => value.Choice("Image0", "image", "Icon_knife"), Times.Once);
+        Assert.Contains(f.Menu.AssetStatus(), line => line.Contains("kind=icon") && line.Contains("resource=present") && line.Contains("layout_class=missing"));
+    }
+
+    [Fact]
     public void WrongEntityWrongConnectionAndRevokedPermissionCannotEquip()
     {
         using var f = new Fixture();
@@ -232,6 +272,7 @@ public sealed class KnifeHudLifecycleTests
                     Entities.Add(entity);
                     var hud = new Mock<IKnifeHudRuntime>();
                     hud.SetupGet(value => value.IsValid).Returns(true);
+                    hud.Setup(value => value.SupportsClass(It.IsAny<string>())).Returns(true);
                     hud.Setup(value => value.Owns(It.IsAny<CCSCustomHudLayout>())).Returns((CCSCustomHudLayout clicked) => Owns && ReferenceEquals(clicked, entity));
                     Huds.Add(hud);
                     return hud.Object;

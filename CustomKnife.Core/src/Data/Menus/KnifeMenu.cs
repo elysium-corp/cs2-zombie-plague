@@ -46,6 +46,7 @@ internal sealed class KnifeMenu(
         _active = true;
         foreach (var command in new[] { "knife", "zknife", "лтшау", "ялтшау", "нож", "yj;" })
             _commands.Add(core.Command.RegisterCommand(command, OnCommand, registerRaw: true));
+        _commands.Add(core.Command.RegisterCommand("custom_knife_hud_status", OnAssetStatus, registerRaw: true));
         core.Event.OnCustomHudClicked += OnClicked;
         core.Event.OnClientKeyStateChanged += OnKey;
         core.Event.OnClientDisconnected += OnDisconnected;
@@ -198,8 +199,8 @@ internal sealed class KnifeMenu(
             hud.Class("Row" + slot, "Selected", slot == selection.SelectedSlot);
             hud.Class("Row" + slot, "Equipped", equipped == knife.InternalName);
             hud.Class("Row" + slot, "Locked", !allowed);
-            hud.Choice("Image" + slot, "image", "Icon_" + KnifeHudImages.ResolveIcon(appearance.Icon, knife.InternalName));
-            hud.Choice("Image" + slot, "cmsImage", CmsImage(knife, preview: false));
+            hud.Choice("Image" + slot, "image", ImageClass(hud, knife, preview: false,
+                "Icon_" + KnifeHudImages.ResolveIcon(appearance.Icon, knife.InternalName)));
             hud.Text("Name" + slot, text.Name(player, knife));
             hud.Text("Action" + slot, !allowed ? text.Get(player, "Locked", "LOCKED")
                 : equipped == knife.InternalName ? CurrentState(player, pending)
@@ -217,8 +218,8 @@ internal sealed class KnifeMenu(
         var style = Appearance(selected.InternalName);
         var canUse = authorization.CanUse(player, selected);
         var isEquipped = selected.InternalName == equipped;
-        hud.Choice("PreviewImage", "image", "Preview_" + KnifeHudImages.ResolvePreview(style.Preview ?? style.Image, selected.InternalName));
-        hud.Choice("PreviewImage", "cmsImage", CmsImage(selected, preview: true));
+        hud.Choice("PreviewImage", "image", ImageClass(hud, selected, preview: true,
+            "Preview_" + KnifeHudImages.ResolvePreview(style.Preview ?? style.Image, selected.InternalName)));
         hud.Text("PreviewName", text.Name(player, selected));
         hud.Text("PreviewSubtitle", text.Custom(player, style.SubtitleKey) ?? text.Description(player, selected));
         hud.Text("Description", text.Description(player, selected));
@@ -253,12 +254,45 @@ internal sealed class KnifeMenu(
     }
 
     private KnifeHudAppearance Appearance(string id) => options.Value.Knives?.GetValueOrDefault(id) ?? new();
-    private string CmsImage(IKnife knife, bool preview)
+    private string ImageClass(IKnifeHudRuntime hud, IKnife knife, bool preview, string fallback)
     {
         var path = knife is KnifeDefinition definition ? preview ? definition.HudPreviewPath : definition.HudIconPath : null;
-        // Базовый класс остаётся: при старом CSS на клиенте виден встроенный нож.
-        return path is not null && core.GameFileSystem.FileExists(path + "_c", "GAME")
-            ? KnifeHudAssets.CssClass(path, preview) : "CmsUnset";
+        // Как в магазине: одна группа выбирает либо ресурс CMS, либо встроенный.
+        // Одновременно включённый fallback делает результат зависимым от каскада CSS.
+        if (path is null || !core.GameFileSystem.FileExists(path + "_c", "GAME")) return fallback;
+        var css = KnifeHudAssets.CssClass(path, preview);
+        // При старом загруженном CSS сохраняем встроенное изображение.
+        return hud.SupportsClass(css) ? css : fallback;
+    }
+
+    private void OnAssetStatus(ICommandContext context)
+    {
+        if (context.IsSentByPlayer)
+        {
+            context.Reply("This command can only be executed from the server console.");
+            return;
+        }
+        foreach (var line in AssetStatus()) context.Reply(line);
+    }
+
+    internal IEnumerable<string> AssetStatus()
+    {
+        foreach (var path in new[] { KnifeHudRuntime.Layout, KnifeHudRuntime.Style, KnifeHudRuntime.ImagesStyle, KnifeHudRuntime.CmsStyle })
+            yield return $"[Knife HUD] resource={(core.GameFileSystem.FileExists(path, "GAME") ? "present" : "missing")} path={path}";
+        var hud = _sessions.Values.Select(session => session.Hud).FirstOrDefault(value => value?.IsValid == true);
+        foreach (var knife in registry.GetAll().Where(knife => knife.Enabled))
+        {
+            var definition = knife as KnifeDefinition;
+            foreach (var preview in new[] { false, true })
+            {
+                var path = preview ? definition?.HudPreviewPath : definition?.HudIconPath;
+                var css = path is null ? null : KnifeHudAssets.CssClass(path, preview);
+                var resource = path is null ? "unset" : core.GameFileSystem.FileExists(path + "_c", "GAME") ? "present" : "missing";
+                var registered = css is null ? "unset" : hud is null ? "no-open-hud" : hud.SupportsClass(css) ? "present" : "missing";
+                yield return $"[Knife HUD] knife={knife.InternalName} source={(definition is null ? "builtin" : "database")} "
+                    + $"kind={(preview ? "preview" : "icon")} path={path ?? "unset"} resource={resource} css={css ?? "unset"} layout_class={registered}";
+            }
+        }
     }
     private string CurrentState(IPlayer player, bool pending) => pending
         ? text.Get(player, "Saved", "SAVED") : text.Get(player, "EquippedState", "EQUIPPED");
