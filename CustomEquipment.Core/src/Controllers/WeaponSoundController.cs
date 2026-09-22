@@ -9,6 +9,7 @@ using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.ProtobufDefinitions;
+using SwiftlyS2.Shared.SchemaDefinitions;
 using SwiftlyS2.Shared.Sounds;
 
 namespace CustomEquipment.Controllers;
@@ -27,6 +28,7 @@ internal sealed class WeaponSoundController(
     private HashSet<(ulong SessionId, WeaponItemBase Weapon)> _reloadingWeapons = [];
     private HashSet<(ulong SessionId, WeaponItemBase Weapon)> _currentReloadingWeapons = [];
     private Guid _soundMessageHook = Guid.Empty;
+    private Guid _fireBulletsMessageHook = Guid.Empty;
     private bool _initialized;
 
     public void Initialize()
@@ -37,7 +39,6 @@ internal sealed class WeaponSoundController(
         }
 
         _initialized = true;
-        _gameEventHooks.Add(core.GameEvent.HookPost<EventWeaponFire>(OnWeaponFire));
         _gameEventHooks.Add(core.GameEvent.HookPost<EventWeaponFireOnEmpty>(OnWeaponFireOnEmpty));
         _gameEventHooks.Add(core.GameEvent.HookPost<EventItemEquip>(OnItemEquip));
         _gameEventHooks.Add(core.GameEvent.HookPost<EventInspectWeapon>(OnInspectWeapon));
@@ -48,6 +49,7 @@ internal sealed class WeaponSoundController(
         _gameEventHooks.Add(core.GameEvent.HookPost<EventSilencerDetach>(OnSilencerDetach));
 
         _soundMessageHook = core.NetMessage.HookServerMessage<CMsgSosStartSoundEvent>(OnStartSoundEvent);
+        _fireBulletsMessageHook = core.NetMessage.HookServerMessage<CMsgTEFireBullets>(OnFireBullets);
         core.Event.OnPrecacheResource += OnPrecacheResource;
         core.Event.OnTick += OnTick;
         core.Event.OnMapLoad += OnMapLoad;
@@ -80,10 +82,49 @@ internal sealed class WeaponSoundController(
             core.NetMessage.Unhook(_soundMessageHook);
             _soundMessageHook = Guid.Empty;
         }
+
+        if (_fireBulletsMessageHook != Guid.Empty)
+        {
+            core.NetMessage.Unhook(_fireBulletsMessageHook);
+            _fireBulletsMessageHook = Guid.Empty;
+        }
     }
 
-    private HookResult OnWeaponFire(EventWeaponFire @event) =>
-        Emit(@event.UserIdPlayer, WeaponSoundTriggers.Fire);
+    private HookResult OnFireBullets(CMsgTEFireBullets message)
+    {
+        if ((WeaponSound_t)message.SoundType is WeaponSound_t.WEAPON_SOUND_EMPTY
+            or WeaponSound_t.WEAPON_SOUND_SECONDARY_EMPTY)
+        {
+            return HookResult.Continue;
+        }
+
+        // Сообщение содержит упакованные дескрипторы сущностей, а не индексы игроков.
+        var pawnHandle = CHandle<CCSPlayerPawn>.FromPackedInt((int)message.Player);
+        var weaponHandle = CHandle<CCSWeaponBase>.FromPackedInt((int)message.WeaponId);
+
+        if (pawnHandle.Raw == 0 || weaponHandle.Raw == 0)
+        {
+            return HookResult.Continue;
+        }
+
+        var player = pawnHandle.Value?.ToPlayer();
+
+        if (player is null || !player.IsValid)
+        {
+            return HookResult.Continue;
+        }
+
+        var firedWeapon = weaponHandle.Value;
+        var weapon = equipmentService.GetActiveItem<WeaponItemBase>(player);
+
+        if (firedWeapon is null || weapon is null || weapon.AttachedWeapon.Address != firedWeapon.Address)
+        {
+            return HookResult.Continue;
+        }
+
+        // Остаток патронов может быть нулевым после настоящего выстрела последним патроном.
+        return Emit(player, WeaponSoundTriggers.Fire);
+    }
 
     private void OnTick()
     {
