@@ -68,6 +68,12 @@ internal sealed class WeaponEntity
     [Column("deploy_duration")]
     public float? DeployDuration { get; set; }
 
+    [Column("recoil", TypeName = "jsonb")]
+    public string? RecoilJson { get; set; }
+
+    [Column("accuracy", TypeName = "jsonb")]
+    public string? AccuracyJson { get; set; }
+
     [Column("num_bullets")]
     public int? NumBullets { get; set; }
 

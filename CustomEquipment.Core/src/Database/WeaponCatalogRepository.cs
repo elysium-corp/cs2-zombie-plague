@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using CustomEquipment.Api.Data.Models;
 using CustomEquipment.Api.Enums;
 using CustomEquipment.Api.Utils;
@@ -13,6 +15,12 @@ internal sealed class WeaponCatalogRepository(
     IDbContextFactory<CustomEquipmentDbContext> contextFactory
 ) : IWeaponCatalogRepository
 {
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+        UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow
+    };
+
     public IReadOnlyCollection<DatabaseWeaponItem> GetEnabledWeapons()
     {
         using var context = contextFactory.CreateDbContext();
@@ -46,7 +54,7 @@ internal sealed class WeaponCatalogRepository(
         return weapons;
     }
 
-    private static DatabaseWeaponItem Map(WeaponEntity entity)
+    internal static DatabaseWeaponItem Map(WeaponEntity entity)
     {
         var slot = ParseEnum<Slot>(entity.Slot, nameof(entity.Slot));
         var weaponType = ParseEnum<WeaponType>(entity.WeaponType, nameof(entity.WeaponType));
@@ -86,10 +94,30 @@ internal sealed class WeaponCatalogRepository(
                 .Select(MapSound)
                 .ToArray(),
             Rarity: rarity,
-            HudIconPath: EquipmentHudIcon.NormalizePath(entity.HudIconPath)
+            HudIconPath: EquipmentHudIcon.NormalizePath(entity.HudIconPath),
+            WeaponRecoil: ParseHandling<WeaponRecoil>(entity.RecoilJson, "recoil", value => value.Validate()),
+            WeaponAccuracy: ParseHandling<WeaponAccuracy>(entity.AccuracyJson, "accuracy", value => value.Validate())
         );
 
         return new DatabaseWeaponItem(definition);
+    }
+
+    private static TSettings? ParseHandling<TSettings>(string? json, string field, Action<TSettings> validate)
+        where TSettings : class
+    {
+        if (json is null) return null;
+
+        try
+        {
+            var settings = JsonSerializer.Deserialize<TSettings>(json, JsonOptions)
+                           ?? throw new JsonException("Expected a settings object.");
+            validate(settings);
+            return settings;
+        }
+        catch (Exception exception) when (exception is JsonException or ArgumentException)
+        {
+            throw new InvalidOperationException($"Weapon {field} settings are invalid.", exception);
+        }
     }
 
     internal static WeaponSound MapSound(WeaponSoundEntity entity)

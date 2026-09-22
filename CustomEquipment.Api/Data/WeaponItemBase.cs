@@ -25,6 +25,12 @@ public abstract class WeaponItemBase : ItemBase, IWeapon, IHasParticle
 
     public virtual WeaponTiming? WeaponTiming => null;
 
+    /// <summary>Параметры отдачи; null сохраняет исходные значения подкласса оружия.</summary>
+    public virtual WeaponRecoil? WeaponRecoil => null;
+
+    /// <summary>Параметры разброса и неточности; null сохраняет исходные значения подкласса.</summary>
+    public virtual WeaponAccuracy? WeaponAccuracy => null;
+
     public virtual WeaponParticle? Particle => null;
 
     public virtual Ammunition? Ammunition => null; 
@@ -79,6 +85,9 @@ public abstract class WeaponItemBase : ItemBase, IWeapon, IHasParticle
 
     private CCSWeaponBase AttachBaseWeaponVData(CCSWeaponBase weapon)
     {
+        WeaponRecoil?.Validate();
+        WeaponAccuracy?.Validate();
+
         AttachedEntity = weapon;
         
         weapon.ChangeSubclass(SubclassName);
@@ -87,6 +96,8 @@ public abstract class WeaponItemBase : ItemBase, IWeapon, IHasParticle
         
         vData.SetAmmo(Ammunition?.Clip, Ammunition?.ReserveAmmo, weapon);
         vData.SetTiming(WeaponTiming?.CycleTime, WeaponTiming?.DeployDuration, weapon);
+        vData.SetRecoil(WeaponRecoil);
+        vData.SetAccuracy(WeaponAccuracy);
         vData.SetDamage(WeaponDamage?.NumBullets, WeaponDamage?.Penetration, WeaponDamage?.Range,
             WeaponDamage?.RangeModifier);
         base.ReapplyCustomization();

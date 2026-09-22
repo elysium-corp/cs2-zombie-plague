@@ -33,6 +33,10 @@ internal sealed class DatabaseWeaponItem(DatabaseWeaponDefinition definition)
 
     public override WeaponTiming? WeaponTiming => definition.WeaponTiming;
 
+    public override WeaponRecoil? WeaponRecoil => definition.WeaponRecoil;
+
+    public override WeaponAccuracy? WeaponAccuracy => definition.WeaponAccuracy;
+
     public override WeaponParticle? Particle => definition.Particle;
 
     public override Ammunition? Ammunition => definition.Ammunition;
@@ -60,5 +64,7 @@ internal sealed record DatabaseWeaponDefinition(
     Ammunition? Ammunition,
     IReadOnlyCollection<WeaponSound> Sounds,
     ItemRarity Rarity,
-    string? HudIconPath = null
+    string? HudIconPath = null,
+    WeaponRecoil? WeaponRecoil = null,
+    WeaponAccuracy? WeaponAccuracy = null
 );
