@@ -199,7 +199,7 @@ internal sealed class KnifeMenu(
             hud.Class("Row" + slot, "Selected", slot == selection.SelectedSlot);
             hud.Class("Row" + slot, "Equipped", equipped == knife.InternalName);
             hud.Class("Row" + slot, "Locked", !allowed);
-            hud.Choice("Image" + slot, "image", ImageClass(hud, knife, preview: false,
+            hud.Choice("Image" + slot, "image", ImageClass(knife, preview: false,
                 "Icon_" + KnifeHudImages.ResolveIcon(appearance.Icon, knife.InternalName)));
             hud.Text("Name" + slot, text.Name(player, knife));
             hud.Text("Action" + slot, !allowed ? text.Get(player, "Locked", "LOCKED")
@@ -218,7 +218,7 @@ internal sealed class KnifeMenu(
         var style = Appearance(selected.InternalName);
         var canUse = authorization.CanUse(player, selected);
         var isEquipped = selected.InternalName == equipped;
-        hud.Choice("PreviewImage", "image", ImageClass(hud, selected, preview: true,
+        hud.Choice("PreviewImage", "image", ImageClass(selected, preview: true,
             "Preview_" + KnifeHudImages.ResolvePreview(style.Preview ?? style.Image, selected.InternalName)));
         hud.Text("PreviewName", text.Name(player, selected));
         hud.Text("PreviewSubtitle", text.Custom(player, style.SubtitleKey) ?? text.Description(player, selected));
@@ -254,15 +254,15 @@ internal sealed class KnifeMenu(
     }
 
     private KnifeHudAppearance Appearance(string id) => options.Value.Knives?.GetValueOrDefault(id) ?? new();
-    private string ImageClass(IKnifeHudRuntime hud, IKnife knife, bool preview, string fallback)
+    private string ImageClass(IKnife knife, bool preview, string fallback)
     {
         var path = knife is KnifeDefinition definition ? preview ? definition.HudPreviewPath : definition.HudIconPath : null;
         // Как в магазине: одна группа выбирает либо ресурс CMS, либо встроенный.
         // Одновременно включённый fallback делает результат зависимым от каскада CSS.
         if (path is null || !core.GameFileSystem.FileExists(path + "_c", "GAME")) return fallback;
-        var css = KnifeHudAssets.CssClass(path, preview);
-        // При старом загруженном CSS сохраняем встроенное изображение.
-        return hud.SupportsClass(css) ? css : fallback;
+        // ClassNames отражает состояние сущности, а не содержимое CSS.
+        // Отсутствие имени до SetHasClassForPlayer не должно блокировать его назначение.
+        return KnifeHudAssets.CssClass(path, preview);
     }
 
     private void OnAssetStatus(ICommandContext context)
@@ -288,9 +288,10 @@ internal sealed class KnifeMenu(
                 var path = preview ? definition?.HudPreviewPath : definition?.HudIconPath;
                 var css = path is null ? null : KnifeHudAssets.CssClass(path, preview);
                 var resource = path is null ? "unset" : core.GameFileSystem.FileExists(path + "_c", "GAME") ? "present" : "missing";
-                var registered = css is null ? "unset" : hud is null ? "no-open-hud" : hud.SupportsClass(css) ? "present" : "missing";
+                var registered = css is null ? "unset" : hud is null ? "no-open-hud" : hud.IsClassRegistered(css) ? "registered" : "unregistered";
                 yield return $"[Knife HUD] knife={knife.InternalName} source={(definition is null ? "builtin" : "database")} "
-                    + $"kind={(preview ? "preview" : "icon")} path={path ?? "unset"} resource={resource} css={css ?? "unset"} layout_class={registered}";
+                    + $"kind={(preview ? "preview" : "icon")} path={path ?? "unset"} resource={resource} css={css ?? "unset"} "
+                    + $"image_source={(resource == "present" ? "cms" : "stock")} class_table={registered}";
             }
         }
     }

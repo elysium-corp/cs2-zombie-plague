@@ -21,7 +21,7 @@ namespace CustomKnife.Core.Tests;
 public sealed class KnifeHudLifecycleTests
 {
     [Fact]
-    public void CmsImagesReplaceStockClassesAndSelectionCanReturnToStock()
+    public void CmsImagesAreAppliedBeforeClassNamesAreRegisteredAndCanReturnToStock()
     {
         using var f = new Fixture();
         const string icon = "panorama/images/custom_game/elysium/equipment/katana.vsvg";
@@ -34,6 +34,15 @@ public sealed class KnifeHudLifecycleTests
         hud.Verify(value => value.Choice("Image0", "image", "Icon_knife"), Times.Never);
         hud.Verify(value => value.Choice("PreviewImage", "image", KnifeHudAssets.CssClass(preview, true)), Times.Once);
         hud.Verify(value => value.Choice(It.IsAny<string>(), "cmsImage", It.IsAny<string>()), Times.Never);
+        hud.Verify(value => value.IsClassRegistered(It.IsAny<string>()), Times.Never);
+        var status = f.Menu.AssetStatus().ToArray();
+        foreach (var kind in new[] { "icon", "preview" })
+            Assert.Contains(status, line => line.Contains("kind=" + kind) && line.Contains("resource=present")
+                && line.Contains("image_source=cms") && line.Contains("class_table=unregistered"));
+
+        f.Update!();
+        hud.Verify(value => value.Choice("Image0", "image", "Icon_knife"), Times.Never);
+        hud.Verify(value => value.Choice("PreviewImage", "image", "Preview_knife"), Times.Never);
 
         f.Click("Preview1");
         hud.Verify(value => value.Choice("PreviewImage", "image", "Preview_knife"), Times.Once);
@@ -52,12 +61,12 @@ public sealed class KnifeHudLifecycleTests
         hud.Verify(value => value.Choice("Image0", "image", KnifeHudAssets.CssClass(icon, false)), Times.Once);
         hud.Verify(value => value.Choice("PreviewImage", "image", "Preview_knife"), Times.Once);
         var status = f.Menu.AssetStatus().ToArray();
-        Assert.Contains(status, line => line.Contains("kind=icon") && line.Contains("resource=present") && line.Contains("layout_class=present"));
-        Assert.Contains(status, line => line.Contains("kind=preview") && line.Contains("resource=missing"));
-        hud.Setup(value => value.SupportsClass(KnifeHudAssets.CssClass(icon, false))).Returns(false);
+        Assert.Contains(status, line => line.Contains("kind=icon") && line.Contains("resource=present") && line.Contains("image_source=cms"));
+        Assert.Contains(status, line => line.Contains("kind=preview") && line.Contains("resource=missing") && line.Contains("image_source=stock"));
+        f.Core.Setup(core => core.GameFileSystem.FileExists(preview + "_c", "GAME")).Returns(true);
         f.Update!();
-        hud.Verify(value => value.Choice("Image0", "image", "Icon_knife"), Times.Once);
-        Assert.Contains(f.Menu.AssetStatus(), line => line.Contains("kind=icon") && line.Contains("resource=present") && line.Contains("layout_class=missing"));
+        hud.Verify(value => value.Choice("PreviewImage", "image", KnifeHudAssets.CssClass(preview, true)), Times.Once);
+        Assert.Contains(f.Menu.AssetStatus(), line => line.Contains("kind=preview") && line.Contains("resource=present") && line.Contains("image_source=cms"));
     }
 
     [Fact]
@@ -272,7 +281,7 @@ public sealed class KnifeHudLifecycleTests
                     Entities.Add(entity);
                     var hud = new Mock<IKnifeHudRuntime>();
                     hud.SetupGet(value => value.IsValid).Returns(true);
-                    hud.Setup(value => value.SupportsClass(It.IsAny<string>())).Returns(true);
+                    hud.Setup(value => value.IsClassRegistered(It.IsAny<string>())).Returns(false);
                     hud.Setup(value => value.Owns(It.IsAny<CCSCustomHudLayout>())).Returns((CCSCustomHudLayout clicked) => Owns && ReferenceEquals(clicked, entity));
                     Huds.Add(hud);
                     return hud.Object;
