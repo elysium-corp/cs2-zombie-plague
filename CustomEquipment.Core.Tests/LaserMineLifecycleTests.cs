@@ -68,7 +68,43 @@ public sealed class LaserMineLifecycleTests
         tracer.Verify(value => value.Despawn(), Times.Once);
     }
 
-    private sealed class TestLaserMineEntity(ISwiftlyCore core) : LaserMineEntityBase(core);
+    [Fact]
+    public void DestroyByDamagePlaysEffectOnceWhileRoundCleanupRemainsSilent()
+    {
+        var core = Mock.Of<ISwiftlyCore>();
+        using var destroyed = new TestLaserMineEntity(core);
+        destroyed.DestroyByDamage();
+        destroyed.DestroyByDamage();
+        destroyed.Dispose();
+        Assert.Equal(1, destroyed.Destructions);
+
+        using var cleaned = new TestLaserMineEntity(core);
+        cleaned.Dispose();
+        cleaned.DestroyByDamage();
+        Assert.Equal(0, cleaned.Destructions);
+    }
+
+    [Fact]
+    public void DisposeCancelsArmingAndLateCallbackCannotCreateBeamOrTrigger()
+    {
+        var core = new Mock<ISwiftlyCore>(MockBehavior.Strict);
+        using var mine = new TestLaserMineEntity(core.Object);
+        using var timer = new CancellationTokenSource();
+        SetField(mine, "_armingTask", timer);
+        mine.Dispose();
+        typeof(LaserMineEntityBase).GetMethod("Arm", BindingFlags.NonPublic | BindingFlags.Instance)!
+            .Invoke(mine, null);
+
+        Assert.True(timer.IsCancellationRequested);
+        Assert.False(mine.IsArmed);
+        core.VerifyNoOtherCalls();
+    }
+
+    private sealed class TestLaserMineEntity(ISwiftlyCore core) : LaserMineEntityBase(core)
+    {
+        public int Destructions { get; private set; }
+        protected override void OnDestroyedByDamage() => Destructions++;
+    }
 
     private static void SetProperty(LaserMineEntityBase entity, string name, object value) =>
         typeof(LaserMineEntityBase)

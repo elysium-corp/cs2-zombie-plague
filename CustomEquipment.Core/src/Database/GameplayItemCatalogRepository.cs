@@ -200,6 +200,18 @@ internal sealed class GameplayItemCatalogRepository(
                 {
                     throw new InvalidOperationException($"Gameplay item '{key}' has out-of-range mine settings.");
                 }
+                RequireRange(key, mine.ArmingDuration, 0f, 60f);
+                RequireRange(key, mine.SoundVolume, 0f, 1f);
+                RequireRange(key, mine.DamageSoundInterval, 0.3f, 60f);
+                foreach (var sound in new[]
+                         { mine.InstallSound, mine.ChargeSound, mine.ReadySound, mine.DamageSound, mine.DestroySound })
+                {
+                    if (sound != string.Empty) RequireSoundEvent(key, sound);
+                }
+                if (!IsResourcePath(mine.SoundEventsResource, "soundevents/", ".vsndevts"))
+                {
+                    throw new InvalidOperationException($"Gameplay item '{key}' has an invalid sound events resource.");
+                }
                 break;
 
             default:
@@ -233,7 +245,7 @@ internal sealed class GameplayItemCatalogRepository(
 
     private static void RequireSoundEvent(string key, string value)
     {
-        if (value.Length is < 2 or > 256 || !char.IsAsciiLetter(value[0]) ||
+        if (value is null || value.Length is < 2 or > 256 || !char.IsAsciiLetter(value[0]) ||
             value.Any(character =>
                 !char.IsAsciiLetterOrDigit(character) && character is not '_' and not '.'
             ))
@@ -262,7 +274,7 @@ internal sealed class GameplayItemCatalogRepository(
 
     private static bool IsResourcePath(string value, string prefix, string suffix)
     {
-        return value.Length <= 512 &&
+        return value is not null && value.Length <= 512 &&
                !value.Contains("..", StringComparison.Ordinal) &&
                value.StartsWith(prefix, StringComparison.Ordinal) &&
                value.EndsWith(suffix, StringComparison.OrdinalIgnoreCase) &&

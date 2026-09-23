@@ -1,6 +1,7 @@
 ﻿using CustomEquipment.Api.Data;
 using CustomEquipment.Utils;
 using CustomEquipment.Data.GameplayItems;
+using CustomEquipment.Services;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
@@ -16,6 +17,7 @@ public sealed class LaserMineEntity : LaserMineEntityBase
 {
     private readonly ISwiftlyCore _core;
     private readonly LaserMineSettings _settings;
+    private readonly LaserMineSoundPlayback _sounds;
 
     /// <summary>
     /// Создаёт сущность с параметрами лазерной мины по умолчанию.
@@ -34,12 +36,14 @@ public sealed class LaserMineEntity : LaserMineEntityBase
     {
         _core = core ?? throw new ArgumentNullException(nameof(core));
         _settings = settings ?? throw new ArgumentNullException(nameof(settings));
+        _sounds = new LaserMineSoundPlayback(core, settings);
     }
 
     public override string LaserMineModel => _settings.MineModel;
     public override float TriggerInterval => _settings.TriggerInterval;
     public override float TracerDistance => _settings.TracerDistance;
     public override int MaxHealth => _settings.MaxHealth;
+    public override float ArmingDelay => _settings.ArmingDuration;
     public override float BeamWidth => _settings.BeamWidth;
     public override Color BeamColor => new(
         _settings.BeamRed,
@@ -50,6 +54,21 @@ public sealed class LaserMineEntity : LaserMineEntityBase
 
     private const string DamageParticle = "particles/explosions_fx/bumpmine_detonate_sparks.vpcf";
     private const DamageTypes_t DamageType = DamageTypes_t.DMG_POISON;
+
+    protected override void OnSpawned()
+    {
+        if (LaserMine?.AbsOrigin is { } position) _sounds.Charge(position);
+    }
+
+    protected override void OnArmed()
+    {
+        if (LaserMine?.AbsOrigin is { } position) _sounds.Ready(position);
+    }
+
+    protected override void OnDestroyedByDamage()
+    {
+        if (LaserMine?.AbsOrigin is { } position) _sounds.Destroy(position);
+    }
 
     protected override void Trigger()
     {
@@ -128,7 +147,7 @@ public sealed class LaserMineEntity : LaserMineEntityBase
         if (targetPawn is not { IsValid: true } ||
             ownerPawn is not { IsValid: true } ||
             mine is not { IsValidEntity: true } ||
-            targetPawn.Team == mine.Team)
+            targetPawn.Team == mine.Team || _settings.DamagePerTrigger <= 0f)
         {
             return;
         }
@@ -142,6 +161,11 @@ public sealed class LaserMineEntity : LaserMineEntityBase
             ownerPawn,
             ownerPawn
         );
+
+        if (IsArmed && LaserMine is { IsValidEntity: true, AbsOrigin: { } position })
+        {
+            _sounds.Damage(position);
+        }
     }
 
     private void UpdateTracer(Vector hitPoint)

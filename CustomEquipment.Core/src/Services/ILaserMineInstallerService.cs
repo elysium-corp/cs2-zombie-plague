@@ -21,4 +21,10 @@ public interface ILaserMineInstallerService
     /// </summary>
     /// <param name="player">Игрок, чью установку нужно отменить.</param>
     void Cancel(IPlayer player);
+
+    /// <summary>
+    /// Отменяет все незавершённые установки при окончании раунда, смене карты или выгрузке.
+    /// Пустая реализация сохраняет совместимость со сторонними установщиками.
+    /// </summary>
+    void CancelAll() { }
 }

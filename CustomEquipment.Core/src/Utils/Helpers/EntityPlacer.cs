@@ -12,6 +12,12 @@ public static class EntityPlacer
     public static bool CanAttachToGround(CCSPlayerPawn? playerPawn, float maxDistanceToAttach = 10000f)
     {
         var core = DependencyResolver.GetRequiredService<ISwiftlyCore>();
+        return CanAttachToGround(core, playerPawn, maxDistanceToAttach);
+    }
+
+    /// <summary>Проверяет поверхность установки через переданное ядро в игровом потоке.</summary>
+    public static bool CanAttachToGround(ISwiftlyCore core, CCSPlayerPawn? playerPawn, float maxDistanceToAttach = 10000f)
+    {
 
         if (playerPawn == null || !playerPawn.IsValid) return false;
 
@@ -33,10 +39,8 @@ public static class EntityPlacer
             }
         );
 
-        if (!trace.DidHit) return false;
+        if (!trace.DidHit || trace.StartInSolid) return false;
         if (trace.Distance > maxDistanceToAttach) return false;
-
-        var normal = trace.HitNormal;
 
         return true;
     }
