@@ -13,7 +13,7 @@
       <img src="https://img.shields.io/badge/status-active_development-4CC9F0" alt="Status">
     </a>
     <img src="https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet&logoColor=white" alt=".NET 10">
-    <img src="https://img.shields.io/badge/SwiftlyS2-1.4.11--beta.7-7C3AED" alt="SwiftlyS2">
+    <img src="https://img.shields.io/badge/SwiftlyS2-1.4.11--beta.9-7C3AED" alt="SwiftlyS2">
     <img src="https://img.shields.io/badge/architecture-modular-0EA5E9" alt="Modular architecture">
     <a href="LICENSE">
       <img src="https://img.shields.io/badge/license-GPL--3.0-22C55E" alt="GPL-3.0">
@@ -46,7 +46,7 @@
 ## Технологии
 
 - **C# / .NET 10**
-- **SwiftlyS2.CS2 `1.4.11-beta.7`**
+- **SwiftlyS2.CS2 `1.4.11-beta.9`**
 - **Microsoft.Extensions.DependencyInjection**
 - **Microsoft.Extensions.Configuration**
 - **Microsoft.Extensions.Options**
