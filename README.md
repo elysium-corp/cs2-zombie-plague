@@ -46,7 +46,7 @@
 ## Технологии
 
 - **C# / .NET 10**
-- **SwiftlyS2.CS2 `1.4.11-beta.9`**
+- **SwiftlyS2.CS2 `1.4.11-beta.14`**
 - **Microsoft.Extensions.DependencyInjection**
 - **Microsoft.Extensions.Configuration**
 - **Microsoft.Extensions.Options**
