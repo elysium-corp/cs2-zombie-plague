@@ -98,12 +98,30 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomHud.Core.Tests", "Cus
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Admin.Core.Tests", "Admin.Core.Tests\Admin.Core.Tests.csproj", "{AEFCE4CF-37D0-4B37-912E-F24A3729ABD1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MapRotation.Api", "MapRotation.Api\MapRotation.Api.csproj", "{5D5307B2-13B8-4B6A-8431-78D468997D67}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MapRotation.Core", "MapRotation.Core\MapRotation.Core.csproj", "{27CFEB15-A62C-46AF-9AEA-2BB5CA4E9773}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MapRotation.Core.Tests", "MapRotation.Core.Tests\MapRotation.Core.Tests.csproj", "{C8F8AADC-F89F-453A-90CF-4868453CE85F}"
+EndProject
 Global
     GlobalSection(SolutionConfigurationPlatforms) = preSolution
         Debug|Any CPU = Debug|Any CPU
         Release|Any CPU = Release|Any CPU
     EndGlobalSection
     GlobalSection(ProjectConfigurationPlatforms) = postSolution
+        {5D5307B2-13B8-4B6A-8431-78D468997D67}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+        {5D5307B2-13B8-4B6A-8431-78D468997D67}.Debug|Any CPU.Build.0 = Debug|Any CPU
+        {5D5307B2-13B8-4B6A-8431-78D468997D67}.Release|Any CPU.ActiveCfg = Release|Any CPU
+        {5D5307B2-13B8-4B6A-8431-78D468997D67}.Release|Any CPU.Build.0 = Release|Any CPU
+        {27CFEB15-A62C-46AF-9AEA-2BB5CA4E9773}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+        {27CFEB15-A62C-46AF-9AEA-2BB5CA4E9773}.Debug|Any CPU.Build.0 = Debug|Any CPU
+        {27CFEB15-A62C-46AF-9AEA-2BB5CA4E9773}.Release|Any CPU.ActiveCfg = Release|Any CPU
+        {27CFEB15-A62C-46AF-9AEA-2BB5CA4E9773}.Release|Any CPU.Build.0 = Release|Any CPU
+        {C8F8AADC-F89F-453A-90CF-4868453CE85F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+        {C8F8AADC-F89F-453A-90CF-4868453CE85F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+        {C8F8AADC-F89F-453A-90CF-4868453CE85F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+        {C8F8AADC-F89F-453A-90CF-4868453CE85F}.Release|Any CPU.Build.0 = Release|Any CPU
         {7043898B-080B-5076-88C0-61023FD5602D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
         {7043898B-080B-5076-88C0-61023FD5602D}.Debug|Any CPU.Build.0 = Debug|Any CPU
         {7043898B-080B-5076-88C0-61023FD5602D}.Release|Any CPU.ActiveCfg = Release|Any CPU

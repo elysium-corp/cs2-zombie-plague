@@ -98,6 +98,8 @@ internal sealed class ShopPlugin(ISwiftlyCore core) : Plugin<ShopModule>(core)
             ExtendMainMenu);
         _menu.Value.RebindExternalEvents();
         _hud.Value.RebindExternalEvents();
+        interfaceManager.TryGetSharedInterface<ICustomHudMenuApi>(ICustomHudMenuApi.SharedApiKey, out var sharedMenus);
+        _hud.Value.BindSharedMenus(sharedMenus);
     }
 
     protected override void OnStart()

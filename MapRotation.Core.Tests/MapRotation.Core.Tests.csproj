@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.9.0" />
+    <PackageReference Include="SwiftlyS2.CS2" Version="1.4.11-beta.9" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.3" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="4.0.0" PrivateAssets="all" />
+    <ProjectReference Include="../MapRotation.Core/MapRotation.Core.csproj" Private="true" />
+    <ProjectReference Include="../MapRotation.Api/MapRotation.Api.csproj" Private="true" />
+    <ProjectReference Include="../CustomHud.Api/CustomHud.Api.csproj" Private="true" />
+    <ProjectReference Include="../Localization.Api/Localization.Api.csproj" Private="true" />
+    <ProjectReference Include="../Common.Database/Common.Database.csproj" Private="true" />
+    <ProjectReference Include="../Common.Di/Common.Di.csproj" Private="true" />
+  </ItemGroup>
+</Project>

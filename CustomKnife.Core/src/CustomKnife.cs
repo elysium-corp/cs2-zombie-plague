@@ -52,6 +52,8 @@ internal sealed partial class CustomKnife(ISwiftlyCore core) : Plugin<CustomKnif
     {
         interfaceManager.TryGetSharedInterface<IBannerNotificationApi>(IBannerNotificationApi.SharedApiKey, out var notificationApi);
         _notifications.Value.Bind(notificationApi);
+        interfaceManager.TryGetSharedInterface<ICustomHudMenuApi>(ICustomHudMenuApi.SharedApiKey, out var sharedMenus);
+        GetRequiredService<KnifeMenu>().BindSharedMenus(sharedMenus);
 
         var menuApi = interfaceManager.GetSharedInterface<IMenuApi>(IMenuApi.SharedApiKey);
         _menuApiBridge.Value.Initialize(menuApi);
