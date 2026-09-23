@@ -21,7 +21,7 @@ namespace CustomEquipment;
 
 [PluginMetadata(
     Id = "CustomEquipment.Core",
-    Version = "0.8.0",
+    Version = "0.8.1",
     Name = "[ZP] CustomEquipment",
     Author = "illusion & fdrinv",
     Description = "Database-backed custom weapons, grenades and gameplay equipment"
@@ -30,6 +30,7 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
 {
     private readonly Lazy<IWeaponController> _itemController = GetRequiredServiceLazy<IWeaponController>();
     private readonly Lazy<IWeaponSoundController> _soundController = GetRequiredServiceLazy<IWeaponSoundController>();
+    private readonly Lazy<IWeaponHandlingController> _handlingController = GetRequiredServiceLazy<IWeaponHandlingController>();
     private readonly Lazy<IEquipmentService> _equipmentService = GetRequiredServiceLazy<IEquipmentService>();
     private readonly Lazy<IMineController> _equipmentController = GetRequiredServiceLazy<IMineController>();
     private readonly Lazy<CustomEquipmentApi> _customEquipmentApi = GetRequiredServiceLazy<CustomEquipmentApi>();
@@ -82,6 +83,7 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
         _itemController.Value.Initialize();
         _equipmentController.Value.Initialize();
         _soundController.Value.Initialize();
+        _handlingController.Value.Initialize();
 
         RegisterCommands();
     }
@@ -94,6 +96,7 @@ internal sealed partial class CustomEquipment(ISwiftlyCore core) : Plugin<Custom
         (_itemController.Value as IDisposable)?.Dispose();
         (_equipmentController.Value as IDisposable)?.Dispose();
         (_soundController.Value as IDisposable)?.Dispose();
+        (_handlingController.Value as IDisposable)?.Dispose();
         (_equipmentService.Value as IDisposable)?.Dispose();
 
         foreach (var hook in _commandHooks)
