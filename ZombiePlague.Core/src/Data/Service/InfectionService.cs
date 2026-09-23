@@ -33,8 +33,11 @@ internal sealed class InfectionService(
         core.GameHooks.Weapons.Drop.Pre += OnDrop;
         
         events.Players.Infected.Hook(OnPlayerInfected);
+        events.Players.Disinfected.Hook(OnPlayerDisinfected);
+        events.Players.Humanized.Hook(OnPlayerHumanized);
         events.Players.RoleApplied.Hook(OnPlayerRoleApplied);
         events.Players.BecameNemesis.Hook(OnPlayerBecameNemesis);
+        events.Players.BecameSurvivor.Hook(OnPlayerBecameSurvivor);
     }
 
     public void Unregister()
@@ -48,8 +51,11 @@ internal sealed class InfectionService(
         core.GameHooks.Weapons.Drop.Pre -= OnDrop;
         
         events.Players.Infected.Unhook(OnPlayerInfected);
+        events.Players.Disinfected.Unhook(OnPlayerDisinfected);
+        events.Players.Humanized.Unhook(OnPlayerHumanized);
         events.Players.RoleApplied.Unhook(OnPlayerRoleApplied);
         events.Players.BecameNemesis.Unhook(OnPlayerBecameNemesis);
+        events.Players.BecameSurvivor.Unhook(OnPlayerBecameSurvivor);
     }
     
     private void OnCanAcquire(ref CanAcquireItemPreContext context)
@@ -105,6 +111,16 @@ internal sealed class InfectionService(
         ScheduleCosmeticsReset(context.Player);
     }
 
+    private void OnPlayerDisinfected(ref PlayerDisinfectedContext context)
+    {
+        ScheduleCosmeticsReset(context.Player);
+    }
+
+    private void OnPlayerHumanized(ref PlayerHumanizedContext context)
+    {
+        ScheduleCosmeticsReset(context.Player);
+    }
+
     private void OnPlayerRoleApplied(ref PlayerRoleAppliedContext context)
     {
         ScheduleCosmeticsReset(context.Player);
@@ -115,9 +131,15 @@ internal sealed class InfectionService(
         ScheduleCosmeticsReset(context.Player);
     }
 
+    private void OnPlayerBecameSurvivor(ref PlayerBecameSurvivorContext context)
+    {
+        ScheduleCosmeticsReset(context.Player);
+    }
+
     private void ScheduleCosmeticsReset(IPlayer player)
     {
-        if (!_registered || !player.IsValid || !player.IsAlive || !playerManager.IsZombie(player) ||
+        if (!_registered || !player.IsValid || !player.IsAlive ||
+            (!playerManager.IsZombie(player) && !playerManager.IsHuman(player)) ||
             player.PlayerPawn is not { IsValid: true } pawn)
         {
             return;
@@ -134,7 +156,7 @@ internal sealed class InfectionService(
 
             var currentPlayer = core.PlayerManager.GetPlayerFromSessionId(sessionId);
             if (currentPlayer is not { IsValid: true, IsAlive: true } ||
-                !playerManager.IsZombie(currentPlayer) ||
+                (!playerManager.IsZombie(currentPlayer) && !playerManager.IsHuman(currentPlayer)) ||
                 currentPlayer.PlayerPawn is not { IsValid: true } currentPawn ||
                 currentPawn.Address != pawnAddress)
             {
@@ -142,7 +164,11 @@ internal sealed class InfectionService(
             }
 
             RemoveGloves(currentPlayer);
-            ResetKnife(currentPawn);
+
+            if (playerManager.IsZombie(currentPlayer))
+            {
+                ResetKnife(currentPawn);
+            }
         });
     }
 
