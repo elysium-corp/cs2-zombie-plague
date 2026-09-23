@@ -20,7 +20,7 @@ namespace CustomKnife;
 
 [PluginMetadata(
     Id = "CustomKnife.Core",
-    Version = "0.7.1",
+    Version = "0.7.2",
     Name = "[ZP] CustomKnife",
     Author = "illusion & fdrinv",
     Description = "Database-backed custom knives with Panorama HUD and Admin.Core permissions"
