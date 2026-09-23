@@ -1,8 +1,8 @@
 {
   "schemaVersion": 4,
-  "version": 20,
-  "generatedAt": "2026-09-20T19:00:00Z",
-  "checksum": "sha256:16bd743fd72464511c3c89af630bfcd6096dd82befadcb716a03e9ffc09c206d",
+  "version": 21,
+  "generatedAt": "2026-09-23T00:00:00Z",
+  "checksum": "sha256:4a2f5eb42a76f16c9c9515397a8423c12710016941a949d8d5012f45e8858fc2",
   "serverFallbackLanguage": "ru",
   "languages": [
     "ru",
@@ -523,6 +523,47 @@
         "required": true,
         "description": "Название сохранённого человеческого ножа",
         "example": "Karambit"
+      }
+    ],
+    "MapRotation.RtvRemaining": [
+      {
+        "name": "count",
+        "type": "string",
+        "required": true,
+        "description": "count",
+        "example": "1"
+      }
+    ],
+    "MapRotation.Votes": [
+      {
+        "name": "count",
+        "type": "string",
+        "required": true,
+        "description": "count",
+        "example": "1"
+      }
+    ],
+    "MapRotation.RtvAdded": [
+      {
+        "name": "player",
+        "type": "string",
+        "required": true,
+        "description": "player",
+        "example": "1"
+      },
+      {
+        "name": "votes",
+        "type": "string",
+        "required": true,
+        "description": "votes",
+        "example": "1"
+      },
+      {
+        "name": "required",
+        "type": "string",
+        "required": true,
+        "description": "required",
+        "example": "1"
       }
     ]
   },
@@ -2208,6 +2249,180 @@
       "en": "Knockback",
       "de": "Rückstoß",
       "pl": "Odrzut"
+    },
+    "MapRotation.Loading": {
+      "ru": "Ротация карт загружается",
+      "en": "Map rotation is loading",
+      "de": "Map rotation is loading",
+      "pl": "Map rotation is loading"
+    },
+    "MapRotation.TimeLeft": {
+      "ru": "До смены карты",
+      "en": "Time left",
+      "de": "Time left",
+      "pl": "Time left"
+    },
+    "MapRotation.NextMap": {
+      "ru": "Следующая карта",
+      "en": "Next map",
+      "de": "Next map",
+      "pl": "Next map"
+    },
+    "MapRotation.LastRound": {
+      "ru": "Последний раунд",
+      "en": "Final round",
+      "de": "Final round",
+      "pl": "Final round"
+    },
+    "MapRotation.NotSelected": {
+      "ru": "Пока не выбрана",
+      "en": "Not selected yet",
+      "de": "Not selected yet",
+      "pl": "Not selected yet"
+    },
+    "MapRotation.RtvDelay": {
+      "ru": "RTV доступен через",
+      "en": "RTV available in",
+      "de": "RTV available in",
+      "pl": "RTV available in"
+    },
+    "MapRotation.RtvRemaining": {
+      "ru": "Осталось голосов: {count}",
+      "en": "{count} more votes needed",
+      "de": "{count} more votes needed",
+      "pl": "{count} more votes needed"
+    },
+    "MapRotation.Accepted": {
+      "ru": "Сохранено",
+      "en": "Saved",
+      "de": "Saved",
+      "pl": "Saved"
+    },
+    "MapRotation.Duplicate": {
+      "ru": "Ваш голос уже учтён",
+      "en": "Your vote has already been counted",
+      "de": "Your vote has already been counted",
+      "pl": "Your vote has already been counted"
+    },
+    "MapRotation.Disabled": {
+      "ru": "Функция отключена",
+      "en": "Feature disabled",
+      "de": "Feature disabled",
+      "pl": "Feature disabled"
+    },
+    "MapRotation.TooFewPlayers": {
+      "ru": "Недостаточно игроков для RTV",
+      "en": "Not enough players for RTV",
+      "de": "Not enough players for RTV",
+      "pl": "Not enough players for RTV"
+    },
+    "MapRotation.NotEligible": {
+      "ru": "Вы не можете участвовать",
+      "en": "You cannot participate",
+      "de": "You cannot participate",
+      "pl": "You cannot participate"
+    },
+    "MapRotation.Locked": {
+      "ru": "Следующая карта уже выбирается или выбрана",
+      "en": "The next map is being selected or has been selected",
+      "de": "The next map is being selected or has been selected",
+      "pl": "The next map is being selected or has been selected"
+    },
+    "MapRotation.InvalidMap": {
+      "ru": "Карта недоступна",
+      "en": "Map unavailable",
+      "de": "Map unavailable",
+      "pl": "Map unavailable"
+    },
+    "MapRotation.NominationTitle": {
+      "ru": "Номинация карты",
+      "en": "Nominate a map",
+      "de": "Nominate a map",
+      "pl": "Nominate a map"
+    },
+    "MapRotation.NominationSubtitle": {
+      "ru": "Выберите карту для следующего голосования",
+      "en": "Choose a map for the next vote",
+      "de": "Choose a map for the next vote",
+      "pl": "Choose a map for the next vote"
+    },
+    "MapRotation.VoteTitle": {
+      "ru": "Выберите следующую карту",
+      "en": "Choose the next map",
+      "de": "Choose the next map",
+      "pl": "Choose the next map"
+    },
+    "MapRotation.VoteSubtitle": {
+      "ru": "Голосование за следующую карту",
+      "en": "Vote for the next map",
+      "de": "Vote for the next map",
+      "pl": "Vote for the next map"
+    },
+    "MapRotation.YourVote": {
+      "ru": "Ваш голос",
+      "en": "Your vote",
+      "de": "Your vote",
+      "pl": "Your vote"
+    },
+    "MapRotation.Votes": {
+      "ru": "Голосов: {count}",
+      "en": "Votes: {count}",
+      "de": "Votes: {count}",
+      "pl": "Votes: {count}"
+    },
+    "MapRotation.Close": {
+      "ru": "Закрыть",
+      "en": "Close",
+      "de": "Close",
+      "pl": "Close"
+    },
+    "MapRotation.NoMaps": {
+      "ru": "Нет доступных карт",
+      "en": "No maps available",
+      "de": "No maps available",
+      "pl": "No maps available"
+    },
+    "MapRotation.ResultTitle": {
+      "ru": "Голосование завершено",
+      "en": "Voting complete",
+      "de": "Voting complete",
+      "pl": "Voting complete"
+    },
+    "MapRotation.LastRoundDescription": {
+      "ru": "Текущий раунд — последний\nКарта сменится после завершения раунда",
+      "en": "This is the final round\nThe map changes when the round ends",
+      "de": "This is the final round\nThe map changes when the round ends",
+      "pl": "This is the final round\nThe map changes when the round ends"
+    },
+    "MapRotation.ScheduledResult": {
+      "ru": "Карта сменится после окончания времени и раунда",
+      "en": "The map changes after the time limit and the final round",
+      "de": "The map changes after the time limit and the final round",
+      "pl": "The map changes after the time limit and the final round"
+    },
+    "MapRotation.RtvAdded": {
+      "ru": "Игрок {player} поддержал RTV ({votes} / {required})",
+      "en": "{player} requested RTV ({votes} / {required})",
+      "de": "{player} requested RTV ({votes} / {required})",
+      "pl": "{player} requested RTV ({votes} / {required})"
+    },
+    "MapRotation.VoteStarted": {
+      "ru": "Открыто голосование за следующую карту",
+      "en": "Voting for the next map has started",
+      "de": "Voting for the next map has started",
+      "pl": "Voting for the next map has started"
+    },
+    "MapRotation.ForcedChange": {
+      "ru": "Последний раунд затянулся — выполняется смена карты",
+      "en": "Final round timeout — changing map",
+      "de": "Final round timeout — changing map",
+      "pl": "Final round timeout — changing map"
+    },
+    "MapRotation.HudUnavailable": {
+      "ru": "Интерфейс меню временно недоступен",
+      "en": "Menu interface is temporarily unavailable",
+      "de": "Menu interface is temporarily unavailable",
+      "pl": "Menu interface is temporarily unavailable"
     }
   }
 }

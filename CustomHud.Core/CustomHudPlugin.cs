@@ -1,5 +1,6 @@
 using Common.Di;
 using CustomHud.Api;
+using CustomHud.Core.Menus;
 using Localization.Api;
 using Microsoft.Extensions.DependencyInjection;
 using SwiftlyS2.Shared;
@@ -12,11 +13,13 @@ namespace CustomHud.Core;
 internal sealed class CustomHudPlugin(ISwiftlyCore core) : Plugin<CustomHudModule>(core)
 {
     private readonly Lazy<CustomHudService> _service = GetRequiredServiceLazy<CustomHudService>();
+    private readonly Lazy<HudMenuService> _menus = GetRequiredServiceLazy<HudMenuService>();
 
     protected override void OnConfigureSharedInterfaces(IInterfaceManager interfaces)
     {
         interfaces.AddSharedInterface<ICustomHudApi, CustomHudService>(ICustomHudApi.SharedApiKey, _service.Value);
         interfaces.AddSharedInterface<ICustomBannerApi, CustomHudService>(ICustomBannerApi.SharedApiKey, _service.Value);
+        interfaces.AddSharedInterface<ICustomHudMenuApi, HudMenuService>(ICustomHudMenuApi.SharedApiKey, _menus.Value);
     }
 
     protected override void OnSharedInterfacesInjected(IInterfaceManager interfaces)
@@ -25,10 +28,15 @@ internal sealed class CustomHudPlugin(ISwiftlyCore core) : Plugin<CustomHudModul
         _service.Value.InitializeLocalization(localization);
     }
 
-    protected override void OnReady() => _service.Value.Start();
+    protected override void OnReady()
+    {
+        _service.Value.Start();
+        _menus.Value.Start();
+    }
 
     protected override void OnUnload()
     {
+        if (_menus.IsValueCreated) _menus.Value.Dispose();
         if (_service.IsValueCreated) _service.Value.Dispose();
     }
 }
@@ -43,6 +51,8 @@ internal sealed class CustomHudModule(ISwiftlyCore core) : BaseModule(core)
         services.AddSingleton<TimeProvider>(TimeProvider.System);
         services.AddSingleton<Func<IHudRuntime>>(_ => () => new PanoramaHudRuntime(Core));
         services.AddSingleton<CustomHudService>();
+        services.AddSingleton<Func<int, IHudMenuRuntime>>(_ => playerId => new PanoramaMenuRuntime(Core, playerId));
+        services.AddSingleton<HudMenuService>();
         return (services.BuildServiceProvider(new ServiceProviderOptions
         {
             ValidateOnBuild = true, ValidateScopes = true

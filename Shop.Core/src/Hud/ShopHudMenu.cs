@@ -1,4 +1,5 @@
 using System.Globalization;
+using CustomHud.Api;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shop.Core.Application;
@@ -40,6 +41,19 @@ internal sealed class ShopHudMenu(
     private bool _active;
     private bool _mapUnloading;
     private string? _failure;
+    private ICustomHudMenuApi? _sharedMenus;
+    public void BindSharedMenus(ICustomHudMenuApi? menus)
+    {
+        if (ReferenceEquals(_sharedMenus, menus)) return;
+        if (_sharedMenus is not null) _sharedMenus.Opening -= OnSharedMenuOpening;
+        _sharedMenus = menus;
+        if (_sharedMenus is not null) _sharedMenus.Opening += OnSharedMenuOpening;
+    }
+    private void OnSharedMenuOpening(IPlayer player)
+    {
+        Close(player.PlayerID);
+        core.MenusAPI.CloseActiveMenu(player);
+    }
     private double _nextRefresh;
     private static double Now => Environment.TickCount64 / 1000d;
 
@@ -93,7 +107,7 @@ internal sealed class ShopHudMenu(
     // Внешний API открывает магазин идемпотентно; пользовательские команды переключают его.
     public void Open(IPlayer player)
     {
-        if (!_active || _mapUnloading || !catalog.CanOpen(player)) return;
+        if (!_active || _mapUnloading || !catalog.CanOpen(player) || _sharedMenus?.IsAnyOpen(player) == true) return;
         if (state.IsOpen(player)) return;
         if (!options.Value.Enabled || _failure is not null)
         {
@@ -279,7 +293,7 @@ internal sealed class ShopHudMenu(
                     if (suspended == player.SessionId && player.PlayerPawn?.IsBuyMenuOpen == true) continue;
                     _suspendedNative.Remove(player.PlayerID);
                 }
-                if (!catalog.CanOpen(player) || core.MenusAPI.GetCurrentMenu(player) is not null)
+                if (!catalog.CanOpen(player) || _sharedMenus?.IsAnyOpen(player) == true || core.MenusAPI.GetCurrentMenu(player) is not null)
                 {
                     Close(player.PlayerID);
                     continue;
@@ -325,7 +339,7 @@ internal sealed class ShopHudMenu(
         // Покупка может синхронно вызвать смерть или смену роли. Её завершающий
         // refresh не должен заново создавать уже закрытый HUD.
         if (!_sessions.TryGetValue(player.PlayerID, out var current) || !ReferenceEquals(current, session)) return;
-        if (!catalog.CanOpen(player)) { Close(player.PlayerID); return; }
+        if (!catalog.CanOpen(player) || _sharedMenus?.IsAnyOpen(player) == true) { Close(player.PlayerID); return; }
         var snapshot = cache.Current;
         var view = catalog.Build(player, session.Navigation);
         if (session.View is { } previous && previous.ShopType != view.ShopType)
@@ -618,6 +632,7 @@ internal sealed class ShopHudMenu(
 
     public void Dispose()
     {
+        BindSharedMenus(null);
         if (!_active) return;
         _active = false;
         _timer?.Cancel();

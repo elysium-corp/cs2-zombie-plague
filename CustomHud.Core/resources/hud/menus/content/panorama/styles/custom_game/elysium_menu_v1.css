@@ -1,0 +1,51 @@
+.MenuViewport { width: 100%; height: 100%; }
+.MenuRoot { width: 100%; height: 100%; visibility: collapse; }
+.MenuRoot.Visible { visibility: visible; }
+.MenuRoot.Modal { background-color: #04080e55; }
+.MenuWindow { width: 560px; horizontal-align: center; vertical-align: center; flow-children: down; padding: 26px 24px 0px; background-color: gradient(linear, 0% 0%, 100% 100%, from(#141d29fa), to(#090f18fa)); border: 1px solid #536581bb; border-radius: 6px; box-shadow: #00000088 0px 14px 32px 0px; }
+.MenuBrandRow { width: 100%; height: 32px; flow-children: right; margin-bottom: 20px; }
+.BrandMark { width: 30px; color: #ab83ff; font-size: 30px; vertical-align: center; }
+.Brand { width: fill-parent-flow(1); color: #bac8ff; font-size: 15px; letter-spacing: 3px; vertical-align: center; margin-left: 12px; }
+.Status { color: #ff8b9d; font-size: 19px; font-weight: bold; horizontal-align: right; vertical-align: center; margin-right: 18px; }
+.Close { width: 30px; height: 30px; horizontal-align: right; }
+.Close Label { color: #bdc9ed; font-size: 30px; horizontal-align: center; vertical-align: center; }
+.Close:hover Label { color: #ffffff; }
+.Title { width: 100%; color: #f4f6ff; font-size: 27px; font-weight: bold; text-align: center; margin-bottom: 9px; }
+.Subtitle { width: 100%; color: #b9c6e9; font-size: 16px; text-align: center; margin-bottom: 24px; }
+.Items { width: 100%; flow-children: down; }
+.MenuItem { width: 100%; min-height: 68px; flow-children: right; margin-bottom: 8px; padding: 10px 14px; background-color: #111a25dd; border: 1px solid #344356; border-radius: 5px; transition-property: background-color, border; transition-duration: 0.12s; }
+.MenuItem:hover { background-color: #21283b; border: 1px solid #9583d0; }
+.MenuItem.Selected { background-color: gradient(linear, 0% 0%, 100% 0%, from(#302044ee), to(#192134ee)); border: 2px solid #a273ff; padding: 9px 13px; }
+.ItemIcon { width: 60px; height: 46px; background-color: gradient(linear, 0% 0%, 100% 100%, from(#29354f), to(#121e30)); border: 1px solid #46506c; border-radius: 4px; vertical-align: center; margin-right: 16px; }
+.ItemIcon Label { font-size: 32px; color: #a6b7ec; horizontal-align: center; vertical-align: center; }
+.ItemText { width: fill-parent-flow(1); flow-children: down; vertical-align: center; }
+.ItemName { color: #f1f4ff; font-size: 19px; font-weight: bold; text-overflow: ellipsis; }
+.ItemDescription { color: #c3a5ff; font-size: 14px; margin-top: 5px; }
+.Badge { color: #e7edff; font-size: 16px; vertical-align: center; margin-left: 14px; }
+.SelectedMark { visibility: collapse; color: #bd9bff; font-size: 23px; vertical-align: center; margin-left: 8px; }
+.Selected .SelectedMark { visibility: visible; }
+.Pagination { horizontal-align: center; height: 46px; flow-children: right; margin-top: 5px; margin-bottom: 10px; }
+.PageArrow { width: 40px; height: 42px; }
+.PageArrow Label { color: #b59bff; font-size: 36px; horizontal-align: center; vertical-align: center; }
+.PageArrow:hover Label { color: #ffffff; }
+.PageLabel { width: 84px; color: #e6edff; font-size: 17px; text-align: center; vertical-align: center; }
+.Footer { width: 100%; padding: 16px; border: 1px solid #53627d; border-radius: 4px; color: #bdcaff; font-size: 16px; white-space: normal; margin-top: 12px; margin-bottom: 14px; }
+.BottomRow { width: 100%; height: 40px; flow-children: right; margin-top: 8px; margin-bottom: 8px; }
+.CloseHint { flow-children: right; vertical-align: center; }
+.Key { color: #e8edfa; font-size: 14px; border: 1px solid #a3adc0; border-radius: 2px; padding: 2px 6px; }
+.CloseText { color: #aab6d0; font-size: 14px; margin-left: 12px; vertical-align: center; }
+.Back { width: 34px; height: 30px; margin-right: 10px; }
+.Back Label { color: #bda3ff; font-size: 28px; }
+.AccentLine { width: 100%; height: 3px; background-color: gradient(linear, 0% 0%, 100% 0%, from(#a278ff), to(#3a355600)); }
+.Result .ItemIcon { width: 100%; height: 140px; margin: 0px 0px 20px; background-color: gradient(linear, 0% 0%, 100% 100%, from(#34284f), to(#16273c)); }
+.Result .ItemIcon Label { font-size: 76px; color: #e2b95e; }
+.ResultTrophy { width: 76px; height: 76px; horizontal-align: center; vertical-align: center; wash-color: #e2b95e; visibility: collapse; }
+.Result .ResultTrophy { visibility: visible; }
+.Result .ItemIcon Label { visibility: collapse; }
+.Result .MenuItem { flow-children: down; padding: 18px; }
+.Result .ItemText { width: 100%; }
+.Result .ItemName { width: 100%; text-align: center; font-size: 28px; }
+.Result .ItemDescription { width: 100%; text-align: center; color: #d6e0f6; font-size: 18px; }
+.Result .Badge { visibility: collapse; }
+.Disabled { opacity: 0.45; }
+.Hidden { visibility: collapse; }

@@ -4,6 +4,7 @@ using CustomKnife.Data.Models;
 using CustomKnife.Data.Services.Contracts;
 using CustomKnife.Hud;
 using CustomKnife.Services;
+using CustomHud.Api;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;
@@ -38,6 +39,15 @@ internal sealed class KnifeMenu(
     private Guid _teamHook;
     private bool _active;
     private bool _mapUnloading;
+    private ICustomHudMenuApi? _sharedMenus;
+    public void BindSharedMenus(ICustomHudMenuApi? menus)
+    {
+        if (ReferenceEquals(_sharedMenus, menus)) return;
+        if (_sharedMenus is not null) _sharedMenus.Opening -= OnSharedMenuOpening;
+        _sharedMenus = menus;
+        if (_sharedMenus is not null) _sharedMenus.Opening += OnSharedMenuOpening;
+    }
+    private void OnSharedMenuOpening(IPlayer player) => Close(player.PlayerID);
     private static double Now => Environment.TickCount64 / 1000d;
 
     public void RegisterCommands()
@@ -62,6 +72,7 @@ internal sealed class KnifeMenu(
     public void UnregisterCommands() => Dispose();
 
     private bool CanOpen(IPlayer player) => _active && !_mapUnloading
+        && _sharedMenus?.IsAnyOpen(player) != true
         && player.IsValid && !player.IsFakeClient && player.SteamID != 0
         && player.Controller.Team is Team.CT or Team.T;
 
@@ -398,6 +409,7 @@ internal sealed class KnifeMenu(
 
     public void Dispose()
     {
+        BindSharedMenus(null);
         if (!_active) return;
         _active = false;
         _refresh?.Cancel();
