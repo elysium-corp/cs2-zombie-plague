@@ -1,13 +1,14 @@
 ﻿using Common.Hooks;
 using Common.Hooks.Abstractions;
-using Common.Math;
 using CustomEquipment.Api.Data;
 using CustomEquipment.Api.Enums;
 using CustomEquipment.Api.Events.Contexts.Mines;
 using CustomEquipment.Data.Equipments.Weapons.Equipments;
 using CustomEquipment.Data.Equipments.Weapons.Equipments.Entities;
 using CustomEquipment.Data.GameplayItems;
+using CustomEquipment.Utils;
 using CustomEquipment.Utils.Helpers;
+using Microsoft.Extensions.Logging;
 using Localization.Api;
 using SwiftlyS2.Core.Menus.OptionsBase;
 using SwiftlyS2.Shared;
@@ -21,100 +22,79 @@ public sealed class LaserMineInstallerService(
     IHookPublisher hooks,
     ILocalizationApi localization) : ILaserMineInstallerService, IDisposable
 {
-    private readonly CancellationTokenSource _shutdown = new();
-    private readonly Dictionary<int, CancellationTokenSource> _pending = [];
-    private readonly Lock _pendingLock = new();
+    private readonly Dictionary<int, PendingInstallation> _pending = [];
+    private bool _disposed;
 
     public bool TrySetup(IPlayer player, LaserMine mine)
     {
-        if (_shutdown.IsCancellationRequested || !CanUseMine(player, mine)) return false;
+        if (_disposed || !CanUseMine(player, mine) || _pending.ContainsKey(player.PlayerID)) return false;
 
         var settings = mine.Settings;
-
-        var playerId = player.PlayerID;
-
-        lock (_pendingLock) if (_pending.ContainsKey(playerId)) return false;
-        var pawn = player.PlayerPawn;
-
-        if (pawn == null || !pawn.IsValid) return false;
-
+        var pawn = player.PlayerPawn!;
         var gameRules = core.EntitySystem.GetGameRules();
+        if (gameRules is { WarmupPeriod: true } ||
+            !EntityPlacer.CanAttachToGround(core, pawn, settings.MaxDistanceToAttach)) return false;
 
-        if (gameRules != null && gameRules.WarmupPeriod) return false;
-        if (!EntityPlacer.CanAttachToGround(pawn, settings.MaxDistanceToAttach)) return false;
+        var pending = new PendingInstallation(core.EntitySystem.GetRefEHandle(pawn).Raw);
+        _pending.Add(player.PlayerID, pending);
+        try
+        {
+            var window = CreateSetupWindow(player, () => pending.Progress, settings.UpdateIntervalMs);
+            core.MenusAPI.OpenMenuForPlayer(player, window);
+            if (pawn.AbsOrigin is { } origin)
+            {
+                LaserMineSoundPlayback.PlaySafely(core, settings.InstallSound, origin, settings.SoundVolume);
+            }
 
-        var cancellation = CancellationTokenSource.CreateLinkedTokenSource(_shutdown.Token);
-        lock (_pendingLock) _pending[playerId] = cancellation;
-        _ = SetupAsync(player, playerId, mine, settings, cancellation);
-        return true;
+            var interval = settings.UpdateIntervalMs / 1000f;
+            // Проверка игрока, меню, звуки и создание сущностей выполняются в игровом потоке.
+            pending.Timer = core.Scheduler.DelayAndRepeatBySeconds(interval, interval, () =>
+            {
+                if (_disposed || !_pending.TryGetValue(player.PlayerID, out var current) ||
+                    !ReferenceEquals(current, pending)) return;
+
+                try
+                {
+                    if (!CanUseMine(player, mine) ||
+                        core.EntitySystem.GetRefEHandle(player.PlayerPawn!).Raw != pending.PawnHandle)
+                    {
+                        Cancel(player);
+                        return;
+                    }
+
+                    pending.Progress = Math.Clamp(pending.Progress + interval / settings.SetupDuration, 0f, 1f);
+                    if (pending.Progress < 1f) return;
+                    Cancel(player);
+                    Spawn(player, mine, settings);
+                }
+                catch (Exception exception)
+                {
+                    Cancel(player);
+                    core.Logger.LogError(exception, "[LaserMine] Не удалось завершить установку мины.");
+                }
+            });
+            core.Scheduler.StopOnMapChange(pending.Timer);
+            return true;
+        }
+        catch
+        {
+            Cancel(player);
+            throw;
+        }
     }
 
     public void Cancel(IPlayer player)
     {
-        var cancelled = false;
-
-        lock (_pendingLock)
-        {
-            if (_pending.TryGetValue(player.PlayerID, out var cancellation))
-            {
-                cancellation.Cancel();
-                cancelled = true;
-            }
-        }
-
-        if (cancelled && player.IsValid)
-        {
-            core.MenusAPI.CloseActiveMenu(player);
-        }
+        if (!_pending.Remove(player.PlayerID, out var pending)) return;
+        pending.Cancel();
+        if (player.IsValid) core.MenusAPI.CloseActiveMenu(player);
     }
 
-    private async Task SetupAsync(
-        IPlayer player,
-        int playerId,
-        LaserMine mine,
-        LaserMineSettings settings,
-        CancellationTokenSource cancellation
-    )
+    public void CancelAll()
     {
-        try
-        {
-            var progress = 0f;
-            var window = CreateSetupWindow(player, () => progress, settings.UpdateIntervalMs);
-
-            core.MenusAPI.OpenMenuForPlayer(player, window);
-
-            while (progress < 1f)
-            {
-                await Task.Delay(settings.UpdateIntervalMs, cancellation.Token).ConfigureAwait(false);
-
-                if (!CanUseMine(player, mine)) return;
-
-                progress = Math.Clamp(
-                    progress + settings.UpdateIntervalMs / 1000f / settings.SetupDuration,
-                    0f,
-                    1f
-                );
-            }
-
-            await Task.Delay(500, cancellation.Token).ConfigureAwait(false);
-
-            if (!CanUseMine(player, mine) || cancellation.IsCancellationRequested) return;
-            var token = cancellation.Token;
-            core.Scheduler.NextTick(() =>
-            {
-                if (token.IsCancellationRequested || !CanUseMine(player, mine)) return;
-                core.MenusAPI.CloseActiveMenu(player);
-                Spawn(player, mine, settings);
-            });
-        }
-        catch (OperationCanceledException) when (cancellation.IsCancellationRequested) { }
-        finally
-        {
-            lock (_pendingLock)
-                if (_pending.TryGetValue(playerId, out var current) && ReferenceEquals(current, cancellation))
-                    _pending.Remove(playerId);
-            cancellation.Dispose();
-        }
+        foreach (var player in core.PlayerManager.GetAllPlayers()) Cancel(player);
+        foreach (var pending in _pending.Values) pending.Cancel();
+        _pending.Clear();
     }
 
     private IMenuAPI CreateSetupWindow(IPlayer player, Func<float> getProgress, int updateIntervalMs)
@@ -150,7 +130,7 @@ public sealed class LaserMineInstallerService(
             return;
         }
 
-        if (!EntityPlacer.CanAttachToGround(pawn, settings.MaxDistanceToAttach))
+        if (!EntityPlacer.CanAttachToGround(core, pawn, settings.MaxDistanceToAttach))
         {
             DispatchPlacementRejected(player, null, MinePlacementRejectionReason.InvalidSurface);
             return;
@@ -174,14 +154,19 @@ public sealed class LaserMineInstallerService(
         }
 
         if (preContext.Player.PlayerPawn is not { } preparedPawn ||
-            !EntityPlacer.CanAttachToGround(preparedPawn, settings.MaxDistanceToAttach))
+            !EntityPlacer.CanAttachToGround(core, preparedPawn, settings.MaxDistanceToAttach))
         {
             entity.Dispose();
             DispatchPlacementRejected(preContext.Player, entity, MinePlacementRejectionReason.InvalidSurface);
             return;
         }
 
-        entity.Spawn(preContext.Player);
+        if (!entity.TrySpawn(preContext.Player, settings.MaxDistanceToAttach))
+        {
+            entity.Dispose();
+            DispatchPlacementRejected(preContext.Player, entity, MinePlacementRejectionReason.InvalidSurface);
+            return;
+        }
 
         var postContext = new MinePlacedContext(preContext.Player, entity);
         hooks.Dispatch(ref postContext);
@@ -214,19 +199,28 @@ public sealed class LaserMineInstallerService(
 
     public void Dispose()
     {
-        lock (_pendingLock)
+        if (_disposed) return;
+        _disposed = true;
+        CancelAll();
+    }
+
+    private sealed class PendingInstallation(uint pawnHandle)
+    {
+        public uint PawnHandle { get; } = pawnHandle;
+        public float Progress { get; set; }
+        public CancellationTokenSource? Timer { get; set; }
+
+        public void Cancel()
         {
-            _shutdown.Cancel();
-
-            foreach (var cancellation in _pending.Values)
+            try
             {
-                cancellation.Cancel();
+                Timer?.Cancel();
             }
-
-            _pending.Clear();
+            catch (ObjectDisposedException)
+            {
+                // Планировщик мог освободить таймер при смене карты.
+            }
         }
-
-        _shutdown.Dispose();
     }
 
     private void DispatchPlacementRejected(
@@ -237,5 +231,9 @@ public sealed class LaserMineInstallerService(
     {
         var context = new MinePlacementRejectedContext(player, mine, reason);
         hooks.Dispatch(ref context);
+        if (reason == MinePlacementRejectionReason.InvalidSurface && player.IsValid)
+        {
+            player.SendAlert(localization.GetForPlayerOrKey(player, "Equipment.LaserMine.InvalidSurface"));
+        }
     }
 }

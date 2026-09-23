@@ -25,73 +25,138 @@ public abstract class LaserMineEntityBase(ISwiftlyCore core) : IDisposable
     protected Vector LaserDirection { get; private set; }
     protected IPlayer? Owner { get; private set; }
     private CancellationTokenSource? _triggerTask;
+    private CancellationTokenSource? _armingTask;
+    private bool _destroyedByDamage;
     private int _disposed;
 
-    public void Spawn(IPlayer owner)
+    /// <summary>Задержка между размещением мины и включением луча, в секундах.</summary>
+    public virtual float ArmingDelay => 0f;
+
+    /// <summary>Показывает, завершена ли зарядка мины.</summary>
+    public bool IsArmed { get; private set; }
+
+    /// <summary>Размещает мину на поверхности перед владельцем.</summary>
+    public void Spawn(IPlayer owner) => TrySpawn(owner);
+
+    /// <summary>
+    /// Проверяет поверхность до создания сущностей и возвращает результат размещения.
+    /// Вызывается только в игровом потоке; при отказе предмет владельца не списывается.
+    /// </summary>
+    public bool TrySpawn(IPlayer owner, float maxDistanceToAttach = 10000f)
     {
-        if (Volatile.Read(ref _disposed) != 0 || LaserMine != null) return;
+        if (Volatile.Read(ref _disposed) != 0 || LaserMine != null) return false;
+        if (owner is not { IsValid: true, IsAlive: true } ||
+            owner.PlayerPawn is not { IsValid: true } playerPawn) return false;
+
+        // Новая модель ещё не участвует в трассировке и не может закрыть поверхность.
+        if (!TryGetPlacement(playerPawn, maxDistanceToAttach, out var position, out var rotation)) return false;
 
         Owner = owner;
-
-        var playerPawn = owner.PlayerPawn;
-
-        if (playerPawn is not { IsValid: true }) return;
-
         var team = playerPawn.Team;
 
-        LaserMine = core.EntitySystem.CreateEntityByDesignerName<CBaseModelEntity>("prop_dynamic_override");
-        LaserMine.SetModel(LaserMineModel);
-
-        LaserMine.Collision.CollisionGroup = (byte)CollisionGroup.Debris;
-        LaserMine.Collision.SolidType = SolidType_t.SOLID_VPHYSICS;
-
-        LaserMine.DispatchSpawn();
-        LaserMine.Team = team;
-
-        core.Scheduler.NextTick(() =>
+        try
         {
-            if (Volatile.Read(ref _disposed) != 0 || LaserMine is not { IsValidEntity: true }) return;
+            LaserMine = core.EntitySystem.CreateEntityByDesignerName<CBaseModelEntity>("prop_dynamic_override");
+            if (LaserMine is not { IsValidEntity: true })
+            {
+                Dispose();
+                return false;
+            }
 
-            // Мина остаётся доступной для попаданий, но не блокирует движение игроков.
+            LaserMine.SetModel(LaserMineModel);
+            LaserMine.Collision.SolidType = SolidType_t.SOLID_VPHYSICS;
+            LaserMine.Collision.CollisionGroup = (byte)CollisionGroup.Debris;
+            LaserMine.DispatchSpawn();
+            LaserMine.Teleport(position, rotation, null);
+
+            LaserMine.Team = team;
+            LaserMine.MaxHealth = MaxHealth;
+            LaserMine.MaxHealthUpdated();
+            LaserMine.Health = MaxHealth;
+            LaserMine.HealthUpdated();
+            LaserMine.TakesDamage = true;
+            LaserMine.TakesDamageUpdated();
+            LaserMine.TakeDamageFlags = TakeDamageFlags_t.DFLAG_NONE;
+            LaserMine.TakeDamageFlagsUpdated();
+
+            // После DispatchSpawn обновляем физику: игроки проходят, попадания сохраняются.
             LaserMine.Collision.CollisionGroup = (byte)CollisionGroup.Debris;
             LaserMine.Collision.CollisionAttribute.CollisionGroup = (byte)CollisionGroup.Debris;
             LaserMine.Collision.CollisionGroupUpdated();
             LaserMine.Collision.CollisionAttribute.CollisionGroupUpdated();
             LaserMine.CollisionRulesChanged();
 
-            LaserMine.MaxHealth = MaxHealth;
-            LaserMine.MaxHealthUpdated();
-
-            LaserMine.Health = MaxHealth;
-            LaserMine.HealthUpdated();
-
-            LaserMine.TakesDamage = true;
-            LaserMine.TakesDamageUpdated();
-
-            LaserMine.TakeDamageFlags = TakeDamageFlags_t.DFLAG_NONE;
-            LaserMine.TakeDamageFlagsUpdated();
-
-            LaserMine.Team = team;
-
-            // RepeatBySeconds может вызвать первый тик сразу: запускаем луч только после настройки мины.
-            if (TriggerInterval > 0)
+            OnSpawned();
+            if (ArmingDelay > 0f)
             {
-                StartTriggerHandler();
+                _armingTask = core.Scheduler.DelayBySeconds(ArmingDelay, Arm);
+                core.Scheduler.StopOnMapChange(_armingTask);
             }
-        });
+            else
+            {
+                Arm();
+            }
 
-        LaserMineTracer = core.EntitySystem.CreateEntity<CBeam>();
-        LaserMineTracer.Width = BeamWidth;
-        LaserMineTracer.Render = BeamColor;
-        LaserMineTracer.DispatchSpawn();
-
-        if (!TryAttachToGround())
+            return LaserMine is { IsValidEntity: true };
+        }
+        catch
         {
-            Destroy();
+            Dispose();
+            throw;
+        }
+    }
+
+    /// <summary>Обрабатывает успешное размещение перед началом зарядки.</summary>
+    protected virtual void OnSpawned() { }
+
+    /// <summary>Обрабатывает готовность мины после зарядки.</summary>
+    protected virtual void OnArmed() { }
+
+    /// <summary>Обрабатывает уничтожение уроном, до удаления сущности.</summary>
+    protected virtual void OnDestroyedByDamage() { }
+
+    /// <summary>Уничтожает мину уроном; обычный Dispose удаляет её без эффекта взрыва.</summary>
+    public void DestroyByDamage()
+    {
+        if (Volatile.Read(ref _disposed) != 0 || _destroyedByDamage) return;
+        _destroyedByDamage = true;
+        try
+        {
+            OnDestroyedByDamage();
+        }
+        finally
+        {
+            Dispose();
+        }
+    }
+
+    private void Arm()
+    {
+        if (Volatile.Read(ref _disposed) != 0 || IsArmed) return;
+        if (LaserMine is not { IsValidEntity: true } || Owner is not { IsValid: true })
+        {
+            Dispose();
             return;
         }
 
-        ConfigureTracer();
+        try
+        {
+            LaserMineTracer = core.EntitySystem.CreateEntity<CBeam>();
+            LaserMineTracer.Width = BeamWidth;
+            LaserMineTracer.Render = BeamColor;
+            LaserMineTracer.DispatchSpawn();
+            LaserMineTracer.Teleport(LaserMine.AbsOrigin, LaserMine.AbsRotation, null);
+            ConfigureTracer();
+            IsArmed = true;
+            OnArmed();
+            // Первый вызов RepeatBySeconds не ждёт интервала: команда уже настроена.
+            if (TriggerInterval > 0) StartTriggerHandler();
+        }
+        catch
+        {
+            Dispose();
+            throw;
+        }
     }
 
     protected virtual void Trigger()
@@ -122,15 +187,9 @@ public abstract class LaserMineEntityBase(ISwiftlyCore core) : IDisposable
 
         // Сначала останавливаем повторяющийся callback. Иначе он может снова обратиться
         // к native entity во время её удаления или reset раунда.
-        var triggerTask = Interlocked.Exchange(ref _triggerTask, null);
-        try
-        {
-            triggerTask?.Cancel();
-        }
-        catch (ObjectDisposedException)
-        {
-            // Scheduler владеет жизненным циклом timer; cleanup сущностей всё равно должен продолжиться.
-        }
+        CancelTimer(Interlocked.Exchange(ref _armingTask, null));
+        CancelTimer(Interlocked.Exchange(ref _triggerTask, null));
+        IsArmed = false;
 
         Owner = null;
 
@@ -175,33 +234,14 @@ public abstract class LaserMineEntityBase(ISwiftlyCore core) : IDisposable
         LaserMineTracer?.EndPosUpdated();
     }
 
-    private bool TryAttachToGround()
+    private bool TryGetPlacement(
+        CCSPlayerPawn playerPawn,
+        float maxDistanceToAttach,
+        out Vector position,
+        out QAngle rotation)
     {
-        if (LaserMine?.IsValidEntity != true ||
-            LaserMineTracer?.IsValidEntity != true)
-            return false;
-
-        if (!TryGetPlacement(out var position, out var rotation))
-            return false;
-
-        LaserMine.Teleport(position, rotation, null);
-        LaserMineTracer.Teleport(position, LaserMine.AbsRotation, null);
-
-        return true;
-    }
-
-    private bool TryGetPlacement(out Vector position, out QAngle rotation)
-    {
-        position = default!;
-        rotation = default!;
-
-        if (Owner == null) return false;
-
-        var playerPawn = Owner.PlayerPawn;
-        if (playerPawn == null || !playerPawn.IsValid) return false;
-
-        if (LaserMine == null || !LaserMine.IsValidEntity || LaserMineTracer == null ||
-            !LaserMineTracer.IsValidEntity) return false;
+        position = default;
+        rotation = default;
 
         if (playerPawn.EyePosition == null) return false;
 
@@ -217,11 +257,11 @@ public abstract class LaserMineEntityBase(ISwiftlyCore core) : IDisposable
                 InteractWith = MaskTrace.Solid,
                 InteractExclude = MaskTrace.Empty | MaskTrace.Player,
                 InteractAs = MaskTrace.Empty,
-                EntitiesToIgnore = [playerPawn, LaserMine, LaserMineTracer]
+                EntitiesToIgnore = [playerPawn]
             }
         );
 
-        if (!trace.DidHit) return false;
+        if (!trace.DidHit || trace.StartInSolid || trace.Distance > maxDistanceToAttach) return false;
 
         var normal = trace.HitNormal;
 
@@ -235,7 +275,20 @@ public abstract class LaserMineEntityBase(ISwiftlyCore core) : IDisposable
     {
         _triggerTask = core.Scheduler.RepeatBySeconds(Math.Max(0.05f, TriggerInterval), () =>
         {
-            if (Volatile.Read(ref _disposed) == 0) Trigger();
+            if (Volatile.Read(ref _disposed) == 0 && IsArmed) Trigger();
         });
+        core.Scheduler.StopOnMapChange(_triggerTask);
+    }
+
+    private static void CancelTimer(CancellationTokenSource? timer)
+    {
+        try
+        {
+            timer?.Cancel();
+        }
+        catch (ObjectDisposedException)
+        {
+            // Планировщик мог освободить таймер до удаления мины.
+        }
     }
 }

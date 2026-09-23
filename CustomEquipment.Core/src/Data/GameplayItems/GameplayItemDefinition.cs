@@ -56,7 +56,18 @@ internal sealed record LaserMineSettings(
     float MaxDistanceToAttach,
     float SetupDuration,
     int UpdateIntervalMs
-) : IGameplayItemBehaviorSettings;
+) : IGameplayItemBehaviorSettings
+{
+    public float ArmingDuration { get; init; } = 1f;
+    public string InstallSound { get; init; } = "c4.plant";
+    public string ChargeSound { get; init; } = "Weapon_Taser.Charging";
+    public string ReadySound { get; init; } = "C4.PlantSoundB";
+    public string DamageSound { get; init; } = "Weapon_Taser.Hit";
+    public string DestroySound { get; init; } = "BaseGrenade.Explode";
+    public float SoundVolume { get; init; } = 0.7f;
+    public float DamageSoundInterval { get; init; } = 0.3f;
+    public string SoundEventsResource { get; init; } = "soundevents/game_sounds_weapons.vsndevts";
+}
 
 internal sealed record GameplayItemDefinition(
     string ImplementationKey,
