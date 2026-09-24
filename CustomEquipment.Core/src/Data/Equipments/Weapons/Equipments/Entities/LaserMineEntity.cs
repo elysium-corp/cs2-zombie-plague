@@ -160,10 +160,17 @@ public sealed class LaserMineEntity : LaserMineEntityBase
             return;
         }
 
-        targetPawn.TakeDamage(
+        var damageInfo = new CTakeDamageInfo(
             _settings.DamagePerTrigger,
-            DamageType
-        );
+            DamageType,
+            ownerPawn,
+            ownerPawn
+        )
+        {
+            DamageCustom = DamageCustomIds.LaserMine
+        };
+
+        targetPawn.TakeDamage(damageInfo);
 
         if (IsArmed && LaserMine is { IsValidEntity: true, AbsOrigin: { } position })
         {
