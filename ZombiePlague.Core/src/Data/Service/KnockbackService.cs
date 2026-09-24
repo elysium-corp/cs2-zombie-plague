@@ -3,7 +3,7 @@ using Common.Hooks.Abstractions;
 using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
-using SwiftlyS2.Shared.Misc;
+using SwiftlyS2.Shared.GameHooks;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
@@ -64,25 +64,28 @@ internal sealed class KnockbackService(
             { "weapon_knife", new KnockbackData(450.0f, 25.0f) }
         };
 
-    private Guid _playerHurtHook = Guid.Empty;
+    private bool _registered;
 
     public void Register()
     {
-        if (!config.Value.KnockbackEnabled || _playerHurtHook != Guid.Empty)
+        if (!config.Value.KnockbackEnabled || _registered)
         {
             return;
         }
 
-        _playerHurtHook = core.GameEvent.HookPost<EventPlayerHurt>(OnPlayerHurtPost);
+        _registered = true;
+        core.GameHooks.Entities.TakeDamage.Post += OnTakeDamagePost;
     }
 
     public void Unregister()
     {
-        if (_playerHurtHook != Guid.Empty)
+        if (!_registered)
         {
-            core.GameEvent.Unhook(_playerHurtHook);
-            _playerHurtHook = Guid.Empty;
+            return;
         }
+
+        core.GameHooks.Entities.TakeDamage.Post -= OnTakeDamagePost;
+        _registered = false;
     }
 
     public bool TryApplyKnockback(EventPlayerHurt @event, KnockbackData? knockbackData = null)
@@ -90,13 +93,8 @@ internal sealed class KnockbackService(
         var victim = @event.UserIdPlayer;
         var attacker = @event.AttackerPlayer;
 
-        if (
-            victim is not { IsValid: true } ||
-            attacker is not { IsValid: true } ||
-            playerManager.IsZombie(attacker) ||
-            !playerManager.TryGetZombie(victim, out var zombie) ||
-            victim.IsFrozen()
-        )
+        if (victim is not { IsValid: true } ||
+            attacker is not { IsValid: true })
         {
             return false;
         }
@@ -113,7 +111,73 @@ internal sealed class KnockbackService(
             }
         }
 
-        var isHeadShot = @event.ActualHitGroup == HitGroup_t.HITGROUP_HEAD;
+        return TryApplyKnockback(
+            attacker,
+            victim,
+            @event.ActualHitGroup == HitGroup_t.HITGROUP_HEAD,
+            data
+        );
+    }
+
+    private void OnTakeDamagePost(ref TakeDamageEntityPostContext context)
+    {
+        if (context.Params.Info.DamageCustom == DamageCustomIds.LaserMine)
+        {
+            return;
+        }
+
+        var attacker = context.Params.Info.Attacker.ResolvePlayerFromHandle();
+        var victim = context.Params.Entity.Address.FindPlayerByPawnAddress();
+
+        if (attacker is not { IsValid: true } ||
+            victim is not { IsValid: true })
+        {
+            return;
+        }
+
+        var activeWeapon = attacker.PlayerPawn?
+            .WeaponServices?
+            .ActiveWeapon
+            .Value;
+
+        if (activeWeapon is not { IsValidEntity: true })
+        {
+            return;
+        }
+
+        var weaponName = activeWeapon.DesignerName;
+
+        if (weaponName.Contains("knife", StringComparison.OrdinalIgnoreCase))
+        {
+            weaponName = "weapon_knife";
+        }
+
+        if (!WeaponKnockback.TryGetValue(weaponName, out var data))
+        {
+            return;
+        }
+
+        TryApplyKnockback(
+            attacker,
+            victim,
+            context.Params.Info.ActualHitGroup == HitGroup_t.HITGROUP_HEAD,
+            data
+        );
+    }
+
+    private bool TryApplyKnockback(
+        IPlayer attacker,
+        IPlayer victim,
+        bool isHeadShot,
+        KnockbackData data
+    )
+    {
+        if (playerManager.IsZombie(attacker) ||
+            !playerManager.TryGetZombie(victim, out var zombie) ||
+            victim.IsFrozen())
+        {
+            return false;
+        }
 
         if (!TryCalculateVelocity(
                 attacker,
@@ -146,13 +210,6 @@ internal sealed class KnockbackService(
         hooks.Dispatch(ref postContext);
 
         return true;
-    }
-
-    private HookResult OnPlayerHurtPost(EventPlayerHurt @event)
-    {
-        TryApplyKnockback(@event);
-
-        return HookResult.Continue;
     }
 
     private void ApplyKnockback(IPlayer victim, Vector velocity)
