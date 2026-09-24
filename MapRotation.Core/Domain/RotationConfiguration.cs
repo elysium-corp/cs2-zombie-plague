@@ -28,6 +28,8 @@ internal sealed record RotationSettings
     public long? FallbackMapId { get; init; }
     public int RefreshIntervalSeconds { get; init; } = 15;
     public long ConfigurationVersion { get; init; } = 1;
+    public int MenuItemsPerPage { get; init; } = 5;
+    public string HudSettings { get; init; } = "{}";
 
     public void Validate()
     {
@@ -38,7 +40,7 @@ internal sealed record RotationSettings
             || RtvDelaySeconds < 0 || RtvChangeMode is not ("end_of_round" or "immediate")
             || RtvChangeDelaySeconds is < 0 or > 600 || RecentMapsExcluded is < 0 or > 1000
             || FinalRoundTimeoutSeconds is < 1 or > 7200 || RefreshIntervalSeconds is < 1 or > 3600
-            || ConfigurationVersion < 1) throw new ArgumentException("Некорректные настройки MapRotation");
+            || MenuItemsPerPage is < 1 or > 6 || ConfigurationVersion < 1) throw new ArgumentException("Некорректные настройки MapRotation");
     }
 }
 
@@ -58,13 +60,16 @@ internal sealed record RotationMap
     public bool AllowAutoRotation { get; init; } = true;
     public DateTimeOffset CreatedAt { get; init; }
     public DateTimeOffset UpdatedAt { get; init; }
+    public string? HudImagePath { get; init; }
     public string EngineTarget => WorkshopId?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? MapName;
 
     public bool IsSafe => Id > 0 && Regex.IsMatch(Key, "^[A-Za-z0-9_-]{1,64}$")
         && DisplayName.Length is > 0 and <= 128 && !DisplayName.Any(char.IsControl)
         && Regex.IsMatch(MapName, "^[A-Za-z0-9_/-]{1,128}$") && !MapName.StartsWith('/')
         && WorkshopId is null or > 0 && double.IsFinite(Weight) && Weight is > 0 and <= 1_000_000
-        && CooldownMaps is null or >= 0 and <= 1000;
+        && CooldownMaps is null or >= 0 and <= 1000
+        && (HudImagePath is null || Regex.IsMatch(HudImagePath,
+            "\\Apanorama/images/custom_game/elysium/assets/[a-f0-9]{64}_png\\.vtex\\z"));
 
     public bool IsCurrent(string mapName, string workshopId) =>
         WorkshopId is { } id && id.ToString() == workshopId

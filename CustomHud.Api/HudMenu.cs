@@ -12,7 +12,11 @@ public enum HudMenuView { List, Result }
 
 /// <summary>Один пункт меню. Текст передаётся уже локализованным, без HTML.</summary>
 public sealed record HudMenuItem(string Id, string Title, string Description = "", string Badge = "",
-    bool Enabled = true, string DisabledReason = "", bool Selected = false);
+    bool Enabled = true, string DisabledReason = "", bool Selected = false)
+{
+    /// <summary>Необязательная текстура из общей библиотеки CMS; исходник должен быть включён в VPK.</summary>
+    public string? ImagePath { get; init; }
+}
 
 /// <summary>Параметры поведения меню.</summary>
 public sealed record HudMenuOptions
@@ -37,6 +41,8 @@ public sealed record HudMenuOptions
 public sealed record HudMenu(string Channel, string Title, string Subtitle,
     ImmutableArray<HudMenuItem> Items, HudMenuOptions Options)
 {
+    /// <summary>Необязательный класс оформления из скомпилированного CSS, без пробелов и селекторов.</summary>
+    public string StyleClass { get; init; } = "";
     /// <summary>Список или карточка результата.</summary>
     public HudMenuView View { get; init; }
     /// <summary>Текст справа сверху, например оставшееся время.</summary>

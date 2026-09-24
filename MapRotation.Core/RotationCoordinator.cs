@@ -243,16 +243,17 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
     }
     private HudMenu NominationMenu(IPlayer player) => new(NominationChannel, Text(player, "NominationTitle"), Text(player, "NominationSubtitle"),
         engine.NominationMaps().OrderBy(map => map.SortOrder).ThenBy(map => map.DisplayName).Select(map => new HudMenuItem(map.Id.ToString(), map.DisplayName,
-            Selected: engine.Nomination(player.SteamID) == map.Id)).ToImmutableArray(), new() { CloseOnSelect = true })
-        { CloseText = Text(player, "Close"), Footer = engine.NominationMaps().IsEmpty ? Text(player, "NoMaps") : "" };
+            Selected: engine.Nomination(player.SteamID) == map.Id) { ImagePath = map.HudImagePath }).ToImmutableArray(),
+            new() { CloseOnSelect = true, ItemsPerPage = engine.Settings.MenuItemsPerPage })
+        { StyleClass = "MapRotation", CloseText = Text(player, "Close"), Footer = engine.NominationMaps().IsEmpty ? Text(player, "NoMaps") : "" };
 
     private HudMenu VoteMenu(IPlayer player, VoteState vote) => new(VoteChannel, Text(player, "VoteTitle"), Text(player, "VoteSubtitle"),
         vote.Options.Select(map => new HudMenuItem(map.Id.ToString(), map.DisplayName,
             Description: vote.Votes.GetValueOrDefault(player.SteamID) == map.Id ? Text(player, "YourVote") : "",
             Badge: Text(player, "Votes", ("count", vote.Votes.Values.Count(id => id == map.Id).ToString())),
-            Selected: vote.Votes.GetValueOrDefault(player.SteamID) == map.Id)).ToImmutableArray(),
-        new() { Priority = HudMenuPriority.Critical })
-        { CloseText = Text(player, "Close"), Status = Duration(vote.EndsAt - clock.GetUtcNow()) };
+            Selected: vote.Votes.GetValueOrDefault(player.SteamID) == map.Id) { ImagePath = map.HudImagePath }).ToImmutableArray(),
+        new() { Priority = HudMenuPriority.Critical, ItemsPerPage = engine.Settings.MenuItemsPerPage })
+        { StyleClass = "MapRotation", CloseText = Text(player, "Close"), Status = Duration(vote.EndsAt - clock.GetUtcNow()) };
 
     private void OpenVote(IPlayer player, bool force = false)
     {
@@ -326,10 +327,10 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
         {
             var voteCount = result.Vote.Votes.Values.Count(value => value == id);
             var menu = new HudMenu(ResultChannel, Text(player, "ResultTitle"), Text(player, "NextMap"),
-                [new(winner.Id.ToString(), winner.DisplayName, Text(player, "Votes", ("count", voteCount.ToString())))],
+                [new(winner.Id.ToString(), winner.DisplayName, Text(player, "Votes", ("count", voteCount.ToString()))) { ImagePath = winner.HudImagePath }],
                 new() { Priority = HudMenuPriority.Critical, CloseOnSelect = true, ShowPagination = false })
             {
-                View = HudMenuView.Result, CloseText = Text(player, "Close"),
+                StyleClass = "MapRotation", View = HudMenuView.Result, CloseText = Text(player, "Close"),
                 Footer = Text(player, engine.State == RotationState.FinalRound ? "LastRoundDescription" : "ScheduledResult")
             };
             Open(player, menu, _ => { });

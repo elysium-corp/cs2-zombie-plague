@@ -19,12 +19,14 @@ internal sealed class MapRotationDbContext(DbContextOptions<MapRotationDbContext
         modelBuilder.Entity<RotationSettings>().ToTable("settings").HasKey(x => x.Id);
         modelBuilder.Entity<RotationSettings>().Property(x => x.Id).ValueGeneratedNever();
         modelBuilder.Entity<RotationSettings>().HasData(new RotationSettings());
+        modelBuilder.Entity<RotationSettings>().Property(x => x.HudSettings).HasColumnType("jsonb");
         var maps = modelBuilder.Entity<RotationMap>();
         maps.ToTable("maps"); maps.HasKey(x => x.Id);
         maps.Ignore(x => x.IsSafe); maps.Ignore(x => x.EngineTarget);
         maps.Property(x => x.Key).HasMaxLength(64); maps.HasIndex(x => x.Key).IsUnique();
         maps.Property(x => x.MapName).HasMaxLength(128); maps.HasIndex(x => x.MapName).IsUnique();
         maps.Property(x => x.DisplayName).HasMaxLength(128);
+        maps.Property(x => x.HudImagePath).HasMaxLength(256);
         maps.Property(x => x.Enabled).HasDefaultValue(true);
         maps.Property(x => x.Weight).HasDefaultValue(1d);
         maps.Property(x => x.AllowNomination).HasDefaultValue(true);
