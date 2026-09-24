@@ -8,6 +8,7 @@ using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
 using SwiftlyS2.Shared.ProtobufDefinitions;
 using SwiftlyS2.Shared.Trace;
+using ZombiePlague.Api.Data;
 
 namespace CustomEquipment.Data.Equipments.Weapons.Equipments.Entities;
 
