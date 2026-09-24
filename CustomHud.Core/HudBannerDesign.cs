@@ -7,6 +7,15 @@ internal sealed record HudBannerDocument(HudBannerTemplate Template, HudRun[] He
 
 internal static class HudBannerDesign
 {
+    // Порядок совпадает с генератором layout; каждый элемент — отдельный Image в VPK сообщений.
+    internal static readonly string[] Icons =
+    [
+        "info", "warning", "infection", "skull", "shield", "trophy", "star", "gift", "megaphone", "lightning", "clock", "heart", "key_e",
+        "ammo", "antidote", "armor", "biohazard", "boots", "cooldown", "crosshair", "fire", "freeze", "grenade", "health",
+        "knife", "melee", "mine", "pistol", "radar", "respawn", "rifle", "speed", "syringe", "team", "vip"
+    ];
+    private static readonly string[] IconChoices = ["none", .. Icons];
+
     internal static double Seconds(HudBannerTemplate template) => template.Speed switch { "fast" => 0.2, "slow" => 0.8, _ => 0.4 };
 
     internal static void Validate(HudBannerTemplate template, HudBannerContent content)
@@ -24,7 +33,7 @@ internal static class HudBannerDesign
             Choice(align, "inherit", "left", "center", "right");
         Choice(template.Border, "none", "line", "frame");
         Choice(template.Corners, "square", "soft", "round");
-        Choice(template.Icon, "none", "info", "warning", "infection", "skull", "shield", "trophy", "star", "gift", "megaphone", "lightning", "clock", "heart", "key_e");
+        Choice(template.Icon, IconChoices);
         Choice(template.IconPosition, "left", "top");
         Choice(template.IconAnimation, "none", "pulse", "breathe", "blink", "glow", "neon", "shimmer", "float", "bounce", "shake", "wobble", "heartbeat", "spin", "spin_reverse");
         Choice(template.Enter, "none", "fade", "slide_up", "slide_down", "slide_left", "slide_right", "zoom", "zoom_out", "flip_x", "flip_y", "rotate", "drop", "swing", "pop", "bounce_in");
