@@ -1,6 +1,7 @@
 ﻿using CustomEquipment.Api.Data;
 using CustomEquipment.Utils;
 using CustomEquipment.Data.GameplayItems;
+using Microsoft.Extensions.Logging;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
@@ -209,9 +210,11 @@ public sealed class LaserMineEntity : LaserMineEntityBase
         {
             try
             {
-                using var stop = _core.NetMessage.Create<CMsgSosStopSoundEvent>();
-                stop.SoundeventGuid = unchecked((int)guid);
-                stop.SendToAllPlayers();
+                _core.NetMessage.Send<CMsgSosStopSoundEvent>(message =>
+                {
+                    message.SoundeventGuid = unchecked((int)guid);
+                    message.Recipients.AddAllPlayers();
+                });
             }
             catch (Exception exception)
             {
