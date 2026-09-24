@@ -34,6 +34,7 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
     private bool _disposed;
     private bool _mapUnloading;
     private bool _loaded;
+    private bool _hudSuspended;
     private DateTimeOffset? _resultUntil;
     private DateTimeOffset? _changeRequestedAt;
     private long _publishedRevision = -1;
@@ -102,7 +103,8 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
     {
         var valid = configuration.Maps.Where(maps.IsValid).Select(map => map.Id).ToArray();
         engine.Configure(configuration, valid);
-        if (valid.Length == 0) core.Logger.LogWarning("[MapRotation] Нет установленных карт в каталоге; заполните map_rotation.maps");
+        if (!configuration.Maps.IsEmpty && valid.Length == 0)
+            core.Logger.LogWarning("[MapRotation] Нет установленных карт в каталоге; заполните map_rotation.maps");
     }
 
     private IPlayer[] Players() => core.PlayerManager.GetAllPlayers().Where(player => player.IsValid && !player.IsFakeClient && player.SteamID != 0).ToArray();
@@ -110,10 +112,12 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
         && (engine.Settings.IncludeSpectators || player.Controller.Team is Team.CT or Team.T);
     private void RefreshPlayers(int? excludeId = null)
     {
-        var present = core.PlayerManager.GetAllPlayers().Where(player => player.PlayerID != excludeId && player.IsValid
-            && (!engine.Settings.ExcludeBots || !player.IsFakeClient)
+        var connected = core.PlayerManager.GetAllPlayers().Where(player => player.PlayerID != excludeId && player.IsValid).ToArray();
+        var humans = connected.Count(player => !player.IsFakeClient && player.SteamID != 0);
+        var present = connected.Where(player =>
+            (!engine.Settings.ExcludeBots || !player.IsFakeClient)
             && (engine.Settings.IncludeSpectators || player.Controller.Team is Team.CT or Team.T)).ToArray();
-        engine.SetPlayers(present.Where(player => !player.IsFakeClient && player.SteamID != 0).Select(player => player.SteamID), present.Length);
+        engine.SetPlayers(present.Where(player => !player.IsFakeClient && player.SteamID != 0).Select(player => player.SteamID), present.Length, humans);
     }
 
     private void PlayerCommand(ICommandContext context)
@@ -121,10 +125,12 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
         if (context.Sender is not { IsValid: true } player) return;
         if (!_loaded || _mapUnloading) { context.Reply(Text(player, "Loading")); return; }
         RefreshPlayers();
+        if (!engine.RotationEnabled) { context.Reply(Text(player, "InactiveNoMaps")); return; }
         switch (context.CommandName.ToLowerInvariant())
         {
             case "timeleft":
-                Card(player, Text(player, "TimeLeft"), engine.TimeLeft <= TimeSpan.Zero ? Text(player, "LastRound") : Duration(engine.TimeLeft), "clock"); break;
+                Card(player, Text(player, "TimeLeft"), engine.PauseReason == RotationPauseReason.NoMaps ? Text(player, "UnlimitedTime")
+                    : engine.State == RotationState.FinalRound ? Text(player, "LastRound") : Duration(engine.TimeLeft), "clock"); break;
             case "nextmap":
                 Card(player, Text(player, "NextMap"), engine.NextMap?.DisplayName ?? Text(player, "NotSelected"), "info"); break;
             case "rtv":
@@ -163,6 +169,7 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
         }
         if (!_loaded || _mapUnloading) { context.Reply(Text(context.Sender, "Loading")); return; }
         RefreshPlayers();
+        if (!engine.RotationEnabled) { context.Reply(Text(context.Sender, "InactiveNoMaps")); return; }
         if (context.CommandName == "maprotation_vote") context.Reply(Text(context.Sender,
             engine.StartVote(NextMapSource.Admin) ? "Admin.VoteStarted" : "Admin.VoteUnavailable"));
         else
@@ -228,6 +235,16 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
     }
     private void RefreshHud()
     {
+        if (!engine.RotationEnabled)
+        {
+            if (!_hudSuspended)
+            {
+                CloseMenus(); _messages?.ClearChannel(CardChannel);
+                _seenVotes.Clear(); _lastVote = null; _hudSuspended = true;
+            }
+            return;
+        }
+        _hudSuspended = false;
         if (_lastVote != engine.Vote?.Id)
         {
             _menus?.CloseChannel(NominationChannel); _menus?.CloseChannel(VoteChannel);

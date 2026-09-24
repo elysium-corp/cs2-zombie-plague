@@ -292,6 +292,16 @@ internal sealed class RoundManager(
             return;
         }
 
+        // Пустой сервер не должен исчерпывать подготовку: неудачный StartRound
+        // остановит таймер, после чего первому игроку некуда будет подключиться.
+        // Сохраняем IsPreparing, чтобы late-join игрок мог возродиться человеком.
+        if (!playerManager.GetAllAliveHumans().Any() && !playerManager.GetAllAliveZombies().Any())
+        {
+            _remainingPreparationTime = config.Value.PreStartDelay;
+            _countdownSoundPlayed = false;
+            return;
+        }
+
         _remainingPreparationTime--;
 
         if (!_countdownSoundPlayed && _remainingPreparationTime == 10)
