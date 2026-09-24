@@ -18,7 +18,7 @@ internal sealed class MapEngineAdapter(ISwiftlyCore core) : IDisposable
     public void Change(RotationMap map)
     {
         if (!map.Enabled || !IsValid(map)) throw new InvalidOperationException("Карта отсутствует на сервере: " + map.Key);
-        // В SwiftlyS2 1.4.11-beta.9 это единственный публичный Engine API смены карты.
+        // В SwiftlyS2 1.4.11 это единственный публичный Engine API смены карты.
         core.Engine.ExecuteCommand(Command(map));
     }
     public void OwnRotation()
