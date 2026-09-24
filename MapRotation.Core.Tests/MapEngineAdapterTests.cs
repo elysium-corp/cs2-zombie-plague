@@ -37,6 +37,90 @@ public sealed class MapEngineAdapterTests
     }
 
     [Fact]
+    public void WorkshopInstalledOutsideEngineSearchPathRemainsAvailableForVotingAndChange()
+    {
+        var f = new Fixture();
+        var rotation = new RotationEngineTests.Fixture();
+        var map = rotation.Maps[1] with { MapName = "zm_gorodok", WorkshopId = 3100743780 };
+        f.Workshop[3100743780] = new(4, "/steam-library/content/730/3100743780",
+            "/steam-library/content/730/3100743780/3100743780.vpk", null);
+
+        var check = f.Adapter.Inspect(map);
+        Assert.True(check.IsValid);
+        Assert.Equal("SteamUGC", check.Source);
+        Assert.Equal("3100743780", check.EngineTarget);
+        Assert.Empty(f.Commands);
+        rotation.Engine.Configure(RotationConfiguration.Create(new(), [map]), [map.Id]);
+        Assert.True(rotation.Engine.RotationEnabled);
+        Assert.Null(Assert.Single(rotation.Engine.Catalog()).NominationExclusion);
+        f.Adapter.Change(map);
+        Assert.Equal("host_workshop_map 3100743780", Assert.Single(f.Commands));
+    }
+
+    [Fact]
+    public void MountedWorkshopPathIsCheckedUsingTheSameIdAsTheChangeCommand()
+    {
+        var f = new Fixture();
+        var map = new RotationEngineTests.Fixture().Maps[1] with
+            { MapName = "zm_lila_hacker_meow_v3", WorkshopId = 3764581596 };
+        f.Installed.Add("workshop/3764581596/zm_lila_hacker_meow_v3");
+
+        Assert.Equal("WorkshopMapPath", f.Adapter.Inspect(map).Source);
+        Assert.Empty(f.WorkshopChecks);
+        f.Adapter.Change(map);
+        Assert.Equal("host_workshop_map 3764581596", Assert.Single(f.Commands));
+    }
+
+    [Fact]
+    public void AStockMapNameCannotValidateAnUnknownWorkshopId()
+    {
+        var f = new Fixture();
+        var map = new RotationEngineTests.Fixture().Maps[1] with { WorkshopId = 3764581596 };
+        f.Installed.Add(map.MapName);
+
+        Assert.False(f.Adapter.IsValid(map));
+        Assert.Throws<InvalidOperationException>(() => f.Adapter.Change(map));
+        Assert.DoesNotContain(map.MapName, f.MapChecks);
+        Assert.Empty(f.Commands);
+    }
+
+    [Fact]
+    public void RemovingWorkshopFilesBeforeChangePreventsTheCommand()
+    {
+        var f = new Fixture();
+        var map = new RotationEngineTests.Fixture().Maps[1] with { WorkshopId = 3764581596 };
+        f.Workshop[3764581596] = new(4, "/library/map", "/library/map/map.vpk", null);
+        Assert.True(f.Adapter.IsValid(map));
+        f.Workshop.Clear();
+
+        Assert.Throws<InvalidOperationException>(() => f.Adapter.Change(map));
+        Assert.Empty(f.Commands);
+    }
+
+    [Fact]
+    public void MissingWorkshopApiIsReportedWithoutAcceptingTheMap()
+    {
+        var f = new Fixture();
+        var map = new RotationEngineTests.Fixture().Maps[1] with { WorkshopId = 3764581596 };
+        f.Workshop[3764581596] = new(null, null, null, "InvalidOperationException");
+
+        var check = f.Adapter.Inspect(map);
+        Assert.False(check.IsValid);
+        Assert.Equal("InvalidOperationException", check.Workshop!.ErrorType);
+        Assert.Empty(f.Commands);
+    }
+
+    [Fact]
+    public void UnsafeAndLocalMapsNeverQuerySteam()
+    {
+        var f = new Fixture();
+        var map = new RotationEngineTests.Fixture().Maps[1];
+        Assert.False(f.Adapter.IsValid(map));
+        Assert.False(f.Adapter.IsValid(map with { MapName = "bad;quit", WorkshopId = 3764581596 }));
+        Assert.Empty(f.WorkshopChecks);
+    }
+
+    [Fact]
     public void MissingPoolNeverSendsEngineCommandsAcrossReconnectsAndMatchEnd()
     {
         var f = new Fixture();
@@ -78,6 +162,9 @@ public sealed class MapEngineAdapterTests
         public MapEngineAdapter Adapter { get; }
         public List<string> Commands { get; } = [];
         public HashSet<string> Installed { get; } = [];
+        public List<string> MapChecks { get; } = [];
+        public Dictionary<long, WorkshopInstallation> Workshop { get; } = [];
+        public List<long> WorkshopChecks { get; } = [];
         public Fixture()
         {
             var values = new Dictionary<string, string>
@@ -94,7 +181,12 @@ public sealed class MapEngineAdapterTests
             });
             var engine = Stub<IEngineService>((method, args) =>
             {
-                if (method.Name == nameof(IEngineService.IsMapValid)) return Installed.Contains((string)args![0]!);
+                if (method.Name == nameof(IEngineService.IsMapValid))
+                {
+                    var name = (string)args![0]!;
+                    MapChecks.Add(name);
+                    return Installed.Contains(name);
+                }
                 if (method.Name != nameof(IEngineService.ExecuteCommand)) throw new InvalidOperationException(method.Name);
                 Commands.Add((string)args![0]!);
                 return null;
@@ -105,7 +197,11 @@ public sealed class MapEngineAdapterTests
                 "get_Engine" => engine,
                 _ => throw new InvalidOperationException("Нативное состояние недоступно в тесте: " + method.Name)
             });
-            Adapter = new(Core);
+            Adapter = new(Core, id =>
+            {
+                WorkshopChecks.Add(id);
+                return Workshop.GetValueOrDefault(id) ?? new(0, null, null, null);
+            });
         }
     }
 

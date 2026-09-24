@@ -8,6 +8,7 @@ using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
 using SwiftlyS2.Shared.ProtobufDefinitions;
 using SwiftlyS2.Shared.Trace;
+using ZombiePlague.Api.Data;
 
 namespace CustomEquipment.Data.Equipments.Weapons.Equipments.Entities;
 
@@ -159,10 +160,17 @@ public sealed class LaserMineEntity : LaserMineEntityBase
             return;
         }
 
-        targetPawn.TakeDamage(
+        var damageInfo = new CTakeDamageInfo(
             _settings.DamagePerTrigger,
-            DamageType
-        );
+            DamageType,
+            ownerPawn,
+            ownerPawn
+        )
+        {
+            DamageCustom = DamageCustomIds.LaserMine
+        };
+
+        targetPawn.TakeDamage(damageInfo);
 
         if (IsArmed && LaserMine is { IsValidEntity: true, AbsOrigin: { } position })
         {

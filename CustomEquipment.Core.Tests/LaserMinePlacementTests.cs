@@ -9,7 +9,6 @@ using CustomEquipment.Services;
 using Localization.Api;
 using Moq;
 using SwiftlyS2.Shared;
-using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
 using Xunit;
@@ -41,9 +40,10 @@ public sealed class LaserMinePlacementTests
         equipment.Verify(value => value.RemoveItems<LaserMine>(player), valid ? Times.Once() : Times.Never());
     }
 
-    private static MineController CreateController(ISwiftlyCore core, IEquipmentService equipment) =>
+    private static MineController CreateController(
+        ISwiftlyCore core, IEquipmentService equipment, GameplayItemCatalog? catalog = null) =>
         new(core, Mock.Of<ICustomEquipmentEvents>(), equipment, Mock.Of<ILaserMineInstallerService>(),
-            () => Mock.Of<IZombiePlagueApi>(), Mock.Of<ILocalizationApi>(), new GameplayItemCatalog());
+            () => Mock.Of<IZombiePlagueApi>(), Mock.Of<ILocalizationApi>(), catalog ?? new GameplayItemCatalog());
 
     private sealed class TestMine(ISwiftlyCore core) : LaserMineEntityBase(core);
 }

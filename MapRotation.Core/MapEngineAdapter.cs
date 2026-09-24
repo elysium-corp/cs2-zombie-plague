@@ -8,9 +8,32 @@ namespace MapRotation.Core;
 
 internal sealed class MapEngineAdapter(ISwiftlyCore core)
 {
+    private readonly Func<long, WorkshopInstallation> _readWorkshop = WorkshopMapFiles.Steam.Read;
+
+    internal MapEngineAdapter(ISwiftlyCore core, Func<long, WorkshopInstallation> readWorkshop) : this(core)
+        => _readWorkshop = readWorkshop;
+
     public string CurrentMap => core.Engine.GlobalVars.MapName.ToString();
     public string WorkshopId => core.Engine.WorkshopId;
-    public bool IsValid(RotationMap map) => map.IsSafe && core.Engine.IsMapValid(map.EngineTarget);
+    public bool IsValid(RotationMap map) => Inspect(map).IsValid;
+
+    /// <summary>Проверяет карту без загрузки ресурсов и возвращает источник подтверждения доступности.</summary>
+    public MapAvailability Inspect(RotationMap map)
+    {
+        if (!map.IsSafe) return new(false, "UnsafeMap", map.EngineTarget);
+        if (core.Engine.IsMapValid(map.EngineTarget)) return new(true, "EngineTarget", map.EngineTarget);
+        if (map.WorkshopId is not { } workshopId) return new(false, "Unavailable", map.EngineTarget);
+
+        // Проверяем путь с тем же Workshop ID, который затем получит host_workshop_map.
+        // Одного совпадения короткого имени недостаточно: оно может принадлежать другой карте.
+        var workshopPath = $"workshop/{map.EngineTarget}/{map.MapName.Split('/')[^1]}";
+        if (core.Engine.IsMapValid(workshopPath)) return new(true, "WorkshopMapPath", map.EngineTarget, workshopPath);
+
+        // IsMapValid(ID) ищет VPK только под EXECUTABLE_PATH; Steam знает фактическую папку установки.
+        var installation = _readWorkshop(workshopId);
+        return new(installation.IsReady, installation.IsReady ? "SteamUGC" : "Unavailable",
+            map.EngineTarget, workshopPath, installation);
+    }
 
     internal static string Command(RotationMap map)
     {
@@ -50,3 +73,6 @@ internal sealed class MapEngineAdapter(ISwiftlyCore core)
             CultureInfo.InvariantCulture, out var number) && double.IsFinite(number) && number >= 0 && number <= int.MaxValue
             ? number : 0;
 }
+
+internal sealed record MapAvailability(bool IsValid, string Source, string EngineTarget,
+    string? WorkshopMapPath = null, WorkshopInstallation? Workshop = null);
