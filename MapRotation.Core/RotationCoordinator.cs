@@ -30,11 +30,13 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
     private CancellationTokenSource? _timer;
     private Guid _roundEndHook;
     private Guid _roundStartHook;
+    private Guid _matchEndHook;
     private bool _started;
     private bool _disposed;
     private bool _mapUnloading;
     private bool _loaded;
     private bool _hudSuspended;
+    private bool _nativeReadFailed;
     private bool? _nativeRotationEnabled;
     private DateTimeOffset? _resultUntil;
     private DateTimeOffset? _changeRequestedAt;
@@ -66,6 +68,7 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
         core.Event.OnClientConnected += OnConnect;
         _roundEndHook = core.GameEvent.HookPost<EventRoundEnd>(OnRoundEnd);
         _roundStartHook = core.GameEvent.HookPost<EventRoundStart>(OnRoundStart);
+        _matchEndHook = core.GameEvent.HookPost<EventCsWinPanelMatch>(OnMatchEnd);
         foreach (var name in new[] { "timeleft", "nextmap", "rtv", "nominate" })
             _commands.Add(core.Command.RegisterCommand(name, PlayerCommand, registerRaw: true));
         foreach (var name in new[] { "maprotation_status", "maprotation_reload", "maprotation_vote", "maprotation_setnext", "maprotation_change" })
@@ -88,8 +91,9 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
             }
             if (store.TakeConfiguration() is { } configuration) Apply(configuration);
             RefreshPlayers();
-            engine.Tick();
             UpdateNativePolicy();
+            ObserveNativeMatch();
+            engine.Tick();
             if (_changeRequestedAt is { } requested && engine.State == RotationState.ChangingMap
                 && clock.GetUtcNow() >= requested.AddSeconds(30) && _requestedMap is { } failed)
             {
@@ -113,9 +117,24 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
 
     private void UpdateNativePolicy(bool force = false, bool mapLoaded = false)
     {
-        if (!force && _nativeRotationEnabled == engine.RotationEnabled) return;
-        maps.ApplyRotationPolicy(engine.RotationEnabled, mapLoaded);
-        _nativeRotationEnabled = engine.RotationEnabled;
+        var active = engine.RotationEnabled && engine.PauseReason != RotationPauseReason.NoMaps;
+        if (!force && _nativeRotationEnabled == active) return;
+        maps.ApplyRotationPolicy(active, mapLoaded);
+        _nativeRotationEnabled = active;
+    }
+
+    private void ObserveNativeMatch()
+    {
+        if (!engine.RotationEnabled || engine.PauseReason == RotationPauseReason.NoMaps) return;
+        NativeMatchProgress? progress;
+        try { progress = maps.ReadMatchProgress(); _nativeReadFailed = false; }
+        catch (Exception error)
+        {
+            if (!_nativeReadFailed) core.Logger.LogWarning(error, "[MapRotation] Нативные лимиты временно недоступны; собственные часы продолжают работать");
+            _nativeReadFailed = true;
+            return;
+        }
+        if (progress is not null) engine.ObserveNativeMatch(progress);
     }
 
     private IPlayer[] Players() => core.PlayerManager.GetAllPlayers().Where(player => player.IsValid && !player.IsFakeClient && player.SteamID != 0).ToArray();
@@ -386,7 +405,18 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
     }
     private HookResult OnRoundStart(EventRoundStart args)
     {
-        if (_loaded && !_mapUnloading) UpdateNativePolicy(force: true);
+        if (_loaded && !_mapUnloading)
+        {
+            RefreshPlayers(); ObserveNativeMatch(); Publish();
+        }
+        return HookResult.Continue;
+    }
+    private HookResult OnMatchEnd(EventCsWinPanelMatch args)
+    {
+        if (_loaded && !_mapUnloading)
+        {
+            RefreshPlayers(); engine.MatchEnded(); Publish();
+        }
         return HookResult.Continue;
     }
     private void Publish()
@@ -408,6 +438,7 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
             core.Event.OnMapLoad -= OnMapLoad; core.Event.OnMapUnload -= OnMapUnload;
             core.Event.OnClientDisconnected -= OnDisconnect; core.Event.OnClientConnected -= OnConnect;
             core.GameEvent.Unhook(_roundEndHook); core.GameEvent.Unhook(_roundStartHook);
+            core.GameEvent.Unhook(_matchEndHook);
             foreach (var command in _commands) core.Command.UnregisterCommand(command);
         }
         engine.ChangeRequested -= Change; engine.MapFinished -= store.Record; engine.VoteFinished -= OnVoteFinished;

@@ -2,13 +2,14 @@ using System.Globalization;
 using MapRotation.Core.Domain;
 using Microsoft.Extensions.Logging;
 using SwiftlyS2.Shared;
+using SwiftlyS2.Shared.Misc;
+using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace MapRotation.Core;
 
 internal sealed class MapEngineAdapter(ISwiftlyCore core, TimeProvider clock) : IDisposable
 {
     private static readonly string[] Limits = ["mp_timelimit", "mp_maxrounds", "mp_winlimit"];
-    private static readonly string[] MatchEndControls = ["mp_match_end_changelevel", "mp_match_end_restart"];
     private readonly Dictionary<string, ConVarChange> _changes = [];
     private bool _disposed;
     private sealed record ConVarChange(string Original, string Requested, string? Applied, bool Restoring, DateTimeOffset QueuedAt);
@@ -38,14 +39,54 @@ internal sealed class MapEngineAdapter(ISwiftlyCore core, TimeProvider clock) : 
     public void ApplyRotationPolicy(bool rotationEnabled, bool mapLoaded = false)
     {
         if (_disposed) return;
+        if (mapLoaded) ReleasePreviousMapSettings();
         ObservePendingChanges();
-        // Без пула карта остаётся бессрочной, но плагин не подавляет штатное
-        // завершение матча, когда сам не может выполнить переход на другую карту.
-        foreach (var name in Limits) SetZero(name, mapLoaded);
-        foreach (var name in MatchEndControls)
-            if (rotationEnabled) SetZero(name, mapLoaded);
-            else Restore(name);
+        // Активная ротация наблюдает за штатным матчем. Единственное исключение —
+        // бессрочная карта без пула: её лимиты восстанавливаются при появлении карт.
+        foreach (var name in Limits)
+            if (rotationEnabled) Restore(name);
+            else SetZero(name, mapLoaded);
     }
+
+    private void ReleasePreviousMapSettings()
+    {
+        // Новый конфиг — новая точка отсчёта, даже если он выставил тот же ноль.
+        // Незавершённая команда прежней карты компенсируется текущим значением.
+        foreach (var (name, change) in _changes.ToArray())
+        {
+            _changes.Remove(name);
+            if (change.Applied is not null) continue;
+            var current = core.ConVar.FindAsString(name)?.ValueAsString;
+            if (current is not null && ConVarCommand(name, current) != ConVarCommand(name, change.Requested))
+                QueueValue(name, current, current, restoring: true);
+        }
+    }
+
+    public NativeMatchProgress? ReadMatchProgress()
+    {
+        var rules = core.EntitySystem.GetGameRules();
+        if (rules is null) return null;
+        var ended = rules.GamePhase == (int)GamePhase.GAMEPHASE_MATCH_ENDED;
+        if (rules.WarmupPeriod || !rules.HasMatchStarted || ended)
+            return new(rules.WarmupPeriod, rules.HasMatchStarted, ended, null, null);
+
+        var maxRounds = (int)ReadNumber("mp_maxrounds");
+        var winLimit = (int)ReadNumber("mp_winlimit");
+        var canClinch = core.ConVar.FindAsString("mp_match_can_clinch")?.ValueAsString is "true" or "1";
+        var highestScore = winLimit > 0 || maxRounds > 0 && canClinch
+            ? core.EntitySystem.GetAllEntitiesByClass<CCSTeam>()
+                .Where(team => team.IsValid && team.TeamNum is 2 or 3)
+                .Select(team => team.Score).DefaultIfEmpty().Max() : 0;
+        return new(false, true, false,
+            NativeMatchProgress.RemainingSeconds(ReadNumber("mp_timelimit"),
+                core.Engine.GlobalVars.CurrentTime, rules.GameStartTime),
+            NativeMatchProgress.RemainingRounds(maxRounds, rules.TotalRoundsPlayed, canClinch, winLimit, highestScore));
+    }
+
+    private double ReadNumber(string name) =>
+        double.TryParse(core.ConVar.FindAsString(name)?.ValueAsString, NumberStyles.Float,
+            CultureInfo.InvariantCulture, out var number) && double.IsFinite(number) && number >= 0 && number <= int.MaxValue
+            ? number : 0;
 
     public void ObservePendingChanges()
     {
@@ -112,9 +153,6 @@ internal sealed class MapEngineAdapter(ISwiftlyCore core, TimeProvider clock) : 
         {
             "mp_timelimit" => FiniteFloat(value).ToString("R", CultureInfo.InvariantCulture),
             "mp_maxrounds" or "mp_winlimit" => int.Parse(value, CultureInfo.InvariantCulture).ToString(CultureInfo.InvariantCulture),
-            "mp_match_end_changelevel" or "mp_match_end_restart" => bool.TryParse(value, out var flag)
-                ? flag ? "1" : "0" : int.Parse(value, CultureInfo.InvariantCulture) switch
-                { 0 => "0", 1 => "1", _ => throw new FormatException("Некорректное логическое значение ConVar") },
             _ => throw new ArgumentOutOfRangeException(nameof(name), name, "Неизвестный параметр ротации")
         };
         return name + " " + argument + "\n";

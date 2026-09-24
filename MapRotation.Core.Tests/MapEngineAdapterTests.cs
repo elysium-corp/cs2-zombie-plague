@@ -12,10 +12,23 @@ namespace MapRotation.Core.Tests;
 public sealed class MapEngineAdapterTests
 {
     [Fact]
-    public void EmptyPoolKeepsUnlimitedLimitsWithoutSuppressingNativeMatchExit()
+    public void ActiveRotationDoesNotWriteNativeLimitsMatchControlsOrHibernation()
     {
         var f = new Fixture();
+        f.Values["sv_hibernate_when_empty"] = new("true", typeof(bool));
+        f.ApplyPolicy(rotationEnabled: true);
+        f.ApplyPolicy(rotationEnabled: true, mapLoaded: true);
+        f.Unload();
 
+        Assert.Empty(f.Commands);
+        Assert.Empty(f.Adapter.Overrides);
+        Assert.All(f.Values.Values, cvar => Assert.Equal(0, cvar.Writes));
+    }
+
+    [Fact]
+    public void EmptyPoolOnlyRemovesLimitsAndLeavesNativeMatchControlsAlone()
+    {
+        var f = new Fixture();
         f.ApplyPolicy(rotationEnabled: false);
 
         Assert.Equal("0.000000", f.Time.Value);
@@ -25,82 +38,75 @@ public sealed class MapEngineAdapterTests
         Assert.Equal("true", f.Restart.Value);
         Assert.Equal(0, f.ChangeLevel.Writes);
         Assert.Equal(0, f.Restart.Writes);
-    }
-
-    [Fact]
-    public void ClearingAnActivePoolRestoresMatchControlsAndKeepsUnlimitedLimits()
-    {
-        var f = new Fixture();
-        f.ApplyPolicy(rotationEnabled: true);
-        Assert.Equal("false", f.ChangeLevel.Value);
-        Assert.Equal("false", f.Restart.Value);
-
-        f.ApplyPolicy(rotationEnabled: false);
-        f.ApplyPolicy(rotationEnabled: false);
-
-        Assert.Equal("true", f.ChangeLevel.Value);
-        Assert.Equal("true", f.Restart.Value);
-        Assert.Equal(2, f.Restart.Writes);
-        Assert.Equal("0.000000", f.Time.Value);
         Assert.Equal(3, f.Adapter.Overrides.Count);
     }
 
     [Fact]
-    public void CanonicalBooleanAndFloatValuesAreNotWrittenAgainOnEveryRound()
+    public void FillingThePoolRestoresTheNativeLimits()
     {
         var f = new Fixture();
+        f.ApplyPolicy(rotationEnabled: false);
         f.ApplyPolicy(rotationEnabled: true);
-        for (var i = 0; i < 20; i++) f.ApplyPolicy(rotationEnabled: true);
+        f.ApplyPolicy(rotationEnabled: true);
 
-        Assert.All(f.Values.Values, cvar => Assert.Equal(1, cvar.Writes));
-        Assert.Equal("false", f.Adapter.Overrides["mp_match_end_restart"].Applied);
+        Assert.Equal("45.000000", f.Time.Value);
+        Assert.Equal("24", f.Rounds.Value);
+        Assert.Equal("13", f.Wins.Value);
+        Assert.Equal(2, f.Rounds.Writes);
+        Assert.Empty(f.Adapter.Overrides);
+        Assert.Equal(0, f.Restart.Writes);
+    }
+
+    [Fact]
+    public void RepeatedEmptyPoolPolicyDoesNotDuplicateCanonicalFloatWrites()
+    {
+        var f = new Fixture();
+        for (var i = 0; i < 20; i++) f.ApplyPolicy(rotationEnabled: false);
+
+        Assert.Equal(3, f.Commands.Count);
         Assert.Equal("0.000000", f.Adapter.Overrides["mp_timelimit"].Applied);
     }
 
     [Fact]
-    public void UnloadRestoresCanonicalValuesAndIsIdempotent()
+    public void UnloadRestoresOwnedLimitsAndIsIdempotent()
     {
         var f = new Fixture();
-        f.ApplyPolicy(rotationEnabled: true);
-
+        f.ApplyPolicy(rotationEnabled: false);
         f.Unload();
         f.Unload();
 
         Assert.Equal("45.000000", f.Time.Value);
         Assert.Equal("24", f.Rounds.Value);
         Assert.Equal("13", f.Wins.Value);
-        Assert.Equal("true", f.ChangeLevel.Value);
-        Assert.Equal("true", f.Restart.Value);
-        Assert.All(f.Values.Values, cvar => Assert.Equal(2, cvar.Writes));
+        Assert.Equal(6, f.Commands.Count);
         Assert.Empty(f.Adapter.Overrides);
     }
 
     [Fact]
-    public void ReleaseDoesNotOverwriteSettingsChangedExternally()
+    public void RestorePreservesExternallyChangedLimits()
     {
         var f = new Fixture();
-        f.ApplyPolicy(rotationEnabled: true);
-        f.Time.Value = "30.000000";
-        f.Restart.Value = "true";
-
         f.ApplyPolicy(rotationEnabled: false);
-        Assert.Equal(1, f.Restart.Writes);
-        f.Time.Value = "20.000000";
+        f.Time.Value = "30.000000";
+        f.Rounds.Value = "40";
+        f.ApplyPolicy(rotationEnabled: true);
         f.Unload();
 
-        Assert.Equal("20.000000", f.Time.Value);
-        Assert.Equal("true", f.Restart.Value);
-        Assert.Equal(1, f.Restart.Writes);
+        Assert.Equal("30.000000", f.Time.Value);
+        Assert.Equal("40", f.Rounds.Value);
+        Assert.Equal(1, f.Time.Writes);
+        Assert.Equal(1, f.Rounds.Writes);
+        Assert.Equal("13", f.Wins.Value);
     }
 
     [Fact]
     public void NewMapConfigurationBecomesTheNewRestorePoint()
     {
         var f = new Fixture();
-        f.ApplyPolicy(rotationEnabled: true);
+        f.ApplyPolicy(rotationEnabled: false);
         f.Time.Value = "20.000000";
         f.Rounds.Value = "12";
-        f.ApplyPolicy(rotationEnabled: true);
+        f.ApplyPolicy(rotationEnabled: false, mapLoaded: true);
         f.Unload();
 
         Assert.Equal("20.000000", f.Time.Value);
@@ -108,34 +114,52 @@ public sealed class MapEngineAdapterTests
     }
 
     [Fact]
-    public void RefillingThePoolPreservesTheSettingsChosenWhileRotationWasInactive()
+    public void NewActiveMapKeepsZeroLimitsFromItsOwnConfiguration()
     {
         var f = new Fixture();
-        f.ApplyPolicy(rotationEnabled: true);
         f.ApplyPolicy(rotationEnabled: false);
-        f.Restart.Value = "false";
-        f.ApplyPolicy(rotationEnabled: true);
-        f.ApplyPolicy(rotationEnabled: false);
+        f.ApplyPolicy(rotationEnabled: true, mapLoaded: true);
+        f.Unload();
+        Assert.Equal("0.000000", f.Time.Value);
+        Assert.Equal("0", f.Rounds.Value);
+        Assert.Equal("0", f.Wins.Value);
+        Assert.Equal(3, f.Commands.Count);
+    }
 
-        Assert.Equal("false", f.Restart.Value);
-        Assert.Equal("true", f.ChangeLevel.Value);
-        Assert.Equal(2, f.Restart.Writes);
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void PendingPreviousMapCommandsCannotOverwriteTheNewMapConfiguration(bool restoring)
+    {
+        var f = new Fixture();
+        if (restoring)
+        {
+            f.ApplyPolicy(rotationEnabled: false);
+            f.Adapter.ApplyRotationPolicy(rotationEnabled: true);
+        }
+        else f.Adapter.ApplyRotationPolicy(rotationEnabled: false);
+        f.Time.Value = "12.500000";
+        f.Rounds.Value = "10";
+        f.Wins.Value = "6";
+        f.ApplyPolicy(rotationEnabled: true, mapLoaded: true);
+        f.Unload();
+        Assert.Equal("12.500000", f.Time.Value);
+        Assert.Equal("10", f.Rounds.Value);
+        Assert.Equal("6", f.Wins.Value);
+        Assert.Empty(f.Adapter.Overrides);
     }
 
     [Fact]
-    public void AlreadyUnlimitedOrMissingConVarsDoNotCreateOverrides()
+    public void AlreadyUnlimitedOrMissingLimitsDoNotCreateOverrides()
     {
         var f = new Fixture();
         f.Time.Value = "0.000000";
         f.Rounds.Value = "0";
-        f.Wins.Value = "0";
-        f.ChangeLevel.Value = "false";
-        f.Values.Remove("mp_match_end_restart");
-
-        f.ApplyPolicy(rotationEnabled: true);
+        f.Values.Remove("mp_winlimit");
+        f.ApplyPolicy(rotationEnabled: false);
         f.Unload();
 
-        Assert.All(f.Values.Values, cvar => Assert.Equal(0, cvar.Writes));
+        Assert.Empty(f.Commands);
         Assert.Empty(f.Adapter.Overrides);
     }
 
@@ -148,166 +172,125 @@ public sealed class MapEngineAdapterTests
         f.Wins.Value = "0";
         f.ChangeLevel.Value = "false";
         f.Restart.Value = "false";
-
         f.ApplyPolicy(rotationEnabled: false);
 
-        Assert.Equal("0", f.Rounds.Value);
         var owned = Assert.Single(f.Adapter.Overrides);
         Assert.Equal("mp_maxrounds", owned.Key);
         Assert.Equal("30", owned.Value.Original);
         Assert.Equal("0", owned.Value.Applied);
-
         f.Unload();
-
         Assert.Equal("30", f.Rounds.Value);
-        Assert.Equal(2, f.Rounds.Writes);
         Assert.All(f.Values.Where(pair => pair.Key != "mp_maxrounds"), pair => Assert.Equal(0, pair.Value.Writes));
-        Assert.Empty(f.Adapter.Overrides);
     }
 
     [Fact]
-    public void AlreadyZeroServerFixtureDoesNotQueueAnyCommandOnLoadOrUnload()
+    public void QueuedChangesAreReportedSeparatelyAndNotRepeated()
     {
         var f = new Fixture();
-        f.Time.Value = "0.000000";
-        f.Rounds.Value = "0";
-        f.Wins.Value = "0";
-        f.ChangeLevel.Value = "false";
-        f.Restart.Value = "false";
+        f.Adapter.ApplyRotationPolicy(rotationEnabled: false);
+        f.Adapter.ApplyRotationPolicy(rotationEnabled: false);
 
-        f.ApplyPolicy(rotationEnabled: false);
-        f.Unload();
-
-        Assert.Empty(f.Commands);
+        Assert.Equal(3, f.Commands.Count);
         Assert.Empty(f.Adapter.Overrides);
-        Assert.Empty(f.Adapter.PendingConVars);
-    }
-
-    [Fact]
-    public void QueuedCommandsAreNotReportedAsAppliedAndRepeatedPolicyDoesNotDuplicateThem()
-    {
-        var f = new Fixture();
-        f.Adapter.ApplyRotationPolicy(rotationEnabled: true);
-        f.Adapter.ApplyRotationPolicy(rotationEnabled: true);
-
-        Assert.Equal(5, f.Commands.Count);
-        Assert.All(f.Values.Values, cvar => Assert.Equal(0, cvar.Writes));
-        Assert.Empty(f.Adapter.Overrides);
-        Assert.Equal(5, f.Adapter.PendingConVars.Count);
+        Assert.Equal(3, f.Adapter.PendingConVars.Count);
         using var json = JsonDocument.Parse(JsonSerializer.Serialize(EngineStateDiagnostics.Capture(f.Core, f.Adapter)));
         Assert.Empty(json.RootElement.GetProperty("Overrides").EnumerateObject());
-        Assert.Equal(5, json.RootElement.GetProperty("PendingConVars").EnumerateObject().Count());
-
+        Assert.Equal(3, json.RootElement.GetProperty("PendingConVars").EnumerateObject().Count());
         f.ExecuteQueuedCommands();
-
-        Assert.Equal(5, f.Adapter.Overrides.Count);
+        Assert.Equal(3, f.Adapter.Overrides.Count);
         Assert.Empty(f.Adapter.PendingConVars);
-        Assert.Equal("false", f.Adapter.Overrides["mp_match_end_restart"].Applied);
     }
 
     [Fact]
-    public void UnloadBeforeTheCommandBufferRunsQueuesRestorationAfterApplication()
+    public void UnloadBeforeTheCommandBufferRunsQueuesCompensation()
     {
         var f = new Fixture();
-        f.Adapter.ApplyRotationPolicy(rotationEnabled: true);
+        f.Adapter.ApplyRotationPolicy(rotationEnabled: false);
         f.Adapter.Dispose();
         f.Adapter.Dispose();
-        f.Adapter.ApplyRotationPolicy(rotationEnabled: true);
-
-        Assert.Equal(10, f.Commands.Count);
+        f.Adapter.ApplyRotationPolicy(rotationEnabled: false);
+        Assert.Equal(6, f.Commands.Count);
         f.ExecuteQueuedCommands();
 
         Assert.Equal("45.000000", f.Time.Value);
         Assert.Equal("24", f.Rounds.Value);
         Assert.Equal("13", f.Wins.Value);
-        Assert.Equal("true", f.ChangeLevel.Value);
-        Assert.Equal("true", f.Restart.Value);
         Assert.Empty(f.Adapter.Overrides);
         Assert.Empty(f.Adapter.PendingConVars);
     }
 
     [Fact]
-    public void PendingApplicationDoesNotLoseAnExternalSettingOnUnload()
+    public void FillingPoolBeforeApplicationRestoresLimitsAfterQueuedZeros()
+    {
+        var f = new Fixture();
+        f.Adapter.ApplyRotationPolicy(rotationEnabled: false);
+        f.Adapter.ApplyRotationPolicy(rotationEnabled: true);
+        f.ExecuteQueuedCommands();
+
+        Assert.Equal("45.000000", f.Time.Value);
+        Assert.Equal("24", f.Rounds.Value);
+        Assert.Equal("13", f.Wins.Value);
+        Assert.Empty(f.Adapter.Overrides);
+        Assert.Empty(f.Adapter.PendingConVars);
+    }
+
+    [Fact]
+    public void EmptyingPoolBeforeRestorationPreservesOriginalValues()
+    {
+        var f = new Fixture();
+        f.ApplyPolicy(rotationEnabled: false);
+        f.Adapter.ApplyRotationPolicy(rotationEnabled: true);
+        f.Adapter.ApplyRotationPolicy(rotationEnabled: false);
+        f.ExecuteQueuedCommands();
+        Assert.Equal("0", f.Rounds.Value);
+        Assert.Equal(3, f.Adapter.Overrides.Count);
+        f.Unload();
+        Assert.Equal("45.000000", f.Time.Value);
+        Assert.Equal("24", f.Rounds.Value);
+    }
+
+    [Fact]
+    public void PendingApplicationDoesNotLoseExternalChangesOnUnload()
     {
         var f = new Fixture();
         f.Adapter.ApplyRotationPolicy(rotationEnabled: false);
         f.Time.Value = "12.500000";
         f.Adapter.Dispose();
         f.ExecuteQueuedCommands();
-
         Assert.Equal("12.500000", f.Time.Value);
-        Assert.Equal("24", f.Rounds.Value);
     }
 
     [Fact]
-    public void ClearingThePoolBeforeApplicationLeavesOnlyTheUnlimitedLimits()
-    {
-        var f = new Fixture();
-        f.Adapter.ApplyRotationPolicy(rotationEnabled: true);
-        f.Adapter.ApplyRotationPolicy(rotationEnabled: false);
-        f.ExecuteQueuedCommands();
-
-        Assert.Equal("0", f.Rounds.Value);
-        Assert.Equal("true", f.ChangeLevel.Value);
-        Assert.Equal("true", f.Restart.Value);
-        Assert.Equal(3, f.Adapter.Overrides.Count);
-        Assert.Empty(f.Adapter.PendingConVars);
-    }
-
-    [Fact]
-    public void ReactivatingWhileRestorationIsQueuedPreservesTheOriginalRestorePoint()
-    {
-        var f = new Fixture();
-        f.ApplyPolicy(rotationEnabled: true);
-        f.Adapter.ApplyRotationPolicy(rotationEnabled: false);
-        f.Adapter.ApplyRotationPolicy(rotationEnabled: true);
-        f.ExecuteQueuedCommands();
-
-        Assert.Equal("false", f.ChangeLevel.Value);
-        Assert.Equal("false", f.Restart.Value);
-        Assert.Equal(5, f.Adapter.Overrides.Count);
-        f.Unload();
-        Assert.Equal("true", f.ChangeLevel.Value);
-        Assert.Equal("true", f.Restart.Value);
-    }
-
-    [Fact]
-    public void MapConfigThatRunsBeforeConfirmationIsAppliedAgainOnMapLoad()
+    public void NewMapReappliesAnUnconfirmedLimitOverwrittenByConfiguration()
     {
         var f = new Fixture();
         f.Adapter.ApplyRotationPolicy(rotationEnabled: false);
-        // Движок исполнил команду, но конфиг новой карты уже вернул исходный лимит.
         f.CommandBuffer.Clear();
         f.ApplyPolicy(rotationEnabled: false, mapLoaded: true);
-
         Assert.Equal("0", f.Rounds.Value);
-        Assert.Equal(3, f.Adapter.Overrides.Count);
         f.Unload();
         Assert.Equal("24", f.Rounds.Value);
     }
 
     [Fact]
-    public void RejectedCommandsDoNotAcquireOwnershipOrOverwriteLaterSettingsOnUnload()
+    public void RejectedCommandsDoNotAcquireOwnership()
     {
         var f = new Fixture();
-        f.Adapter.ApplyRotationPolicy(rotationEnabled: true);
+        f.Adapter.ApplyRotationPolicy(rotationEnabled: false);
         f.CommandBuffer.Clear();
         f.Clock.Advance(TimeSpan.FromSeconds(5));
         f.Adapter.ObservePendingChanges();
         f.Rounds.Value = "40";
         f.Unload();
-
-        Assert.Equal(5, f.Commands.Count);
+        Assert.Equal(3, f.Commands.Count);
         Assert.Equal("40", f.Rounds.Value);
         Assert.Empty(f.Adapter.PendingConVars);
-        Assert.Empty(f.Adapter.Overrides);
     }
 
     [Theory]
     [InlineData("mp_timelimit", "12.500000", "mp_timelimit 12.5\n")]
     [InlineData("mp_maxrounds", "30", "mp_maxrounds 30\n")]
-    [InlineData("mp_match_end_restart", "false", "mp_match_end_restart 0\n")]
-    [InlineData("mp_match_end_changelevel", "true", "mp_match_end_changelevel 1\n")]
+    [InlineData("mp_winlimit", "13", "mp_winlimit 13\n")]
     public void ConsoleArgumentsUseInvariantNumbers(string name, string value, string expected)
     {
         var previous = CultureInfo.CurrentCulture;
@@ -324,27 +307,31 @@ public sealed class MapEngineAdapterTests
     [InlineData("mp_timelimit", "0\nquit")]
     [InlineData("mp_timelimit", "NaN")]
     [InlineData("mp_timelimit", "Infinity")]
-    [InlineData("mp_match_end_restart", "2")]
     public void InvalidConsoleValuesAreRejected(string name, string value) =>
         Assert.Throws<FormatException>(() => MapEngineAdapter.ConVarCommand(name, value));
 
-    [Fact]
-    public void UnknownConsoleVariableIsRejected() =>
-        Assert.Throws<ArgumentOutOfRangeException>(() => MapEngineAdapter.ConVarCommand("mp_restartgame", "1"));
+    [Theory]
+    [InlineData("mp_match_end_changelevel")]
+    [InlineData("mp_match_end_restart")]
+    [InlineData("mp_restartgame")]
+    [InlineData("sv_hibernate_when_empty")]
+    public void MatchControlsCannotBeWrittenThroughThePolicy(string name) =>
+        Assert.Throws<ArgumentOutOfRangeException>(() => MapEngineAdapter.ConVarCommand(name, "0"));
 
     [Fact]
-    public void DiagnosticsRemainReadOnlyAndPreserveAvailableSectionsAfterANativeReadFails()
+    public void DiagnosticsRemainReadOnlyAfterANativeReadFails()
     {
         var f = new Fixture();
+        f.Values["sv_hibernate_when_empty"] = new("true", typeof(bool));
+        f.Values["sv_hibernate_postgame_delay"] = new("5", typeof(int));
         using var json = JsonDocument.Parse(JsonSerializer.Serialize(EngineStateDiagnostics.Capture(f.Core, f.Adapter)));
         var engine = json.RootElement;
-
         Assert.True(engine.GetProperty("Globals").TryGetProperty("Error", out _));
         Assert.True(engine.GetProperty("Rules").TryGetProperty("Error", out _));
-        Assert.Equal("true", engine.GetProperty("ConVars").GetProperty("mp_match_end_restart").GetString());
+        Assert.Equal("true", engine.GetProperty("ConVars").GetProperty("sv_hibernate_when_empty").GetString());
+        Assert.Equal("5", engine.GetProperty("ConVars").GetProperty("sv_hibernate_postgame_delay").GetString());
         Assert.Equal(JsonValueKind.Null, engine.GetProperty("ConVars").GetProperty("host_timescale").ValueKind);
-        Assert.Empty(engine.GetProperty("Overrides").EnumerateObject());
-        Assert.All(f.Values.Values, cvar => Assert.Equal(0, cvar.Writes));
+        Assert.Empty(f.Commands);
     }
 
     private sealed class Fixture
