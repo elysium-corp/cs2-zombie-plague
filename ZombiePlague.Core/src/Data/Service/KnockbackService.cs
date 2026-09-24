@@ -76,7 +76,6 @@ internal sealed class KnockbackService(
         }
 
         core.GameHooks.Entities.TakeDamage.Pre += OnTakeDamagePre;
-        core.GameHooks.Entities.TakeDamage.Post += OnTakeDamagePost;
         _playerHurtHook = core.GameEvent.HookPost<EventPlayerHurt>(OnPlayerHurtPost);
     }
 
@@ -86,7 +85,6 @@ internal sealed class KnockbackService(
         {
             core.GameEvent.Unhook(_playerHurtHook);
             core.GameHooks.Entities.TakeDamage.Pre -= OnTakeDamagePre;
-            core.GameHooks.Entities.TakeDamage.Post -= OnTakeDamagePost;
             _laserMineDamageVictims.Clear();
             _playerHurtHook = Guid.Empty;
         }
@@ -97,7 +95,7 @@ internal sealed class KnockbackService(
         var victim = @event.UserIdPlayer;
         var attacker = @event.AttackerPlayer;
 
-        if (victim is { IsValid: true } && IsLaserMineDamagePending(victim))
+        if (victim is { IsValid: true } && ConsumeLaserMineDamage(victim))
         {
             return false;
         }
@@ -182,16 +180,39 @@ internal sealed class KnockbackService(
 
         _laserMineDamageVictims.TryGetValue(address, out var count);
         _laserMineDamageVictims[address] = count + 1;
+
+        core.Scheduler.NextWorldUpdate(() => ReleaseLaserMineDamage(address));
     }
 
-    private void OnTakeDamagePost(ref TakeDamageEntityPostContext context)
+    private bool ConsumeLaserMineDamage(IPlayer victim)
     {
-        if (context.Params.Info.DamageCustom != DamageCustomIds.LaserMine)
+        var pawn = victim.PlayerPawn;
+
+        if (pawn is not { IsValid: true })
         {
-            return;
+            return false;
         }
 
-        var address = context.Params.Entity.Address;
+        var address = pawn.Address;
+        if (!_laserMineDamageVictims.TryGetValue(address, out var count))
+        {
+            return false;
+        }
+
+        if (count <= 1)
+        {
+            _laserMineDamageVictims.Remove(address);
+        }
+        else
+        {
+            _laserMineDamageVictims[address] = count - 1;
+        }
+
+        return true;
+    }
+
+    private void ReleaseLaserMineDamage(nint address)
+    {
         if (!_laserMineDamageVictims.TryGetValue(address, out var count))
         {
             return;
@@ -200,18 +221,11 @@ internal sealed class KnockbackService(
         if (count <= 1)
         {
             _laserMineDamageVictims.Remove(address);
-            return;
         }
-
-        _laserMineDamageVictims[address] = count - 1;
-    }
-
-    private bool IsLaserMineDamagePending(IPlayer victim)
-    {
-        var pawn = victim.PlayerPawn;
-
-        return pawn is { IsValid: true } &&
-               _laserMineDamageVictims.ContainsKey(pawn.Address);
+        else
+        {
+            _laserMineDamageVictims[address] = count - 1;
+        }
     }
 
     private void ApplyKnockback(IPlayer victim, Vector velocity)
