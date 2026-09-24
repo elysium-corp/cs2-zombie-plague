@@ -5,7 +5,7 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="SwiftlyS2.CS2" Version="1.4.11-beta.14" />
+        <PackageReference Include="SwiftlyS2.CS2" Version="1.4.11" />
         <EmbeddedResource Include="Resources/notification-catalog.json" />
     </ItemGroup>
 </Project>
