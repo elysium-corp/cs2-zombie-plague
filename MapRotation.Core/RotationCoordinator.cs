@@ -38,6 +38,8 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
     private bool _hudSuspended;
     private bool _nativeReadFailed;
     private bool _catalogUnavailable;
+    private Dictionary<long, MapAvailability> _mapAvailability = [];
+    private DateTimeOffset? _mapsCheckedAt;
     private DateTimeOffset? _resultUntil;
     private DateTimeOffset? _changeRequestedAt;
     private long _publishedRevision = -1;
@@ -107,8 +109,11 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
 
     private void Apply(RotationConfiguration configuration)
     {
-        var valid = configuration.Maps.Where(maps.IsValid).Select(map => map.Id).ToArray();
+        var availability = configuration.Maps.ToDictionary(map => map.Id, maps.Inspect);
+        var valid = availability.Where(pair => pair.Value.IsValid).Select(pair => pair.Key).ToArray();
         engine.Configure(configuration, valid);
+        _mapAvailability = availability;
+        _mapsCheckedAt = clock.GetUtcNow();
         var unavailable = !configuration.Maps.IsEmpty && valid.Length == 0;
         if (unavailable && !_catalogUnavailable)
             core.Logger.LogWarning("[MapRotation] Каталог содержит {Count} карт, но движок не принял ни одну; подробности: maprotation_maps", configuration.Maps.Length);
@@ -189,7 +194,11 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
             // Отдельные строки не обрезаются лимитом консоли при большом каталоге.
             context.Reply(System.Text.Json.JsonSerializer.Serialize(new { Catalog = CatalogSummary() }));
             foreach (var entry in engine.Catalog())
-                context.Reply(System.Text.Json.JsonSerializer.Serialize(entry));
+            {
+                var diagnostic = System.Text.Json.JsonSerializer.SerializeToNode(entry)!.AsObject();
+                diagnostic["LastAvailabilityCheck"] = System.Text.Json.JsonSerializer.SerializeToNode(_mapAvailability.GetValueOrDefault(entry.Id));
+                context.Reply(diagnostic.ToJsonString());
+            }
             return;
         }
         if (context.CommandName == "maprotation_status")
@@ -221,7 +230,8 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
         engine.Settings.AllowSameMap,
         engine.Settings.NominationsEnabled,
         LoadedMaps = engine.Configuration.Maps.Length,
-        CurrentMap = engine.CurrentMap
+        CurrentMap = engine.CurrentMap,
+        MapsCheckedAtUtc = _mapsCheckedAt
     };
     private RotationMap? Find(string value) => engine.Configuration.Maps.FirstOrDefault(map =>
         string.Equals(map.Key, value, StringComparison.OrdinalIgnoreCase) || string.Equals(map.MapName, value, StringComparison.OrdinalIgnoreCase));
