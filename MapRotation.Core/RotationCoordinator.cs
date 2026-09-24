@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using CustomHud.Api;
-using Localization.Api;
 using MapRotation.Api;
 using MapRotation.Core.Database;
 using MapRotation.Core.Domain;
@@ -15,7 +14,7 @@ using SwiftlyS2.Shared.Players;
 namespace MapRotation.Core;
 
 internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engine, RotationStore store,
-    MapEngineAdapter maps, TimeProvider clock) : IDisposable
+    MapEngineAdapter maps, TimeProvider clock, RotationText text) : IDisposable
 {
     private const string NominationChannel = "MapRotation.Nomination";
     private const string VoteChannel = "MapRotation.Vote";
@@ -27,7 +26,6 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
     private ICustomHudMenuApi? _menus;
     private ICustomBannerApi? _banners;
     private ICustomHudApi? _messages;
-    private ILocalizationApi? _localization;
     private CancellationTokenSource? _timer;
     private Guid _roundEndHook;
     private Guid _roundStartHook;
@@ -42,14 +40,14 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
     private long? _requestedMap;
     private int _mapEpoch;
 
-    public void Bind(ICustomHudMenuApi? menus, ICustomBannerApi? banners, ICustomHudApi? messages, ILocalizationApi? localization)
+    public void Bind(ICustomHudMenuApi? menus, ICustomBannerApi? banners, ICustomHudApi? messages)
     {
         if (!ReferenceEquals(_menus, menus))
         {
             CloseMenus(); _seenVotes.Clear();
             _menus = menus;
         }
-        _banners = banners; _messages = messages; _localization = localization;
+        _banners = banners; _messages = messages;
     }
 
     public void Start()
@@ -134,12 +132,13 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
                 if (reply == RotationReply.Delay) Card(player, Text(player, "RtvDelay"), Duration(TimeSpan.FromSeconds(engine.RtvDelayRemaining)), "clock");
                 else if (reply is RotationReply.Accepted or RotationReply.Duplicate)
                 {
-                    Card(player, "RTV", $"{engine.RtvVotes} / {engine.RtvRequired}", "info",
+                    Card(player, Text(player, "RtvTitle"), Text(player, "RtvProgress",
+                        ("votes", engine.RtvVotes.ToString()), ("required", engine.RtvRequired.ToString())), "info",
                         Text(player, "RtvRemaining", ("count", Math.Max(0, engine.RtvRequired - engine.RtvVotes).ToString())));
                     if (reply == RotationReply.Accepted) ChatAll("RtvAdded", ("player", player.Controller.PlayerName),
                         ("votes", engine.RtvVotes.ToString()), ("required", engine.RtvRequired.ToString()));
                 }
-                else Card(player, "RTV", Text(player, reply.ToString()), "warning");
+                else Card(player, Text(player, "RtvTitle"), Text(player, reply.ToString()), "warning");
                 RefreshHud(); break;
             case "nominate":
                 if (context.Args.Length > 0)
@@ -156,19 +155,21 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
 
     private void AdminCommand(ICommandContext context)
     {
-        if (context.CommandName == "maprotation_reload") { store.RequestReload(); context.Reply("[MapRotation] Reload queued"); return; }
+        if (context.CommandName == "maprotation_reload") { store.RequestReload(); context.Reply(Text(context.Sender, "Admin.ReloadQueued")); return; }
         if (context.CommandName == "maprotation_status")
         {
             context.Reply(System.Text.Json.JsonSerializer.Serialize(engine.GetStatus())); return;
         }
-        if (!_loaded || _mapUnloading) { context.Reply("[MapRotation] Loading"); return; }
+        if (!_loaded || _mapUnloading) { context.Reply(Text(context.Sender, "Loading")); return; }
         RefreshPlayers();
-        if (context.CommandName == "maprotation_vote") context.Reply(engine.StartVote(NextMapSource.Admin) ? "[MapRotation] Vote started" : "[MapRotation] Vote unavailable");
+        if (context.CommandName == "maprotation_vote") context.Reply(Text(context.Sender,
+            engine.StartVote(NextMapSource.Admin) ? "Admin.VoteStarted" : "Admin.VoteUnavailable"));
         else
         {
             var map = context.Args.Length == 1 ? Find(context.Args[0]) : null;
             var accepted = map is not null && maps.IsValid(map) && engine.SetNext(map.Id, context.CommandName == "maprotation_change");
-            context.Reply(accepted ? "[MapRotation] Next map: " + map!.DisplayName : "[MapRotation] Invalid or unavailable map");
+            context.Reply(accepted ? Text(context.Sender, "Admin.NextMapSet", ("map", map!.DisplayName))
+                : Text(context.Sender, "Admin.InvalidMap"));
         }
         RefreshHud(); Publish();
     }
@@ -222,7 +223,7 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
     private void Open(IPlayer player, HudMenu menu, Action<HudMenuEvent> handler)
     {
         if (_menus?.Open(player, menu, handler) is { } id) _opened[player.PlayerID] = (player.SessionId, id, menu.Channel);
-        else player.SendMessage(MessageType.Chat, "[Elysium] " + Text(player, "HudUnavailable"));
+        else player.SendMessage(MessageType.Chat, text.WithChatTag(player, Text(player, "HudUnavailable")));
     }
     private void RefreshHud()
     {
@@ -285,15 +286,15 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
             Enter = "fade", Exit = "fade", Speed = "fast"
         }, new() { Header = title, Title = value, Description = description }, new()
         { Channel = CardChannel, Position = HudPosition.TopLeft, DurationSeconds = 6, Format = HudTextFormat.PlainText }) == true;
-        if (!shown) player.SendMessage(MessageType.Chat, $"[Elysium] {title}: {value} {description}".Trim());
+        if (!shown) player.SendMessage(MessageType.Chat, text.WithChatTag(player, Text(player, "CardSummary",
+            ("title", title), ("value", value), ("description", description)).Trim()));
     }
 
-    private string Text(IPlayer player, string key, params (string Name, string Value)[] parameters)
-        => _localization?.GetForPlayer(player, "MapRotation." + key, parameters.ToDictionary(p => p.Name, p => p.Value))
-            ?? RotationText.Fallback(key, _localization?.Resolve(player) ?? "ru", parameters);
+    private string Text(IPlayer? player, string key, params (string Name, string Value)[] parameters)
+        => text.Get(player, key, parameters);
     private void ChatAll(string key, params (string Name, string Value)[] values)
     {
-        foreach (var player in Players()) player.SendMessage(MessageType.Chat, "[Elysium] " + Text(player, key, values));
+        foreach (var player in Players()) player.SendMessage(MessageType.Chat, text.WithChatTag(player, Text(player, key, values)));
     }
     internal static string Duration(TimeSpan value)
     {
