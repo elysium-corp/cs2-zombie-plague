@@ -10,19 +10,19 @@
                     <Label class="MessageBrand" text="ELYSIUM" />
                     <Panel class="BannerContent">
                         <Panel class="BannerIcons">
-                            <Image class="BannerIcon Icon_info" src="s2r://panorama/images/custom_game/elysium/banners/info.vsvg" texturewidth="64" textureheight="64" />
-                            <Image class="BannerIcon Icon_warning" src="s2r://panorama/images/custom_game/elysium/banners/warning.vsvg" texturewidth="64" textureheight="64" />
-                            <Image class="BannerIcon Icon_infection" src="s2r://panorama/images/custom_game/elysium/banners/infection.vsvg" texturewidth="64" textureheight="64" />
-                            <Image class="BannerIcon Icon_skull" src="s2r://panorama/images/custom_game/elysium/banners/skull.vsvg" texturewidth="64" textureheight="64" />
-                            <Image class="BannerIcon Icon_shield" src="s2r://panorama/images/custom_game/elysium/banners/shield.vsvg" texturewidth="64" textureheight="64" />
-                            <Image class="BannerIcon Icon_trophy" src="s2r://panorama/images/custom_game/elysium/banners/trophy.vsvg" texturewidth="64" textureheight="64" />
-                            <Image class="BannerIcon Icon_star" src="s2r://panorama/images/custom_game/elysium/banners/star.vsvg" texturewidth="64" textureheight="64" />
-                            <Image class="BannerIcon Icon_gift" src="s2r://panorama/images/custom_game/elysium/banners/gift.vsvg" texturewidth="64" textureheight="64" />
-                            <Image class="BannerIcon Icon_megaphone" src="s2r://panorama/images/custom_game/elysium/banners/megaphone.vsvg" texturewidth="64" textureheight="64" />
-                            <Image class="BannerIcon Icon_lightning" src="s2r://panorama/images/custom_game/elysium/banners/lightning.vsvg" texturewidth="64" textureheight="64" />
-                            <Image class="BannerIcon Icon_clock" src="s2r://panorama/images/custom_game/elysium/banners/clock.vsvg" texturewidth="64" textureheight="64" />
-                            <Image class="BannerIcon Icon_heart" src="s2r://panorama/images/custom_game/elysium/banners/heart.vsvg" texturewidth="64" textureheight="64" />
-                            <Image class="BannerIcon Icon_key_e" src="s2r://panorama/images/custom_game/elysium/banners/key_e.vsvg" texturewidth="64" textureheight="64" />
+                            <Image class="BannerIcon Icon_info" src="s2r://panorama/images/custom_game/elysium/banners/info.vsvg" />
+                            <Image class="BannerIcon Icon_warning" src="s2r://panorama/images/custom_game/elysium/banners/warning.vsvg" />
+                            <Image class="BannerIcon Icon_infection" src="s2r://panorama/images/custom_game/elysium/banners/infection.vsvg" />
+                            <Image class="BannerIcon Icon_skull" src="s2r://panorama/images/custom_game/elysium/banners/skull.vsvg" />
+                            <Image class="BannerIcon Icon_shield" src="s2r://panorama/images/custom_game/elysium/banners/shield.vsvg" />
+                            <Image class="BannerIcon Icon_trophy" src="s2r://panorama/images/custom_game/elysium/banners/trophy.vsvg" />
+                            <Image class="BannerIcon Icon_star" src="s2r://panorama/images/custom_game/elysium/banners/star.vsvg" />
+                            <Image class="BannerIcon Icon_gift" src="s2r://panorama/images/custom_game/elysium/banners/gift.vsvg" />
+                            <Image class="BannerIcon Icon_megaphone" src="s2r://panorama/images/custom_game/elysium/banners/megaphone.vsvg" />
+                            <Image class="BannerIcon Icon_lightning" src="s2r://panorama/images/custom_game/elysium/banners/lightning.vsvg" />
+                            <Image class="BannerIcon Icon_clock" src="s2r://panorama/images/custom_game/elysium/banners/clock.vsvg" />
+                            <Image class="BannerIcon Icon_heart" src="s2r://panorama/images/custom_game/elysium/banners/heart.vsvg" />
+                            <Image class="BannerIcon Icon_key_e" src="s2r://panorama/images/custom_game/elysium/banners/key_e.vsvg" />
                         </Panel>
                         <Panel class="BannerTexts">
                             <Panel class="MessageLine BannerHeader" id="Message0Header">
@@ -119,19 +119,19 @@
                     <Label class="MessageBrand" text="ELYSIUM" />
                     <Panel class="BannerContent">
                         <Panel class="BannerIcons">
-                            <Image class="BannerIcon Icon_info" src="s2r://panorama/images/custom_game/elysium/banners/info.vsvg" texturewidth="64" textureheight="64" />
-                            <Image class="BannerIcon Icon_warning" src="s2r://panorama/images/custom_game/elysium/banners/warning.vsvg" texturewidth="64" textureheight="64" />
-                            <Image class="BannerIcon Icon_infection" src="s2r://panorama/images/custom_game/elysium/banners/infection.vsvg" texturewidth="64" textureheight="64" />
-                            <Image class="BannerIcon Icon_skull" src="s2r://panorama/images/custom_game/elysium/banners/skull.vsvg" texturewidth="64" textureheight="64" />
-                            <Image class="BannerIcon Icon_shield" src="s2r://panorama/images/custom_game/elysium/banners/shield.vsvg" texturewidth="64" textureheight="64" />
-                            <Image class="BannerIcon Icon_trophy" src="s2r://panorama/images/custom_game/elysium/banners/trophy.vsvg" texturewidth="64" textureheight="64" />
-                            <Image class="BannerIcon Icon_star" src="s2r://panorama/images/custom_game/elysium/banners/star.vsvg" texturewidth="64" textureheight="64" />
-                            <Image class="BannerIcon Icon_gift" src="s2r://panorama/images/custom_game/elysium/banners/gift.vsvg" texturewidth="64" textureheight="64" />
-                            <Image class="BannerIcon Icon_megaphone" src="s2r://panorama/images/custom_game/elysium/banners/megaphone.vsvg" texturewidth="64" textureheight="64" />
-                            <Image class="BannerIcon Icon_lightning" src="s2r://panorama/images/custom_game/elysium/banners/lightning.vsvg" texturewidth="64" textureheight="64" />
-                            <Image class="BannerIcon Icon_clock" src="s2r://panorama/images/custom_game/elysium/banners/clock.vsvg" texturewidth="64" textureheight="64" />
-                            <Image class="BannerIcon Icon_heart" src="s2r://panorama/images/custom_game/elysium/banners/heart.vsvg" texturewidth="64" textureheight="64" />
-                            <Image class="BannerIcon Icon_key_e" src="s2r://panorama/images/custom_game/elysium/banners/key_e.vsvg" texturewidth="64" textureheight="64" />
+                            <Image class="BannerIcon Icon_info" src="s2r://panorama/images/custom_game/elysium/banners/info.vsvg" />
+                            <Image class="BannerIcon Icon_warning" src="s2r://panorama/images/custom_game/elysium/banners/warning.vsvg" />
+                            <Image class="BannerIcon Icon_infection" src="s2r://panorama/images/custom_game/elysium/banners/infection.vsvg" />
+                            <Image class="BannerIcon Icon_skull" src="s2r://panorama/images/custom_game/elysium/banners/skull.vsvg" />
+                            <Image class="BannerIcon Icon_shield" src="s2r://panorama/images/custom_game/elysium/banners/shield.vsvg" />
+                            <Image class="BannerIcon Icon_trophy" src="s2r://panorama/images/custom_game/elysium/banners/trophy.vsvg" />
+                            <Image class="BannerIcon Icon_star" src="s2r://panorama/images/custom_game/elysium/banners/star.vsvg" />
+                            <Image class="BannerIcon Icon_gift" src="s2r://panorama/images/custom_game/elysium/banners/gift.vsvg" />
+                            <Image class="BannerIcon Icon_megaphone" src="s2r://panorama/images/custom_game/elysium/banners/megaphone.vsvg" />
+                            <Image class="BannerIcon Icon_lightning" src="s2r://panorama/images/custom_game/elysium/banners/lightning.vsvg" />
+                            <Image class="BannerIcon Icon_clock" src="s2r://panorama/images/custom_game/elysium/banners/clock.vsvg" />
+                            <Image class="BannerIcon Icon_heart" src="s2r://panorama/images/custom_game/elysium/banners/heart.vsvg" />
+                            <Image class="BannerIcon Icon_key_e" src="s2r://panorama/images/custom_game/elysium/banners/key_e.vsvg" />
                         </Panel>
                         <Panel class="BannerTexts">
                             <Panel class="MessageLine BannerHeader" id="Message1Header">
@@ -228,19 +228,19 @@
                     <Label class="MessageBrand" text="ELYSIUM" />
                     <Panel class="BannerContent">
                         <Panel class="BannerIcons">
-                            <Image class="BannerIcon Icon_info" src="s2r://panorama/images/custom_game/elysium/banners/info.vsvg" texturewidth="64" textureheight="64" />
-                            <Image class="BannerIcon Icon_warning" src="s2r://panorama/images/custom_game/elysium/banners/warning.vsvg" texturewidth="64" textureheight="64" />
-                            <Image class="BannerIcon Icon_infection" src="s2r://panorama/images/custom_game/elysium/banners/infection.vsvg" texturewidth="64" textureheight="64" />
-                            <Image class="BannerIcon Icon_skull" src="s2r://panorama/images/custom_game/elysium/banners/skull.vsvg" texturewidth="64" textureheight="64" />
-                            <Image class="BannerIcon Icon_shield" src="s2r://panorama/images/custom_game/elysium/banners/shield.vsvg" texturewidth="64" textureheight="64" />
-                            <Image class="BannerIcon Icon_trophy" src="s2r://panorama/images/custom_game/elysium/banners/trophy.vsvg" texturewidth="64" textureheight="64" />
-                            <Image class="BannerIcon Icon_star" src="s2r://panorama/images/custom_game/elysium/banners/star.vsvg" texturewidth="64" textureheight="64" />
-                            <Image class="BannerIcon Icon_gift" src="s2r://panorama/images/custom_game/elysium/banners/gift.vsvg" texturewidth="64" textureheight="64" />
-                            <Image class="BannerIcon Icon_megaphone" src="s2r://panorama/images/custom_game/elysium/banners/megaphone.vsvg" texturewidth="64" textureheight="64" />
-                            <Image class="BannerIcon Icon_lightning" src="s2r://panorama/images/custom_game/elysium/banners/lightning.vsvg" texturewidth="64" textureheight="64" />
-                            <Image class="BannerIcon Icon_clock" src="s2r://panorama/images/custom_game/elysium/banners/clock.vsvg" texturewidth="64" textureheight="64" />
-                            <Image class="BannerIcon Icon_heart" src="s2r://panorama/images/custom_game/elysium/banners/heart.vsvg" texturewidth="64" textureheight="64" />
-                            <Image class="BannerIcon Icon_key_e" src="s2r://panorama/images/custom_game/elysium/banners/key_e.vsvg" texturewidth="64" textureheight="64" />
+                            <Image class="BannerIcon Icon_info" src="s2r://panorama/images/custom_game/elysium/banners/info.vsvg" />
+                            <Image class="BannerIcon Icon_warning" src="s2r://panorama/images/custom_game/elysium/banners/warning.vsvg" />
+                            <Image class="BannerIcon Icon_infection" src="s2r://panorama/images/custom_game/elysium/banners/infection.vsvg" />
+                            <Image class="BannerIcon Icon_skull" src="s2r://panorama/images/custom_game/elysium/banners/skull.vsvg" />
+                            <Image class="BannerIcon Icon_shield" src="s2r://panorama/images/custom_game/elysium/banners/shield.vsvg" />
+                            <Image class="BannerIcon Icon_trophy" src="s2r://panorama/images/custom_game/elysium/banners/trophy.vsvg" />
+                            <Image class="BannerIcon Icon_star" src="s2r://panorama/images/custom_game/elysium/banners/star.vsvg" />
+                            <Image class="BannerIcon Icon_gift" src="s2r://panorama/images/custom_game/elysium/banners/gift.vsvg" />
+                            <Image class="BannerIcon Icon_megaphone" src="s2r://panorama/images/custom_game/elysium/banners/megaphone.vsvg" />
+                            <Image class="BannerIcon Icon_lightning" src="s2r://panorama/images/custom_game/elysium/banners/lightning.vsvg" />
+                            <Image class="BannerIcon Icon_clock" src="s2r://panorama/images/custom_game/elysium/banners/clock.vsvg" />
+                            <Image class="BannerIcon Icon_heart" src="s2r://panorama/images/custom_game/elysium/banners/heart.vsvg" />
+                            <Image class="BannerIcon Icon_key_e" src="s2r://panorama/images/custom_game/elysium/banners/key_e.vsvg" />
                         </Panel>
                         <Panel class="BannerTexts">
                             <Panel class="MessageLine BannerHeader" id="Message2Header">

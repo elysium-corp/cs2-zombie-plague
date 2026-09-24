@@ -204,7 +204,7 @@ XML использует Panel, Image, Label и CSS, без клиентског
 При переходе с v3 и более ранних ресурсов нужно пересобрать layout, CSS и SVG
 При обновлении с рабочего v4 достаточно перекомпилировать восемь SVG и доставить обновлённый VPK
 
-Custom HUD допускает ограниченный набор атрибутов: `Panel` — `id`, `class`, `hittest`; `Label` дополнительно `text`; `Image` дополнительно `src`, `texturewidth`, `textureheight`
+Custom HUD допускает ограниченный набор атрибутов: `Panel` — `id`, `class`, `hittest`; `Label` дополнительно `text`; `Image` дополнительно `src`. Атрибуты `texturewidth` и `textureheight` клиент CS2 отклоняет: `Layout contains disallowed attribute texturewidth for panel type 'Image'`
 Атрибуты обычной Panorama, включая `hittestchildren`, `style` и обработчики событий, могут отклонить весь layout
 Проверка `PanoramaUsesOnlyAttributesAcceptedByTheCustomHudValidator` сверяет фактический XML с этим списком
 Ограничения сверены с [валидатором инструментов Panorama](https://github.com/Kxnrl/vsc-panorama-ext/blob/b4b7afe9ccd01d9787ed583ec8b83a925faab2fe/src/core/mode.ts) и [разбором валидатора движка](https://github.com/Wend4r/s2r-skills/blob/82fd9c366dec51edf19b801a102dce86fd695950/custom-hud-layout/references/internals.md)
