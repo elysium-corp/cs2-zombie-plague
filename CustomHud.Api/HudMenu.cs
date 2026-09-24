@@ -41,8 +41,8 @@ public sealed record HudMenu(string Channel, string Title, string Subtitle,
     public HudMenuView View { get; init; }
     /// <summary>Текст справа сверху, например оставшееся время.</summary>
     public string Status { get; init; } = "";
-    /// <summary>Локализованная подпись закрытия.</summary>
-    public string CloseText { get; init; } = "Close";
+    /// <summary>Подпись закрытия, полученная вызывающим модулем через Localization.Api; пустая строка не задаёт подпись.</summary>
+    public string CloseText { get; init; } = "";
     /// <summary>Информационная строка под содержимым.</summary>
     public string Footer { get; init; } = "";
     /// <summary>Показывать кнопку Back.</summary>

@@ -8,7 +8,15 @@
 2. Создать подключение SwiftlyS2 с именем `map_rotation`, драйвером `postgresql` и отдельной игровой БД этого сервера. Формат подключения такой же, как у `custom_knife` и `shop`. Секреты в репозитории не хранятся. Плагин сам применяет EF-миграцию схемы `map_rotation`.
 3. Заполнить `map_rotation.maps` только установленными картами. По умолчанию каталог пуст: плагин не добавляет неизвестные Zombie-серверу карты. Пример SQL ниже следует адаптировать под свой каталог.
 4. Добавить **содержимое** `CustomHud.Core/resources/hud/menus/content/` в существующий addon HUD. Скомпилировать XML/CSS Workshop Tools и добавить полученные ресурсы в общий VPK. Отдельный VPK MapRotation не требуется. У сервера и клиентов должен быть одинаковый обновлённый VPK.
-5. Обновлённый `Localization.Core` добавляет ключи `MapRotation.*`; ru/en присутствуют и в fallback. Выдать администраторам `maprotation.admin`.
+5. Установить обновлённый `Localization.Core`: это обязательная зависимость `MapRotation.Core`. Его миграции добавляют ключи `MapRotation.*`; те же ключи находятся в общем fallback-шаблоне Localization. Выдать администраторам `maprotation.admin`.
+
+## Локализация
+
+Все сообщения HUD, RTV, номинаций, чата и ответы администраторских команд получают текст через `Localization.Api.ILocalizationApi`. Язык игрока, серверный резервный язык и префикс `Elysium` определяет `Localization.Core`. Серверная консоль использует `ServerFallbackLanguage`; `maprotation_status` сохраняет машинный формат JSON.
+
+Переводы редактируются в общем каталоге Localization. Отдельного `MapRotation.Core/resources/translations` и встроенного словаря строк нет. Если ключ отсутствует, выводится полный ключ `MapRotation.*`, а диагностику отсутствующего перевода ведёт Localization. Общий HUD получает уже локализованные строки от вызывающего модуля.
+
+При обновлении существующего сервера применяются новые миграции Localization без перезаписи пользовательских переводов. Для работы без БД обновите проверенный `configs/plugins/Localization.Core/localization.json` экспортом из ElysiumLocalization во Flute CMS; см. [инструкцию Localization.Core](../Localization.Core/README.md). На следующих изменениях обязательно соблюдать раздел «Обязательная локализация» в корневом `AGENTS.md`.
 
 ```sql
 INSERT INTO map_rotation.maps

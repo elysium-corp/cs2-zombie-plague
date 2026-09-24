@@ -1,8 +1,8 @@
 {
   "schemaVersion": 4,
-  "version": 21,
-  "generatedAt": "2026-09-23T00:00:00Z",
-  "checksum": "sha256:4a2f5eb42a76f16c9c9515397a8423c12710016941a949d8d5012f45e8858fc2",
+  "version": 22,
+  "generatedAt": "2026-09-24T00:00:00Z",
+  "checksum": "sha256:79a582e1f3e6346b6899bb8f69dfce90fc446abb1eb0415a89ccbc456d4d02f3",
   "serverFallbackLanguage": "ru",
   "languages": [
     "ru",
@@ -565,7 +565,60 @@
         "description": "required",
         "example": "1"
       }
-    ]
+    ],
+    "MapRotation.RtvTitle": [],
+    "MapRotation.RtvProgress": [
+      {
+        "name": "votes",
+        "type": "string",
+        "required": true,
+        "description": "Количество полученных голосов",
+        "example": "4"
+      },
+      {
+        "name": "required",
+        "type": "string",
+        "required": true,
+        "description": "Необходимое количество голосов",
+        "example": "7"
+      }
+    ],
+    "MapRotation.CardSummary": [
+      {
+        "name": "title",
+        "type": "string",
+        "required": true,
+        "description": "Локализованный заголовок карточки",
+        "example": "RTV"
+      },
+      {
+        "name": "value",
+        "type": "string",
+        "required": true,
+        "description": "Основное значение карточки",
+        "example": "4 / 7"
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "required": true,
+        "description": "Локализованная дополнительная строка карточки",
+        "example": "Осталось голосов: 3"
+      }
+    ],
+    "MapRotation.Admin.ReloadQueued": [],
+    "MapRotation.Admin.VoteStarted": [],
+    "MapRotation.Admin.VoteUnavailable": [],
+    "MapRotation.Admin.NextMapSet": [
+      {
+        "name": "map",
+        "type": "string",
+        "required": true,
+        "description": "Название карты из каталога",
+        "example": "Gorodok"
+      }
+    ],
+    "MapRotation.Admin.InvalidMap": []
   },
   "entries": {
     "Localization.Menu.Title": {
@@ -2423,6 +2476,54 @@
       "en": "Menu interface is temporarily unavailable",
       "de": "Menu interface is temporarily unavailable",
       "pl": "Menu interface is temporarily unavailable"
+    },
+    "MapRotation.RtvTitle": {
+      "ru": "RTV",
+      "en": "RTV",
+      "de": "RTV",
+      "pl": "RTV"
+    },
+    "MapRotation.RtvProgress": {
+      "ru": "{votes} / {required}",
+      "en": "{votes} / {required}",
+      "de": "{votes} / {required}",
+      "pl": "{votes} / {required}"
+    },
+    "MapRotation.CardSummary": {
+      "ru": "{title}: {value} {description}",
+      "en": "{title}: {value} {description}",
+      "de": "{title}: {value} {description}",
+      "pl": "{title}: {value} {description}"
+    },
+    "MapRotation.Admin.ReloadQueued": {
+      "ru": "Обновление настроек и каталога карт поставлено в очередь",
+      "en": "Map settings and catalog reload queued",
+      "de": "Neuladen der Karteneinstellungen und des Kartenkatalogs vorgemerkt",
+      "pl": "Dodano do kolejki odświeżenie ustawień i katalogu map"
+    },
+    "MapRotation.Admin.VoteStarted": {
+      "ru": "Голосование за следующую карту запущено",
+      "en": "Voting for the next map started",
+      "de": "Abstimmung über die nächste Karte gestartet",
+      "pl": "Rozpoczęto głosowanie na następną mapę"
+    },
+    "MapRotation.Admin.VoteUnavailable": {
+      "ru": "Сейчас нельзя запустить голосование",
+      "en": "Voting cannot be started right now",
+      "de": "Die Abstimmung kann derzeit nicht gestartet werden",
+      "pl": "Nie można teraz rozpocząć głosowania"
+    },
+    "MapRotation.Admin.NextMapSet": {
+      "ru": "Следующая карта установлена: {map}",
+      "en": "Next map set: {map}",
+      "de": "Nächste Karte festgelegt: {map}",
+      "pl": "Ustawiono następną mapę: {map}"
+    },
+    "MapRotation.Admin.InvalidMap": {
+      "ru": "Карта не найдена или недоступна",
+      "en": "Map not found or unavailable",
+      "de": "Karte nicht gefunden oder nicht verfügbar",
+      "pl": "Nie znaleziono mapy lub jest ona niedostępna"
     }
   }
 }
