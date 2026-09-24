@@ -204,6 +204,7 @@ internal sealed class GameplayItemCatalogRepository(
                 RequireRange(key, mine.InstallSoundDuration, 0f, 60f);
                 RequireRange(key, mine.ChargeSoundDuration, 0f, 60f);
                 RequireRange(key, mine.ReadySoundDuration, 0f, 60f);
+                RequireRange(key, mine.DestroySoundDuration, 0.01f, 60f);
                 RequireRange(key, mine.SoundVolume, 0f, 1f);
                 RequireRange(key, mine.DamageSoundInterval, 0.3f, 60f);
                 foreach (var sound in new[]

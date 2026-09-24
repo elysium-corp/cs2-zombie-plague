@@ -1,7 +1,4 @@
 using CustomEquipment.Data.GameplayItems;
-using CustomEquipment.Utils;
-using Microsoft.Extensions.Logging;
-using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.SchemaDefinitions;
 
@@ -9,64 +6,79 @@ namespace CustomEquipment.Services;
 
 internal sealed class LaserMineSoundPlayback(
     LaserMineSettings settings,
-    Action<string, Vector, float> emit,
+    Action<string, Vector, float, float> emit,
     Func<long> clock,
-    Action<string, Vector, float>? emitDestruction = null)
+    Action<string, Vector, float, float>? emitDestruction = null,
+    Action? stop = null)
 {
+    private readonly Action<string, Vector, float, float> _emit = emit;
+    private readonly Action? _stop = stop;
     private long? _lastDamageSoundAt;
+    private bool _destroyed;
+    private bool _stopped;
 
-    public LaserMineSoundPlayback(ISwiftlyCore core, LaserMineSettings settings, Func<CBaseEntity?> source)
-        : this(settings, (name, position, volume) => PlaySafely(core, name, position, volume, source()),
-            () => Environment.TickCount64,
-            (name, position, volume) => PlaySafely(core, name, position, volume))
+    public LaserMineSoundPlayback(LaserMineSettings settings, LaserMineSoundService sounds, Func<CBaseEntity?> source)
+        : this(settings, (_, _, _, _) => { }, () => Environment.TickCount64,
+            (name, position, volume, duration) => sounds.Play(name, position, volume, -1, duration))
     {
+        var sourceIndex = -1;
+        _emit = (name, position, volume, duration) =>
+        {
+            if (source() is not { IsValidEntity: true } entity) return;
+            sourceIndex = (int)entity.Index;
+            sounds.Play(name, position, volume, sourceIndex, duration);
+        };
+        _stop = () =>
+        {
+            if (sourceIndex != -1) sounds.StopSource(sourceIndex);
+        };
     }
 
     public void Start(Vector position, Action<float, Action> schedule)
     {
-        Play(settings.InstallSound, position);
+        if (_destroyed || _stopped) return;
+        Play(settings.InstallSound, position, settings.InstallSoundDuration);
         schedule(settings.InstallSoundDuration, () => Charge(position));
         schedule(settings.ReadySoundDelay, () => Ready(position));
     }
 
-    public void Charge(Vector position) => Play(settings.ChargeSound, position);
-    public void Ready(Vector position) => Play(settings.ReadySound, position);
-    public void Destroy(Vector position) => Play(settings.DestroySound, position, emitDestruction);
+    public void Charge(Vector position) => Play(settings.ChargeSound, position, settings.ChargeSoundDuration);
+    public void Ready(Vector position) => Play(settings.ReadySound, position, settings.ReadySoundDuration);
+
+    public void Destroy(Vector position)
+    {
+        if (_destroyed || _stopped) return;
+        _destroyed = true;
+        Emit(settings.DestroySound, position, settings.DestroySoundDuration, emitDestruction ?? _emit);
+    }
+
+    public void Stop()
+    {
+        if (_stopped) return;
+        _stopped = true;
+        _stop?.Invoke();
+    }
 
     public void Damage(Vector position)
     {
+        if (_destroyed || _stopped) return;
         var now = clock();
         var interval = (long)MathF.Ceiling(settings.DamageSoundInterval * 1000f);
         if (_lastDamageSoundAt is { } last && now - last < interval) return;
         _lastDamageSoundAt = now;
-        Play(settings.DamageSound, position);
+        Play(settings.DamageSound, position, settings.DamageSoundInterval);
     }
 
-    private static void PlaySafely(ISwiftlyCore core, string name, Vector position, float volume, CBaseEntity? source = null)
+    private void Play(string name, Vector position, float duration)
     {
-        try
-        {
-            if (source is { IsValidEntity: true })
-            {
-                // block_match_entity в soundevents различает отдельные установленные мины.
-                SoundExt.PlayInPlace(source, name, position, volume);
-            }
-            else
-            {
-                SoundExt.PlayInPlace(name, position, volume);
-            }
-        }
-        catch (Exception exception)
-        {
-            core.Logger.LogWarning(exception, "[LaserMine] Не удалось воспроизвести звук {Sound}.", name);
-        }
+        if (!_destroyed && !_stopped) Emit(name, position, duration, _emit);
     }
 
-    private void Play(string name, Vector position, Action<string, Vector, float>? emitter = null)
+    private void Emit(string name, Vector position, float duration, Action<string, Vector, float, float> emitter)
     {
-        if (!string.IsNullOrWhiteSpace(name) && settings.SoundVolume > 0f)
+        if (!string.IsNullOrWhiteSpace(name) && settings.SoundVolume > 0f && duration > 0f)
         {
-            (emitter ?? emit)(name, position, settings.SoundVolume);
+            emitter(name, position, settings.SoundVolume, duration);
         }
     }
 }

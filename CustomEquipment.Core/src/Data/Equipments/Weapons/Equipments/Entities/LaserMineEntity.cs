@@ -1,4 +1,5 @@
-﻿using CustomEquipment.Api.Data;
+﻿using Common.Di;
+using CustomEquipment.Api.Data;
 using CustomEquipment.Utils;
 using CustomEquipment.Data.GameplayItems;
 using CustomEquipment.Services;
@@ -31,12 +32,12 @@ public sealed class LaserMineEntity : LaserMineEntityBase
     {
     }
 
-    internal LaserMineEntity(ISwiftlyCore core, LaserMineSettings settings)
+    internal LaserMineEntity(ISwiftlyCore core, LaserMineSettings settings, LaserMineSoundService? sounds = null)
         : base(core)
     {
         _core = core ?? throw new ArgumentNullException(nameof(core));
         _settings = settings ?? throw new ArgumentNullException(nameof(settings));
-        _sounds = new LaserMineSoundPlayback(core, settings, () => LaserMine);
+        _sounds = new LaserMineSoundPlayback(settings, sounds ?? DependencyResolver.GetRequiredService<LaserMineSoundService>(), () => LaserMine);
     }
 
     public override string LaserMineModel => _settings.MineModel;
@@ -64,6 +65,8 @@ public sealed class LaserMineEntity : LaserMineEntityBase
     {
         if (LaserMine?.AbsOrigin is { } position) _sounds.Destroy(position);
     }
+
+    protected override void OnDisposing() => _sounds.Stop();
 
     protected override void Trigger()
     {
@@ -122,10 +125,9 @@ public sealed class LaserMineEntity : LaserMineEntityBase
 
         hitPoint = trace.EndPos;
 
-        var entity = trace.Entity;
-        if (entity is null) return false;
+        if (trace.Entity is not CCSPlayerPawn { IsValid: true } pawn) return false;
 
-        var found = entity.Address.FindPlayerByPawnAddress();
+        var found = _core.PlayerManager.GetPlayerFromPawn(pawn);
 
         if (found is null || !found.IsValid || !found.IsAlive) return false;
 
@@ -139,10 +141,12 @@ public sealed class LaserMineEntity : LaserMineEntityBase
         var ownerPawn = owner.PlayerPawn;
         var mine = LaserMine;
 
-        if (targetPawn is not { IsValid: true } ||
-            ownerPawn is not { IsValid: true } ||
+        if (!IsArmed || target is not { IsValid: true, IsAlive: true } ||
+            owner is not { IsValid: true } || target.Equals(owner) ||
+            targetPawn is not { IsValid: true } || ownerPawn is not { IsValid: true } ||
             mine is not { IsValidEntity: true } ||
-            targetPawn.Team == mine.Team || _settings.DamagePerTrigger <= 0f)
+            targetPawn.Team == mine.Team || ownerPawn.Team != mine.Team ||
+            !float.IsFinite(_settings.DamagePerTrigger) || _settings.DamagePerTrigger <= 0f)
         {
             return;
         }

@@ -65,10 +65,25 @@ public abstract class LaserMineEntityBase(ISwiftlyCore core) : IDisposable
                 return false;
             }
 
-            LaserMine.SetModel(LaserMineModel);
-            LaserMine.Collision.SolidType = SolidType_t.SOLID_VPHYSICS;
-            LaserMine.Collision.CollisionGroup = (byte)CollisionGroup.Debris;
+            // SetupModel требует сущность, уже выведенную из staging list движка.
             LaserMine.DispatchSpawn();
+            if (!LaserMine.IsValidEntity)
+            {
+                core.Logger.LogWarning("[LaserMine] DispatchSpawn удалил сущность для модели {Model}.", LaserMineModel);
+                Dispose();
+                return false;
+            }
+
+            LaserMine.SetModel(LaserMineModel);
+            if (!LaserMine.IsValidEntity)
+            {
+                core.Logger.LogWarning("[LaserMine] SetModel удалил сущность для модели {Model}.", LaserMineModel);
+                Dispose();
+                return false;
+            }
+
+            LaserMine.Collision.SolidType = SolidType_t.SOLID_VPHYSICS;
+            LaserMine.Collision.SolidTypeUpdated();
             LaserMine.Teleport(position, rotation, null);
 
             LaserMine.Team = team;
@@ -116,6 +131,9 @@ public abstract class LaserMineEntityBase(ISwiftlyCore core) : IDisposable
 
     /// <summary>Обрабатывает уничтожение уроном, до удаления сущности.</summary>
     protected virtual void OnDestroyedByDamage() { }
+
+    /// <summary>Останавливает эффекты перед освобождением native-сущностей.</summary>
+    protected virtual void OnDisposing() { }
 
     /// <summary>Уничтожает мину уроном; обычный Dispose удаляет её без эффекта взрыва.</summary>
     public void DestroyByDamage()
@@ -195,6 +213,7 @@ public abstract class LaserMineEntityBase(ISwiftlyCore core) : IDisposable
         _scheduledTasks.Clear();
         IsArmed = false;
 
+        OnDisposing();
         Owner = null;
 
         // Отвязываем managed-ссылки до Despawn, чтобы повторный/reentrant cleanup

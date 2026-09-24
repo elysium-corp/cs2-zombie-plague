@@ -63,6 +63,7 @@ internal sealed record LaserMineSettings(
     public float InstallSoundDuration { get; init; } = 0.882358f;
     public float ChargeSoundDuration { get; init; } = 1.109478f;
     public float ReadySoundDuration { get; init; } = 1.287256f;
+    public float DestroySoundDuration { get; init; } = 2f;
     [JsonIgnore]
     public float ReadySoundDelay => Math.Max(ArmingDuration, InstallSoundDuration + ChargeSoundDuration);
     [JsonIgnore]

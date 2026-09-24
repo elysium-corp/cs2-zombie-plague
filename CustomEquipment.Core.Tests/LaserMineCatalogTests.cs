@@ -27,6 +27,7 @@ public sealed class LaserMineCatalogTests
         Assert.Equal(2f, settings.ReadySoundDelay);
         Assert.Equal(3.287256f, settings.ActivationDelay);
         Assert.Equal(0.3f, settings.DamageSoundInterval);
+        Assert.Equal(2f, settings.DestroySoundDuration);
         Assert.Equal("ZombiePlague.lasermine_electric_zap", settings.DamageSound);
     }
 
@@ -51,6 +52,7 @@ public sealed class LaserMineCatalogTests
     [InlineData("install_duration")]
     [InlineData("charge_duration")]
     [InlineData("ready_duration")]
+    [InlineData("destroy_duration")]
     [InlineData("resource")]
     [InlineData("null_sound")]
     public void InvalidSoundSettingsAreRejectedBeforeRuntime(string field)
@@ -63,6 +65,7 @@ public sealed class LaserMineCatalogTests
             "install_duration" => settings with { InstallSoundDuration = -1f },
             "charge_duration" => settings with { ChargeSoundDuration = float.PositiveInfinity },
             "ready_duration" => settings with { ReadySoundDuration = float.NaN },
+            "destroy_duration" => settings with { DestroySoundDuration = 0f },
             "volume" => settings with { SoundVolume = 2f },
             "resource" => settings with { SoundEventsResource = "../sounds/test.wav" },
             _ => settings with { DamageSound = null! }

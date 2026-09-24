@@ -16,7 +16,7 @@ public sealed class LaserMineSoundTests
         var emitted = new List<(string Name, float Time)>();
         var callbacks = new List<(float Time, Action Callback)>();
         var now = 0f;
-        var sounds = new LaserMineSoundPlayback(Settings, (name, _, _) => emitted.Add((name, now)), () => 0);
+        var sounds = new LaserMineSoundPlayback(Settings, (name, _, _, _) => emitted.Add((name, now)), () => 0);
         Assert.Empty(emitted);
         sounds.Start(default, (time, callback) => callbacks.Add((time, callback)));
         Assert.Equal(("ZombiePlague.lasermine_mechanism_click", 0f), Assert.Single(emitted));
@@ -42,7 +42,7 @@ public sealed class LaserMineSoundTests
     {
         var settings = Settings with { InstallSoundDuration = 2f, ChargeSoundDuration = 3f, ReadySoundDuration = 1f };
         var callbacks = new List<float>();
-        new LaserMineSoundPlayback(settings, (_, _, _) => { }, () => 0)
+        new LaserMineSoundPlayback(settings, (_, _, _, _) => { }, () => 0)
             .Start(default, (time, _) => callbacks.Add(time));
         Assert.Equal(new[] { 2f, 5f }, callbacks);
         Assert.Equal(6f, settings.ActivationDelay);
@@ -53,7 +53,7 @@ public sealed class LaserMineSoundTests
     {
         long now = 0;
         var emissions = new List<long>();
-        var sounds = new LaserMineSoundPlayback(Settings, (_, _, _) => emissions.Add(now), () => now);
+        var sounds = new LaserMineSoundPlayback(Settings, (_, _, _, _) => emissions.Add(now), () => now);
         foreach (var time in new long[] { 0, 100, 150, 299, 300, 450, 599, 600 })
         {
             now = time;
@@ -67,8 +67,8 @@ public sealed class LaserMineSoundTests
     public void DamageCooldownIsIndependentForEachMineAndDoesNotSuppressExplosion()
     {
         var emissions = new List<string>();
-        var first = new LaserMineSoundPlayback(Settings, (name, _, _) => emissions.Add(name), () => 1000);
-        var second = new LaserMineSoundPlayback(Settings, (name, _, _) => emissions.Add(name), () => 1000);
+        var first = new LaserMineSoundPlayback(Settings, (name, _, _, _) => emissions.Add(name), () => 1000);
+        var second = new LaserMineSoundPlayback(Settings, (name, _, _, _) => emissions.Add(name), () => 1000);
         first.Damage(default);
         first.Damage(default);
         second.Damage(default);
@@ -83,8 +83,8 @@ public sealed class LaserMineSoundTests
         var live = new List<string>();
         var destroyed = new List<string>();
         var sounds = new LaserMineSoundPlayback(Settings,
-            (name, _, _) => live.Add(name), () => 0,
-            (name, _, _) => destroyed.Add(name));
+            (name, _, _, _) => live.Add(name), () => 0,
+            (name, _, _, _) => destroyed.Add(name));
         sounds.Damage(default);
         sounds.Destroy(default);
         Assert.Equal(Settings.DamageSound, Assert.Single(live));
@@ -98,7 +98,7 @@ public sealed class LaserMineSoundTests
         var position = new Vector(10, 20, 30);
         var emissions = new List<(string Name, Vector Position, float Volume)>();
         var sounds = new LaserMineSoundPlayback(settings,
-            (name, origin, volume) => emissions.Add((name, origin, volume)), () => 0);
+            (name, origin, volume, _) => emissions.Add((name, origin, volume)), () => 0);
         sounds.Damage(position);
         Assert.Equal((settings.DamageSound, position, 0.4f), Assert.Single(emissions));
     }
@@ -109,7 +109,7 @@ public sealed class LaserMineSoundTests
     public void DisabledSoundDoesNotEmit(string name, float volume)
     {
         var sounds = new LaserMineSoundPlayback(Settings with { DamageSound = name, SoundVolume = volume },
-            (_, _, _) => Assert.Fail("Отключённый звук не должен воспроизводиться."), () => 0);
+            (_, _, _, _) => Assert.Fail("Отключённый звук не должен воспроизводиться."), () => 0);
         sounds.Damage(default);
     }
 }
