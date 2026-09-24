@@ -1,8 +1,10 @@
 using System.Globalization;
 using System.Reflection;
 using System.Text.Json;
+using Microsoft.Extensions.Logging.Abstractions;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Convars;
+using SwiftlyS2.Shared.Services;
 using Xunit;
 
 namespace MapRotation.Core.Tests;
@@ -14,7 +16,7 @@ public sealed class MapEngineAdapterTests
     {
         var f = new Fixture();
 
-        f.Adapter.ApplyRotationPolicy(rotationEnabled: false);
+        f.ApplyPolicy(rotationEnabled: false);
 
         Assert.Equal("0.000000", f.Time.Value);
         Assert.Equal("0", f.Rounds.Value);
@@ -29,12 +31,12 @@ public sealed class MapEngineAdapterTests
     public void ClearingAnActivePoolRestoresMatchControlsAndKeepsUnlimitedLimits()
     {
         var f = new Fixture();
-        f.Adapter.ApplyRotationPolicy(rotationEnabled: true);
+        f.ApplyPolicy(rotationEnabled: true);
         Assert.Equal("false", f.ChangeLevel.Value);
         Assert.Equal("false", f.Restart.Value);
 
-        f.Adapter.ApplyRotationPolicy(rotationEnabled: false);
-        f.Adapter.ApplyRotationPolicy(rotationEnabled: false);
+        f.ApplyPolicy(rotationEnabled: false);
+        f.ApplyPolicy(rotationEnabled: false);
 
         Assert.Equal("true", f.ChangeLevel.Value);
         Assert.Equal("true", f.Restart.Value);
@@ -47,8 +49,8 @@ public sealed class MapEngineAdapterTests
     public void CanonicalBooleanAndFloatValuesAreNotWrittenAgainOnEveryRound()
     {
         var f = new Fixture();
-        f.Adapter.ApplyRotationPolicy(rotationEnabled: true);
-        for (var i = 0; i < 20; i++) f.Adapter.ApplyRotationPolicy(rotationEnabled: true);
+        f.ApplyPolicy(rotationEnabled: true);
+        for (var i = 0; i < 20; i++) f.ApplyPolicy(rotationEnabled: true);
 
         Assert.All(f.Values.Values, cvar => Assert.Equal(1, cvar.Writes));
         Assert.Equal("false", f.Adapter.Overrides["mp_match_end_restart"].Applied);
@@ -59,10 +61,10 @@ public sealed class MapEngineAdapterTests
     public void UnloadRestoresCanonicalValuesAndIsIdempotent()
     {
         var f = new Fixture();
-        f.Adapter.ApplyRotationPolicy(rotationEnabled: true);
+        f.ApplyPolicy(rotationEnabled: true);
 
-        f.Adapter.Dispose();
-        f.Adapter.Dispose();
+        f.Unload();
+        f.Unload();
 
         Assert.Equal("45.000000", f.Time.Value);
         Assert.Equal("24", f.Rounds.Value);
@@ -77,14 +79,14 @@ public sealed class MapEngineAdapterTests
     public void ReleaseDoesNotOverwriteSettingsChangedExternally()
     {
         var f = new Fixture();
-        f.Adapter.ApplyRotationPolicy(rotationEnabled: true);
+        f.ApplyPolicy(rotationEnabled: true);
         f.Time.Value = "30.000000";
         f.Restart.Value = "true";
 
-        f.Adapter.ApplyRotationPolicy(rotationEnabled: false);
+        f.ApplyPolicy(rotationEnabled: false);
         Assert.Equal(1, f.Restart.Writes);
         f.Time.Value = "20.000000";
-        f.Adapter.Dispose();
+        f.Unload();
 
         Assert.Equal("20.000000", f.Time.Value);
         Assert.Equal("true", f.Restart.Value);
@@ -95,11 +97,11 @@ public sealed class MapEngineAdapterTests
     public void NewMapConfigurationBecomesTheNewRestorePoint()
     {
         var f = new Fixture();
-        f.Adapter.ApplyRotationPolicy(rotationEnabled: true);
+        f.ApplyPolicy(rotationEnabled: true);
         f.Time.Value = "20.000000";
         f.Rounds.Value = "12";
-        f.Adapter.ApplyRotationPolicy(rotationEnabled: true);
-        f.Adapter.Dispose();
+        f.ApplyPolicy(rotationEnabled: true);
+        f.Unload();
 
         Assert.Equal("20.000000", f.Time.Value);
         Assert.Equal("12", f.Rounds.Value);
@@ -109,11 +111,11 @@ public sealed class MapEngineAdapterTests
     public void RefillingThePoolPreservesTheSettingsChosenWhileRotationWasInactive()
     {
         var f = new Fixture();
-        f.Adapter.ApplyRotationPolicy(rotationEnabled: true);
-        f.Adapter.ApplyRotationPolicy(rotationEnabled: false);
+        f.ApplyPolicy(rotationEnabled: true);
+        f.ApplyPolicy(rotationEnabled: false);
         f.Restart.Value = "false";
-        f.Adapter.ApplyRotationPolicy(rotationEnabled: true);
-        f.Adapter.ApplyRotationPolicy(rotationEnabled: false);
+        f.ApplyPolicy(rotationEnabled: true);
+        f.ApplyPolicy(rotationEnabled: false);
 
         Assert.Equal("false", f.Restart.Value);
         Assert.Equal("true", f.ChangeLevel.Value);
@@ -130,8 +132,8 @@ public sealed class MapEngineAdapterTests
         f.ChangeLevel.Value = "false";
         f.Values.Remove("mp_match_end_restart");
 
-        f.Adapter.ApplyRotationPolicy(rotationEnabled: true);
-        f.Adapter.Dispose();
+        f.ApplyPolicy(rotationEnabled: true);
+        f.Unload();
 
         Assert.All(f.Values.Values, cvar => Assert.Equal(0, cvar.Writes));
         Assert.Empty(f.Adapter.Overrides);
@@ -147,7 +149,7 @@ public sealed class MapEngineAdapterTests
         f.ChangeLevel.Value = "false";
         f.Restart.Value = "false";
 
-        f.Adapter.ApplyRotationPolicy(rotationEnabled: false);
+        f.ApplyPolicy(rotationEnabled: false);
 
         Assert.Equal("0", f.Rounds.Value);
         var owned = Assert.Single(f.Adapter.Overrides);
@@ -155,13 +157,180 @@ public sealed class MapEngineAdapterTests
         Assert.Equal("30", owned.Value.Original);
         Assert.Equal("0", owned.Value.Applied);
 
-        f.Adapter.Dispose();
+        f.Unload();
 
         Assert.Equal("30", f.Rounds.Value);
         Assert.Equal(2, f.Rounds.Writes);
         Assert.All(f.Values.Where(pair => pair.Key != "mp_maxrounds"), pair => Assert.Equal(0, pair.Value.Writes));
         Assert.Empty(f.Adapter.Overrides);
     }
+
+    [Fact]
+    public void AlreadyZeroServerFixtureDoesNotQueueAnyCommandOnLoadOrUnload()
+    {
+        var f = new Fixture();
+        f.Time.Value = "0.000000";
+        f.Rounds.Value = "0";
+        f.Wins.Value = "0";
+        f.ChangeLevel.Value = "false";
+        f.Restart.Value = "false";
+
+        f.ApplyPolicy(rotationEnabled: false);
+        f.Unload();
+
+        Assert.Empty(f.Commands);
+        Assert.Empty(f.Adapter.Overrides);
+        Assert.Empty(f.Adapter.PendingConVars);
+    }
+
+    [Fact]
+    public void QueuedCommandsAreNotReportedAsAppliedAndRepeatedPolicyDoesNotDuplicateThem()
+    {
+        var f = new Fixture();
+        f.Adapter.ApplyRotationPolicy(rotationEnabled: true);
+        f.Adapter.ApplyRotationPolicy(rotationEnabled: true);
+
+        Assert.Equal(5, f.Commands.Count);
+        Assert.All(f.Values.Values, cvar => Assert.Equal(0, cvar.Writes));
+        Assert.Empty(f.Adapter.Overrides);
+        Assert.Equal(5, f.Adapter.PendingConVars.Count);
+        using var json = JsonDocument.Parse(JsonSerializer.Serialize(EngineStateDiagnostics.Capture(f.Core, f.Adapter)));
+        Assert.Empty(json.RootElement.GetProperty("Overrides").EnumerateObject());
+        Assert.Equal(5, json.RootElement.GetProperty("PendingConVars").EnumerateObject().Count());
+
+        f.ExecuteQueuedCommands();
+
+        Assert.Equal(5, f.Adapter.Overrides.Count);
+        Assert.Empty(f.Adapter.PendingConVars);
+        Assert.Equal("false", f.Adapter.Overrides["mp_match_end_restart"].Applied);
+    }
+
+    [Fact]
+    public void UnloadBeforeTheCommandBufferRunsQueuesRestorationAfterApplication()
+    {
+        var f = new Fixture();
+        f.Adapter.ApplyRotationPolicy(rotationEnabled: true);
+        f.Adapter.Dispose();
+        f.Adapter.Dispose();
+        f.Adapter.ApplyRotationPolicy(rotationEnabled: true);
+
+        Assert.Equal(10, f.Commands.Count);
+        f.ExecuteQueuedCommands();
+
+        Assert.Equal("45.000000", f.Time.Value);
+        Assert.Equal("24", f.Rounds.Value);
+        Assert.Equal("13", f.Wins.Value);
+        Assert.Equal("true", f.ChangeLevel.Value);
+        Assert.Equal("true", f.Restart.Value);
+        Assert.Empty(f.Adapter.Overrides);
+        Assert.Empty(f.Adapter.PendingConVars);
+    }
+
+    [Fact]
+    public void PendingApplicationDoesNotLoseAnExternalSettingOnUnload()
+    {
+        var f = new Fixture();
+        f.Adapter.ApplyRotationPolicy(rotationEnabled: false);
+        f.Time.Value = "12.500000";
+        f.Adapter.Dispose();
+        f.ExecuteQueuedCommands();
+
+        Assert.Equal("12.500000", f.Time.Value);
+        Assert.Equal("24", f.Rounds.Value);
+    }
+
+    [Fact]
+    public void ClearingThePoolBeforeApplicationLeavesOnlyTheUnlimitedLimits()
+    {
+        var f = new Fixture();
+        f.Adapter.ApplyRotationPolicy(rotationEnabled: true);
+        f.Adapter.ApplyRotationPolicy(rotationEnabled: false);
+        f.ExecuteQueuedCommands();
+
+        Assert.Equal("0", f.Rounds.Value);
+        Assert.Equal("true", f.ChangeLevel.Value);
+        Assert.Equal("true", f.Restart.Value);
+        Assert.Equal(3, f.Adapter.Overrides.Count);
+        Assert.Empty(f.Adapter.PendingConVars);
+    }
+
+    [Fact]
+    public void ReactivatingWhileRestorationIsQueuedPreservesTheOriginalRestorePoint()
+    {
+        var f = new Fixture();
+        f.ApplyPolicy(rotationEnabled: true);
+        f.Adapter.ApplyRotationPolicy(rotationEnabled: false);
+        f.Adapter.ApplyRotationPolicy(rotationEnabled: true);
+        f.ExecuteQueuedCommands();
+
+        Assert.Equal("false", f.ChangeLevel.Value);
+        Assert.Equal("false", f.Restart.Value);
+        Assert.Equal(5, f.Adapter.Overrides.Count);
+        f.Unload();
+        Assert.Equal("true", f.ChangeLevel.Value);
+        Assert.Equal("true", f.Restart.Value);
+    }
+
+    [Fact]
+    public void MapConfigThatRunsBeforeConfirmationIsAppliedAgainOnMapLoad()
+    {
+        var f = new Fixture();
+        f.Adapter.ApplyRotationPolicy(rotationEnabled: false);
+        // Движок исполнил команду, но конфиг новой карты уже вернул исходный лимит.
+        f.CommandBuffer.Clear();
+        f.ApplyPolicy(rotationEnabled: false, mapLoaded: true);
+
+        Assert.Equal("0", f.Rounds.Value);
+        Assert.Equal(3, f.Adapter.Overrides.Count);
+        f.Unload();
+        Assert.Equal("24", f.Rounds.Value);
+    }
+
+    [Fact]
+    public void RejectedCommandsDoNotAcquireOwnershipOrOverwriteLaterSettingsOnUnload()
+    {
+        var f = new Fixture();
+        f.Adapter.ApplyRotationPolicy(rotationEnabled: true);
+        f.CommandBuffer.Clear();
+        f.Clock.Advance(TimeSpan.FromSeconds(5));
+        f.Adapter.ObservePendingChanges();
+        f.Rounds.Value = "40";
+        f.Unload();
+
+        Assert.Equal(5, f.Commands.Count);
+        Assert.Equal("40", f.Rounds.Value);
+        Assert.Empty(f.Adapter.PendingConVars);
+        Assert.Empty(f.Adapter.Overrides);
+    }
+
+    [Theory]
+    [InlineData("mp_timelimit", "12.500000", "mp_timelimit 12.5\n")]
+    [InlineData("mp_maxrounds", "30", "mp_maxrounds 30\n")]
+    [InlineData("mp_match_end_restart", "false", "mp_match_end_restart 0\n")]
+    [InlineData("mp_match_end_changelevel", "true", "mp_match_end_changelevel 1\n")]
+    public void ConsoleArgumentsUseInvariantNumbers(string name, string value, string expected)
+    {
+        var previous = CultureInfo.CurrentCulture;
+        try
+        {
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("ru-RU");
+            Assert.Equal(expected, MapEngineAdapter.ConVarCommand(name, value));
+        }
+        finally { CultureInfo.CurrentCulture = previous; }
+    }
+
+    [Theory]
+    [InlineData("mp_maxrounds", "0; quit")]
+    [InlineData("mp_timelimit", "0\nquit")]
+    [InlineData("mp_timelimit", "NaN")]
+    [InlineData("mp_timelimit", "Infinity")]
+    [InlineData("mp_match_end_restart", "2")]
+    public void InvalidConsoleValuesAreRejected(string name, string value) =>
+        Assert.Throws<FormatException>(() => MapEngineAdapter.ConVarCommand(name, value));
+
+    [Fact]
+    public void UnknownConsoleVariableIsRejected() =>
+        Assert.Throws<ArgumentOutOfRangeException>(() => MapEngineAdapter.ConVarCommand("mp_restartgame", "1"));
 
     [Fact]
     public void DiagnosticsRemainReadOnlyAndPreserveAvailableSectionsAfterANativeReadFails()
@@ -188,6 +357,33 @@ public sealed class MapEngineAdapterTests
         public Dictionary<string, FakeConVar> Values { get; }
         public ISwiftlyCore Core { get; }
         public MapEngineAdapter Adapter { get; }
+        public TestClock Clock { get; } = new();
+        public List<string> Commands { get; } = [];
+        public Queue<string> CommandBuffer { get; } = new();
+
+        public void ApplyPolicy(bool rotationEnabled, bool mapLoaded = false)
+        {
+            Adapter.ApplyRotationPolicy(rotationEnabled, mapLoaded);
+            ExecuteQueuedCommands();
+        }
+
+        public void Unload()
+        {
+            Adapter.Dispose();
+            ExecuteQueuedCommands();
+        }
+
+        public void ExecuteQueuedCommands()
+        {
+            while (CommandBuffer.TryDequeue(out var command))
+            {
+                Assert.EndsWith("\n", command);
+                var parts = command.TrimEnd('\n').Split(' ');
+                Assert.Equal(2, parts.Length);
+                Values[parts[0]].ApplyConsoleValue(parts[1]);
+            }
+            Adapter.ObservePendingChanges();
+        }
 
         public Fixture()
         {
@@ -200,17 +396,33 @@ public sealed class MapEngineAdapterTests
             {
                 var name = (string)args![0]!;
                 var cvar = Values.GetValueOrDefault(name);
-                if (method.Name == nameof(IConVarService.FindAsString)) return cvar?.Proxy;
-                if (method.Name != nameof(IConVarService.Find)) throw new InvalidOperationException(method.Name);
-                var requestedType = method.GetGenericArguments().Single();
-                if (cvar is not null && requestedType != cvar.ValueType)
-                    throw new InvalidOperationException($"Неверный тип ConVar {name}: {requestedType}, ожидается {cvar.ValueType}");
-                return cvar?.Proxy;
+                return method.Name == nameof(IConVarService.FindAsString) ? cvar?.Proxy
+                    : throw new InvalidOperationException("ConVar API разрешено только чтение: " + method.Name);
             });
-            Core = Stub<ISwiftlyCore>((method, _) => method.Name == "get_ConVar"
-                ? convars : throw new InvalidOperationException("Нативное состояние недоступно в тесте: " + method.Name));
-            Adapter = new(Core);
+            var engine = Stub<IEngineService>((method, args) =>
+            {
+                if (method.Name != nameof(IEngineService.ExecuteCommand)) throw new InvalidOperationException(method.Name);
+                var command = (string)args![0]!;
+                Commands.Add(command);
+                CommandBuffer.Enqueue(command);
+                return null;
+            });
+            Core = Stub<ISwiftlyCore>((method, _) => method.Name switch
+            {
+                "get_ConVar" => convars,
+                "get_Engine" => engine,
+                "get_Logger" => NullLogger.Instance,
+                _ => throw new InvalidOperationException("Нативное состояние недоступно в тесте: " + method.Name)
+            });
+            Adapter = new(Core, Clock);
         }
+    }
+
+    private sealed class TestClock : TimeProvider
+    {
+        private DateTimeOffset _now = DateTimeOffset.UnixEpoch;
+        public override DateTimeOffset GetUtcNow() => _now;
+        public void Advance(TimeSpan interval) => _now += interval;
     }
 
     private sealed class FakeConVar
@@ -224,34 +436,16 @@ public sealed class MapEngineAdapterTests
         {
             Value = initial;
             ValueType = valueType;
-            Proxy = valueType == typeof(float) ? Stub<IConVar<float>>(Handle)
-                : valueType == typeof(int) ? Stub<IConVar<int>>(Handle)
-                : valueType == typeof(bool) ? Stub<IConVar<bool>>(Handle)
-                : throw new ArgumentException("Неподдерживаемый тип ConVar", nameof(valueType));
+            Proxy = Stub<IConVar>((method, _) => method.Name == "get_ValueAsString" ? Value
+                : throw new InvalidOperationException("Прямая запись ConVar запрещена: " + method.Name));
         }
 
-        private object? Handle(MethodInfo method, object?[]? args)
+        public void ApplyConsoleValue(string value)
         {
-            switch (method.Name)
-            {
-                case "get_ValueAsString": return Value;
-                case "set_ValueAsString":
-                    throw new InvalidOperationException("Нативные ConVar должны изменяться через типизированное свойство Value");
-                case "get_Value": return Convert.ChangeType(Value, ValueType, CultureInfo.InvariantCulture);
-                case "set_Value":
-                    var next = args![0]!;
-                    if (next.GetType() != ValueType) throw new InvalidOperationException("Неверный тип значения ConVar");
-                    Value = next switch
-                    {
-                        float number => number.ToString("F6", CultureInfo.InvariantCulture),
-                        bool boolean => boolean ? "true" : "false",
-                        int number => number.ToString(CultureInfo.InvariantCulture),
-                        _ => throw new InvalidOperationException("Неподдерживаемое значение ConVar")
-                    };
-                    Writes++;
-                    return null;
-                default: throw new InvalidOperationException(method.Name);
-            }
+            Value = ValueType == typeof(float) ? float.Parse(value, CultureInfo.InvariantCulture).ToString("F6", CultureInfo.InvariantCulture)
+                : ValueType == typeof(bool) ? value == "0" ? "false" : "true"
+                : int.Parse(value, CultureInfo.InvariantCulture).ToString(CultureInfo.InvariantCulture);
+            Writes++;
         }
     }
 

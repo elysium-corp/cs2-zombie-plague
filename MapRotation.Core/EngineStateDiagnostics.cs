@@ -67,7 +67,8 @@ internal static class EngineStateDiagnostics
                 };
             })).ToArray()),
         ConVars = ConVars.ToDictionary(name => name, name => Read(() => core.ConVar.FindAsString(name)?.ValueAsString)),
-        Overrides = maps.Overrides
+        Overrides = maps.Overrides,
+        PendingConVars = maps.PendingConVars
     };
 
     private static object? Read(Func<object?> read)

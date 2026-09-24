@@ -79,6 +79,7 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
         if (_disposed || _mapUnloading || !store.Initialized) return;
         try
         {
+            maps.ObservePendingChanges();
             if (!_loaded)
             {
                 Apply(store.Initial!.Configuration);
@@ -110,10 +111,10 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
             core.Logger.LogWarning("[MapRotation] Нет установленных карт в каталоге; заполните map_rotation.maps");
     }
 
-    private void UpdateNativePolicy(bool force = false)
+    private void UpdateNativePolicy(bool force = false, bool mapLoaded = false)
     {
         if (!force && _nativeRotationEnabled == engine.RotationEnabled) return;
-        maps.ApplyRotationPolicy(engine.RotationEnabled);
+        maps.ApplyRotationPolicy(engine.RotationEnabled, mapLoaded);
         _nativeRotationEnabled = engine.RotationEnabled;
     }
 
@@ -358,7 +359,7 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
         if (!_loaded) return;
         // Событие загрузки означает новую сессию, включая повтор той же карты.
         engine.LoadMap(args.MapName, maps.WorkshopId, engine.Checkpoint() with { State = RotationState.ChangingMap });
-        Apply(engine.Configuration); UpdateNativePolicy(force: true); RefreshPlayers(); Publish();
+        Apply(engine.Configuration); UpdateNativePolicy(force: true, mapLoaded: true); RefreshPlayers(); Publish();
     }
     private void OnMapUnload(IOnMapUnloadEvent args)
     {
