@@ -138,6 +138,32 @@ public sealed class MapEngineAdapterTests
     }
 
     [Fact]
+    public void EmptyPoolWithOnlyRoundLimitChangesAndRestoresOnlyThatLimit()
+    {
+        var f = new Fixture();
+        f.Time.Value = "0.000000";
+        f.Rounds.Value = "30";
+        f.Wins.Value = "0";
+        f.ChangeLevel.Value = "false";
+        f.Restart.Value = "false";
+
+        f.Adapter.ApplyRotationPolicy(rotationEnabled: false);
+
+        Assert.Equal("0", f.Rounds.Value);
+        var owned = Assert.Single(f.Adapter.Overrides);
+        Assert.Equal("mp_maxrounds", owned.Key);
+        Assert.Equal("30", owned.Value.Original);
+        Assert.Equal("0", owned.Value.Applied);
+
+        f.Adapter.Dispose();
+
+        Assert.Equal("30", f.Rounds.Value);
+        Assert.Equal(2, f.Rounds.Writes);
+        Assert.All(f.Values.Where(pair => pair.Key != "mp_maxrounds"), pair => Assert.Equal(0, pair.Value.Writes));
+        Assert.Empty(f.Adapter.Overrides);
+    }
+
+    [Fact]
     public void DiagnosticsRemainReadOnlyAndPreserveAvailableSectionsAfterANativeReadFails()
     {
         var f = new Fixture();
@@ -154,11 +180,11 @@ public sealed class MapEngineAdapterTests
 
     private sealed class Fixture
     {
-        public FakeConVar Time { get; } = new("45.000000", value => double.Parse(value, CultureInfo.InvariantCulture).ToString("F6", CultureInfo.InvariantCulture));
-        public FakeConVar Rounds { get; } = new("24");
-        public FakeConVar Wins { get; } = new("13");
-        public FakeConVar ChangeLevel { get; } = new("true", BooleanValue);
-        public FakeConVar Restart { get; } = new("true", BooleanValue);
+        public FakeConVar Time { get; } = new("45.000000", typeof(float));
+        public FakeConVar Rounds { get; } = new("24", typeof(int));
+        public FakeConVar Wins { get; } = new("13", typeof(int));
+        public FakeConVar ChangeLevel { get; } = new("true", typeof(bool));
+        public FakeConVar Restart { get; } = new("true", typeof(bool));
         public Dictionary<string, FakeConVar> Values { get; }
         public ISwiftlyCore Core { get; }
         public MapEngineAdapter Adapter { get; }
@@ -170,35 +196,62 @@ public sealed class MapEngineAdapterTests
                 ["mp_timelimit"] = Time, ["mp_maxrounds"] = Rounds, ["mp_winlimit"] = Wins,
                 ["mp_match_end_changelevel"] = ChangeLevel, ["mp_match_end_restart"] = Restart
             };
-            var convars = Stub<IConVarService>((method, args) => method.Name == nameof(IConVarService.FindAsString)
-                ? Values.GetValueOrDefault((string)args![0]!)?.Proxy
-                : throw new InvalidOperationException(method.Name));
+            var convars = Stub<IConVarService>((method, args) =>
+            {
+                var name = (string)args![0]!;
+                var cvar = Values.GetValueOrDefault(name);
+                if (method.Name == nameof(IConVarService.FindAsString)) return cvar?.Proxy;
+                if (method.Name != nameof(IConVarService.Find)) throw new InvalidOperationException(method.Name);
+                var requestedType = method.GetGenericArguments().Single();
+                if (cvar is not null && requestedType != cvar.ValueType)
+                    throw new InvalidOperationException($"Неверный тип ConVar {name}: {requestedType}, ожидается {cvar.ValueType}");
+                return cvar?.Proxy;
+            });
             Core = Stub<ISwiftlyCore>((method, _) => method.Name == "get_ConVar"
                 ? convars : throw new InvalidOperationException("Нативное состояние недоступно в тесте: " + method.Name));
             Adapter = new(Core);
         }
-
-        private static string BooleanValue(string value) => value is "0" or "false" ? "false" : "true";
     }
 
     private sealed class FakeConVar
     {
         public string Value { get; set; }
         public int Writes { get; private set; }
+        public Type ValueType { get; }
         public IConVar Proxy { get; }
 
-        public FakeConVar(string initial, Func<string, string>? canonicalize = null)
+        public FakeConVar(string initial, Type valueType)
         {
             Value = initial;
-            Proxy = Stub<IConVar>((method, args) =>
+            ValueType = valueType;
+            Proxy = valueType == typeof(float) ? Stub<IConVar<float>>(Handle)
+                : valueType == typeof(int) ? Stub<IConVar<int>>(Handle)
+                : valueType == typeof(bool) ? Stub<IConVar<bool>>(Handle)
+                : throw new ArgumentException("Неподдерживаемый тип ConVar", nameof(valueType));
+        }
+
+        private object? Handle(MethodInfo method, object?[]? args)
+        {
+            switch (method.Name)
             {
-                if (method.Name == "get_ValueAsString") return Value;
-                if (method.Name != "set_ValueAsString") throw new InvalidOperationException(method.Name);
-                var next = (string)args![0]!;
-                Value = canonicalize?.Invoke(next) ?? next;
-                Writes++;
-                return null;
-            });
+                case "get_ValueAsString": return Value;
+                case "set_ValueAsString":
+                    throw new InvalidOperationException("Нативные ConVar должны изменяться через типизированное свойство Value");
+                case "get_Value": return Convert.ChangeType(Value, ValueType, CultureInfo.InvariantCulture);
+                case "set_Value":
+                    var next = args![0]!;
+                    if (next.GetType() != ValueType) throw new InvalidOperationException("Неверный тип значения ConVar");
+                    Value = next switch
+                    {
+                        float number => number.ToString("F6", CultureInfo.InvariantCulture),
+                        bool boolean => boolean ? "true" : "false",
+                        int number => number.ToString(CultureInfo.InvariantCulture),
+                        _ => throw new InvalidOperationException("Неподдерживаемое значение ConVar")
+                    };
+                    Writes++;
+                    return null;
+                default: throw new InvalidOperationException(method.Name);
+            }
         }
     }
 

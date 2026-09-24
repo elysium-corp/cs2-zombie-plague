@@ -48,7 +48,7 @@ internal sealed class MapEngineAdapter(ISwiftlyCore core) : IDisposable
             return;
         }
 
-        cvar.ValueAsString = "0";
+        WriteValue(name, "0");
         // Движок нормализует значения: bool возвращается как false, float —
         // например, как 0.000000. Сравниваем с фактически записанным значением.
         // Новый конфиг карты заменяет прежнюю точку восстановления.
@@ -59,11 +59,37 @@ internal sealed class MapEngineAdapter(ISwiftlyCore core) : IDisposable
         bool.TryParse(value, out var boolean) ? !boolean :
         double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var number) && number == 0;
 
+    private void WriteValue(string name, string value)
+    {
+        // В SwiftlyS2 1.4.11 ValueAsString подавляет глобальные callbacks ConVar.
+        // Типизированный Value сохраняет штатные уведомления движка и плагинов
+        // как при применении политики, так и при восстановлении настроек.
+        switch (name)
+        {
+            case "mp_timelimit":
+                if (core.ConVar.Find<float>(name) is { } time)
+                    time.Value = float.Parse(value, CultureInfo.InvariantCulture);
+                break;
+            case "mp_maxrounds":
+            case "mp_winlimit":
+                if (core.ConVar.Find<int>(name) is { } limit)
+                    limit.Value = int.Parse(value, CultureInfo.InvariantCulture);
+                break;
+            case "mp_match_end_changelevel":
+            case "mp_match_end_restart":
+                if (core.ConVar.Find<bool>(name) is { } flag)
+                    flag.Value = !IsZero(value);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(name), name, "Неизвестный параметр ротации");
+        }
+    }
+
     private void Restore(string name)
     {
         if (!_overrides.TryGetValue(name, out var owned)) return;
         if (core.ConVar.FindAsString(name) is { } cvar && cvar.ValueAsString == owned.Applied)
-            cvar.ValueAsString = owned.Original;
+            WriteValue(name, owned.Original);
         _overrides.Remove(name);
     }
 
