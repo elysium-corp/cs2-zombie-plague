@@ -6,7 +6,7 @@
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="SwiftlyS2.CS2" Version="1.4.11" />
+    <PackageReference Include="SwiftlyS2.CS2" Version="1.4.12-beta.3" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.3" PrivateAssets="all" />
     <ProjectReference Include="../Common.Di/Common.Di.csproj" />
     <ProjectReference Include="../Common.Database/Common.Database.csproj" />

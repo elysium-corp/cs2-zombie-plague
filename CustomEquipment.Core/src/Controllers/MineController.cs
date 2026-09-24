@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using CustomEquipment.Api.Data;
 using CustomEquipment.Api.Data.Contracts;
 using CustomEquipment.Api.Events;
@@ -31,7 +34,6 @@ internal sealed class MineController(
     : IMineController, IDisposable
 {
     private readonly Dictionary<CBaseModelEntity, (IPlayer Owner, LaserMineEntityBase Mine)> _mines = [];
-    private readonly HashSet<CBaseModelEntity> _destroyingMines = [];
     private Guid _roundEndHook = Guid.Empty;
     private Guid _gameRestartHook = Guid.Empty;
     private Guid _playerDisconnectHook = Guid.Empty;
@@ -45,17 +47,17 @@ internal sealed class MineController(
         }
 
         _initialized = true;
+
         events.Items.Giving.Hook(OnItemGiving);
         events.Items.Given.Hook(OnItemGiven);
         events.Mines.Placed.Hook(OnMinePlaced);
-        core.Event.OnPrecacheResource += OnPrecacheResource;
         core.Event.OnMapLoad += OnMapLoad;
         _roundEndHook = core.GameEvent.HookPost<EventRoundEnd>(OnRoundEnd);
         _gameRestartHook = core.GameEvent.HookPost<EventCsPreRestart>(OnGameRestart);
         _playerDisconnectHook = core.GameEvent.HookPost<EventPlayerDisconnect>(OnPlayerDisconnect);
-        core.GameHooks.Entities.TakeDamage.Pre += OnEntityTakeDamage;
         core.GameHooks.Movement.RunCommand.Pre += OnRunCommand;
         core.GameHooks.Weapons.CanUse.Pre += OnWeaponCanUse;
+        core.GameHooks.Entities.TakeDamage.Pre += OnEntityTakeDamage;
 
         var playerEvents = zombiePlagueApi().Events.Players;
         playerEvents.Infected.Hook(OnPlayerInfected);
@@ -73,7 +75,6 @@ internal sealed class MineController(
         events.Items.Giving.Unhook(OnItemGiving);
         events.Items.Given.Unhook(OnItemGiven);
         events.Mines.Placed.Unhook(OnMinePlaced);
-        core.Event.OnPrecacheResource -= OnPrecacheResource;
         core.Event.OnMapLoad -= OnMapLoad;
         core.GameEvent.Unhook(_roundEndHook);
         core.GameEvent.Unhook(_gameRestartHook);
@@ -81,9 +82,9 @@ internal sealed class MineController(
         _roundEndHook = Guid.Empty;
         _gameRestartHook = Guid.Empty;
         _playerDisconnectHook = Guid.Empty;
-        core.GameHooks.Entities.TakeDamage.Pre -= OnEntityTakeDamage;
         core.GameHooks.Movement.RunCommand.Pre -= OnRunCommand;
         core.GameHooks.Weapons.CanUse.Pre -= OnWeaponCanUse;
+        core.GameHooks.Entities.TakeDamage.Pre -= OnEntityTakeDamage;
 
         var playerEvents = zombiePlagueApi().Events.Players;
         playerEvents.Infected.Unhook(OnPlayerInfected);
@@ -121,6 +122,28 @@ internal sealed class MineController(
         return HookResult.Continue;
     }
 
+    private void OnEntityTakeDamage(ref TakeDamageEntityPreContext hook)
+    {
+        var attacker = hook.Params.Info.Attacker.ResolvePlayerFromHandle();
+        var victim = hook.Params.Entity as CBaseModelEntity;
+
+        if (victim == null || attacker == null) return;
+        if (!_mines.TryGetValue(victim, out var entry)) return;
+        if (attacker.PlayerPawn?.Team != victim.Team) return;
+
+        if (!attacker.Equals(entry.Owner))
+        {
+            hook.Params.Info.Damage = 0;
+            return;
+        }
+
+        if (victim.Health - hook.Params.Info.Damage <= 0)
+        {
+            _mines.Remove(victim);
+            entry.Mine.Dispose();
+        }
+    }
+
     private HookResult OnGameRestart(EventCsPreRestart @event)
     {
         RemoveAllMines();
@@ -143,18 +166,6 @@ internal sealed class MineController(
         if (entity is not { IsValidEntity: true }) return;
         _mines[entity] = (context.Player, context.Mine);
         equipmentService.RemoveItems<LaserMine>(context.Player);
-    }
-
-    private void OnPrecacheResource(IOnPrecacheResourceEvent @event)
-    {
-        var definition = gameplayItemCatalog.Get(GameplayItemKeys.LaserMine);
-        var settings = (LaserMineSettings)definition.Settings;
-        foreach (var resource in new[] { definition.Model, settings.MineModel, settings.SoundEventsResource }
-                     .Where(path => !string.IsNullOrWhiteSpace(path))
-                     .Distinct(StringComparer.OrdinalIgnoreCase))
-        {
-            @event.AddItem(resource);
-        }
     }
 
     private void OnMapLoad(IOnMapLoadEvent @event) => RemoveAllMines();
@@ -213,39 +224,6 @@ internal sealed class MineController(
         context.SetHookResult(HookResult.Stop);
     }
 
-    private void OnEntityTakeDamage(ref TakeDamageEntityPreContext hook)
-    {
-        var victim = hook.Params.Entity as CBaseModelEntity;
-        if (victim is not { IsValidEntity: true }) return;
-        if (!_mines.TryGetValue(victim, out var entry)) return;
-
-        var attacker = hook.Params.Info.Attacker.ResolvePlayerFromHandle();
-        if (_destroyingMines.Contains(victim) ||
-            attacker is { IsValid: true } && attacker.PlayerPawn?.Team == victim.Team &&
-            !attacker.Equals(entry.Owner))
-        {
-            hook.Params.Info.Damage = 0;
-            hook.SetHookResult(HookResult.Stop);
-            return;
-        }
-
-        if (hook.Params.Info.Damage > 0f && victim.Health - hook.Params.Info.Damage <= 0f)
-        {
-            // Не удаляем native entity внутри её TakeDamage: откладываем удаление до world update.
-            hook.Params.Info.Damage = 0;
-            hook.SetHookResult(HookResult.Stop);
-            _destroyingMines.Add(victim);
-            core.Scheduler.NextWorldUpdate(() =>
-            {
-                if (!_initialized || !_mines.TryGetValue(victim, out var current) ||
-                    !ReferenceEquals(current.Mine, entry.Mine)) return;
-                _destroyingMines.Remove(victim);
-                _mines.Remove(victim);
-                entry.Mine.DestroyByDamage();
-            });
-        }
-    }
-
     private void UpdateNotValidMines()
     {
         foreach (var pair in _mines.ToArray())
@@ -253,7 +231,6 @@ internal sealed class MineController(
             if (!pair.Key.IsValidEntity)
             {
                 _mines.Remove(pair.Key);
-                _destroyingMines.Remove(pair.Key);
                 pair.Value.Mine.Dispose();
             }
         }
@@ -290,7 +267,6 @@ internal sealed class MineController(
             .ToArray();
 
         _mines.Clear();
-        _destroyingMines.Clear();
 
         foreach (var mine in mines)
         {
@@ -307,7 +283,6 @@ internal sealed class MineController(
                      .ToArray())
         {
             _mines.Remove(pair.Key);
-            _destroyingMines.Remove(pair.Key);
             pair.Value.Mine.Dispose();
         }
     }

@@ -72,9 +72,9 @@ internal sealed record LaserMineSettings(
     public string ReadySound { get; init; } = "ZombiePlague.lasermine_ready";
     public string DamageSound { get; init; } = "ZombiePlague.lasermine_electric_zap";
     public string DestroySound { get; init; } = "ZombiePlague.lasermine_explosion";
+    public float DestroySoundDuration { get; init; } = 2f;
     public float SoundVolume { get; init; } = 0.7f;
     public float DamageSoundInterval { get; init; } = 0.3f;
-    public string SoundEventsResource { get; init; } = "soundevents/game_sounds_elysium_weapons.vsndevts";
 }
 
 internal sealed record GameplayItemDefinition(

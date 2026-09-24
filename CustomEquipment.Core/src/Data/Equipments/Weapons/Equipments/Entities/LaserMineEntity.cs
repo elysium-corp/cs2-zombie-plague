@@ -1,11 +1,12 @@
 ﻿using CustomEquipment.Api.Data;
 using CustomEquipment.Utils;
 using CustomEquipment.Data.GameplayItems;
-using CustomEquipment.Services;
+using Microsoft.Extensions.Logging;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
+using SwiftlyS2.Shared.ProtobufDefinitions;
 using SwiftlyS2.Shared.Trace;
 
 namespace CustomEquipment.Data.Equipments.Weapons.Equipments.Entities;
@@ -17,7 +18,7 @@ public sealed class LaserMineEntity : LaserMineEntityBase
 {
     private readonly ISwiftlyCore _core;
     private readonly LaserMineSettings _settings;
-    private readonly LaserMineSoundPlayback _sounds;
+    private long? _lastDamageSoundAt;
 
     /// <summary>
     /// Создаёт сущность с параметрами лазерной мины по умолчанию.
@@ -36,7 +37,6 @@ public sealed class LaserMineEntity : LaserMineEntityBase
     {
         _core = core ?? throw new ArgumentNullException(nameof(core));
         _settings = settings ?? throw new ArgumentNullException(nameof(settings));
-        _sounds = new LaserMineSoundPlayback(core, settings, () => LaserMine);
     }
 
     public override string LaserMineModel => _settings.MineModel;
@@ -45,6 +45,7 @@ public sealed class LaserMineEntity : LaserMineEntityBase
     public override int MaxHealth => _settings.MaxHealth;
     public override float ArmingDelay => _settings.ActivationDelay;
     public override float BeamWidth => _settings.BeamWidth;
+
     public override Color BeamColor => new(
         _settings.BeamRed,
         _settings.BeamGreen,
@@ -52,17 +53,30 @@ public sealed class LaserMineEntity : LaserMineEntityBase
         _settings.BeamAlpha
     );
 
-    private const string DamageParticle = "particles/explosions_fx/bumpmine_detonate_sparks.vpcf";
     private const DamageTypes_t DamageType = DamageTypes_t.DMG_POISON;
 
     protected override void OnSpawned()
     {
-        if (LaserMine?.AbsOrigin is { } position) _sounds.Start(position, ScheduleWhileAlive);
+        if (LaserMine?.AbsOrigin is not { } position) return;
+
+        PlaySound(_settings.InstallSound, position);
+        ScheduleWhileAlive(_settings.InstallSoundDuration, () =>
+        {
+            if (LaserMine?.AbsOrigin is { } origin) PlaySound(_settings.ChargeSound, origin);
+        });
+        ScheduleWhileAlive(_settings.ReadySoundDelay, () =>
+        {
+            if (LaserMine?.AbsOrigin is { } origin) PlaySound(_settings.ReadySound, origin);
+        });
     }
 
     protected override void OnDestroyedByDamage()
     {
-        if (LaserMine?.AbsOrigin is { } position) _sounds.Destroy(position);
+        var position = LaserMine?.AbsOrigin ?? LastKnownPosition;
+        if (position is not { } origin) return;
+
+        var guid = PlaySound(_settings.DestroySound, origin);
+        StopSoundLater(guid, _settings.DestroySoundDuration);
     }
 
     protected override void Trigger()
@@ -87,8 +101,6 @@ public sealed class LaserMineEntity : LaserMineEntityBase
         if (!foundTarget) return;
 
         ApplyDamage(target, owner);
-
-        // CreateDamageParticle(hitPoint);
     }
 
     private bool TryFindTarget(out IPlayer target, out Vector hitPoint)
@@ -147,36 +159,75 @@ public sealed class LaserMineEntity : LaserMineEntityBase
             return;
         }
 
-        // Не сохраняем временную prop_dynamic как inflictor в native damage bookkeeping.
-        // При заражении владельца мина удаляется, а Source 2 может продолжать держать
-        // damage handles до конца текущего frame/round reset.
         targetPawn.TakeDamage(
             _settings.DamagePerTrigger,
-            DamageType,
-            ownerPawn,
-            ownerPawn
+            DamageType
         );
 
         if (IsArmed && LaserMine is { IsValidEntity: true, AbsOrigin: { } position })
         {
-            _sounds.Damage(position);
+            PlayDamageSound(position);
         }
+    }
+
+    private void PlayDamageSound(Vector position)
+    {
+        var now = Environment.TickCount64;
+        var interval = (long)MathF.Ceiling(_settings.DamageSoundInterval * 1000f);
+
+        if (_lastDamageSoundAt is { } last && now - last < interval)
+        {
+            return;
+        }
+
+        _lastDamageSoundAt = now;
+        PlaySound(_settings.DamageSound, position);
+    }
+
+    private uint PlaySound(string name, Vector position)
+    {
+        if (string.IsNullOrWhiteSpace(name) || _settings.SoundVolume <= 0f)
+        {
+            return 0;
+        }
+
+        try
+        {
+            return SoundExt.PlayInPlace(name, position, _settings.SoundVolume);
+        }
+        catch (Exception exception)
+        {
+            _core.Logger.LogWarning(exception, "[LaserMine] Не удалось воспроизвести звук {Sound}.", name);
+            return 0;
+        }
+    }
+
+    private void StopSoundLater(uint guid, float duration)
+    {
+        if (guid == 0 || duration <= 0f) return;
+
+        var timer = _core.Scheduler.DelayBySeconds(duration, () =>
+        {
+            try
+            {
+                _core.NetMessage.Send<CMsgSosStopSoundEvent>(message =>
+                {
+                    message.SoundeventGuid = unchecked((int)guid);
+                    message.Recipients.AddAllPlayers();
+                });
+            }
+            catch (Exception exception)
+            {
+                _core.Logger.LogWarning(exception, "[LaserMine] Не удалось остановить звук взрыва.");
+            }
+        });
+
+        _core.Scheduler.StopOnMapChange(timer);
     }
 
     private void UpdateTracer(Vector hitPoint)
     {
         LaserMineTracer?.EndPos = hitPoint == default ? LaserDirection : hitPoint;
         LaserMineTracer?.EndPosUpdated();
-    }
-
-    private void CreateDamageParticle(Vector hitPoint)
-    {
-        var particle = _core.EntitySystem.CreateEntity<CParticleSystem>();
-
-        particle.EffectName = DamageParticle;
-        particle.StartActive = true;
-        particle.DispatchSpawn();
-
-        particle.Teleport(hitPoint, null, null);
     }
 }
