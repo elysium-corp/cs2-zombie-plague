@@ -32,7 +32,6 @@ public static class LaserMinePlacement
             InteractExclude = MaskTrace.Player | MaskTrace.CarriedObject | MaskTrace.CarriedWeapon,
             InteractAs = MaskTrace.Empty,
             EntitiesToIgnore = [pawn],
-            // C4 с моделью мины и прочие предметы владельца не являются поверхностью установки.
             OwnersToIgnore = [pawn],
             ShouldHitEntity = entity => entity is not CBasePlayerPawn and not CBasePlayerWeapon
         });

@@ -24,6 +24,7 @@ public sealed class LaserMineCatalogTests
         Assert.Equal(0.882358f, settings.InstallSoundDuration);
         Assert.Equal(1.109478f, settings.ChargeSoundDuration);
         Assert.Equal(1.287256f, settings.ReadySoundDuration);
+        Assert.Equal(2f, settings.DestroySoundDuration);
         Assert.Equal(2f, settings.ReadySoundDelay);
         Assert.Equal(3.287256f, settings.ActivationDelay);
         Assert.Equal(0.3f, settings.DamageSoundInterval);
@@ -35,7 +36,6 @@ public sealed class LaserMineCatalogTests
     {
         var json = LegacySettings[..LegacySettings.LastIndexOf('}')] + """
             ,"damage_sound":"Elysium.MineZap","ready_sound":"","sound_volume":0.4,
-            "sound_events_resource":"soundevents/elysium_mines.vsndevts"}
             """;
         var settings = Parse(json);
         Validate(settings);
@@ -51,7 +51,7 @@ public sealed class LaserMineCatalogTests
     [InlineData("install_duration")]
     [InlineData("charge_duration")]
     [InlineData("ready_duration")]
-    [InlineData("resource")]
+    [InlineData("destroy_duration")]
     [InlineData("null_sound")]
     public void InvalidSoundSettingsAreRejectedBeforeRuntime(string field)
     {
@@ -63,8 +63,8 @@ public sealed class LaserMineCatalogTests
             "install_duration" => settings with { InstallSoundDuration = -1f },
             "charge_duration" => settings with { ChargeSoundDuration = float.PositiveInfinity },
             "ready_duration" => settings with { ReadySoundDuration = float.NaN },
+            "destroy_duration" => settings with { DestroySoundDuration = -1f },
             "volume" => settings with { SoundVolume = 2f },
-            "resource" => settings with { SoundEventsResource = "../sounds/test.wav" },
             _ => settings with { DamageSound = null! }
         };
         var exception = Assert.Throws<TargetInvocationException>(() => Validate(settings));
