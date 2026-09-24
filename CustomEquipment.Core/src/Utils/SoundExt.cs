@@ -11,17 +11,20 @@ public static class SoundExt
     /// <param name="soundName">Имя звукового события; пустое значение отключает звук.</param>
     /// <param name="position">Место воспроизведения.</param>
     /// <param name="volume">Громкость воспроизведения.</param>
-    public static void PlayInPlace(string soundName, Vector position, float volume)
+    public static uint PlayInPlace(string soundName, Vector position, float volume)
     {
-        if (string.IsNullOrWhiteSpace(soundName) || volume <= 0f) return;
+        if (string.IsNullOrWhiteSpace(soundName) || volume <= 0f) return 0;
+
         using var sound = new SoundEvent(soundName)
         {
             Volume = volume,
             SourceEntityIndex = -1
         };
+
         sound.SetFloat3("public.position", position.X, position.Y, position.Z);
         sound.Recipients.AddAllPlayers();
-        sound.Emit();
+
+        return sound.Emit();
     }
 
     /// <summary>
