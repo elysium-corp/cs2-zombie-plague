@@ -216,11 +216,6 @@ internal sealed class GameplayItemCatalogRepository(
                     if (sound != string.Empty) RequireSoundEvent(key, sound);
                 }
 
-                if (!IsResourcePath(mine.SoundEventsResource, "soundevents/", ".vsndevts"))
-                {
-                    throw new InvalidOperationException($"Gameplay item '{key}' has an invalid sound events resource.");
-                }
-
                 break;
 
             default:

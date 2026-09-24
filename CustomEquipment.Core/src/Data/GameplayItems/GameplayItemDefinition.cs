@@ -75,8 +75,6 @@ internal sealed record LaserMineSettings(
     public float DestroySoundDuration { get; init; } = 2f;
     public float SoundVolume { get; init; } = 0.7f;
     public float DamageSoundInterval { get; init; } = 0.3f;
-    // Поле хранится в БД после миграций звуков мины; без него строгий JSON не читает каталог.
-    public string SoundEventsResource { get; init; } = "soundevents/game_sounds_elysium_weapons.vsndevts";
 }
 
 internal sealed record GameplayItemDefinition(
