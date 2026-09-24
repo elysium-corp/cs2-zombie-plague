@@ -52,7 +52,6 @@ public sealed class LaserMineEntity : LaserMineEntityBase
         _settings.BeamAlpha
     );
 
-    private const string DamageParticle = "particles/explosions_fx/bumpmine_detonate_sparks.vpcf";
     private const DamageTypes_t DamageType = DamageTypes_t.DMG_POISON;
 
     protected override void OnSpawned()
@@ -62,7 +61,8 @@ public sealed class LaserMineEntity : LaserMineEntityBase
 
     protected override void OnDestroyedByDamage()
     {
-        if (LaserMine?.AbsOrigin is { } position) _sounds.Destroy(position);
+        var position = LaserMine?.AbsOrigin ?? LastKnownPosition;
+        if (position is { } origin) _sounds.Destroy(origin);
     }
 
     protected override void Trigger()
@@ -87,8 +87,6 @@ public sealed class LaserMineEntity : LaserMineEntityBase
         if (!foundTarget) return;
 
         ApplyDamage(target, owner);
-
-        // CreateDamageParticle(hitPoint);
     }
 
     private bool TryFindTarget(out IPlayer target, out Vector hitPoint)
@@ -167,16 +165,5 @@ public sealed class LaserMineEntity : LaserMineEntityBase
     {
         LaserMineTracer?.EndPos = hitPoint == default ? LaserDirection : hitPoint;
         LaserMineTracer?.EndPosUpdated();
-    }
-
-    private void CreateDamageParticle(Vector hitPoint)
-    {
-        var particle = _core.EntitySystem.CreateEntity<CParticleSystem>();
-
-        particle.EffectName = DamageParticle;
-        particle.StartActive = true;
-        particle.DispatchSpawn();
-
-        particle.Teleport(hitPoint, null, null);
     }
 }
