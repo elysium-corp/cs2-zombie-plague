@@ -251,7 +251,7 @@ public sealed class AbilityHudTests
             ["root"] = [], ["styles"] = [], ["include"] = ["src"],
             ["Panel"] = ["id", "class", "hittest"],
             ["Label"] = ["id", "class", "hittest", "text"],
-            ["Image"] = ["id", "class", "hittest", "src", "texturewidth", "textureheight"],
+            ["Image"] = ["id", "class", "hittest", "src"],
             ["Button"] = ["id", "class"]
         };
         Assert.All(xml.Descendants(), node =>

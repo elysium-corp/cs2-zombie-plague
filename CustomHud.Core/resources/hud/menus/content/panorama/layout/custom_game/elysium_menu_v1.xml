@@ -13,7 +13,7 @@
                 <Label id="Subtitle" class="Subtitle" text="{s:value}" hittest="false" />
                 <Panel class="Items">
                     <Button id="Item0" class="MenuItem">
-                        <Panel class="ItemIcon" hittest="false"><Label text="◈" hittest="false" /><Image class="ResultTrophy" src="s2r://panorama/images/custom_game/elysium/banners/trophy.vsvg" texturewidth="76" textureheight="76" hittest="false" /></Panel>
+                        <Panel class="ItemIcon" hittest="false"><Label text="◈" hittest="false" /><Image class="ResultTrophy" src="s2r://panorama/images/custom_game/elysium/banners/trophy.vsvg" hittest="false" /></Panel>
                         <Panel class="ItemText" hittest="false">
                             <Label id="Name0" class="ItemName" text="{s:value}" hittest="false" />
                             <Label id="Description0" class="ItemDescription" text="{s:value}" hittest="false" />

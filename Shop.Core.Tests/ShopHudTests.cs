@@ -238,7 +238,7 @@ public sealed class ShopHudTests
         var allowed = new Dictionary<string, string[]>
         {
             ["Panel"] = ["id", "class", "hittest"], ["Label"] = ["id", "class", "hittest", "text"],
-            ["Image"] = ["id", "class", "hittest", "src", "texturewidth", "textureheight"],
+            ["Image"] = ["id", "class", "hittest", "src"],
             ["Button"] = ["id", "class"]
         };
         foreach (var element in xml.Descendants().Where(x => x.Name.LocalName is not ("root" or "styles" or "include")))

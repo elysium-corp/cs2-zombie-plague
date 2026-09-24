@@ -30,7 +30,7 @@ for i in range(3):
     content = ET.SubElement(surface, 'Panel', attrib={'class': 'BannerContent'})
     icon_panel = ET.SubElement(content, 'Panel', attrib={'class': 'BannerIcons'})
     for name in icons:
-        ET.SubElement(icon_panel, 'Image', attrib={'class': f'BannerIcon Icon_{name}', 'src': f's2r://panorama/images/custom_game/elysium/banners/{name}.vsvg', 'texturewidth': '64', 'textureheight': '64'})
+        ET.SubElement(icon_panel, 'Image', attrib={'class': f'BannerIcon Icon_{name}', 'src': f's2r://panorama/images/custom_game/elysium/banners/{name}.vsvg'})
     texts = ET.SubElement(content, 'Panel', attrib={'class': 'BannerTexts'})
     for suffix in ['Header', 'Title'] + [f'Line{n}' for n in range(4)]:
         row = ET.SubElement(texts, 'Panel', id=slot+suffix, attrib={'class': 'MessageLine ' + ('Banner'+suffix if suffix in ['Header','Title'] else 'BannerDescription')})

@@ -157,7 +157,7 @@ public sealed class HudRuntimeTests
         var allowed = new Dictionary<string, string[]>
         {
             ["root"] = [], ["styles"] = [], ["include"] = ["src"],
-            ["Image"] = ["id", "class", "hittest", "src", "texturewidth", "textureheight"],
+            ["Image"] = ["id", "class", "hittest", "src"],
             ["Panel"] = ["id", "class", "hittest"], ["Label"] = ["id", "class", "hittest", "text"]
         };
         foreach (var element in layout.Descendants())
