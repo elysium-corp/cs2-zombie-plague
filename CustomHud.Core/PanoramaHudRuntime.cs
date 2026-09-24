@@ -33,8 +33,7 @@ internal sealed class PanoramaHudRuntime : IHudRuntime
     }
 
     internal static string[] MissingResources(Func<string, bool> exists) => new[] { Layout, Style }
-        .Concat(new[] { "info", "warning", "infection", "skull", "shield", "trophy", "star", "gift", "megaphone", "lightning", "clock", "heart" }
-            .Select(icon => $"panorama/images/custom_game/elysium/banners/{icon}.vsvg_c"))
+        .Concat(HudBannerDesign.Icons.Select(icon => $"panorama/images/custom_game/elysium/banners/{icon}.vsvg_c"))
         .Where(path => !exists(path)).ToArray();
 
     public bool IsValid => !_disposed && _entities.Values.All(entity => entity.IsValidEntity);

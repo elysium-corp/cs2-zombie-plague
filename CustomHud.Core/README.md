@@ -2,6 +2,15 @@
 
 # Elysium Custom HUD
 
+## 1.7.0: все иконки конструктора
+
+Сервер принимает все 35 иконок конструктора Flute CMS. Раньше шаблон с одной из 22 новых иконок
+(`ammo`, `rifle`, `vip` и другие) отклонялся с `HUD: неизвестное значение дизайна`, и баннер не показывался
+Layout сообщений содержит Image для каждой иконки, а предварительная проверка при запуске требует все 35 `.vsvg_c`
+Поэтому сначала пересоберите и смонтируйте VPK, затем обновляйте плагин: без новых SVG HUD сообщений не запустится
+и `custom_hud status` покажет список отсутствующих файлов
+`team.svg` и `vip.svg` переведены в простые белые контуры `path` без `circle` и `fill-rule`; изображение не изменилось
+
 `CustomHud.Core 1.4.1` предоставляет `CustomHud.Api.ICustomHudApi` другим плагинам
 HUD сообщений использует собственную сущность и сосуществует с меню SwiftlyS2 и панелью способностей
 
@@ -218,7 +227,8 @@ Header/Title ограничены одной строкой каждый, Descri
 Дизайн поддерживает 6 фонов, 3 ширины, 3 размера текста, выравнивание, углы, границы и произвольный HEX-акцент, округляемый до палитры игры
 Enter/Exit: none, fade, slide_up, slide_down, slide_left, slide_right, zoom. Speed: fast — 0,2 с, normal — 0,4 с, slow — 0,8 с
 На выходе сообщение сохраняется до конца эффекта после TTL. Новое сообщение сразу заменяет выходящее; отключение игрока и карты очищает всё немедленно
-Иконка: info, warning, infection, skull, shield, trophy, star, gift, megaphone, lightning, clock, heart; эффекты none/pulse/spin/bounce/shake
+Иконка: info, warning, infection, skull, shield, trophy, star, gift, megaphone, lightning, clock, heart, key_e, ammo, antidote, armor, biohazard, boots, cooldown, crosshair, fire, freeze, grenade, health, knife, melee, mine, pistol, radar, respawn, rifle, speed, syringe, team, vip; эффекты none/pulse/spin/bounce/shake
+Список задаёт `HudBannerDesign.Icons`; он совпадает с генератором layout и каталогом конструктора Flute CMS. Тест сверяет его с Image в layout, CSS-правилами и SVG
 Новый SVG требует изменения каталога, пересборки layout и доставки VPK. Произвольные URL, скрипты и CSS не отправляются клиенту
 
 Sound — имя установленного sound event, а не путь, URL или консольная команда. Volume: 0–1, пустой Sound отключает звук

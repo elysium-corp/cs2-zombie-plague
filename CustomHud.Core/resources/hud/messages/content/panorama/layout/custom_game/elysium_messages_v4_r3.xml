@@ -23,6 +23,28 @@
                             <Image class="BannerIcon Icon_clock" src="s2r://panorama/images/custom_game/elysium/banners/clock.vsvg" />
                             <Image class="BannerIcon Icon_heart" src="s2r://panorama/images/custom_game/elysium/banners/heart.vsvg" />
                             <Image class="BannerIcon Icon_key_e" src="s2r://panorama/images/custom_game/elysium/banners/key_e.vsvg" />
+                            <Image class="BannerIcon Icon_ammo" src="s2r://panorama/images/custom_game/elysium/banners/ammo.vsvg" />
+                            <Image class="BannerIcon Icon_antidote" src="s2r://panorama/images/custom_game/elysium/banners/antidote.vsvg" />
+                            <Image class="BannerIcon Icon_armor" src="s2r://panorama/images/custom_game/elysium/banners/armor.vsvg" />
+                            <Image class="BannerIcon Icon_biohazard" src="s2r://panorama/images/custom_game/elysium/banners/biohazard.vsvg" />
+                            <Image class="BannerIcon Icon_boots" src="s2r://panorama/images/custom_game/elysium/banners/boots.vsvg" />
+                            <Image class="BannerIcon Icon_cooldown" src="s2r://panorama/images/custom_game/elysium/banners/cooldown.vsvg" />
+                            <Image class="BannerIcon Icon_crosshair" src="s2r://panorama/images/custom_game/elysium/banners/crosshair.vsvg" />
+                            <Image class="BannerIcon Icon_fire" src="s2r://panorama/images/custom_game/elysium/banners/fire.vsvg" />
+                            <Image class="BannerIcon Icon_freeze" src="s2r://panorama/images/custom_game/elysium/banners/freeze.vsvg" />
+                            <Image class="BannerIcon Icon_grenade" src="s2r://panorama/images/custom_game/elysium/banners/grenade.vsvg" />
+                            <Image class="BannerIcon Icon_health" src="s2r://panorama/images/custom_game/elysium/banners/health.vsvg" />
+                            <Image class="BannerIcon Icon_knife" src="s2r://panorama/images/custom_game/elysium/banners/knife.vsvg" />
+                            <Image class="BannerIcon Icon_melee" src="s2r://panorama/images/custom_game/elysium/banners/melee.vsvg" />
+                            <Image class="BannerIcon Icon_mine" src="s2r://panorama/images/custom_game/elysium/banners/mine.vsvg" />
+                            <Image class="BannerIcon Icon_pistol" src="s2r://panorama/images/custom_game/elysium/banners/pistol.vsvg" />
+                            <Image class="BannerIcon Icon_radar" src="s2r://panorama/images/custom_game/elysium/banners/radar.vsvg" />
+                            <Image class="BannerIcon Icon_respawn" src="s2r://panorama/images/custom_game/elysium/banners/respawn.vsvg" />
+                            <Image class="BannerIcon Icon_rifle" src="s2r://panorama/images/custom_game/elysium/banners/rifle.vsvg" />
+                            <Image class="BannerIcon Icon_speed" src="s2r://panorama/images/custom_game/elysium/banners/speed.vsvg" />
+                            <Image class="BannerIcon Icon_syringe" src="s2r://panorama/images/custom_game/elysium/banners/syringe.vsvg" />
+                            <Image class="BannerIcon Icon_team" src="s2r://panorama/images/custom_game/elysium/banners/team.vsvg" />
+                            <Image class="BannerIcon Icon_vip" src="s2r://panorama/images/custom_game/elysium/banners/vip.vsvg" />
                         </Panel>
                         <Panel class="BannerTexts">
                             <Panel class="MessageLine BannerHeader" id="Message0Header">
@@ -132,6 +154,28 @@
                             <Image class="BannerIcon Icon_clock" src="s2r://panorama/images/custom_game/elysium/banners/clock.vsvg" />
                             <Image class="BannerIcon Icon_heart" src="s2r://panorama/images/custom_game/elysium/banners/heart.vsvg" />
                             <Image class="BannerIcon Icon_key_e" src="s2r://panorama/images/custom_game/elysium/banners/key_e.vsvg" />
+                            <Image class="BannerIcon Icon_ammo" src="s2r://panorama/images/custom_game/elysium/banners/ammo.vsvg" />
+                            <Image class="BannerIcon Icon_antidote" src="s2r://panorama/images/custom_game/elysium/banners/antidote.vsvg" />
+                            <Image class="BannerIcon Icon_armor" src="s2r://panorama/images/custom_game/elysium/banners/armor.vsvg" />
+                            <Image class="BannerIcon Icon_biohazard" src="s2r://panorama/images/custom_game/elysium/banners/biohazard.vsvg" />
+                            <Image class="BannerIcon Icon_boots" src="s2r://panorama/images/custom_game/elysium/banners/boots.vsvg" />
+                            <Image class="BannerIcon Icon_cooldown" src="s2r://panorama/images/custom_game/elysium/banners/cooldown.vsvg" />
+                            <Image class="BannerIcon Icon_crosshair" src="s2r://panorama/images/custom_game/elysium/banners/crosshair.vsvg" />
+                            <Image class="BannerIcon Icon_fire" src="s2r://panorama/images/custom_game/elysium/banners/fire.vsvg" />
+                            <Image class="BannerIcon Icon_freeze" src="s2r://panorama/images/custom_game/elysium/banners/freeze.vsvg" />
+                            <Image class="BannerIcon Icon_grenade" src="s2r://panorama/images/custom_game/elysium/banners/grenade.vsvg" />
+                            <Image class="BannerIcon Icon_health" src="s2r://panorama/images/custom_game/elysium/banners/health.vsvg" />
+                            <Image class="BannerIcon Icon_knife" src="s2r://panorama/images/custom_game/elysium/banners/knife.vsvg" />
+                            <Image class="BannerIcon Icon_melee" src="s2r://panorama/images/custom_game/elysium/banners/melee.vsvg" />
+                            <Image class="BannerIcon Icon_mine" src="s2r://panorama/images/custom_game/elysium/banners/mine.vsvg" />
+                            <Image class="BannerIcon Icon_pistol" src="s2r://panorama/images/custom_game/elysium/banners/pistol.vsvg" />
+                            <Image class="BannerIcon Icon_radar" src="s2r://panorama/images/custom_game/elysium/banners/radar.vsvg" />
+                            <Image class="BannerIcon Icon_respawn" src="s2r://panorama/images/custom_game/elysium/banners/respawn.vsvg" />
+                            <Image class="BannerIcon Icon_rifle" src="s2r://panorama/images/custom_game/elysium/banners/rifle.vsvg" />
+                            <Image class="BannerIcon Icon_speed" src="s2r://panorama/images/custom_game/elysium/banners/speed.vsvg" />
+                            <Image class="BannerIcon Icon_syringe" src="s2r://panorama/images/custom_game/elysium/banners/syringe.vsvg" />
+                            <Image class="BannerIcon Icon_team" src="s2r://panorama/images/custom_game/elysium/banners/team.vsvg" />
+                            <Image class="BannerIcon Icon_vip" src="s2r://panorama/images/custom_game/elysium/banners/vip.vsvg" />
                         </Panel>
                         <Panel class="BannerTexts">
                             <Panel class="MessageLine BannerHeader" id="Message1Header">
@@ -241,6 +285,28 @@
                             <Image class="BannerIcon Icon_clock" src="s2r://panorama/images/custom_game/elysium/banners/clock.vsvg" />
                             <Image class="BannerIcon Icon_heart" src="s2r://panorama/images/custom_game/elysium/banners/heart.vsvg" />
                             <Image class="BannerIcon Icon_key_e" src="s2r://panorama/images/custom_game/elysium/banners/key_e.vsvg" />
+                            <Image class="BannerIcon Icon_ammo" src="s2r://panorama/images/custom_game/elysium/banners/ammo.vsvg" />
+                            <Image class="BannerIcon Icon_antidote" src="s2r://panorama/images/custom_game/elysium/banners/antidote.vsvg" />
+                            <Image class="BannerIcon Icon_armor" src="s2r://panorama/images/custom_game/elysium/banners/armor.vsvg" />
+                            <Image class="BannerIcon Icon_biohazard" src="s2r://panorama/images/custom_game/elysium/banners/biohazard.vsvg" />
+                            <Image class="BannerIcon Icon_boots" src="s2r://panorama/images/custom_game/elysium/banners/boots.vsvg" />
+                            <Image class="BannerIcon Icon_cooldown" src="s2r://panorama/images/custom_game/elysium/banners/cooldown.vsvg" />
+                            <Image class="BannerIcon Icon_crosshair" src="s2r://panorama/images/custom_game/elysium/banners/crosshair.vsvg" />
+                            <Image class="BannerIcon Icon_fire" src="s2r://panorama/images/custom_game/elysium/banners/fire.vsvg" />
+                            <Image class="BannerIcon Icon_freeze" src="s2r://panorama/images/custom_game/elysium/banners/freeze.vsvg" />
+                            <Image class="BannerIcon Icon_grenade" src="s2r://panorama/images/custom_game/elysium/banners/grenade.vsvg" />
+                            <Image class="BannerIcon Icon_health" src="s2r://panorama/images/custom_game/elysium/banners/health.vsvg" />
+                            <Image class="BannerIcon Icon_knife" src="s2r://panorama/images/custom_game/elysium/banners/knife.vsvg" />
+                            <Image class="BannerIcon Icon_melee" src="s2r://panorama/images/custom_game/elysium/banners/melee.vsvg" />
+                            <Image class="BannerIcon Icon_mine" src="s2r://panorama/images/custom_game/elysium/banners/mine.vsvg" />
+                            <Image class="BannerIcon Icon_pistol" src="s2r://panorama/images/custom_game/elysium/banners/pistol.vsvg" />
+                            <Image class="BannerIcon Icon_radar" src="s2r://panorama/images/custom_game/elysium/banners/radar.vsvg" />
+                            <Image class="BannerIcon Icon_respawn" src="s2r://panorama/images/custom_game/elysium/banners/respawn.vsvg" />
+                            <Image class="BannerIcon Icon_rifle" src="s2r://panorama/images/custom_game/elysium/banners/rifle.vsvg" />
+                            <Image class="BannerIcon Icon_speed" src="s2r://panorama/images/custom_game/elysium/banners/speed.vsvg" />
+                            <Image class="BannerIcon Icon_syringe" src="s2r://panorama/images/custom_game/elysium/banners/syringe.vsvg" />
+                            <Image class="BannerIcon Icon_team" src="s2r://panorama/images/custom_game/elysium/banners/team.vsvg" />
+                            <Image class="BannerIcon Icon_vip" src="s2r://panorama/images/custom_game/elysium/banners/vip.vsvg" />
                         </Panel>
                         <Panel class="BannerTexts">
                             <Panel class="MessageLine BannerHeader" id="Message2Header">

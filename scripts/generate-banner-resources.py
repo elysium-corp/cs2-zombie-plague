@@ -7,7 +7,10 @@ import xml.etree.ElementTree as ET
 root = Path(__file__).resolve().parents[1] / 'CustomHud.Core/resources/hud/messages/content/panorama'
 # SVG — исходные ресурсы, как у HUD способностей: только явные белые залитые контуры.
 # При добавлении иконки преобразуйте обводки в path; наследование стиля группы не используется.
-icons = ['info', 'warning', 'infection', 'skull', 'shield', 'trophy', 'star', 'gift', 'megaphone', 'lightning', 'clock', 'heart', 'key_e']
+# Порядок и состав совпадают с HudBannerDesign.Icons и каталогом конструктора Flute CMS.
+icons = ['info', 'warning', 'infection', 'skull', 'shield', 'trophy', 'star', 'gift', 'megaphone', 'lightning', 'clock', 'heart', 'key_e',
+         'ammo', 'antidote', 'armor', 'biohazard', 'boots', 'cooldown', 'crosshair', 'fire', 'freeze', 'grenade', 'health',
+         'knife', 'melee', 'mine', 'pistol', 'radar', 'respawn', 'rifle', 'speed', 'syringe', 'team', 'vip']
 image_dir = root / 'images/custom_game/elysium/banners'
 for name in icons:
     svg = ET.parse(image_dir / f'{name}.svg').getroot()

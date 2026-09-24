@@ -56,7 +56,11 @@ public sealed record HudBannerTemplate
     public string Border { get; init; } = "line";
     /// <summary>Углы: square, soft, round.</summary>
     public string Corners { get; init; } = "soft";
-    /// <summary>Иконка из VPK: none, info, warning, infection, skull, shield, trophy, star, gift, megaphone, lightning, clock, heart, key_e.</summary>
+    /// <summary>
+    /// Иконка из VPK: none, info, warning, infection, skull, shield, trophy, star, gift, megaphone, lightning, clock, heart, key_e,
+    /// ammo, antidote, armor, biohazard, boots, cooldown, crosshair, fire, freeze, grenade, health, knife, melee, mine,
+    /// pistol, radar, respawn, rifle, speed, syringe, team, vip.
+    /// </summary>
     public string Icon { get; init; } = "none";
     /// <summary>Размещение иконки: left или top.</summary>
     public string IconPosition { get; init; } = "left";

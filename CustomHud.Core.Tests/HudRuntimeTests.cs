@@ -210,6 +210,29 @@ public sealed class HudRuntimeTests
     }
 
     [Fact]
+    public void EveryDesignIconHasLayoutImageStyleRuleAndPreflightResource()
+    {
+        var root = Path.Combine(AppContext.BaseDirectory, "content/panorama");
+        var layout = XDocument.Load(Path.Combine(root, "layout/custom_game/elysium_messages_v4_r3.xml"));
+        var css = File.ReadAllText(Path.Combine(root, "styles/custom_game/elysium_messages_v4_r3.css"));
+        // Каталог конструктора, генератор layout и серверная проверка должны знать одни и те же иконки.
+        var slots = layout.Descendants("Panel").Where(panel => panel.Attribute("class")?.Value == "BannerIcons").ToArray();
+        Assert.Equal(PanoramaHudRuntime.StackCapacity, slots.Length);
+        foreach (var slot in slots)
+            Assert.Equal(HudBannerDesign.Icons.Select(icon => $"BannerIcon Icon_{icon}"),
+                slot.Elements("Image").Select(image => image.Attribute("class")!.Value));
+        var content = new HudBannerContent { Description = "Text" };
+        foreach (var icon in HudBannerDesign.Icons)
+        {
+            Assert.Contains($".CustomBanner.Icon_{icon} .Icon_{icon} {{ visibility: visible; }}", css);
+            Assert.True(File.Exists(Path.Combine(root, $"images/custom_game/elysium/banners/{icon}.svg")), icon);
+            HudBannerDesign.Validate(new HudBannerTemplate { Variant = "icon", Icon = icon }, content);
+        }
+        Assert.Throws<ArgumentException>(() => HudBannerDesign.Validate(new HudBannerTemplate { Variant = "icon", Icon = "unknown" }, content));
+        Assert.Equal(HudBannerDesign.Icons.Length + 2, PanoramaHudRuntime.MissingResources(_ => false).Length);
+    }
+
+    [Fact]
     public void StackedMessagesMoveWithoutReplayingSoundOrAppearanceAndClearOnDisconnect()
     {
         var clock = new HudMessageStoreTests.Clock(); var runtime = new Runtime();
