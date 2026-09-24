@@ -26,6 +26,7 @@ public abstract class LaserMineEntityBase(ISwiftlyCore core) : IDisposable
     protected IPlayer? Owner { get; private set; }
     private CancellationTokenSource? _triggerTask;
     private CancellationTokenSource? _armingTask;
+    private CancellationTokenSource? _healthTask;
     private readonly List<CancellationTokenSource> _scheduledTasks = [];
     private bool _destroyedByDamage;
     private int _disposed;
@@ -35,6 +36,9 @@ public abstract class LaserMineEntityBase(ISwiftlyCore core) : IDisposable
 
     /// <summary>Показывает, завершена ли зарядка мины.</summary>
     public bool IsArmed { get; private set; }
+
+    /// <summary>Последняя подтверждённая позиция установленной мины.</summary>
+    protected Vector? LastKnownPosition { get; private set; }
 
     /// <summary>Размещает мину на поверхности перед владельцем.</summary>
     public void Spawn(IPlayer owner) => TrySpawn(owner);
@@ -65,11 +69,23 @@ public abstract class LaserMineEntityBase(ISwiftlyCore core) : IDisposable
                 return false;
             }
 
+            // Source 2 добавляет entity в staging list во время DispatchSpawn.
+            // Для prop_dynamic_override модель задаём только после spawn: SetModel до
+            // DispatchSpawn вызывает SetupModel assertion и может удалить entity.
+            LaserMine.DispatchSpawn();
+            if (!LaserMine.IsValidEntity)
+            {
+                core.Logger.LogWarning("[LaserMine] prop_dynamic_override удалён во время DispatchSpawn.");
+                Dispose();
+                return false;
+            }
+
             LaserMine.SetModel(LaserMineModel);
+            LaserMine.Teleport(position, rotation, null);
+            LastKnownPosition = position;
+
             LaserMine.Collision.SolidType = SolidType_t.SOLID_VPHYSICS;
             LaserMine.Collision.CollisionGroup = (byte)CollisionGroup.Debris;
-            LaserMine.DispatchSpawn();
-            LaserMine.Teleport(position, rotation, null);
 
             LaserMine.Team = team;
             LaserMine.MaxHealth = MaxHealth;
@@ -89,6 +105,7 @@ public abstract class LaserMineEntityBase(ISwiftlyCore core) : IDisposable
             LaserMine.CollisionRulesChanged();
 
             OnSpawned();
+            StartHealthHandler();
             if (ArmingDelay > 0f)
             {
                 _armingTask = core.Scheduler.DelayBySeconds(ArmingDelay, Arm);
@@ -191,6 +208,7 @@ public abstract class LaserMineEntityBase(ISwiftlyCore core) : IDisposable
         // к native entity во время её удаления или reset раунда.
         CancelTimer(Interlocked.Exchange(ref _armingTask, null));
         CancelTimer(Interlocked.Exchange(ref _triggerTask, null));
+        CancelTimer(Interlocked.Exchange(ref _healthTask, null));
         foreach (var timer in _scheduledTasks) CancelTimer(timer);
         _scheduledTasks.Clear();
         IsArmed = false;
@@ -257,6 +275,24 @@ public abstract class LaserMineEntityBase(ISwiftlyCore core) : IDisposable
             if (Volatile.Read(ref _disposed) == 0 && IsArmed) Trigger();
         });
         core.Scheduler.StopOnMapChange(_triggerTask);
+    }
+
+    private void StartHealthHandler()
+    {
+        _healthTask = core.Scheduler.RepeatBySeconds(0.05f, () =>
+        {
+            if (Volatile.Read(ref _disposed) != 0) return;
+
+            var mine = LaserMine;
+            if (mine is not { IsValidEntity: true } || mine.Health <= 0)
+            {
+                // Проверка идёт уже на world update, вне native TakeDamage callback.
+                // Это даёт движку применить реальный урон к Health и исключает удаление
+                // prop_dynamic непосредственно внутри damage pipeline.
+                DestroyByDamage();
+            }
+        });
+        core.Scheduler.StopOnMapChange(_healthTask);
     }
 
     private static void CancelTimer(CancellationTokenSource? timer)
