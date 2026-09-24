@@ -1,8 +1,8 @@
 {
   "schemaVersion": 4,
-  "version": 23,
-  "generatedAt": "2026-09-24T07:00:00Z",
-  "checksum": "sha256:0a5775eca7a8d2841f489f51af9f1d87309ada690868a273fc797835c894cbc2",
+  "version": 24,
+  "generatedAt": "2026-09-24T14:00:00Z",
+  "checksum": "sha256:24bd21beaca5828fe7fdb5db56c0b0f7147e3f17ba4de66a7956bf4befde9178",
   "serverFallbackLanguage": "ru",
   "languages": [
     "ru",
@@ -2434,6 +2434,12 @@
       "en": "No maps available",
       "de": "No maps available",
       "pl": "No maps available"
+    },
+    "MapRotation.Inactive": {
+      "ru": "Ротация отключена: нет доступных карт в пуле.",
+      "en": "Rotation is inactive: no maps are available in the pool.",
+      "de": "Die Rotation ist inaktiv: Im Kartenpool sind keine Karten verfügbar.",
+      "pl": "Rotacja jest nieaktywna: brak dostępnych map w puli."
     },
     "MapRotation.InactiveNoMaps": {
       "ru": "Ротация отключена: нет доступных карт в пуле. Текущая карта без ограничения времени.",

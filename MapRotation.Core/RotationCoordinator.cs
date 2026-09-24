@@ -37,13 +37,15 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
     private bool _loaded;
     private bool _hudSuspended;
     private bool _nativeReadFailed;
-    private bool? _nativeRotationEnabled;
+    private bool _catalogUnavailable;
     private DateTimeOffset? _resultUntil;
     private DateTimeOffset? _changeRequestedAt;
     private long _publishedRevision = -1;
     private Guid? _lastVote;
     private long? _requestedMap;
     private int _mapEpoch;
+    private bool Active => _loaded && !_mapUnloading && engine.RotationEnabled
+        && engine.PauseReason != RotationPauseReason.NoMaps;
 
     public void Bind(ICustomHudMenuApi? menus, ICustomBannerApi? banners, ICustomHudApi? messages)
     {
@@ -71,7 +73,7 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
         _matchEndHook = core.GameEvent.HookPost<EventCsWinPanelMatch>(OnMatchEnd);
         foreach (var name in new[] { "timeleft", "nextmap", "rtv", "nominate" })
             _commands.Add(core.Command.RegisterCommand(name, PlayerCommand, registerRaw: true));
-        foreach (var name in new[] { "maprotation_status", "maprotation_reload", "maprotation_vote", "maprotation_setnext", "maprotation_change" })
+        foreach (var name in new[] { "maprotation_status", "maprotation_maps", "maprotation_reload", "maprotation_vote", "maprotation_setnext", "maprotation_change" })
             _commands.Add(core.Command.RegisterCommand(name, AdminCommand, registerRaw: true, permission: "maprotation.admin"));
         store.Start();
         _timer = core.Scheduler.RepeatBySeconds(1, Tick);
@@ -82,7 +84,6 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
         if (_disposed || _mapUnloading || !store.Initialized) return;
         try
         {
-            maps.ObservePendingChanges();
             if (!_loaded)
             {
                 Apply(store.Initial!.Configuration);
@@ -91,15 +92,12 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
             }
             if (store.TakeConfiguration() is { } configuration) Apply(configuration);
             RefreshPlayers();
-            UpdateNativePolicy();
-            ObserveNativeMatch();
-            engine.Tick();
+            if (Active) { ObserveNativeMatch(); engine.Tick(); }
             if (_changeRequestedAt is { } requested && engine.State == RotationState.ChangingMap
                 && clock.GetUtcNow() >= requested.AddSeconds(30) && _requestedMap is { } failed)
             {
                 core.Logger.LogWarning("[MapRotation] Engine не начал загрузку карты за 30 секунд");
                 engine.ChangeFailed(failed); _changeRequestedAt = null;
-                UpdateNativePolicy();
             }
             RefreshHud();
             Publish();
@@ -111,16 +109,10 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
     {
         var valid = configuration.Maps.Where(maps.IsValid).Select(map => map.Id).ToArray();
         engine.Configure(configuration, valid);
-        if (!configuration.Maps.IsEmpty && valid.Length == 0)
-            core.Logger.LogWarning("[MapRotation] Нет установленных карт в каталоге; заполните map_rotation.maps");
-    }
-
-    private void UpdateNativePolicy(bool force = false, bool mapLoaded = false)
-    {
-        var active = engine.RotationEnabled && engine.PauseReason != RotationPauseReason.NoMaps;
-        if (!force && _nativeRotationEnabled == active) return;
-        maps.ApplyRotationPolicy(active, mapLoaded);
-        _nativeRotationEnabled = active;
+        var unavailable = !configuration.Maps.IsEmpty && valid.Length == 0;
+        if (unavailable && !_catalogUnavailable)
+            core.Logger.LogWarning("[MapRotation] Каталог содержит {Count} карт, но движок не принял ни одну; подробности: maprotation_maps", configuration.Maps.Length);
+        _catalogUnavailable = unavailable;
     }
 
     private void ObserveNativeMatch()
@@ -155,12 +147,11 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
         if (context.Sender is not { IsValid: true } player) return;
         if (!_loaded || _mapUnloading) { context.Reply(Text(player, "Loading")); return; }
         RefreshPlayers();
-        if (!engine.RotationEnabled) { context.Reply(Text(player, "InactiveNoMaps")); return; }
+        if (!Active) { context.Reply(Text(player, "Inactive")); return; }
         switch (context.CommandName.ToLowerInvariant())
         {
             case "timeleft":
-                Card(player, Text(player, "TimeLeft"), engine.PauseReason == RotationPauseReason.NoMaps ? Text(player, "UnlimitedTime")
-                    : engine.State == RotationState.FinalRound ? Text(player, "LastRound") : Duration(engine.TimeLeft), "clock"); break;
+                Card(player, Text(player, "TimeLeft"), engine.State == RotationState.FinalRound ? Text(player, "LastRound") : Duration(engine.TimeLeft), "clock"); break;
             case "nextmap":
                 Card(player, Text(player, "NextMap"), engine.NextMap?.DisplayName ?? Text(player, "NotSelected"), "info"); break;
             case "rtv":
@@ -193,15 +184,24 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
     private void AdminCommand(ICommandContext context)
     {
         if (context.CommandName == "maprotation_reload") { store.RequestReload(); context.Reply(Text(context.Sender, "Admin.ReloadQueued")); return; }
+        if (context.CommandName == "maprotation_maps")
+        {
+            // Отдельные строки не обрезаются лимитом консоли при большом каталоге.
+            context.Reply(System.Text.Json.JsonSerializer.Serialize(new { Catalog = CatalogSummary() }));
+            foreach (var entry in engine.Catalog())
+                context.Reply(System.Text.Json.JsonSerializer.Serialize(entry));
+            return;
+        }
         if (context.CommandName == "maprotation_status")
         {
             var status = System.Text.Json.JsonSerializer.SerializeToNode(engine.GetStatus())!.AsObject();
-            status["Engine"] = System.Text.Json.JsonSerializer.SerializeToNode(EngineStateDiagnostics.Capture(core, maps));
+            status["Engine"] = System.Text.Json.JsonSerializer.SerializeToNode(EngineStateDiagnostics.Capture(core));
+            status["Catalog"] = System.Text.Json.JsonSerializer.SerializeToNode(CatalogSummary());
             context.Reply(status.ToJsonString()); return;
         }
         if (!_loaded || _mapUnloading) { context.Reply(Text(context.Sender, "Loading")); return; }
         RefreshPlayers();
-        if (!engine.RotationEnabled) { context.Reply(Text(context.Sender, "InactiveNoMaps")); return; }
+        if (!engine.RotationEnabled) { context.Reply(Text(context.Sender, "Inactive")); return; }
         if (context.CommandName == "maprotation_vote") context.Reply(Text(context.Sender,
             engine.StartVote(NextMapSource.Admin) ? "Admin.VoteStarted" : "Admin.VoteUnavailable"));
         else
@@ -213,6 +213,16 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
         }
         RefreshHud(); Publish();
     }
+    private object CatalogSummary() => new
+    {
+        Loaded = _loaded,
+        Store = store.Diagnostics,
+        engine.Settings.ConfigurationVersion,
+        engine.Settings.AllowSameMap,
+        engine.Settings.NominationsEnabled,
+        LoadedMaps = engine.Configuration.Maps.Length,
+        CurrentMap = engine.CurrentMap
+    };
     private RotationMap? Find(string value) => engine.Configuration.Maps.FirstOrDefault(map =>
         string.Equals(map.Key, value, StringComparison.OrdinalIgnoreCase) || string.Equals(map.MapName, value, StringComparison.OrdinalIgnoreCase));
 
@@ -233,16 +243,17 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
     }
     private HudMenu NominationMenu(IPlayer player) => new(NominationChannel, Text(player, "NominationTitle"), Text(player, "NominationSubtitle"),
         engine.NominationMaps().OrderBy(map => map.SortOrder).ThenBy(map => map.DisplayName).Select(map => new HudMenuItem(map.Id.ToString(), map.DisplayName,
-            Selected: engine.Nomination(player.SteamID) == map.Id)).ToImmutableArray(), new() { CloseOnSelect = true })
-        { CloseText = Text(player, "Close"), Footer = engine.NominationMaps().IsEmpty ? Text(player, "NoMaps") : "" };
+            Selected: engine.Nomination(player.SteamID) == map.Id) { ImagePath = map.HudImagePath }).ToImmutableArray(),
+            new() { CloseOnSelect = true, ItemsPerPage = engine.Settings.MenuItemsPerPage })
+        { StyleClass = "MapRotation", CloseText = Text(player, "Close"), Footer = engine.NominationMaps().IsEmpty ? Text(player, "NoMaps") : "" };
 
     private HudMenu VoteMenu(IPlayer player, VoteState vote) => new(VoteChannel, Text(player, "VoteTitle"), Text(player, "VoteSubtitle"),
         vote.Options.Select(map => new HudMenuItem(map.Id.ToString(), map.DisplayName,
             Description: vote.Votes.GetValueOrDefault(player.SteamID) == map.Id ? Text(player, "YourVote") : "",
             Badge: Text(player, "Votes", ("count", vote.Votes.Values.Count(id => id == map.Id).ToString())),
-            Selected: vote.Votes.GetValueOrDefault(player.SteamID) == map.Id)).ToImmutableArray(),
-        new() { Priority = HudMenuPriority.Critical })
-        { CloseText = Text(player, "Close"), Status = Duration(vote.EndsAt - clock.GetUtcNow()) };
+            Selected: vote.Votes.GetValueOrDefault(player.SteamID) == map.Id) { ImagePath = map.HudImagePath }).ToImmutableArray(),
+        new() { Priority = HudMenuPriority.Critical, ItemsPerPage = engine.Settings.MenuItemsPerPage })
+        { StyleClass = "MapRotation", CloseText = Text(player, "Close"), Status = Duration(vote.EndsAt - clock.GetUtcNow()) };
 
     private void OpenVote(IPlayer player, bool force = false)
     {
@@ -267,7 +278,7 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
     }
     private void RefreshHud()
     {
-        if (!engine.RotationEnabled)
+        if (!Active)
         {
             if (!_hudSuspended)
             {
@@ -316,10 +327,10 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
         {
             var voteCount = result.Vote.Votes.Values.Count(value => value == id);
             var menu = new HudMenu(ResultChannel, Text(player, "ResultTitle"), Text(player, "NextMap"),
-                [new(winner.Id.ToString(), winner.DisplayName, Text(player, "Votes", ("count", voteCount.ToString())))],
+                [new(winner.Id.ToString(), winner.DisplayName, Text(player, "Votes", ("count", voteCount.ToString()))) { ImagePath = winner.HudImagePath }],
                 new() { Priority = HudMenuPriority.Critical, CloseOnSelect = true, ShowPagination = false })
             {
-                View = HudMenuView.Result, CloseText = Text(player, "Close"),
+                StyleClass = "MapRotation", View = HudMenuView.Result, CloseText = Text(player, "Close"),
                 Footer = Text(player, engine.State == RotationState.FinalRound ? "LastRoundDescription" : "ScheduledResult")
             };
             Open(player, menu, _ => { });
@@ -366,7 +377,6 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
             {
                 core.Logger.LogError(error, "[MapRotation] Не удалось сменить карту на {Map}", map.Key);
                 engine.ChangeFailed(map.Id);
-                UpdateNativePolicy();
             }
             Publish();
         });
@@ -378,7 +388,7 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
         if (!_loaded) return;
         // Событие загрузки означает новую сессию, включая повтор той же карты.
         engine.LoadMap(args.MapName, maps.WorkshopId, engine.Checkpoint() with { State = RotationState.ChangingMap });
-        Apply(engine.Configuration); UpdateNativePolicy(force: true, mapLoaded: true); RefreshPlayers(); Publish();
+        Apply(engine.Configuration); RefreshPlayers(); Publish();
     }
     private void OnMapUnload(IOnMapUnloadEvent args)
     {
@@ -398,14 +408,14 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
     }
     private HookResult OnRoundEnd(EventRoundEnd args)
     {
-        if (_loaded && !_mapUnloading && args.Reason != (int)SwiftlyS2.Shared.Natives.RoundEndReason.GameCommencing
+        if (Active && args.Reason != (int)SwiftlyS2.Shared.Natives.RoundEndReason.GameCommencing
             && core.EntitySystem.GetGameRules() is { WarmupPeriod: false })
         { RefreshPlayers(); engine.RoundEnded(); Publish(); }
         return HookResult.Continue;
     }
     private HookResult OnRoundStart(EventRoundStart args)
     {
-        if (_loaded && !_mapUnloading)
+        if (Active)
         {
             RefreshPlayers(); ObserveNativeMatch(); Publish();
         }
@@ -413,7 +423,7 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
     }
     private HookResult OnMatchEnd(EventCsWinPanelMatch args)
     {
-        if (_loaded && !_mapUnloading)
+        if (Active)
         {
             RefreshPlayers(); engine.MatchEnded(); Publish();
         }
@@ -443,7 +453,6 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
         }
         engine.ChangeRequested -= Change; engine.MapFinished -= store.Record; engine.VoteFinished -= OnVoteFinished;
         CloseMenus(); _messages?.ClearChannel(CardChannel);
-        try { Publish(); store.Dispose(); }
-        finally { maps.Dispose(); }
+        Publish(); store.Dispose();
     }
 }

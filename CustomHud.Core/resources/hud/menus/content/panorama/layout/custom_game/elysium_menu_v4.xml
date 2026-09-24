@@ -1,0 +1,87 @@
+<root>
+    <styles><include src="s2r://panorama/styles/custom_game/elysium_menu_v4.vcss_c" /><include src="s2r://panorama/styles/custom_game/elysium_map_rotation_v4.vcss_c" /></styles>
+    <Panel class="MenuViewport" hittest="false">
+        <Panel id="MenuRoot" class="MenuRoot">
+            <Panel class="MenuWindow">
+                <Panel class="MenuBrandRow">
+                    <Label class="BrandMark" text="◈" hittest="false" />
+                    <Label class="Brand" text="ELYSIUM" hittest="false" />
+                    <Label id="Status" class="Status" text="{s:value}" hittest="false" />
+                    <Button id="Close" class="Close"><Label text="×" hittest="false" /></Button>
+                </Panel>
+                <Label id="Title" class="Title" text="{s:value}" hittest="false" />
+                <Label id="Subtitle" class="Subtitle" text="{s:value}" hittest="false" />
+                <Panel class="Items">
+                    <Button id="Item0" class="MenuItem">
+                        <Panel id="Image0" class="ItemIcon" hittest="false"><Label text="◈" hittest="false" /></Panel>
+                        <Panel class="ItemText" hittest="false">
+                            <Label id="Name0" class="ItemName" text="{s:value}" hittest="false" />
+                            <Label id="Description0" class="ItemDescription" text="{s:value}" hittest="false" />
+                        </Panel>
+                        <Label class="SelectedMark" text="✓" hittest="false" />
+                        <Label id="Badge0" class="Badge" text="{s:value}" hittest="false" />
+                    </Button>
+                    <Button id="Item1" class="MenuItem">
+                        <Panel id="Image1" class="ItemIcon" hittest="false"><Label text="◈" hittest="false" /></Panel>
+                        <Panel class="ItemText" hittest="false">
+                            <Label id="Name1" class="ItemName" text="{s:value}" hittest="false" />
+                            <Label id="Description1" class="ItemDescription" text="{s:value}" hittest="false" />
+                        </Panel>
+                        <Label class="SelectedMark" text="✓" hittest="false" />
+                        <Label id="Badge1" class="Badge" text="{s:value}" hittest="false" />
+                    </Button>
+                    <Button id="Item2" class="MenuItem">
+                        <Panel id="Image2" class="ItemIcon" hittest="false"><Label text="◈" hittest="false" /></Panel>
+                        <Panel class="ItemText" hittest="false">
+                            <Label id="Name2" class="ItemName" text="{s:value}" hittest="false" />
+                            <Label id="Description2" class="ItemDescription" text="{s:value}" hittest="false" />
+                        </Panel>
+                        <Label class="SelectedMark" text="✓" hittest="false" />
+                        <Label id="Badge2" class="Badge" text="{s:value}" hittest="false" />
+                    </Button>
+                    <Button id="Item3" class="MenuItem">
+                        <Panel id="Image3" class="ItemIcon" hittest="false"><Label text="◈" hittest="false" /></Panel>
+                        <Panel class="ItemText" hittest="false">
+                            <Label id="Name3" class="ItemName" text="{s:value}" hittest="false" />
+                            <Label id="Description3" class="ItemDescription" text="{s:value}" hittest="false" />
+                        </Panel>
+                        <Label class="SelectedMark" text="✓" hittest="false" />
+                        <Label id="Badge3" class="Badge" text="{s:value}" hittest="false" />
+                    </Button>
+                    <Button id="Item4" class="MenuItem">
+                        <Panel id="Image4" class="ItemIcon" hittest="false"><Label text="◈" hittest="false" /></Panel>
+                        <Panel class="ItemText" hittest="false">
+                            <Label id="Name4" class="ItemName" text="{s:value}" hittest="false" />
+                            <Label id="Description4" class="ItemDescription" text="{s:value}" hittest="false" />
+                        </Panel>
+                        <Label class="SelectedMark" text="✓" hittest="false" />
+                        <Label id="Badge4" class="Badge" text="{s:value}" hittest="false" />
+                    </Button>
+                    <Button id="Item5" class="MenuItem">
+                        <Panel id="Image5" class="ItemIcon" hittest="false"><Label text="◈" hittest="false" /></Panel>
+                        <Panel class="ItemText" hittest="false">
+                            <Label id="Name5" class="ItemName" text="{s:value}" hittest="false" />
+                            <Label id="Description5" class="ItemDescription" text="{s:value}" hittest="false" />
+                        </Panel>
+                        <Label class="SelectedMark" text="✓" hittest="false" />
+                        <Label id="Badge5" class="Badge" text="{s:value}" hittest="false" />
+                    </Button>
+                </Panel>
+                <Panel id="Pagination" class="Pagination">
+                    <Button id="PreviousPage" class="PageArrow"><Label text="‹" hittest="false" /></Button>
+                    <Label id="Page" class="PageLabel" text="{s:value}" hittest="false" />
+                    <Button id="NextPage" class="PageArrow"><Label text="›" hittest="false" /></Button>
+                </Panel>
+                <Label id="Footer" class="Footer" text="{s:value}" hittest="false" />
+                <Panel class="BottomRow">
+                    <Button id="Back" class="Back"><Label text="‹" hittest="false" /></Button>
+                    <Panel id="CloseHint" class="CloseHint" hittest="false">
+                        <Label class="Key" text="ESC" hittest="false" />
+                        <Label id="CloseText" class="CloseText" text="{s:value}" hittest="false" />
+                    </Panel>
+                </Panel>
+                <Panel class="AccentLine" hittest="false" />
+            </Panel>
+        </Panel>
+    </Panel>
+</root>

@@ -17,7 +17,7 @@ internal static class EngineStateDiagnostics
         "sv_hibernate_when_empty", "sv_hibernate_postgame_delay"
     ];
 
-    internal static object Capture(ISwiftlyCore core, MapEngineAdapter maps) => new
+    internal static object Capture(ISwiftlyCore core) => new
     {
         CapturedAtUtc = DateTimeOffset.UtcNow,
         Globals = Read(() =>
@@ -69,8 +69,9 @@ internal static class EngineStateDiagnostics
                 };
             })).ToArray()),
         ConVars = ConVars.ToDictionary(name => name, name => Read(() => core.ConVar.FindAsString(name)?.ValueAsString)),
-        Overrides = maps.Overrides,
-        PendingConVars = maps.PendingConVars
+        // Поля оставлены для совместимости диагностики: плагин больше не записывает ConVar.
+        Overrides = new Dictionary<string, object>(),
+        PendingConVars = new Dictionary<string, object>()
     };
 
     private static object? Read(Func<object?> read)

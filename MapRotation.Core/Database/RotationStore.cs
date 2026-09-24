@@ -11,6 +11,9 @@ internal sealed record StoredRotation(RotationConfiguration Configuration, Rotat
 internal sealed record SaveRequest(RotationConfiguration Configuration, RotationCheckpoint Checkpoint);
 internal sealed record LocalRotation(SaveRequest State, MapHistoryEntry[] History, StoredVote[] Votes);
 internal sealed record StoredVote(string Map, VoteArchive Result);
+internal sealed record CatalogReadDiagnostics(string Source = "Initializing", string ConnectionName = "map_rotation",
+    string? Database = null, DateTimeOffset? LastAttemptAtUtc = null,
+    DateTimeOffset? LastSuccessAtUtc = null, string? LastErrorType = null);
 
 /// <summary>Один последовательный фоновый worker; игровой поток публикует только immutable-снимки.</summary>
 internal sealed class RotationStore(IDbContextFactory<MapRotationDbContext> factory, ILogger<RotationStore> logger,
@@ -27,9 +30,11 @@ internal sealed class RotationStore(IDbContextFactory<MapRotationDbContext> fact
     private int _reload;
     private bool _disposed;
     private bool _databaseReady;
+    private CatalogReadDiagnostics _diagnostics = new();
     private string LocalPath => Path.Combine(dataDirectory, "rotation-state.json");
     public bool Initialized => _initialized;
     public StoredRotation? Initial => _loaded;
+    public CatalogReadDiagnostics Diagnostics => Volatile.Read(ref _diagnostics);
     public RotationConfiguration? TakeConfiguration() => Interlocked.Exchange(ref _pendingConfig, null);
     public void RequestReload() => Interlocked.Exchange(ref _reload, 1);
     public void Publish(RotationConfiguration config, RotationCheckpoint checkpoint) => Volatile.Write(ref _pendingSave, new(config, checkpoint));
@@ -46,18 +51,23 @@ internal sealed class RotationStore(IDbContextFactory<MapRotationDbContext> fact
         try
         {
             _loaded = ReadLocal();
+            Volatile.Write(ref _diagnostics, _diagnostics with { Source = _loaded is null ? "Empty" : "LocalSnapshot" });
             try
             {
+                BeginRead();
                 await using var db = await factory.CreateDbContextAsync(_stop.Token).ConfigureAwait(false);
+                RecordDatabase(db);
                 await db.Database.MigrateAsync(_stop.Token).ConfigureAwait(false);
                 _databaseReady = true;
                 var configuration = await ReadConfiguration(db, _stop.Token).ConfigureAwait(false);
                 var persisted = await db.Runtime.AsNoTracking().SingleOrDefaultAsync(x => x.Id == 1, _stop.Token).ConfigureAwait(false);
                 var checkpoint = _loaded?.Checkpoint ?? (persisted is null ? null : JsonSerializer.Deserialize<RotationCheckpoint>(persisted.Checkpoint));
                 _loaded = new(configuration, checkpoint);
+                ReadSucceeded();
             }
             catch (Exception error) when (!_stop.IsCancellationRequested)
             {
+                ReadFailed(error);
                 logger.LogError(error, "[MapRotation] БД недоступна; используется последний локальный снимок");
                 _loaded ??= new(RotationConfiguration.Empty, null);
             }
@@ -76,26 +86,27 @@ internal sealed class RotationStore(IDbContextFactory<MapRotationDbContext> fact
                     { logger.LogWarning(error, "[MapRotation] Снимок сохранён локально; запись в БД будет повторена"); }
                     nextSave = DateTimeOffset.UtcNow.AddSeconds(request.Configuration.Settings.RefreshIntervalSeconds);
                 }
-                if (DateTimeOffset.UtcNow >= nextReload || Interlocked.Exchange(ref _reload, 0) != 0)
+                var reloadRequested = Interlocked.Exchange(ref _reload, 0) != 0;
+                if (DateTimeOffset.UtcNow >= nextReload || reloadRequested)
                 {
                     try
                     {
+                        BeginRead();
                         await using var db = await factory.CreateDbContextAsync(_stop.Token).ConfigureAwait(false);
+                        RecordDatabase(db);
                         if (!_databaseReady)
                         {
                             await db.Database.MigrateAsync(_stop.Token).ConfigureAwait(false);
                             _databaseReady = true;
                         }
                         var next = await ReadConfiguration(db, _stop.Token).ConfigureAwait(false);
-                        if (next.Settings.ConfigurationVersion != (request?.Configuration ?? _loaded!.Configuration).Settings.ConfigurationVersion
-                            || request is null || next.Maps.Length != request.Configuration.Maps.Length)
-                            Volatile.Write(ref _pendingConfig, next);
-                        // Явный reload и изменение каталога без версии также атомарно применяют новый снимок.
-                        else if (!next.Maps.SequenceEqual(request.Configuration.Maps) || next.Settings != request.Configuration.Settings)
-                            Volatile.Write(ref _pendingConfig, next);
+                        // Установленность карты меняется независимо от строк БД.
+                        // Каждый успешный refresh повторяет проверку движком на игровом потоке.
+                        Volatile.Write(ref _pendingConfig, next);
+                        ReadSucceeded();
                     }
                     catch (Exception error) when (!_stop.IsCancellationRequested)
-                    { logger.LogWarning(error, "[MapRotation] Ошибка обновления настроек; действующий снимок сохранён"); }
+                    { ReadFailed(error); logger.LogWarning(error, "[MapRotation] Ошибка обновления настроек; действующий снимок сохранён"); }
                     nextReload = DateTimeOffset.UtcNow.AddSeconds(request?.Configuration.Settings.RefreshIntervalSeconds ?? 15);
                 }
                 await Task.Delay(TimeSpan.FromSeconds(1), _stop.Token).ConfigureAwait(false);
@@ -104,6 +115,16 @@ internal sealed class RotationStore(IDbContextFactory<MapRotationDbContext> fact
         catch (OperationCanceledException) when (_stop.IsCancellationRequested) { }
         catch (Exception error) { logger.LogError(error, "[MapRotation] Фоновое сохранение остановлено"); }
     }
+
+    private void BeginRead() => Volatile.Write(ref _diagnostics,
+        _diagnostics with { LastAttemptAtUtc = DateTimeOffset.UtcNow });
+    private void RecordDatabase(MapRotationDbContext db) => Volatile.Write(ref _diagnostics,
+        _diagnostics with { Database = db.Database.GetDbConnection().Database });
+    private void ReadSucceeded() => Volatile.Write(ref _diagnostics,
+        _diagnostics with { Source = "Database", LastSuccessAtUtc = DateTimeOffset.UtcNow, LastErrorType = null });
+    private void ReadFailed(Exception error) => Volatile.Write(ref _diagnostics,
+        // Текст исключения и строка подключения не попадают в консольную диагностику.
+        _diagnostics with { LastErrorType = error.GetType().Name });
 
     private static async Task<RotationConfiguration> ReadConfiguration(MapRotationDbContext db, CancellationToken token)
     {

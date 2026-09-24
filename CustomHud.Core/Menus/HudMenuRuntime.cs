@@ -20,8 +20,9 @@ internal interface IHudMenuRuntime : IDisposable
 
 internal sealed class PanoramaMenuRuntime : IHudMenuRuntime
 {
-    internal const string Layout = "panorama/layout/custom_game/elysium_menu_v1.vxml_c";
-    internal const string Style = "panorama/styles/custom_game/elysium_menu_v1.vcss_c";
+    internal const string Layout = "panorama/layout/custom_game/elysium_menu_v4.vxml_c";
+    internal const string Style = "panorama/styles/custom_game/elysium_menu_v4.vcss_c";
+    internal const string MapStyle = "panorama/styles/custom_game/elysium_map_rotation_v4.vcss_c";
     private readonly int _playerId;
     private readonly CCSCustomHudLayout _entity;
     private readonly Dictionary<string, string> _text = [];
@@ -31,7 +32,7 @@ internal sealed class PanoramaMenuRuntime : IHudMenuRuntime
 
     public PanoramaMenuRuntime(ISwiftlyCore core, int playerId)
     {
-        foreach (var path in new[] { Layout, Style })
+        foreach (var path in new[] { Layout, Style, MapStyle })
             if (!core.GameFileSystem.FileExists(path, "GAME")) throw new FileNotFoundException("Menu HUD: " + path);
         _playerId = playerId;
         _entity = core.EntitySystem.CreateEntity<CCSCustomHudLayout>();

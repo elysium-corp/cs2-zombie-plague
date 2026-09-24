@@ -138,13 +138,42 @@ public sealed class HudMenuTests
     [Fact]
     public void SharedLayoutHasSupportedPanelsUniqueIdsAndNoClientScript()
     {
-        var document = XDocument.Load(Path.Combine(AppContext.BaseDirectory, "menu-content/panorama/layout/custom_game/elysium_menu_v1.xml"));
+        var document = XDocument.Load(Path.Combine(AppContext.BaseDirectory, "menu-content/panorama/layout/custom_game/elysium_menu_v4.xml"));
         Assert.Null(document.Root!.Elements("Panel").Single().Attribute("id"));
         var ids = document.Descendants().Attributes("id").Select(attribute => attribute.Value).ToArray();
         Assert.Equal(ids.Length, ids.Distinct().Count());
         Assert.All(document.Descendants(), element => Assert.Contains(element.Name.LocalName, new[] { "root", "styles", "include", "Panel", "Label", "Button", "Image" }));
         Assert.DoesNotContain(document.Descendants().Attributes(), attribute => attribute.Name.LocalName is "html" or "onactivate" or "onclick");
-        Assert.Equal("s2r://" + PanoramaMenuRuntime.Style, document.Descendants("include").Single().Attribute("src")!.Value);
+        Assert.Equal(new[] { "s2r://" + PanoramaMenuRuntime.Style, "s2r://" + PanoramaMenuRuntime.MapStyle }, document.Descendants("include").Select(x => x.Attribute("src")!.Value));
+    }
+
+    [Fact]
+    public void ImageAndThemeChangesClearPreviousBindings()
+    {
+        using var f = new Fixture();
+        var path = "panorama/images/custom_game/elysium/assets/" + new string('a', 64) + "_png.vtex";
+        f.Menu = f.Menu with { StyleClass = "MapRotation", Items = f.Menu.Items.SetItem(0, f.Menu.Items[0] with { ImagePath = path }) };
+        var id = f.Open();
+        Assert.True(f.Current.Classes[("Image0", "HasImage")]);
+        Assert.True(f.Current.Classes[("MenuRoot", "MapRotation")]);
+        var imageClass = Assert.Single(f.Current.Classes.Where(pair => pair.Key.Item1 == "Image0" && pair.Key.Item2.StartsWith("MenuImage_custom_") && pair.Value)).Key.Item2;
+        f.Menu = f.Menu with { StyleClass = "", Items = f.Menu.Items.SetItem(0, f.Menu.Items[0] with { ImagePath = null }) };
+        Assert.True(f.Service.Update(f.Player, id, f.Menu));
+        Assert.False(f.Current.Classes[("Image0", "HasImage")]);
+        Assert.False(f.Current.Classes[("Image0", imageClass)]);
+        Assert.False(f.Current.Classes[("MenuRoot", "MapRotation")]);
+    }
+
+    [Theory]
+    [InlineData("https://example.com/image.png")]
+    [InlineData("panorama/images/custom_game/elysium/assets/../../image.vtex")]
+    public void InvalidImageCannotReplaceAnOpenMenu(string path)
+    {
+        using var f = new Fixture(); var id = f.Open();
+        var menu = f.Menu with { Items = f.Menu.Items.SetItem(0, f.Menu.Items[0] with { ImagePath = path }) };
+        Assert.Null(f.Service.Open(f.Player, menu, f.Actions.Add));
+        Assert.True(f.Service.IsOpen(f.Player, id));
+        Assert.True(f.Current.Capture);
     }
 
     private sealed class Fixture : IDisposable

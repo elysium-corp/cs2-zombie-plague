@@ -29,7 +29,7 @@ public sealed record MapRotationStatus(RotationState State, string CurrentMap, D
     [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<RotationPauseReason>))]
     public RotationPauseReason PauseReason { get; init; }
 
-    /// <summary>Остаток времени в секундах; без цели или кандидатов — null (без ограничения).</summary>
+    /// <summary>Остаток времени в секундах; без цели или кандидатов — null (таймер ротации отключён; лимиты CS2 не изменяются).</summary>
     public int? TimeLeftSeconds { get; init; }
 }
 

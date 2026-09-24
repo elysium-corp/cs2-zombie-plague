@@ -1,5 +1,8 @@
 using Common.Di.Diagnostics;
 using CustomHud.Api;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Events;
@@ -79,8 +82,11 @@ internal sealed class HudMenuService(ISwiftlyCore core, Func<int, IHudMenuRuntim
         session = null!; return false;
     }
     private static bool Valid(HudMenu menu) => !string.IsNullOrWhiteSpace(menu.Channel) && menu.Channel.Length <= 64
+        && (menu.StyleClass.Length == 0 || Regex.IsMatch(menu.StyleClass, "\\A[A-Za-z][A-Za-z0-9_]{0,63}\\z"))
         && menu.Options.ItemsPerPage is >= 1 and <= 6 && !menu.Items.IsDefault
         && menu.Items.Length <= 1000 && menu.Items.All(item => !string.IsNullOrEmpty(item.Id))
+        && menu.Items.All(item => item.ImagePath is null || Regex.IsMatch(item.ImagePath,
+            "\\Apanorama/images/custom_game/elysium/assets/[a-f0-9]{64}_png\\.vtex\\z"))
         && menu.Items.Select(item => item.Id).Distinct(StringComparer.Ordinal).Count() == menu.Items.Length;
     private static int PageCount(HudMenu menu) => Math.Max(1, (menu.Items.Length + menu.Options.ItemsPerPage - 1) / menu.Options.ItemsPerPage);
 
@@ -93,6 +99,12 @@ internal sealed class HudMenuService(ISwiftlyCore core, Func<int, IHudMenuRuntim
         hud.Text("Status", menu.Status); hud.Text("CloseText", menu.CloseText); hud.Text("Footer", menu.Footer);
         hud.Class("MenuRoot", "Modal", menu.Options.Modal);
         hud.Class("MenuRoot", "Result", menu.View == HudMenuView.Result);
+        if (session.StyleClass != menu.StyleClass)
+        {
+            if (session.StyleClass.Length > 0) hud.Class("MenuRoot", session.StyleClass, false);
+            session.StyleClass = menu.StyleClass;
+        }
+        if (menu.StyleClass.Length > 0) hud.Class("MenuRoot", menu.StyleClass, true);
         hud.Class("Close", "Hidden", !menu.Options.Closable);
         hud.Class("CloseHint", "Hidden", !menu.Options.Closable);
         hud.Class("Back", "Hidden", !menu.ShowBack);
@@ -107,6 +119,15 @@ internal sealed class HudMenuService(ISwiftlyCore core, Func<int, IHudMenuRuntim
         {
             var index = session.Page * menu.Options.ItemsPerPage + slot;
             var item = slot < menu.Options.ItemsPerPage && index < menu.Items.Length ? menu.Items[index] : null;
+            var imageClass = item?.ImagePath is { } path ? "MenuImage_custom_"
+                + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(path)))[..32] : "";
+            if (session.ImageClasses[slot] != imageClass)
+            {
+                if (session.ImageClasses[slot].Length > 0) hud.Class("Image" + slot, session.ImageClasses[slot], false);
+                session.ImageClasses[slot] = imageClass;
+            }
+            hud.Class("Image" + slot, "HasImage", imageClass.Length > 0);
+            if (imageClass.Length > 0) hud.Class("Image" + slot, imageClass, true);
             hud.Class("Item" + slot, "Hidden", item is null);
             if (item is null) continue;
             hud.Text("Name" + slot, item.Title);
@@ -235,5 +256,7 @@ internal sealed class HudMenuService(ISwiftlyCore core, Func<int, IHudMenuRuntim
         public Action<HudMenuEvent> Callback { get; } = callback;
         public IHudMenuRuntime? Runtime { get; set; }
         public int Page { get; set; }
+        public string StyleClass { get; set; } = "";
+        public string[] ImageClasses { get; } = ["", "", "", "", "", ""];
     }
 }

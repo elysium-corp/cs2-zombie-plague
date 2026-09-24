@@ -1,0 +1,17 @@
+.MenuRoot.MapRotation .MenuWindow { width: 650px; background-color: #111923f5; border-radius: 12px; border: 1px solid #a98aff66; }
+.MenuRoot.MapRotation.Visible .MenuWindow { animation-name: MapRotation_rise; animation-duration: 0.240s; animation-timing-function: ease-out; animation-iteration-count: 1; }
+.MenuRoot.MapRotation .Title, .MenuRoot.MapRotation .ItemName { color: #f4f6ff; }
+.MenuRoot.MapRotation .Subtitle, .MenuRoot.MapRotation .CloseText { color: #b9c6e9; }
+.MenuRoot.MapRotation .Subtitle { visibility: visible; }
+.MenuRoot.MapRotation .BrandMark, .MenuRoot.MapRotation .SelectedMark, .MenuRoot.MapRotation .ItemDescription, .MenuRoot.MapRotation .PageArrow Label { color: #a98aff; }
+.MenuRoot.MapRotation .MenuItem { min-height: 80px; border-radius: 12px; }
+.MenuRoot.MapRotation .MenuItem.Selected { border: 2px solid #a98aff; background-color: #a98aff22; }
+.MenuRoot.MapRotation .MenuItem:hover { border: 1px solid #a98aff; }
+.MenuRoot.MapRotation .ItemIcon { width: 108px; height: 54px; visibility: visible; border-radius: 5px; }
+.MenuRoot.MapRotation .ItemName { font-size: 19px; }
+.MenuRoot.MapRotation.Result .ItemName { font-size: 28px; }
+.MenuRoot.MapRotation.Result .ItemIcon { width: 100%; height: 180px; }
+.MenuRoot.MapRotation .AccentLine { background-color: #a98aff; }
+@keyframes 'MapRotation_fade' { 0% { opacity: 0; } 100% { opacity: 1; } }
+@keyframes 'MapRotation_rise' { 0% { opacity: 0; transform: translateY(24px); } 100% { opacity: 1; transform: translateY(0px); } }
+@keyframes 'MapRotation_zoom' { 0% { opacity: 0; transform: scale3d(0.96, 0.96, 1); } 100% { opacity: 1; transform: scale3d(1, 1, 1); } }

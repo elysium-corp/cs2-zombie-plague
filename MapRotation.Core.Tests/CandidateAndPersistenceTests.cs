@@ -120,6 +120,11 @@ public sealed class CandidateAndPersistenceTests
             for (var attempt = 0; !store.Initialized && attempt < 100; attempt++) await Task.Delay(10);
             Assert.True(store.Initialized); Assert.Equal(f.Engine.Deadline, store.Initial!.Checkpoint!.Deadline);
             Assert.Equal(f.Maps.Length, store.Initial.Configuration.Maps.Length);
+            Assert.Equal("LocalSnapshot", store.Diagnostics.Source);
+            Assert.Equal("map_rotation", store.Diagnostics.ConnectionName);
+            Assert.Equal("IOException", store.Diagnostics.LastErrorType);
+            Assert.NotNull(store.Diagnostics.LastAttemptAtUtc);
+            Assert.Null(store.Diagnostics.LastSuccessAtUtc);
             store.RequestReload(); Assert.Null(store.TakeConfiguration());
         }
         finally { Directory.Delete(directory, true); }

@@ -6,8 +6,8 @@ ROOT=Path(__file__).resolve().parents[2]
 OUT=ROOT/'docs/map-rotation/previews'
 OUT.mkdir(parents=True,exist_ok=True)
 RESOURCE=ROOT/'CustomHud.Core/resources/hud/menus/content/panorama'
-CSS=(RESOURCE/'styles/custom_game/elysium_menu_v1.css').read_text()
-XML=ET.parse(RESOURCE/'layout/custom_game/elysium_menu_v1.xml').getroot().find('Panel')
+CSS=(RESOURCE/'styles/custom_game/elysium_menu_v4.css').read_text()
+XML=ET.parse(RESOURCE/'layout/custom_game/elysium_menu_v4.xml').getroot().find('Panel')
 
 def convert_css(css):
     css=re.sub(r'background-color:\s*gradient\(linear, ([^,]+), ([^,]+), from\(([^)]+)\), to\(([^)]+)\)\)',lambda m:'background: linear-gradient('+('90deg' if m[2].strip()=='100% 0%' else '135deg')+','+m[3]+','+m[4]+')',css)
