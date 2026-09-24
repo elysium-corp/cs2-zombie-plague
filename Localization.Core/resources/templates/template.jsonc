@@ -1,8 +1,8 @@
 {
   "schemaVersion": 4,
-  "version": 22,
-  "generatedAt": "2026-09-24T00:00:00Z",
-  "checksum": "sha256:79a582e1f3e6346b6899bb8f69dfce90fc446abb1eb0415a89ccbc456d4d02f3",
+  "version": 23,
+  "generatedAt": "2026-09-24T07:00:00Z",
+  "checksum": "sha256:0a5775eca7a8d2841f489f51af9f1d87309ada690868a273fc797835c894cbc2",
   "serverFallbackLanguage": "ru",
   "languages": [
     "ru",
@@ -2434,6 +2434,18 @@
       "en": "No maps available",
       "de": "No maps available",
       "pl": "No maps available"
+    },
+    "MapRotation.InactiveNoMaps": {
+      "ru": "Ротация отключена: нет доступных карт в пуле. Текущая карта без ограничения времени.",
+      "en": "Rotation is inactive: no maps are available in the pool. The current map has no time limit.",
+      "de": "Die Rotation ist inaktiv: Im Kartenpool sind keine Karten verfügbar. Die aktuelle Karte hat kein Zeitlimit.",
+      "pl": "Rotacja jest nieaktywna: brak dostępnych map w puli. Bieżąca mapa nie ma limitu czasu."
+    },
+    "MapRotation.UnlimitedTime": {
+      "ru": "Без ограничения времени",
+      "en": "No time limit",
+      "de": "Kein Zeitlimit",
+      "pl": "Bez limitu czasu"
     },
     "MapRotation.ResultTitle": {
       "ru": "Голосование завершено",
