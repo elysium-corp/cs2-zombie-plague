@@ -51,6 +51,7 @@ internal sealed class MineController(
         events.Items.Giving.Hook(OnItemGiving);
         events.Items.Given.Hook(OnItemGiven);
         events.Mines.Placed.Hook(OnMinePlaced);
+        core.Event.OnPrecacheResource += OnPrecacheResource;
         core.Event.OnMapLoad += OnMapLoad;
         _roundEndHook = core.GameEvent.HookPost<EventRoundEnd>(OnRoundEnd);
         _gameRestartHook = core.GameEvent.HookPost<EventCsPreRestart>(OnGameRestart);
@@ -75,6 +76,7 @@ internal sealed class MineController(
         events.Items.Giving.Unhook(OnItemGiving);
         events.Items.Given.Unhook(OnItemGiven);
         events.Mines.Placed.Unhook(OnMinePlaced);
+        core.Event.OnPrecacheResource -= OnPrecacheResource;
         core.Event.OnMapLoad -= OnMapLoad;
         core.GameEvent.Unhook(_roundEndHook);
         core.GameEvent.Unhook(_gameRestartHook);
@@ -169,6 +171,18 @@ internal sealed class MineController(
     }
 
     private void OnMapLoad(IOnMapLoadEvent @event) => RemoveAllMines();
+
+    private void OnPrecacheResource(IOnPrecacheResourceEvent @event)
+    {
+        var definition = gameplayItemCatalog.Get(GameplayItemKeys.LaserMine);
+        var settings = (LaserMineSettings)definition.Settings;
+        foreach (var model in new[] { definition.Model, settings.MineModel }
+                     .Where(model => !string.IsNullOrWhiteSpace(model))
+                     .Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            @event.AddItem(model);
+        }
+    }
 
     private void OnRunCommand(ref RunCommandMovementPreContext context)
     {

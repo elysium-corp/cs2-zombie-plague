@@ -42,7 +42,7 @@ public sealed class LaserMinePlacementTests
     }
 
     [Fact]
-    public void PrecacheIncludesPlacedModelAndSoundEventsFromCatalog()
+    public void PrecacheUsesCatalogModelsAndFollowsControllerLifecycle()
     {
         var catalog = new GameplayItemCatalog();
         var defaults = catalog.Get(GameplayItemKeys.LaserMine);
@@ -56,17 +56,29 @@ public sealed class LaserMinePlacementTests
                 }
             }
             : item).ToArray());
-        using var controller = CreateController(Mock.Of<ISwiftlyCore>(), Mock.Of<IEquipmentService>(), catalog);
+        var core = new Mock<ISwiftlyCore> { DefaultValue = DefaultValue.Mock };
+        var events = new Mock<ICustomEquipmentEvents> { DefaultValue = DefaultValue.Mock };
+        var zombiePlague = new Mock<IZombiePlagueApi> { DefaultValue = DefaultValue.Mock };
+        using var controller = new MineController(core.Object, events.Object, Mock.Of<IEquipmentService>(),
+            Mock.Of<ILaserMineInstallerService>(), () => zombiePlague.Object, Mock.Of<ILocalizationApi>(), catalog);
         var resources = new List<string>();
         var precache = new Mock<IOnPrecacheResourceEvent>();
         precache.Setup(value => value.AddItem(It.IsAny<string>())).Callback<string>(resources.Add);
 
-        typeof(MineController).GetMethod("OnPrecacheResource", BindingFlags.NonPublic | BindingFlags.Instance)!
-            .Invoke(controller, [precache.Object]);
+        controller.Initialize();
+        controller.Initialize();
+        Mock.Get(core.Object.Event).Raise(value => value.OnPrecacheResource += null, precache.Object);
+        Assert.Equal(["models/mine_carrier.vmdl", "models/placed_mine.vmdl"], resources);
 
-        Assert.Contains("models/mine_carrier.vmdl", resources);
-        Assert.Contains("models/placed_mine.vmdl", resources);
-        Assert.Contains("soundevents/custom_mines.vsndevts", resources);
+        controller.Dispose();
+        controller.Dispose();
+        resources.Clear();
+        Mock.Get(core.Object.Event).Raise(value => value.OnPrecacheResource += null, precache.Object);
+        Assert.Empty(resources);
+
+        controller.Initialize();
+        Mock.Get(core.Object.Event).Raise(value => value.OnPrecacheResource += null, precache.Object);
+        Assert.Equal(["models/mine_carrier.vmdl", "models/placed_mine.vmdl"], resources);
     }
 
     private static MineController CreateController(
