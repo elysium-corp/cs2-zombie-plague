@@ -51,6 +51,7 @@ internal sealed class MineController(
         events.Items.Giving.Hook(OnItemGiving);
         events.Items.Given.Hook(OnItemGiven);
         events.Mines.Placed.Hook(OnMinePlaced);
+        core.Event.OnPrecacheResource += OnPrecacheResource;
         core.Event.OnMapLoad += OnMapLoad;
         _roundEndHook = core.GameEvent.HookPost<EventRoundEnd>(OnRoundEnd);
         _gameRestartHook = core.GameEvent.HookPost<EventCsPreRestart>(OnGameRestart);
@@ -75,6 +76,7 @@ internal sealed class MineController(
         events.Items.Giving.Unhook(OnItemGiving);
         events.Items.Given.Unhook(OnItemGiven);
         events.Mines.Placed.Unhook(OnMinePlaced);
+        core.Event.OnPrecacheResource -= OnPrecacheResource;
         core.Event.OnMapLoad -= OnMapLoad;
         core.GameEvent.Unhook(_roundEndHook);
         core.GameEvent.Unhook(_gameRestartHook);
@@ -166,6 +168,18 @@ internal sealed class MineController(
         if (entity is not { IsValidEntity: true }) return;
         _mines[entity] = (context.Player, context.Mine);
         equipmentService.RemoveItems<LaserMine>(context.Player);
+    }
+
+    private void OnPrecacheResource(IOnPrecacheResourceEvent @event)
+    {
+        var definition = gameplayItemCatalog.Get(GameplayItemKeys.LaserMine);
+        var settings = (LaserMineSettings)definition.Settings;
+        foreach (var resource in new[] { definition.Model, settings.MineModel, settings.SoundEventsResource }
+                     .Where(path => !string.IsNullOrWhiteSpace(path))
+                     .Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            @event.AddItem(resource);
+        }
     }
 
     private void OnMapLoad(IOnMapLoadEvent @event) => RemoveAllMines();

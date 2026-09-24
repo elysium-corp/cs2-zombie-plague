@@ -36,12 +36,29 @@ public sealed class LaserMineCatalogTests
     {
         var json = LegacySettings[..LegacySettings.LastIndexOf('}')] + """
             ,"damage_sound":"Elysium.MineZap","ready_sound":"","sound_volume":0.4,
+            "sound_events_resource":"soundevents/elysium_mines.vsndevts"}
             """;
         var settings = Parse(json);
         Validate(settings);
         Assert.Equal("Elysium.MineZap", settings.DamageSound);
         Assert.Empty(settings.ReadySound);
         Assert.Equal(0.4f, settings.SoundVolume);
+        Assert.Equal("soundevents/elysium_mines.vsndevts", settings.SoundEventsResource);
+    }
+
+    [Fact]
+    public void CatalogReadsSettingsWrittenBySoundMigrations()
+    {
+        // Миграции 20260923120000 и 20260924040000 сохраняют sound_events_resource в JSON мины.
+        // JsonOptions запрещают неизвестные поля, поэтому без свойства весь каталог не загружается.
+        var json = LegacySettings[..LegacySettings.LastIndexOf('}')] + """
+            ,"install_sound":"ZombiePlague.lasermine_mechanism_click","destroy_sound_duration":2.0,
+            "sound_events_resource":"soundevents/game_sounds_elysium_weapons.vsndevts"}
+            """;
+        var settings = Parse(json);
+        Validate(settings);
+        Assert.Equal("soundevents/game_sounds_elysium_weapons.vsndevts", settings.SoundEventsResource);
+        Assert.Equal("soundevents/game_sounds_elysium_weapons.vsndevts", Parse(LegacySettings).SoundEventsResource);
     }
 
     [Theory]
@@ -52,6 +69,7 @@ public sealed class LaserMineCatalogTests
     [InlineData("charge_duration")]
     [InlineData("ready_duration")]
     [InlineData("destroy_duration")]
+    [InlineData("resource")]
     [InlineData("null_sound")]
     public void InvalidSoundSettingsAreRejectedBeforeRuntime(string field)
     {
@@ -65,6 +83,7 @@ public sealed class LaserMineCatalogTests
             "ready_duration" => settings with { ReadySoundDuration = float.NaN },
             "destroy_duration" => settings with { DestroySoundDuration = -1f },
             "volume" => settings with { SoundVolume = 2f },
+            "resource" => settings with { SoundEventsResource = "../sounds/test.wav" },
             _ => settings with { DamageSound = null! }
         };
         var exception = Assert.Throws<TargetInvocationException>(() => Validate(settings));
