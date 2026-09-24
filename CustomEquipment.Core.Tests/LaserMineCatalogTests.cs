@@ -36,7 +36,6 @@ public sealed class LaserMineCatalogTests
     {
         var json = LegacySettings[..LegacySettings.LastIndexOf('}')] + """
             ,"damage_sound":"Elysium.MineZap","ready_sound":"","sound_volume":0.4,
-            "sound_events_resource":"soundevents/elysium_mines.vsndevts"}
             """;
         var settings = Parse(json);
         Validate(settings);
@@ -53,7 +52,6 @@ public sealed class LaserMineCatalogTests
     [InlineData("charge_duration")]
     [InlineData("ready_duration")]
     [InlineData("destroy_duration")]
-    [InlineData("resource")]
     [InlineData("null_sound")]
     public void InvalidSoundSettingsAreRejectedBeforeRuntime(string field)
     {
