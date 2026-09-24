@@ -1,5 +1,6 @@
 using Admin.Core.Data;
 using Common.Database.Tasks;
+using Common.Di.Diagnostics;
 using Microsoft.Extensions.Logging;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Events;
@@ -114,6 +115,7 @@ internal sealed class CommunicationService(ISwiftlyCore core, CommunicationBlock
 
     private void OnAuthorize(IOnClientSteamAuthorizeEvent args)
     {
+        using var timing = ConnectionDiagnostics.Begin(core.Logger, "Admin.Communication.steam_authorize", args.PlayerId);
         if (core.PlayerManager.GetPlayer(args.PlayerId) is { IsValid: true } player) UpdateVoice(player);
     }
 

@@ -9,6 +9,7 @@ using Admin.Core.Registry;
 using Admin.Core.Services;
 using Common.Database.Migrator;
 using Common.Di;
+using Common.Di.Diagnostics;
 using Localization.Api;
 using Menu.Api;
 using Microsoft.Extensions.Logging;
@@ -125,7 +126,9 @@ internal sealed partial class Admin(ISwiftlyCore core) : Plugin<AdminModule>(cor
     
     private void OnClientSteamAuthorize(IOnClientSteamAuthorizeEvent @event)
     {
+        using var timing = ConnectionDiagnostics.Begin(Core.Logger, "Admin.steam_authorize", @event.PlayerId);
         var player = Core.PlayerManager.GetPlayer(@event.PlayerId);
+        timing?.Identify(player);
 
         if (player is null)
         {
@@ -137,7 +140,9 @@ internal sealed partial class Admin(ISwiftlyCore core) : Plugin<AdminModule>(cor
     
     private HookResult OnPlayerConnectFull(EventPlayerConnectFull @event)
     {
+        using var timing = ConnectionDiagnostics.Begin(Core.Logger, "Admin.player_connect_full");
         var player = @event.UserIdPlayer;
+        timing?.Identify(player);
 
         if (player is not { IsValid: true, IsAuthorized: true, IsFakeClient: false })
         {

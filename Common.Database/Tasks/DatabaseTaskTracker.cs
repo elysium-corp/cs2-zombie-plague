@@ -1,9 +1,12 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Common.Database.Diagnostics;
+using Microsoft.Extensions.Logging;
 
 namespace Common.Database.Tasks;
 
-public sealed class DatabaseTaskTracker(ILogger<DatabaseTaskTracker> logger) : IDisposable
+public sealed class DatabaseTaskTracker : IDisposable
 {
+    private readonly ILogger<DatabaseTaskTracker> logger;
+    private readonly bool _diagnosticsEnabled;
     private static readonly TimeSpan ShutdownTimeout = TimeSpan.FromSeconds(3);
     private readonly Lock _lock = new();
 
@@ -12,12 +15,28 @@ public sealed class DatabaseTaskTracker(ILogger<DatabaseTaskTracker> logger) : I
 
     private bool _stopping;
 
+    /// <summary>
+    /// Создаёт трекер. Синхронные замеры включаются переменной ELYSIUM_CONNECT_DIAGNOSTICS=1.
+    /// </summary>
+    public DatabaseTaskTracker(ILogger<DatabaseTaskTracker> logger)
+        : this(logger, Environment.GetEnvironmentVariable("ELYSIUM_CONNECT_DIAGNOSTICS") == "1")
+    {
+    }
+
+    internal DatabaseTaskTracker(ILogger<DatabaseTaskTracker> logger, bool diagnosticsEnabled)
+    {
+        this.logger = logger;
+        _diagnosticsEnabled = diagnosticsEnabled;
+    }
+
     public void Run(Func<Task> operation, string? operationName = null)
     {
         ArgumentNullException.ThrowIfNull(operation);
 
+        using var timing = _diagnosticsEnabled ? new DatabaseOperationTiming(logger, operationName) : null;
         lock (_lock)
         {
+            timing?.LockAcquired();
             if (_stopping)
             {
                 logger.LogWarning("Database operation '{OperationName}' was ignored because the tracker is stopping!", operationName);
@@ -29,10 +48,13 @@ public sealed class DatabaseTaskTracker(ILogger<DatabaseTaskTracker> logger) : I
 
             try
             {
+                timing?.InvocationStarted();
                 operationTask = operation();
+                timing?.InvocationReturned(operationTask);
             }
             catch (Exception exception)
             {
+                timing?.InvocationFailed();
                 logger.LogError(
                     exception,
                     "Failed to start database operation '{OperationName}'!",
@@ -62,8 +84,10 @@ public sealed class DatabaseTaskTracker(ILogger<DatabaseTaskTracker> logger) : I
     {
         ArgumentNullException.ThrowIfNull(operation);
 
+        using var timing = _diagnosticsEnabled ? new DatabaseOperationTiming(logger, operationName) : null;
         lock (_lock)
         {
+            timing?.LockAcquired();
             if (_stopping)
             {
                 logger.LogWarning(
@@ -80,10 +104,13 @@ public sealed class DatabaseTaskTracker(ILogger<DatabaseTaskTracker> logger) : I
 
             try
             {
+                timing?.InvocationStarted();
                 operationTask = operation();
+                timing?.InvocationReturned(operationTask);
             }
             catch (Exception exception)
             {
+                timing?.InvocationFailed();
                 logger.LogError(
                     exception,
                     "Failed to start database operation '{OperationName}'!",

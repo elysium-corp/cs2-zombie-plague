@@ -1,6 +1,7 @@
 using Admin.Api;
 using Common.Database.Migrator;
 using Common.Di;
+using Common.Di.Diagnostics;
 using CustomEquipment.Api;
 using CustomEquipment.Api.Events.Contexts.Items;
 using Economy.Api;
@@ -207,7 +208,9 @@ internal sealed partial class Economy(ISwiftlyCore core) : Plugin<EconomyModule>
 
     private HookResult OnPlayerConnectFull(EventPlayerConnectFull @event)
     {
+        using var timing = ConnectionDiagnostics.Begin(Core.Logger, "Economy.player_connect_full");
         var player = @event.UserIdPlayer;
+        timing?.Identify(player);
 
         if (player is not { IsValid: true, IsAuthorized: true, IsFakeClient: false })
         {

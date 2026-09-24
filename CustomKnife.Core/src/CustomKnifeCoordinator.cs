@@ -1,4 +1,5 @@
-﻿using CustomKnife.Data.Menus;
+﻿using Common.Di.Diagnostics;
+using CustomKnife.Data.Menus;
 using CustomKnife.Data.Services.Contracts;
 using CustomKnife.Data.Utils.Extensions;
 using CustomKnife.Initializer;
@@ -212,7 +213,9 @@ internal sealed class CustomKnifeCoordinator(
     
     private void OnClientSteamAuthorize(IOnClientSteamAuthorizeEvent @event)
     {
+        using var timing = ConnectionDiagnostics.Begin(core.Logger, "CustomKnife.steam_authorize", @event.PlayerId);
         var player = core.PlayerManager.GetPlayer(@event.PlayerId);
+        timing?.Identify(player);
 
         if (player is null || player.IsFakeClient || player.SteamID == 0)
         {

@@ -1,3 +1,4 @@
+using Common.Di.Diagnostics;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.GameEventDefinitions;
@@ -67,12 +68,14 @@ internal sealed class PlayerService(
 
     private void OnClientPutInServer(IOnClientPutInServerEvent @event)
     {
+        using var timing = ConnectionDiagnostics.Begin(core.Logger, "ZombiePlague.client_put_in_server", @event.PlayerId);
         if (@event.Kind != ClientKind.Bot)
         {
             return;
         }
 
         var player = core.PlayerManager.GetPlayer(@event.PlayerId);
+        timing?.Identify(player);
 
         if (player != null)
         {
@@ -84,7 +87,9 @@ internal sealed class PlayerService(
     // требует одновременно Controller и Pawn, поэтому одноразовая проверка теряла late-join игроков.
     private HookResult OnPlayerConnectFull(EventPlayerConnectFull @event)
     {
+        using var timing = ConnectionDiagnostics.Begin(core.Logger, "ZombiePlague.Player.player_connect_full");
         var player = @event.UserIdPlayer;
+        timing?.Identify(player);
 
         if (player is null)
         {
@@ -98,6 +103,7 @@ internal sealed class PlayerService(
 
     private void InitializePlayerWhenReady(int playerId, ulong sessionId, int attempt)
     {
+        using var timing = ConnectionDiagnostics.Begin(core.Logger, "ZombiePlague.player_ready", playerId, sessionId, attempt);
         var player = core.PlayerManager.GetPlayer(playerId);
 
         if (player is null || player.SessionId != sessionId)
@@ -106,13 +112,23 @@ internal sealed class PlayerService(
             return;
         }
 
+        timing?.Identify(player);
         if (player.IsValid)
         {
             CancelPlayerReadyTimer(playerId);
 
-            playerPreferencesCoordinator.Initialize(player);
+            using (ConnectionDiagnostics.Begin(core.Logger, "ZombiePlague.preferences", playerId, sessionId, attempt))
+            {
+                playerPreferencesCoordinator.Initialize(player);
+            }
 
-            if (!playerManager.TrySetHuman(player))
+            bool humanized;
+            using (ConnectionDiagnostics.Begin(core.Logger, "ZombiePlague.humanize", playerId, sessionId, attempt))
+            {
+                humanized = playerManager.TrySetHuman(player);
+            }
+
+            if (!humanized)
             {
                 return;
             }
@@ -121,6 +137,7 @@ internal sealed class PlayerService(
             // уже мёртвым, сразу передаём его текущему round lifecycle.
             if (!player.IsAlive)
             {
+                using var respawnTiming = ConnectionDiagnostics.Begin(core.Logger, "ZombiePlague.respawn", playerId, sessionId, attempt);
                 roundManager.TryRespawnPlayer(player);
             }
 
@@ -153,7 +170,9 @@ internal sealed class PlayerService(
 
     private HookResult OnPlayerSpawn(EventPlayerSpawn @event)
     {
+        using var timing = ConnectionDiagnostics.Begin(core.Logger, "ZombiePlague.player_spawn");
         var player = @event.UserIdPlayer;
+        timing?.Identify(player);
 
         if (player == null || !player.IsValid)
         {
