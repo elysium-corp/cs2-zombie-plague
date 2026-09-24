@@ -100,9 +100,45 @@ public sealed class LaserMineLifecycleTests
         core.VerifyNoOtherCalls();
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void RemovedMineCancelsPendingSoundsAndLateCallbacksStaySilent(bool destroyedByDamage)
+    {
+        var core = new Mock<ISwiftlyCore> { DefaultValue = DefaultValue.Mock };
+        var timers = new List<CancellationTokenSource>();
+        var callbacks = new List<Action>();
+        core.Setup(value => value.Scheduler.DelayBySeconds(It.IsAny<float>(), It.IsAny<Action>()))
+            .Returns((float _, Action callback) =>
+            {
+                callbacks.Add(callback);
+                var timer = new CancellationTokenSource();
+                timers.Add(timer);
+                return timer;
+            });
+        using var mine = new TestLaserMineEntity(core.Object);
+        var model = new Mock<CBaseModelEntity>();
+        model.SetupGet(value => value.IsValidEntity).Returns(true);
+        SetProperty(mine, nameof(LaserMineEntityBase.LaserMine), model.Object);
+        var emitted = 0;
+        mine.Schedule(0.882358f, () => emitted++);
+        mine.Schedule(2f, () => emitted++);
+        callbacks[0]();
+        Assert.Equal(1, emitted);
+        if (destroyedByDamage) mine.DestroyByDamage();
+        else mine.Dispose();
+        foreach (var callback in callbacks) callback();
+
+        Assert.Equal(2, timers.Count);
+        Assert.All(timers, timer => Assert.True(timer.IsCancellationRequested));
+        Assert.Equal(1, emitted);
+        foreach (var timer in timers) timer.Dispose();
+    }
+
     private sealed class TestLaserMineEntity(ISwiftlyCore core) : LaserMineEntityBase(core)
     {
         public int Destructions { get; private set; }
+        public void Schedule(float delay, Action callback) => ScheduleWhileAlive(delay, callback);
         protected override void OnDestroyedByDamage() => Destructions++;
     }
 

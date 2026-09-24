@@ -2,7 +2,7 @@
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
-using SwiftlyS2.Shared.Trace;
+using Microsoft.Extensions.Logging;
 
 namespace CustomEquipment.Api.Data;
 
@@ -26,6 +26,7 @@ public abstract class LaserMineEntityBase(ISwiftlyCore core) : IDisposable
     protected IPlayer? Owner { get; private set; }
     private CancellationTokenSource? _triggerTask;
     private CancellationTokenSource? _armingTask;
+    private readonly List<CancellationTokenSource> _scheduledTasks = [];
     private bool _destroyedByDamage;
     private int _disposed;
 
@@ -49,7 +50,7 @@ public abstract class LaserMineEntityBase(ISwiftlyCore core) : IDisposable
             owner.PlayerPawn is not { IsValid: true } playerPawn) return false;
 
         // Новая модель ещё не участвует в трассировке и не может закрыть поверхность.
-        if (!TryGetPlacement(playerPawn, maxDistanceToAttach, out var position, out var rotation)) return false;
+        if (!LaserMinePlacement.TryFindSurface(core, playerPawn, maxDistanceToAttach, out var position, out var rotation)) return false;
 
         Owner = owner;
         var team = playerPawn.Team;
@@ -59,6 +60,7 @@ public abstract class LaserMineEntityBase(ISwiftlyCore core) : IDisposable
             LaserMine = core.EntitySystem.CreateEntityByDesignerName<CBaseModelEntity>("prop_dynamic_override");
             if (LaserMine is not { IsValidEntity: true })
             {
+                core.Logger.LogWarning("[LaserMine] Не удалось создать prop_dynamic_override для модели {Model}.", LaserMineModel);
                 Dispose();
                 return false;
             }
@@ -189,6 +191,8 @@ public abstract class LaserMineEntityBase(ISwiftlyCore core) : IDisposable
         // к native entity во время её удаления или reset раунда.
         CancelTimer(Interlocked.Exchange(ref _armingTask, null));
         CancelTimer(Interlocked.Exchange(ref _triggerTask, null));
+        foreach (var timer in _scheduledTasks) CancelTimer(timer);
+        _scheduledTasks.Clear();
         IsArmed = false;
 
         Owner = null;
@@ -234,41 +238,16 @@ public abstract class LaserMineEntityBase(ISwiftlyCore core) : IDisposable
         LaserMineTracer?.EndPosUpdated();
     }
 
-    private bool TryGetPlacement(
-        CCSPlayerPawn playerPawn,
-        float maxDistanceToAttach,
-        out Vector position,
-        out QAngle rotation)
+    /// <summary>Планирует действие установленной мины; удаление мины отменяет его.</summary>
+    protected void ScheduleWhileAlive(float delay, Action action)
     {
-        position = default;
-        rotation = default;
-
-        if (playerPawn.EyePosition == null) return false;
-
-        var start = playerPawn.EyePosition.Value;
-        var forward = playerPawn.EyeAngles;
-
-        var trace = core.Trace.TraceShapeAngle(
-            start,
-            forward,
-            new TraceParams
-            {
-                ObjectQuery = RnQueryObjectSet.AllGameEntities | RnQueryObjectSet.Static,
-                InteractWith = MaskTrace.Solid,
-                InteractExclude = MaskTrace.Empty | MaskTrace.Player,
-                InteractAs = MaskTrace.Empty,
-                EntitiesToIgnore = [playerPawn]
-            }
-        );
-
-        if (!trace.DidHit || trace.StartInSolid || trace.Distance > maxDistanceToAttach) return false;
-
-        var normal = trace.HitNormal;
-
-        position = trace.EndPos + normal * 5;
-        rotation = normal.ToQAngles();
-
-        return true;
+        if (Volatile.Read(ref _disposed) != 0) return;
+        var timer = core.Scheduler.DelayBySeconds(delay, () =>
+        {
+            if (Volatile.Read(ref _disposed) == 0 && LaserMine is { IsValidEntity: true }) action();
+        });
+        _scheduledTasks.Add(timer);
+        core.Scheduler.StopOnMapChange(timer);
     }
 
     private void StartTriggerHandler()

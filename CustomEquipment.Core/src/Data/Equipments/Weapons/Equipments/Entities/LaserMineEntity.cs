@@ -36,14 +36,14 @@ public sealed class LaserMineEntity : LaserMineEntityBase
     {
         _core = core ?? throw new ArgumentNullException(nameof(core));
         _settings = settings ?? throw new ArgumentNullException(nameof(settings));
-        _sounds = new LaserMineSoundPlayback(core, settings);
+        _sounds = new LaserMineSoundPlayback(core, settings, () => LaserMine);
     }
 
     public override string LaserMineModel => _settings.MineModel;
     public override float TriggerInterval => _settings.TriggerInterval;
     public override float TracerDistance => _settings.TracerDistance;
     public override int MaxHealth => _settings.MaxHealth;
-    public override float ArmingDelay => _settings.ArmingDuration;
+    public override float ArmingDelay => _settings.ActivationDelay;
     public override float BeamWidth => _settings.BeamWidth;
     public override Color BeamColor => new(
         _settings.BeamRed,
@@ -57,12 +57,7 @@ public sealed class LaserMineEntity : LaserMineEntityBase
 
     protected override void OnSpawned()
     {
-        if (LaserMine?.AbsOrigin is { } position) _sounds.Charge(position);
-    }
-
-    protected override void OnArmed()
-    {
-        if (LaserMine?.AbsOrigin is { } position) _sounds.Ready(position);
+        if (LaserMine?.AbsOrigin is { } position) _sounds.Start(position, ScheduleWhileAlive);
     }
 
     protected override void OnDestroyedByDamage()

@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using CustomEquipment.Api.Enums;
 
 namespace CustomEquipment.Data.GameplayItems;
@@ -58,15 +59,22 @@ internal sealed record LaserMineSettings(
     int UpdateIntervalMs
 ) : IGameplayItemBehaviorSettings
 {
-    public float ArmingDuration { get; init; } = 1f;
-    public string InstallSound { get; init; } = "c4.plant";
-    public string ChargeSound { get; init; } = "Weapon_Taser.Charging";
-    public string ReadySound { get; init; } = "C4.PlantSoundB";
-    public string DamageSound { get; init; } = "Weapon_Taser.Hit";
-    public string DestroySound { get; init; } = "BaseGrenade.Explode";
+    public float ArmingDuration { get; init; } = 2f;
+    public float InstallSoundDuration { get; init; } = 0.882358f;
+    public float ChargeSoundDuration { get; init; } = 1.109478f;
+    public float ReadySoundDuration { get; init; } = 1.287256f;
+    [JsonIgnore]
+    public float ReadySoundDelay => Math.Max(ArmingDuration, InstallSoundDuration + ChargeSoundDuration);
+    [JsonIgnore]
+    public float ActivationDelay => ReadySoundDelay + ReadySoundDuration;
+    public string InstallSound { get; init; } = "ZombiePlague.lasermine_mechanism_click";
+    public string ChargeSound { get; init; } = "ZombiePlague.lasermine_charge_up";
+    public string ReadySound { get; init; } = "ZombiePlague.lasermine_ready";
+    public string DamageSound { get; init; } = "ZombiePlague.lasermine_electric_zap";
+    public string DestroySound { get; init; } = "ZombiePlague.lasermine_explosion";
     public float SoundVolume { get; init; } = 0.7f;
     public float DamageSoundInterval { get; init; } = 0.3f;
-    public string SoundEventsResource { get; init; } = "soundevents/game_sounds_weapons.vsndevts";
+    public string SoundEventsResource { get; init; } = "soundevents/game_sounds_elysium_weapons.vsndevts";
 }
 
 internal sealed record GameplayItemDefinition(
