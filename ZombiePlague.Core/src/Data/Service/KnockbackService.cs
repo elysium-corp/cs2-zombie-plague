@@ -3,6 +3,7 @@ using Common.Hooks.Abstractions;
 using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
+using SwiftlyS2.Shared.GameHooks;
 using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
@@ -64,6 +65,7 @@ internal sealed class KnockbackService(
             { "weapon_knife", new KnockbackData(450.0f, 25.0f) }
         };
 
+    private readonly Dictionary<nint, int> _laserMineDamageVictims = [];
     private Guid _playerHurtHook = Guid.Empty;
 
     public void Register()
@@ -73,6 +75,8 @@ internal sealed class KnockbackService(
             return;
         }
 
+        core.GameHooks.Entities.TakeDamage.Pre += OnTakeDamagePre;
+        core.GameHooks.Entities.TakeDamage.Post += OnTakeDamagePost;
         _playerHurtHook = core.GameEvent.HookPost<EventPlayerHurt>(OnPlayerHurtPost);
     }
 
@@ -81,6 +85,9 @@ internal sealed class KnockbackService(
         if (_playerHurtHook != Guid.Empty)
         {
             core.GameEvent.Unhook(_playerHurtHook);
+            core.GameHooks.Entities.TakeDamage.Pre -= OnTakeDamagePre;
+            core.GameHooks.Entities.TakeDamage.Post -= OnTakeDamagePost;
+            _laserMineDamageVictims.Clear();
             _playerHurtHook = Guid.Empty;
         }
     }
@@ -89,6 +96,11 @@ internal sealed class KnockbackService(
     {
         var victim = @event.UserIdPlayer;
         var attacker = @event.AttackerPlayer;
+
+        if (victim is { IsValid: true } && IsLaserMineDamagePending(victim))
+        {
+            return false;
+        }
 
         if (
             victim is not { IsValid: true } ||
@@ -153,6 +165,53 @@ internal sealed class KnockbackService(
         TryApplyKnockback(@event);
 
         return HookResult.Continue;
+    }
+
+    private void OnTakeDamagePre(ref TakeDamageEntityPreContext context)
+    {
+        if (context.Params.Info.DamageCustom != DamageCustomIds.LaserMine)
+        {
+            return;
+        }
+
+        var address = context.Params.Entity.Address;
+        if (address == nint.Zero)
+        {
+            return;
+        }
+
+        _laserMineDamageVictims.TryGetValue(address, out var count);
+        _laserMineDamageVictims[address] = count + 1;
+    }
+
+    private void OnTakeDamagePost(ref TakeDamageEntityPostContext context)
+    {
+        if (context.Params.Info.DamageCustom != DamageCustomIds.LaserMine)
+        {
+            return;
+        }
+
+        var address = context.Params.Entity.Address;
+        if (!_laserMineDamageVictims.TryGetValue(address, out var count))
+        {
+            return;
+        }
+
+        if (count <= 1)
+        {
+            _laserMineDamageVictims.Remove(address);
+            return;
+        }
+
+        _laserMineDamageVictims[address] = count - 1;
+    }
+
+    private bool IsLaserMineDamagePending(IPlayer victim)
+    {
+        var pawn = victim.PlayerPawn;
+
+        return pawn is { IsValid: true } &&
+               _laserMineDamageVictims.ContainsKey(pawn.Address);
     }
 
     private void ApplyKnockback(IPlayer victim, Vector velocity)
