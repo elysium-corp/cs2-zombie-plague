@@ -15,6 +15,8 @@ internal sealed record RotationCheckpoint(string CurrentMap, string WorkshopId, 
 {
     public DateTimeOffset? PausedAt { get; init; }
     public TimeSpan PausedDuration { get; init; }
+    public bool NativeMatchEnded { get; init; }
+    public DateTimeOffset? NativeDeadline { get; init; }
 }
 internal enum RotationReply { Accepted, Duplicate, Delay, Disabled, TooFewPlayers, NotEligible, Locked, InvalidMap }
 
@@ -36,6 +38,9 @@ internal sealed class RotationEngine(TimeProvider clock, IRotationRandom random)
     private int _humanPlayerCount;
     private DateTimeOffset? _pausedAt;
     private TimeSpan _pausedDuration;
+    private DateTimeOffset? _nativeDeadline;
+    private bool _nativeMatchEnded;
+    private DateTimeOffset EffectiveDeadline => _nativeDeadline is { } native && native < Deadline ? native : Deadline;
     public RotationConfiguration Configuration { get; private set; } = RotationConfiguration.Empty;
     public RotationState State { get; private set; } = RotationState.Loading;
     public string CurrentMap { get; private set; } = "";
@@ -55,12 +60,12 @@ internal sealed class RotationEngine(TimeProvider clock, IRotationRandom random)
     public int RtvVotes => _rtv.Count;
     public int RtvDelayRemaining => Math.Max(0, (int)Math.Ceiling((StartedAt.Add(_pausedDuration).AddSeconds(Settings.RtvDelaySeconds) - TimerNow).TotalSeconds));
     public RotationMap? NextMap => Configuration.Maps.FirstOrDefault(map => map.Id == NextMapId);
-    public TimeSpan TimeLeft => Deadline > TimerNow ? Deadline - TimerNow : TimeSpan.Zero;
+    public TimeSpan TimeLeft => EffectiveDeadline > TimerNow ? EffectiveDeadline - TimerNow : TimeSpan.Zero;
     public event Action<RotationMap, bool>? ChangeRequested;
     public event Action<VoteArchive>? VoteFinished;
     public event Action<MapHistoryEntry>? MapFinished;
 
-    public MapRotationStatus GetStatus() => new(State, CurrentMap, StartedAt, ProjectTime(Deadline), NextMap?.MapName,
+    public MapRotationStatus GetStatus() => new(State, CurrentMap, StartedAt, ProjectTime(EffectiveDeadline), NextMap?.MapName,
         Source, _rtv.Count, RtvRequired, Vote?.Id, Vote is { } vote ? ProjectTime(vote.EndsAt) : null)
         { RotationEnabled = RotationEnabled, PauseReason = PauseReason,
             TimeLeftSeconds = PauseReason == RotationPauseReason.NoMaps ? null : (int)Math.Ceiling(TimeLeft.TotalSeconds) };
@@ -91,6 +96,7 @@ internal sealed class RotationEngine(TimeProvider clock, IRotationRandom random)
         _eligiblePlayerCount = 0; _humanPlayerCount = 0; _mapUnloaded = false;
         _changeAt = null; _finalRoundAt = null; _retryChangeAt = default;
         _pausedAt = clock.GetUtcNow(); _pausedDuration = TimeSpan.Zero;
+        _nativeDeadline = null; _nativeMatchEnded = false;
         // ChangingMap — это уже завершённая сессия, даже при повторной загрузке той же карты.
         if (saved is not null && saved.CurrentMap == name && saved.WorkshopId == workshop
             && saved.State is not (RotationState.Loading or RotationState.ChangingMap))
@@ -99,6 +105,8 @@ internal sealed class RotationEngine(TimeProvider clock, IRotationRandom random)
             State = saved.State; NextMapId = saved.NextMapId; Source = saved.Source;
             Vote = saved.Vote; _finalRoundAt = saved.FinalRoundAt; _changeAt = saved.ChangeAt;
             _pausedAt = saved.PausedAt ?? clock.GetUtcNow(); _pausedDuration = saved.PausedDuration;
+            _nativeMatchEnded = saved.NativeMatchEnded;
+            _nativeDeadline = saved.NativeDeadline;
             _rtv.UnionWith(saved.Rtv);
             foreach (var pair in saved.Nominations) _nominations[pair.Key] = pair.Value;
             _history = saved.History;
@@ -191,6 +199,7 @@ internal sealed class RotationEngine(TimeProvider clock, IRotationRandom random)
         var now = clock.GetUtcNow();
         if (now >= Deadline && State != RotationState.FinalRound) EnterFinalRound();
         if (Vote is { } vote && now >= vote.EndsAt) CompleteVote();
+        if (_nativeMatchEnded) { ChangeAfterNativeMatch(); return; }
         if (State == RotationState.Playing && Settings.ScheduledVoteEnabled
             && now >= Deadline.AddSeconds(-Settings.ScheduledVoteBeforeSeconds)) StartVote(NextMapSource.ScheduledVote);
         if (State == RotationState.FinalRound && now >= (_finalRoundAt ?? Deadline).AddSeconds(Settings.FinalRoundTimeoutSeconds))
@@ -201,6 +210,7 @@ internal sealed class RotationEngine(TimeProvider clock, IRotationRandom random)
     public void RoundEnded()
     {
         if (State is RotationState.Loading or RotationState.ChangingMap || PauseReason != RotationPauseReason.None) return;
+        if (_nativeMatchEnded) { ChangeAfterNativeMatch(); return; }
         if (clock.GetUtcNow() >= Deadline && State != RotationState.FinalRound) EnterFinalRound();
         if (State != RotationState.FinalRound) return;
         if (Vote is not null) CompleteVote();
@@ -208,6 +218,54 @@ internal sealed class RotationEngine(TimeProvider clock, IRotationRandom random)
         _changeAt ??= clock.GetUtcNow().AddSeconds(Source == NextMapSource.Rtv ? Settings.RtvChangeDelaySeconds : 0);
         if (clock.GetUtcNow() >= _changeAt) RequestChange(false);
         Revision++;
+    }
+
+    public void ObserveNativeMatch(NativeMatchProgress progress)
+    {
+        if (State is RotationState.Loading or RotationState.ChangingMap || _mapUnloaded) return;
+        if (progress.Ended) { MatchEnded(); return; }
+        if (_nativeMatchEnded)
+        {
+            // Штатный перезапуск матча на той же карте отменяет отложенный переход
+            // по старому событию завершения, но не обнуляет собственные часы ротации.
+            _nativeMatchEnded = false; _changeAt = null;
+            if (State == RotationState.FinalRound && TimerNow < Deadline && Source != NextMapSource.Rtv)
+            {
+                _finalRoundAt = null;
+                State = Source == NextMapSource.Provisional ? RotationState.Playing : RotationState.NextMapSelected;
+            }
+            Revision++;
+        }
+        if (!RotationEnabled || progress.Warmup || !progress.Started) { _nativeDeadline = null; return; }
+        if (PauseReason != RotationPauseReason.None) return;
+        _nativeDeadline = progress.SecondsRemaining is { } seconds && double.IsFinite(seconds) && seconds is >= 0 and <= 604800
+            ? TimerNow.AddSeconds(seconds) : null;
+        if (Settings.ScheduledVoteEnabled && (progress.RoundsRemaining is >= 0 and <= 2
+            || _nativeDeadline <= TimerNow.AddSeconds(Settings.ScheduledVoteBeforeSeconds)))
+            StartVote(NextMapSource.ScheduledVote);
+    }
+
+    public void MatchEnded()
+    {
+        if (State is RotationState.Loading or RotationState.ChangingMap || _mapUnloaded) return;
+        if (RotationEnabled && PauseReason != RotationPauseReason.NoMaps) _nativeDeadline = TimerNow;
+        if (_nativeMatchEnded) return;
+        _nativeMatchEnded = true; Revision++;
+        if (PauseReason == RotationPauseReason.None && Settings.ScheduledVoteEnabled)
+            StartVote(NextMapSource.ScheduledVote);
+        ChangeAfterNativeMatch();
+    }
+
+    private void ChangeAfterNativeMatch()
+    {
+        if (PauseReason != RotationPauseReason.None || !RotationEnabled || Vote is not null) return;
+        if (Settings.ScheduledVoteEnabled && StartVote(NextMapSource.ScheduledVote)) return;
+        if (NextMap is null) return;
+        // Даём обработчикам конца матча завершиться. Голосование, если оно ещё
+        // идёт, сохраняет свой срок; событие конца матча запоминается до результата.
+        _changeAt ??= clock.GetUtcNow().AddSeconds(Math.Max(3, Source == NextMapSource.Rtv ? Settings.RtvChangeDelaySeconds : 0));
+        if (clock.GetUtcNow() >= _changeAt) RequestChange(false);
+        else if (State != RotationState.FinalRound) { EnterFinalRound(); }
     }
 
     public bool SetNext(long id, bool changeNow)
@@ -310,6 +368,7 @@ internal sealed class RotationEngine(TimeProvider clock, IRotationRandom random)
             var duration = clock.GetUtcNow() - pausedAt;
             _pausedDuration += duration;
             Deadline = Deadline.Add(duration);
+            if (_nativeDeadline is { } native) _nativeDeadline = native.Add(duration);
             _finalRoundAt = _finalRoundAt?.Add(duration);
             _changeAt = _changeAt?.Add(duration);
             if (_retryChangeAt != default) _retryChangeAt = _retryChangeAt.Add(duration);
@@ -329,6 +388,7 @@ internal sealed class RotationEngine(TimeProvider clock, IRotationRandom random)
         RecoverMissingTarget();
         State = RotationState.Playing; Source = NextMapSource.Provisional; LastResult = null;
         _finalRoundAt = null; _changeAt = null; _retryChangeAt = default;
+        _nativeDeadline = null;
         _rtv.Clear(); _nominations.Clear();
         if (Deadline <= TimerNow) Deadline = TimerNow.AddSeconds(Settings.MapDurationSeconds);
         if (changed) Revision++;
@@ -374,5 +434,5 @@ internal sealed class RotationEngine(TimeProvider clock, IRotationRandom random)
 
     public RotationCheckpoint Checkpoint() => new(CurrentMap, WorkshopId, _mapSessionId, StartedAt, Deadline,
         State, NextMapId, Source, _finalRoundAt, _changeAt, Vote, _rtv.ToImmutableArray(), _nominations.ToImmutableDictionary(), _history)
-        { PausedAt = _pausedAt, PausedDuration = _pausedDuration };
+        { PausedAt = _pausedAt, PausedDuration = _pausedDuration, NativeMatchEnded = _nativeMatchEnded, NativeDeadline = _nativeDeadline };
 }
