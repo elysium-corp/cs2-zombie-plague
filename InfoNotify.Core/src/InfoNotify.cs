@@ -1,5 +1,6 @@
 using CustomHud.Api;
 using Common.Di;
+using Common.Di.Diagnostics;
 using Common.Di.Utils;
 using InfoNotify.Core.Data.Configs;
 using InfoNotify.Core.Di;
@@ -61,8 +62,10 @@ internal sealed partial class InfoNotify(ISwiftlyCore core) : Plugin<InfoNotifyM
     
     private HookResult OnPlayerConnectFull(EventPlayerConnectFull @event)
     {
+        using var timing = ConnectionDiagnostics.Begin(core.Logger, "InfoNotify.player_connect_full");
         if (!_config.Get().Enable) return HookResult.Continue;
         var player = @event.UserIdPlayer;
+        timing?.Identify(player);
         
         if (player == null || !player.IsValid)
         {

@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using Common.Di.Diagnostics;
 using CustomHud.Api;
 using MapRotation.Api;
 using MapRotation.Core.Database;
@@ -339,7 +340,12 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
         _opened.Remove(args.PlayerId); _seenVotes.Remove(args.PlayerId);
         if (_loaded && !_mapUnloading) { RefreshPlayers(args.PlayerId); Publish(); }
     }
-    private void OnConnect(IOnClientConnectedEvent args) { _opened.Remove(args.PlayerId); _seenVotes.Remove(args.PlayerId); }
+    private void OnConnect(IOnClientConnectedEvent args)
+    {
+        using var timing = ConnectionDiagnostics.Begin(core.Logger, "MapRotation.client_connected", args.PlayerId);
+        _opened.Remove(args.PlayerId);
+        _seenVotes.Remove(args.PlayerId);
+    }
     private HookResult OnRoundEnd(EventRoundEnd args)
     {
         if (_loaded && !_mapUnloading && args.Reason != (int)SwiftlyS2.Shared.Natives.RoundEndReason.GameCommencing

@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using Advertisement.Core.Data;
+using Common.Di.Diagnostics;
 using CustomHud.Api;
 using Economy.Api;
 using Localization.Api;
@@ -175,7 +176,11 @@ internal sealed class BannerNotificationService(ISwiftlyCore core, Advertisement
     }
     private void MapUnload(IOnMapUnloadEvent args) => Reset();
     private void Disconnect(IOnClientDisconnectedEvent args) => _queue.Disconnect(args.PlayerId);
-    private void Connect(IOnClientConnectedEvent args) => _queue.Disconnect(args.PlayerId);
+    private void Connect(IOnClientConnectedEvent args)
+    {
+        using var timing = ConnectionDiagnostics.Begin(core.Logger, "Advertisement.client_connected", args.PlayerId);
+        _queue.Disconnect(args.PlayerId);
+    }
     public void Dispose()
     {
         if (_disposed) return; _disposed = true;

@@ -1,3 +1,4 @@
+using Common.Di.Diagnostics;
 using CustomHud.Api;
 using Localization.Api;
 using Microsoft.Extensions.Logging;
@@ -177,7 +178,11 @@ internal sealed class CustomHudService(ISwiftlyCore core, IOptions<CustomHudConf
     }
 
     private void OnMapUnload(IOnMapUnloadEvent args) { _mapUnloading = true; Stop(); _status = "карта выгружена"; }
-    private void OnConnect(IOnClientConnectedEvent args) => ClearPlayer(args.PlayerId);
+    private void OnConnect(IOnClientConnectedEvent args)
+    {
+        using var timing = ConnectionDiagnostics.Begin(core.Logger, "CustomHud.client_connected", args.PlayerId);
+        ClearPlayer(args.PlayerId);
+    }
     private void OnDisconnect(IOnClientDisconnectedEvent args) => ClearPlayer(args.PlayerId);
 
     private void ClearPlayer(int playerId)

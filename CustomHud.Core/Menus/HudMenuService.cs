@@ -1,3 +1,4 @@
+using Common.Di.Diagnostics;
 using CustomHud.Api;
 using Microsoft.Extensions.Logging;
 using SwiftlyS2.Shared;
@@ -193,7 +194,11 @@ internal sealed class HudMenuService(ISwiftlyCore core, Func<int, IHudMenuRuntim
         if (args.Key == KeyKind.Esc && args.Pressed && _sessions.TryGetValue(args.PlayerId, out var session)
             && core.PlayerManager.GetPlayer(args.PlayerId) is { } player && SamePlayer(player, session)) Route(session, "Close");
     }
-    private void OnConnect(IOnClientConnectedEvent args) => ClosePlayer(args.PlayerId);
+    private void OnConnect(IOnClientConnectedEvent args)
+    {
+        using var timing = ConnectionDiagnostics.Begin(core.Logger, "CustomHud.Menu.client_connected", args.PlayerId);
+        ClosePlayer(args.PlayerId);
+    }
     private void OnDisconnect(IOnClientDisconnectedEvent args) => ClosePlayer(args.PlayerId);
     private void OnMapUnload(IOnMapUnloadEvent args) { _unloading = true; CloseAll(); }
     private void OnMapLoad(IOnMapLoadEvent args) { CloseAll(); _unloading = false; }

@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using Common.Hooks;
+using Common.Di.Diagnostics;
 using Localization.Api;
 using Microsoft.Extensions.Logging;
 using Statistics.Core.Data;
@@ -198,7 +199,9 @@ internal sealed class StatisticsCollector(
 
     private HookResult OnPlayerConnect(EventPlayerConnectFull @event)
     {
+        using var timing = ConnectionDiagnostics.Begin(core.Logger, "Statistics.player_connect_full");
         var player = @event.UserIdPlayer;
+        timing?.Identify(player);
 
         if (CanTrack(player))
         {

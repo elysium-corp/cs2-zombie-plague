@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Common.Di.Diagnostics;
+using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.GameHooks;
@@ -84,7 +85,10 @@ internal sealed class RoundService(
 
     private HookResult OnPlayerConnected(EventPlayerConnectFull @event)
     {
-        PlayAmbientLocal(@event.UserIdPlayer);
+        using var timing = ConnectionDiagnostics.Begin(core.Logger, "ZombiePlague.Round.player_connect_full");
+        var player = @event.UserIdPlayer;
+        timing?.Identify(player);
+        PlayAmbientLocal(player);
 
         return roundManager.OnPlayerConnected(@event);
     }

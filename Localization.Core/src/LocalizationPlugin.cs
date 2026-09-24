@@ -1,6 +1,7 @@
 using CustomHud.Api;
 using Common.Database.Migrator;
 using Common.Di;
+using Common.Di.Diagnostics;
 using Localization.Api;
 using Localization.Core.Api;
 using Localization.Core.Application;
@@ -159,7 +160,9 @@ internal sealed class LocalizationPlugin(ISwiftlyCore core) : Plugin<Localizatio
 
     private void OnClientSteamAuthorize(IOnClientSteamAuthorizeEvent @event)
     {
+        using var timing = ConnectionDiagnostics.Begin(Core.Logger, "Localization.steam_authorize", @event.PlayerId);
         var player = Core.PlayerManager.GetPlayer(@event.PlayerId);
+        timing?.Identify(player);
         if (player is { IsAuthorized: true })
         {
             BindAndLoad(@event.PlayerId, player.SteamID);
