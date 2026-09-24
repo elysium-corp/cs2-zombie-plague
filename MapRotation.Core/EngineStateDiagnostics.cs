@@ -12,7 +12,8 @@ internal static class EngineStateDiagnostics
         "mp_freezetime", "mp_roundtime", "mp_roundtime_defuse", "mp_roundtime_hostage",
         "mp_timelimit", "mp_maxrounds", "mp_winlimit", "mp_match_end_changelevel",
         "mp_match_end_restart", "mp_match_end_at_timelimit", "mp_match_restart_delay",
-        "mp_ignore_round_win_conditions", "mp_warmup_pausetimer"
+        "mp_ignore_round_win_conditions", "mp_warmup_pausetimer",
+        "mp_halftime_pausetimer", "mp_team_intro_time"
     ];
 
     internal static object Capture(ISwiftlyCore core, MapEngineAdapter maps) => new
@@ -34,6 +35,10 @@ internal static class EngineStateDiagnostics
                 rules.GamePaused, rules.MatchWaitingForResume, rules.FreezePeriod, rules.WarmupPeriod,
                 rules.TerroristTimeOutActive, rules.CTTimeOutActive, rules.TechnicalTimeOut,
                 rules.HasMatchStarted, rules.GameRestart, rules.FreezeTime, rules.RoundTime,
+                LastThinkTime = rules.LastThinkTime.Value,
+                rules.TmNextPeriodicThink,
+                rules.TotalRoundsPlayed, rules.RoundsPlayedThisPhase,
+                rules.TimeUntilNextPhaseStarts,
                 RoundStartTime = rules.RoundStartTime.Value,
                 RestartRoundTime = rules.RestartRoundTime.Value,
                 IntermissionStartTime = rules.IntermissionStartTime.Value,
