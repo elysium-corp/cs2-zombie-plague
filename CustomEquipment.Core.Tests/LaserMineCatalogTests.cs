@@ -35,7 +35,7 @@ public sealed class LaserMineCatalogTests
     public void CatalogAcceptsCustomAndDisabledSounds()
     {
         var json = LegacySettings[..LegacySettings.LastIndexOf('}')] + """
-            ,"damage_sound":"Elysium.MineZap","ready_sound":"","sound_volume":0.4,
+            ,"damage_sound":"Elysium.MineZap","ready_sound":"","sound_volume":0.4}
             """;
         var settings = Parse(json);
         Validate(settings);
