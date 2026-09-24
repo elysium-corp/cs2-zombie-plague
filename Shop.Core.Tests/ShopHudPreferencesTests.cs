@@ -61,6 +61,7 @@ public sealed class ShopHudPreferencesTests
         using var tracker = new DatabaseTaskTracker(NullLogger<DatabaseTaskTracker>.Instance);
         using var prefs = new ShopHudPreferences(store, queue, tracker);
         prefs.Get(Player(10, 100));
+        await store.LoadStarted.Task.WaitAsync(TimeSpan.FromSeconds(3));
         store.Load = null;
         var replacement = Player(11, 200);
         prefs.Get(replacement);
@@ -146,12 +147,18 @@ public sealed class ShopHudPreferencesTests
     private sealed class StoreStub : IShopHudPreferenceStore
     {
         public TaskCompletionSource<int?>? Load { get; set; }
+        public TaskCompletionSource LoadStarted { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public Dictionary<ulong, int> Saved { get; } = [];
         public bool FailWrites { get; set; }
         public bool FailReads { get; set; }
-        public Task<int?> LoadAsync(ulong steamId, CancellationToken token) => FailReads
-            ? Task.FromException<int?>(new IOException("Read failed")) : Load?.Task.WaitAsync(token)
-                ?? Task.FromResult(Saved.TryGetValue(steamId, out var saved) ? (int?)saved : null);
+        public Task<int?> LoadAsync(ulong steamId, CancellationToken token)
+        {
+            var result = FailReads
+                ? Task.FromException<int?>(new IOException("Read failed")) : Load?.Task.WaitAsync(token)
+                    ?? Task.FromResult(Saved.TryGetValue(steamId, out var saved) ? (int?)saved : null);
+            LoadStarted.TrySetResult();
+            return result;
+        }
         public Task SaveAsync(ulong steamId, int scalePercent, CancellationToken token)
         {
             if (FailWrites) throw new IOException("Write failed");
