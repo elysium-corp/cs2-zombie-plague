@@ -162,6 +162,23 @@ internal sealed class RotationEngine(TimeProvider clock, IRotationRandom random)
     }
 
     public ImmutableArray<RotationMap> NominationMaps() => Eligible(map => map.AllowNomination && map.AllowVote, Settings.VoteOptionsCount);
+    public ImmutableArray<CatalogMap> Catalog()
+    {
+        var nominations = NominationMaps().Select(map => map.Id).ToHashSet();
+        return Configuration.Maps.Select(map =>
+        {
+            var current = map.IsCurrent(CurrentMap, WorkshopId);
+            var exclusion = !map.Enabled ? "Disabled"
+                : !_valid.Contains(map.Id) ? "EngineRejected"
+                : current && !Settings.AllowSameMap ? "CurrentMap" : null;
+            return new CatalogMap(map.Id, map.Key, map.MapName, map.WorkshopId, map.Enabled,
+                _valid.Contains(map.Id), current, map.AllowNomination, map.AllowVote, map.AllowAutoRotation,
+                exclusion ?? (!map.AllowVote && !AutoOrFallback(map) ? "NoVotingOrRotation" : null),
+                exclusion ?? (!Settings.NominationsEnabled ? "NominationsDisabled"
+                    : !map.AllowNomination ? "NominationDisabled" : !map.AllowVote ? "VotingDisabled"
+                    : !nominations.Contains(map.Id) ? "RecentMap" : null));
+        }).ToImmutableArray();
+    }
     public long? Nomination(ulong steam) => _nominations.TryGetValue(steam, out var id) ? id : null;
     public RotationReply Nominate(ulong steam, long mapId)
     {
