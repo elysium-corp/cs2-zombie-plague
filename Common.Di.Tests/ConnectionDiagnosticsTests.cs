@@ -28,12 +28,13 @@ public sealed class ConnectionDiagnosticsTests
         var logger = new RecordingLogger { ThrowOnLog = true };
         var failure = new InvalidOperationException("original handler failure");
 
-        var escaped = Assert.Throws<InvalidOperationException>(() =>
+        Action handler = () =>
         {
             using var timing = new ConnectionDiagnostics.Timing(logger, "test", 1, 0, -1);
             throw failure;
-        });
+        };
 
+        var escaped = Assert.Throws<InvalidOperationException>(handler);
         Assert.Same(failure, escaped);
     }
 
