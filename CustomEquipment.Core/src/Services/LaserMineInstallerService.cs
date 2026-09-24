@@ -27,13 +27,24 @@ public sealed class LaserMineInstallerService(
 
     public bool TrySetup(IPlayer player, LaserMine mine)
     {
-        if (_disposed || !CanUseMine(player, mine) || _pending.ContainsKey(player.PlayerID)) return false;
+        if (_disposed) return false;
+        if (!CanUseMine(player, mine) || _pending.ContainsKey(player.PlayerID))
+        {
+            core.Logger.LogInformation(
+                "[LaserMine] Установка недоступна: player={Player}, pending={Pending}.",
+                player.PlayerID, _pending.ContainsKey(player.PlayerID));
+            return false;
+        }
 
         var settings = mine.Settings;
         var pawn = player.PlayerPawn!;
         var gameRules = core.EntitySystem.GetGameRules();
-        if (gameRules is { WarmupPeriod: true } ||
-            !EntityPlacer.CanAttachToGround(core, pawn, settings.MaxDistanceToAttach)) return false;
+        if (gameRules is { WarmupPeriod: true })
+        {
+            core.Logger.LogInformation("[LaserMine] Установка недоступна во время разминки: player={Player}.", player.PlayerID);
+            return false;
+        }
+        if (!EntityPlacer.CanAttachToGround(core, pawn, settings.MaxDistanceToAttach)) return false;
 
         var pending = new PendingInstallation(core.EntitySystem.GetRefEHandle(pawn).Raw);
         _pending.Add(player.PlayerID, pending);
@@ -41,10 +52,6 @@ public sealed class LaserMineInstallerService(
         {
             var window = CreateSetupWindow(player, () => pending.Progress, settings.UpdateIntervalMs);
             core.MenusAPI.OpenMenuForPlayer(player, window);
-            if (pawn.AbsOrigin is { } origin)
-            {
-                LaserMineSoundPlayback.PlaySafely(core, settings.InstallSound, origin, settings.SoundVolume);
-            }
 
             var interval = settings.UpdateIntervalMs / 1000f;
             // Проверка игрока, меню, звуки и создание сущностей выполняются в игровом потоке.
@@ -130,12 +137,6 @@ public sealed class LaserMineInstallerService(
             return;
         }
 
-        if (!EntityPlacer.CanAttachToGround(core, pawn, settings.MaxDistanceToAttach))
-        {
-            DispatchPlacementRejected(player, null, MinePlacementRejectionReason.InvalidSurface);
-            return;
-        }
-
         var entity = new LaserMineEntity(core, settings);
         var preContext = new MinePlacingContext(player, entity);
 
@@ -150,14 +151,6 @@ public sealed class LaserMineInstallerService(
         {
             entity.Dispose();
             DispatchPlacementRejected(preContext.Player, entity, MinePlacementRejectionReason.InvalidPlayer);
-            return;
-        }
-
-        if (preContext.Player.PlayerPawn is not { } preparedPawn ||
-            !EntityPlacer.CanAttachToGround(core, preparedPawn, settings.MaxDistanceToAttach))
-        {
-            entity.Dispose();
-            DispatchPlacementRejected(preContext.Player, entity, MinePlacementRejectionReason.InvalidSurface);
             return;
         }
 

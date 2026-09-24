@@ -20,9 +20,14 @@ public sealed class LaserMineCatalogTests
         var settings = Parse(LegacySettings);
         Validate(settings);
         Assert.Equal(35f, settings.DamagePerTrigger);
-        Assert.Equal(1f, settings.ArmingDuration);
+        Assert.Equal(2f, settings.ArmingDuration);
+        Assert.Equal(0.882358f, settings.InstallSoundDuration);
+        Assert.Equal(1.109478f, settings.ChargeSoundDuration);
+        Assert.Equal(1.287256f, settings.ReadySoundDuration);
+        Assert.Equal(2f, settings.ReadySoundDelay);
+        Assert.Equal(3.287256f, settings.ActivationDelay);
         Assert.Equal(0.3f, settings.DamageSoundInterval);
-        Assert.Equal("Weapon_Taser.Hit", settings.DamageSound);
+        Assert.Equal("ZombiePlague.lasermine_electric_zap", settings.DamageSound);
     }
 
     [Fact]
@@ -43,6 +48,9 @@ public sealed class LaserMineCatalogTests
     [InlineData("interval")]
     [InlineData("duration")]
     [InlineData("volume")]
+    [InlineData("install_duration")]
+    [InlineData("charge_duration")]
+    [InlineData("ready_duration")]
     [InlineData("resource")]
     [InlineData("null_sound")]
     public void InvalidSoundSettingsAreRejectedBeforeRuntime(string field)
@@ -52,6 +60,9 @@ public sealed class LaserMineCatalogTests
         {
             "interval" => settings with { DamageSoundInterval = 0.1f },
             "duration" => settings with { ArmingDuration = float.NaN },
+            "install_duration" => settings with { InstallSoundDuration = -1f },
+            "charge_duration" => settings with { ChargeSoundDuration = float.PositiveInfinity },
+            "ready_duration" => settings with { ReadySoundDuration = float.NaN },
             "volume" => settings with { SoundVolume = 2f },
             "resource" => settings with { SoundEventsResource = "../sounds/test.wav" },
             _ => settings with { DamageSound = null! }
