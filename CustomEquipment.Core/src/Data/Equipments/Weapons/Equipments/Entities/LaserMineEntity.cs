@@ -45,6 +45,7 @@ public sealed class LaserMineEntity : LaserMineEntityBase
     public override int MaxHealth => _settings.MaxHealth;
     public override float ArmingDelay => _settings.ActivationDelay;
     public override float BeamWidth => _settings.BeamWidth;
+
     public override Color BeamColor => new(
         _settings.BeamRed,
         _settings.BeamGreen,
@@ -145,14 +146,9 @@ public sealed class LaserMineEntity : LaserMineEntityBase
             return;
         }
 
-        // Не сохраняем временную prop_dynamic как inflictor в native damage bookkeeping.
-        // При заражении владельца мина удаляется, а Source 2 может продолжать держать
-        // damage handles до конца текущего frame/round reset.
         targetPawn.TakeDamage(
             _settings.DamagePerTrigger,
-            DamageType,
-            ownerPawn,
-            ownerPawn
+            DamageType
         );
 
         if (IsArmed && LaserMine is { IsValidEntity: true, AbsOrigin: { } position })

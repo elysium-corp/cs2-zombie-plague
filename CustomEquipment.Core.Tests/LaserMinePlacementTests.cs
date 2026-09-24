@@ -53,7 +53,6 @@ public sealed class LaserMinePlacementTests
                 Settings = ((LaserMineSettings)defaults.Settings) with
                 {
                     MineModel = "models/placed_mine.vmdl",
-                    SoundEventsResource = "soundevents/custom_mines.vsndevts"
                 }
             }
             : item).ToArray());

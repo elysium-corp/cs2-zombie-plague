@@ -200,6 +200,7 @@ internal sealed class GameplayItemCatalogRepository(
                 {
                     throw new InvalidOperationException($"Gameplay item '{key}' has out-of-range mine settings.");
                 }
+
                 RequireRange(key, mine.ArmingDuration, 0f, 60f);
                 RequireRange(key, mine.InstallSoundDuration, 0f, 60f);
                 RequireRange(key, mine.ChargeSoundDuration, 0f, 60f);
@@ -208,14 +209,13 @@ internal sealed class GameplayItemCatalogRepository(
                 RequireRange(key, mine.SoundVolume, 0f, 1f);
                 RequireRange(key, mine.DamageSoundInterval, 0.3f, 60f);
                 foreach (var sound in new[]
-                         { mine.InstallSound, mine.ChargeSound, mine.ReadySound, mine.DamageSound, mine.DestroySound })
+                         {
+                             mine.InstallSound, mine.ChargeSound, mine.ReadySound, mine.DamageSound, mine.DestroySound
+                         })
                 {
                     if (sound != string.Empty) RequireSoundEvent(key, sound);
                 }
-                if (!IsResourcePath(mine.SoundEventsResource, "soundevents/", ".vsndevts"))
-                {
-                    throw new InvalidOperationException($"Gameplay item '{key}' has an invalid sound events resource.");
-                }
+
                 break;
 
             default:

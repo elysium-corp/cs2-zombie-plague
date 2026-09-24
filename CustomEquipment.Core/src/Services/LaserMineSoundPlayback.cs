@@ -94,7 +94,8 @@ internal sealed class LaserMineSoundPlayback(
         }
     }
 
-    private static void PlaySafely(ISwiftlyCore core, string name, Vector position, float volume, CBaseEntity? source = null)
+    private static void PlaySafely(ISwiftlyCore core, string name, Vector position, float volume,
+        CBaseEntity? source = null)
     {
         try
         {

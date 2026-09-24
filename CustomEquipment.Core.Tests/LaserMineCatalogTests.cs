@@ -67,7 +67,6 @@ public sealed class LaserMineCatalogTests
             "ready_duration" => settings with { ReadySoundDuration = float.NaN },
             "destroy_duration" => settings with { DestroySoundDuration = -1f },
             "volume" => settings with { SoundVolume = 2f },
-            "resource" => settings with { SoundEventsResource = "../sounds/test.wav" },
             _ => settings with { DamageSound = null! }
         };
         var exception = Assert.Throws<TargetInvocationException>(() => Validate(settings));
