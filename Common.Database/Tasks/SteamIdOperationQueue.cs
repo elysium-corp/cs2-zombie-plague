@@ -1,11 +1,21 @@
 ﻿namespace Common.Database.Tasks;
 
+/// <summary>
+/// Выполняет операции хранения в пуле потоков с сохранением порядка для каждого SteamID.
+/// Делегаты работают с данными; обращения к игровым объектам должны выполняться
+/// через игровой планировщик после проверки актуальности сессии.
+/// </summary>
 public sealed class SteamIdOperationQueue
 {
     private readonly Lock _lock = new();
 
     private readonly Dictionary<ulong, Task> _tails = [];
 
+    /// <summary>
+    /// Синхронно резервирует место в очереди и возвращает задачу полного выполнения операции.
+    /// Даже синхронное начало делегата выполняется в фоне. Ошибка предыдущей операции
+    /// не препятствует следующей; разные SteamID могут обрабатываться параллельно.
+    /// </summary>
     public Task RunAsync(ulong steamId, Func<Task> operation)
     {
         ArgumentNullException.ThrowIfNull(operation);
@@ -20,16 +30,22 @@ public sealed class SteamIdOperationQueue
             _tails[steamId] = completion.Task;
         }
 
-        _ = ExecuteAsync(
+        // Место уже зарезервировано: порядок сохраняется даже при обратном порядке
+        // запуска задач пулом потоков. Холодный EF/JIT не выполняется в игровом потоке.
+        _ = Task.Run(() => ExecuteAsync(
             steamId,
             previous,
             operation,
             completion
-        );
+        ));
 
         return completion.Task;
     }
 
+    /// <summary>
+    /// Синхронно резервирует место в очереди и возвращает результат фоновой операции.
+    /// Порядок общий с операциями без результата для того же SteamID.
+    /// </summary>
     public Task<TResult> RunAsync<TResult>(ulong steamId, Func<Task<TResult>> operation)
     {
         ArgumentNullException.ThrowIfNull(operation);
@@ -44,12 +60,12 @@ public sealed class SteamIdOperationQueue
             _tails[steamId] = completion.Task;
         }
 
-        _ = ExecuteAsync(
+        _ = Task.Run(() => ExecuteAsync(
             steamId,
             previous,
             operation,
             completion
-        );
+        ));
 
         return completion.Task;
     }

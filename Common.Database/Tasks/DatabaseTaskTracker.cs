@@ -8,6 +8,7 @@ public sealed class DatabaseTaskTracker : IDisposable
     private readonly ILogger<DatabaseTaskTracker> logger;
     private readonly bool _diagnosticsEnabled;
     private static readonly TimeSpan ShutdownTimeout = TimeSpan.FromSeconds(3);
+    private static readonly TimeSpan ShutdownCancellationGrace = TimeSpan.FromSeconds(1);
     private readonly Lock _lock = new();
 
     private readonly HashSet<Task> _tasks = [];
@@ -138,6 +139,11 @@ public sealed class DatabaseTaskTracker : IDisposable
     public Task<TResult> RunAsync<TResult>(Func<CancellationToken, Task<TResult>> operation, string? operationName = null) =>
         RunAsync(() => operation(_shutdown.Token), operationName);
 
+    /// <summary>
+    /// Закрывает приём задач и даёт уже принятым операциям завершиться в пределах
+    /// срока остановки. Первые две секунды отведены на завершение принятых задач,
+    /// последняя секунда — на обработку отмены перед освобождением зависимостей.
+    /// </summary>
     public void StopAndWait()
     {
         Task[] pendingTasks;
@@ -145,17 +151,19 @@ public sealed class DatabaseTaskTracker : IDisposable
         lock (_lock)
         {
             _stopping = true;
-            _shutdown.Cancel();
-
             pendingTasks = _tasks.ToArray();
         }
 
-        if (pendingTasks.Length == 0)
+        if (pendingTasks.Length > 0)
         {
-            return;
+            _shutdown.CancelAfter(ShutdownTimeout - ShutdownCancellationGrace);
         }
 
-        if (!Task.WhenAll(pendingTasks).Wait(ShutdownTimeout))
+        var completed = pendingTasks.Length == 0 || Task.WhenAll(pendingTasks).Wait(ShutdownTimeout);
+
+        _shutdown.Cancel();
+
+        if (!completed)
             logger.LogWarning("{Count} database operation(s) exceeded the {TimeoutMs} ms shutdown deadline.", pendingTasks.Length, ShutdownTimeout.TotalMilliseconds);
     }
 
