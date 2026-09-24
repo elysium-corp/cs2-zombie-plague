@@ -35,6 +35,7 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
     private bool _mapUnloading;
     private bool _loaded;
     private bool _hudSuspended;
+    private bool? _nativeRotationEnabled;
     private DateTimeOffset? _resultUntil;
     private DateTimeOffset? _changeRequestedAt;
     private long _publishedRevision = -1;
@@ -82,16 +83,18 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
             {
                 Apply(store.Initial!.Configuration);
                 engine.LoadMap(maps.CurrentMap, maps.WorkshopId, store.Initial.Checkpoint);
-                _loaded = true; maps.OwnRotation();
+                _loaded = true;
             }
             if (store.TakeConfiguration() is { } configuration) Apply(configuration);
             RefreshPlayers();
             engine.Tick();
+            UpdateNativePolicy();
             if (_changeRequestedAt is { } requested && engine.State == RotationState.ChangingMap
                 && clock.GetUtcNow() >= requested.AddSeconds(30) && _requestedMap is { } failed)
             {
                 core.Logger.LogWarning("[MapRotation] Engine не начал загрузку карты за 30 секунд");
                 engine.ChangeFailed(failed); _changeRequestedAt = null;
+                UpdateNativePolicy();
             }
             RefreshHud();
             Publish();
@@ -105,6 +108,13 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
         engine.Configure(configuration, valid);
         if (!configuration.Maps.IsEmpty && valid.Length == 0)
             core.Logger.LogWarning("[MapRotation] Нет установленных карт в каталоге; заполните map_rotation.maps");
+    }
+
+    private void UpdateNativePolicy(bool force = false)
+    {
+        if (!force && _nativeRotationEnabled == engine.RotationEnabled) return;
+        maps.ApplyRotationPolicy(engine.RotationEnabled);
+        _nativeRotationEnabled = engine.RotationEnabled;
     }
 
     private IPlayer[] Players() => core.PlayerManager.GetAllPlayers().Where(player => player.IsValid && !player.IsFakeClient && player.SteamID != 0).ToArray();
@@ -165,7 +175,9 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
         if (context.CommandName == "maprotation_reload") { store.RequestReload(); context.Reply(Text(context.Sender, "Admin.ReloadQueued")); return; }
         if (context.CommandName == "maprotation_status")
         {
-            context.Reply(System.Text.Json.JsonSerializer.Serialize(engine.GetStatus())); return;
+            var status = System.Text.Json.JsonSerializer.SerializeToNode(engine.GetStatus())!.AsObject();
+            status["Engine"] = System.Text.Json.JsonSerializer.SerializeToNode(EngineStateDiagnostics.Capture(core, maps));
+            context.Reply(status.ToJsonString()); return;
         }
         if (!_loaded || _mapUnloading) { context.Reply(Text(context.Sender, "Loading")); return; }
         RefreshPlayers();
@@ -334,6 +346,7 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
             {
                 core.Logger.LogError(error, "[MapRotation] Не удалось сменить карту на {Map}", map.Key);
                 engine.ChangeFailed(map.Id);
+                UpdateNativePolicy();
             }
             Publish();
         });
@@ -345,7 +358,7 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
         if (!_loaded) return;
         // Событие загрузки означает новую сессию, включая повтор той же карты.
         engine.LoadMap(args.MapName, maps.WorkshopId, engine.Checkpoint() with { State = RotationState.ChangingMap });
-        Apply(engine.Configuration); maps.OwnRotation(); RefreshPlayers(); Publish();
+        Apply(engine.Configuration); UpdateNativePolicy(force: true); RefreshPlayers(); Publish();
     }
     private void OnMapUnload(IOnMapUnloadEvent args)
     {
@@ -372,7 +385,7 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
     }
     private HookResult OnRoundStart(EventRoundStart args)
     {
-        if (_loaded && !_mapUnloading) maps.OwnRotation();
+        if (_loaded && !_mapUnloading) UpdateNativePolicy(force: true);
         return HookResult.Continue;
     }
     private void Publish()
@@ -398,6 +411,7 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
         }
         engine.ChangeRequested -= Change; engine.MapFinished -= store.Record; engine.VoteFinished -= OnVoteFinished;
         CloseMenus(); _messages?.ClearChannel(CardChannel);
-        Publish(); store.Dispose(); maps.Dispose();
+        try { Publish(); store.Dispose(); }
+        finally { maps.Dispose(); }
     }
 }
