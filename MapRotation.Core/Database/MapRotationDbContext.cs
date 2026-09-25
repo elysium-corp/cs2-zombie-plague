@@ -27,6 +27,7 @@ internal sealed class MapRotationDbContext(DbContextOptions<MapRotationDbContext
         maps.Property(x => x.Key).HasMaxLength(64); maps.HasIndex(x => x.Key).IsUnique();
         maps.Property(x => x.MapName).HasMaxLength(128); maps.HasIndex(x => x.MapName).IsUnique();
         maps.Property(x => x.DisplayName).HasMaxLength(128);
+        maps.Property(x => x.DisplayNameKey).HasMaxLength(191);
         maps.Property(x => x.HudImagePath).HasMaxLength(256);
         maps.Property(x => x.Enabled).HasDefaultValue(true);
         maps.Property(x => x.Weight).HasDefaultValue(1d);
@@ -40,11 +41,15 @@ internal sealed class MapRotationDbContext(DbContextOptions<MapRotationDbContext
         {
             table.HasCheckConstraint("ck_player_preferences_orientation", "orientation IN ('horizontal', 'vertical')");
             table.HasCheckConstraint("ck_player_preferences_hud_scale", "hud_scale IN (80, 100, 120)");
+            table.HasCheckConstraint("ck_player_preferences_dock_side", "dock_side IN ('left', 'right')");
+            table.HasCheckConstraint("ck_player_preferences_animation", "animation IN ('none', 'fast', 'normal', 'slow')");
         });
         preferences.HasKey(x => x.SteamId);
         preferences.Property(x => x.SteamId).ValueGeneratedNever();
         preferences.Property(x => x.Orientation).HasMaxLength(10).HasDefaultValue("horizontal");
-        preferences.Property(x => x.HudScale).HasDefaultValue(100);
+        preferences.Property(x => x.HudScale).HasDefaultValue(80);
+        preferences.Property(x => x.DockSide).HasMaxLength(5).HasDefaultValue("right");
+        preferences.Property(x => x.Animation).HasMaxLength(6).HasDefaultValue("normal");
         var runtime = modelBuilder.Entity<RuntimeEntity>();
         runtime.ToTable("runtime_state"); runtime.HasKey(x => x.Id);
         runtime.Property(x => x.Id).ValueGeneratedNever();
@@ -103,5 +108,7 @@ internal sealed class RotationHudPreferenceEntity
 {
     public long SteamId { get; set; }
     public string Orientation { get; set; } = "horizontal";
-    public int HudScale { get; set; } = 100;
+    public int HudScale { get; set; } = 80;
+    public string DockSide { get; set; } = "right";
+    public string Animation { get; set; } = "normal";
 }

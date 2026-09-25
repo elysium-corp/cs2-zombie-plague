@@ -72,6 +72,9 @@ jobs:
       - name: Validate Knife HUD resource contracts
         run: python3 -m unittest discover -s scripts/tests -p 'test_knife_hud_resources.py' -v
 
+      - name: Validate MapRotation HUD resource contracts
+        run: python3 scripts/validate-menu-resources.py
+
       - name: Package Panorama resources
         run: python3 scripts/package-panorama.py --configuration Release
 

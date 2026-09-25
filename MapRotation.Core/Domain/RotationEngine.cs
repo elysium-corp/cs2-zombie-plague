@@ -5,7 +5,10 @@ namespace MapRotation.Core.Domain;
 
 internal sealed record VoteState(Guid Id, NextMapSource Source, DateTimeOffset StartedAt, DateTimeOffset EndsAt,
     ImmutableArray<RotationMap> Options, ImmutableDictionary<ulong, long> Votes);
-internal sealed record VoteArchive(VoteState Vote, DateTimeOffset FinishedAt, long? WinnerId);
+internal sealed record VoteArchive(VoteState Vote, DateTimeOffset FinishedAt, long? WinnerId)
+{
+    public int EligibleVoterCount { get; init; }
+}
 internal sealed record MapHistoryEntry(Guid Id, string MapName, string WorkshopId, long? MapId,
     DateTimeOffset StartedAt, DateTimeOffset EndedAt);
 internal sealed record RotationCheckpoint(string CurrentMap, string WorkshopId, Guid MapSessionId,
@@ -58,6 +61,7 @@ internal sealed class RotationEngine(TimeProvider clock, IRotationRandom random)
     public RotationSettings Settings => Configuration.Settings;
     public int RtvRequired => Math.Max(Settings.RtvMinVotes, (int)Math.Ceiling(_eligiblePlayerCount * Settings.RtvRatio));
     public int RtvVotes => _rtv.Count;
+    public int EligibleVoterCount => _eligible.Count;
     public int RtvDelayRemaining => Math.Max(0, (int)Math.Ceiling((StartedAt.Add(_pausedDuration).AddSeconds(Settings.RtvDelaySeconds) - TimerNow).TotalSeconds));
     public RotationMap? NextMap => Configuration.Maps.FirstOrDefault(map => map.Id == NextMapId);
     public TimeSpan TimeLeft => EffectiveDeadline > TimerNow ? EffectiveDeadline - TimerNow : TimeSpan.Zero;
@@ -104,6 +108,12 @@ internal sealed class RotationEngine(TimeProvider clock, IRotationRandom random)
             _mapSessionId = saved.MapSessionId; StartedAt = saved.StartedAt; Deadline = saved.Deadline;
             State = saved.State; NextMapId = saved.NextMapId; Source = saved.Source;
             Vote = saved.Vote; _finalRoundAt = saved.FinalRoundAt; _changeAt = saved.ChangeAt;
+            if (Vote is { Options.Length: > 6 } restored)
+            {
+                var options = restored.Options.Take(6).ToImmutableArray();
+                var ids = options.Select(map => map.Id).ToHashSet();
+                Vote = restored with { Options = options, Votes = restored.Votes.Where(pair => ids.Contains(pair.Value)).ToImmutableDictionary() };
+            }
             _pausedAt = saved.PausedAt ?? clock.GetUtcNow(); _pausedDuration = saved.PausedDuration;
             _nativeMatchEnded = saved.NativeMatchEnded;
             _nativeDeadline = saved.NativeDeadline;
@@ -308,7 +318,7 @@ internal sealed class RotationEngine(TimeProvider clock, IRotationRandom random)
             : _candidates.Weighted(permitted) ?? _candidates.Weighted(Eligible(map => map.AllowAutoRotation, 1));
         Vote = null;
         NextMapId = winner?.Id; Source = vote.Source;
-        var result = new VoteArchive(vote, clock.GetUtcNow(), winner?.Id);
+        var result = new VoteArchive(vote, clock.GetUtcNow(), winner?.Id) { EligibleVoterCount = _eligible.Count };
         LastResult = result;
         if (State != RotationState.FinalRound) State = RotationState.NextMapSelected;
         if (winner is null)
@@ -331,7 +341,7 @@ internal sealed class RotationEngine(TimeProvider clock, IRotationRandom random)
     {
         if (Vote is not { } vote) return;
         Vote = null;
-        VoteFinished?.Invoke(new(vote, clock.GetUtcNow(), null));
+        VoteFinished?.Invoke(new(vote, clock.GetUtcNow(), null) { EligibleVoterCount = _eligible.Count });
     }
 
     private void EnterFinalRound()

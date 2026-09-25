@@ -10,15 +10,19 @@ namespace MapRotation.Core;
 internal sealed class RotationHudPreferences(IRotationHudPreferenceStore store,
     SteamIdOperationQueue operations, DatabaseTaskTracker tasks) : IDisposable
 {
-    internal static HudMenuPresentation Default { get; } = new() { Orientation = HudMenuOrientation.Horizontal };
+    internal static HudMenuPresentation Default { get; } = new() { Orientation = HudMenuOrientation.Horizontal, ScalePercent = 80 };
+    private HudMenuPresentation _default = Default;
     private readonly Dictionary<int, Entry> _players = [];
     private bool _disposed;
 
-    public HudMenuPresentation Get(IPlayer player) => Ensure(player)?.Session.Read(x => x.Presentation) ?? Default;
+    public HudMenuPresentation Get(IPlayer player) => Ensure(player)?.Session.Read(x => x.Presentation) ?? _default;
+
+    public void ConfigureDefaults(HudMenuPresentation presentation) => _default = presentation;
 
     public bool Set(IPlayer player, HudMenuPresentation presentation)
     {
         if (!Enum.IsDefined(presentation.Orientation) || presentation.ScalePercent is not (80 or 100 or 120)
+            || !Enum.IsDefined(presentation.DockSide) || !Enum.IsDefined(presentation.Animation)
             || Ensure(player) is not { } entry) return false;
         entry.Session.Update(x => x.Presentation = presentation);
         Save(entry);
@@ -33,7 +37,8 @@ internal sealed class RotationHudPreferences(IRotationHudPreferenceStore store,
             if (current.SessionId == player.SessionId && current.SteamId == player.SteamID) return current;
             Forget(player.PlayerID);
         }
-        var entry = new Entry(player.SessionId, player.SteamID);
+        var defaults = _default;
+        var entry = new Entry(player.SessionId, player.SteamID, defaults);
         _players[player.PlayerID] = entry;
         tasks.Run(token => operations.RunAsync(entry.SteamId, async () =>
         {
@@ -41,7 +46,7 @@ internal sealed class RotationHudPreferences(IRotationHudPreferenceStore store,
             {
                 var saved = await store.LoadAsync(entry.SteamId, token).ConfigureAwait(false);
                 // CompleteLoad сохраняет ранний выбор игрока при медленном ответе БД.
-                entry.Session.CompleteLoad(x => x.Presentation = saved ?? Default);
+                entry.Session.CompleteLoad(x => x.Presentation = saved ?? defaults);
             }
             catch
             {
@@ -80,10 +85,10 @@ internal sealed class RotationHudPreferences(IRotationHudPreferenceStore store,
     {
         public HudMenuPresentation Presentation { get; set; } = Default;
     }
-    private sealed class Entry(ulong sessionId, ulong steamId)
+    private sealed class Entry(ulong sessionId, ulong steamId, HudMenuPresentation defaults)
     {
         public ulong SessionId { get; } = sessionId;
         public ulong SteamId { get; } = steamId;
-        public PersistentSession<Preference> Session { get; } = new(new());
+        public PersistentSession<Preference> Session { get; } = new(new() { Presentation = defaults });
     }
 }

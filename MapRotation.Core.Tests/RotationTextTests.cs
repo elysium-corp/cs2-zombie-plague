@@ -8,6 +8,19 @@ namespace MapRotation.Core.Tests;
 public sealed class RotationTextTests
 {
     [Fact]
+    public void MapTitleUsesItsCatalogKeyWithoutAddingTheModulePrefix()
+    {
+        var player = Stub<IPlayer>((_, _) => throw new InvalidOperationException());
+        var api = Stub<ILocalizationApi>((method, args) =>
+        {
+            Assert.Equal(nameof(ILocalizationApi.FormatForPlayer), method.Name);
+            Assert.Same(player, args![0]);
+            Assert.Equal("Maps.Gorodok.Title", args[1]);
+            return "Городок";
+        });
+        Assert.Equal("Городок", new RotationText(() => api).GetKey(player, "Maps.Gorodok.Title"));
+    }
+    [Fact]
     public void PlayerAndParametersArePassedToTheCentralFormatter()
     {
         var player = Stub<IPlayer>((_, _) => throw new InvalidOperationException("Язык определяет Localization.Core."));

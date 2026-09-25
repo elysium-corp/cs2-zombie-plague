@@ -28,19 +28,19 @@ internal sealed record RotationSettings
     public long? FallbackMapId { get; init; }
     public int RefreshIntervalSeconds { get; init; } = 15;
     public long ConfigurationVersion { get; init; } = 1;
-    public int MenuItemsPerPage { get; init; } = 5;
+    public int MenuItemsPerPage { get; init; } = 12;
     public string HudSettings { get; init; } = "{}";
 
     public void Validate()
     {
         if (Id != 1 || MapDurationSeconds is < 30 or > 604800 || ScheduledVoteBeforeSeconds < 0
             || ScheduledVoteBeforeSeconds > MapDurationSeconds || VoteDurationSeconds is < 5 or > 300
-            || VoteOptionsCount is < 1 or > 30 || NominationSlots < 0 || NominationSlots > VoteOptionsCount
+            || VoteOptionsCount is < 1 or > 6 || NominationSlots < 0 || NominationSlots > VoteOptionsCount
             || !double.IsFinite(RtvRatio) || RtvRatio is <= 0 or > 1 || RtvMinVotes < 1 || RtvMinPlayers < 1
             || RtvDelaySeconds < 0 || RtvChangeMode is not ("end_of_round" or "immediate")
             || RtvChangeDelaySeconds is < 0 or > 600 || RecentMapsExcluded is < 0 or > 1000
             || FinalRoundTimeoutSeconds is < 1 or > 7200 || RefreshIntervalSeconds is < 1 or > 3600
-            || MenuItemsPerPage is < 1 or > 10 || ConfigurationVersion < 1) throw new ArgumentException("Некорректные настройки MapRotation");
+            || MenuItemsPerPage is < 1 or > 12 || ConfigurationVersion < 1) throw new ArgumentException("Некорректные настройки MapRotation");
     }
 }
 
@@ -49,6 +49,7 @@ internal sealed record RotationMap
     public long Id { get; init; }
     public string Key { get; init; } = "";
     public string DisplayName { get; init; } = "";
+    public string? DisplayNameKey { get; init; }
     public string MapName { get; init; } = "";
     public long? WorkshopId { get; init; }
     public bool Enabled { get; init; } = true;
@@ -65,6 +66,8 @@ internal sealed record RotationMap
 
     public bool IsSafe => Id > 0 && Regex.IsMatch(Key, "^[A-Za-z0-9_-]{1,64}$")
         && DisplayName.Length is > 0 and <= 128 && !DisplayName.Any(char.IsControl)
+        && (DisplayNameKey is null || DisplayNameKey.Length <= 191
+            && Regex.IsMatch(DisplayNameKey, "\\A[A-Z0-9][A-Za-z0-9]*(\\.[A-Z0-9][A-Za-z0-9]*)*\\z"))
         && Regex.IsMatch(MapName, "^[A-Za-z0-9_/-]{1,128}$") && !MapName.StartsWith('/')
         && WorkshopId is null or > 0 && double.IsFinite(Weight) && Weight is > 0 and <= 1_000_000
         && CooldownMaps is null or >= 0 and <= 1000
@@ -82,6 +85,9 @@ internal sealed record RotationConfiguration(RotationSettings Settings, Immutabl
     public static RotationConfiguration Empty { get; } = new(new(), []);
     public static RotationConfiguration Create(RotationSettings settings, IEnumerable<RotationMap> maps)
     {
+        // Старые БД и локальные снимки допускали до 30 кандидатов: обновление не должно отключать ротацию.
+        if (settings.VoteOptionsCount is > 6 and <= 30)
+            settings = settings with { VoteOptionsCount = 6, NominationSlots = Math.Min(settings.NominationSlots, 6) };
         settings.Validate();
         var snapshot = maps.ToImmutableArray();
         if (snapshot.Any(map => !map.IsSafe) || snapshot.Select(map => map.Id).Distinct().Count() != snapshot.Length

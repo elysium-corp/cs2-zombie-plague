@@ -1,8 +1,8 @@
 {
   "schemaVersion": 4,
-  "version": 25,
-  "generatedAt": "2026-09-25T06:00:00Z",
-  "checksum": "sha256:7c88640137078c96f37fcf4a917c673be5a00014b443aa45f8e6de84fdbf9e48",
+  "version": 26,
+  "generatedAt": "2026-09-25T12:00:00Z",
+  "checksum": "sha256:c42017fbe5720fa363103cba92391b1ab03cc3203f5ba47a5fb5a431c05b9ef1",
   "serverFallbackLanguage": "ru",
   "languages": [
     "ru",
@@ -627,7 +627,58 @@
     "MapRotation.Settings.Scale80": [],
     "MapRotation.Settings.Scale100": [],
     "MapRotation.Settings.Scale120": [],
-    "MapRotation.YourNomination": []
+    "MapRotation.YourNomination": [],
+    "MapRotation.Participation": [
+      {
+        "name": "voted",
+        "type": "integer",
+        "required": true,
+        "description": "Количество проголосовавших игроков",
+        "example": "14"
+      },
+      {
+        "name": "total",
+        "type": "integer",
+        "required": true,
+        "description": "Количество игроков с правом голоса",
+        "example": "24"
+      }
+    ],
+    "MapRotation.VoteStats": [
+      {
+        "name": "count",
+        "type": "integer",
+        "required": true,
+        "description": "Количество голосов за карту",
+        "example": "7"
+      },
+      {
+        "name": "percent",
+        "type": "integer",
+        "required": true,
+        "description": "Доля от поданных голосов",
+        "example": "50"
+      }
+    ],
+    "MapRotation.VoteFooter": [],
+    "MapRotation.CompactFooter": [],
+    "MapRotation.ResultDismiss": [
+      {
+        "name": "seconds",
+        "type": "integer",
+        "required": true,
+        "description": "Оставшееся время показа итога",
+        "example": "6"
+      }
+    ],
+    "MapRotation.Settings.DockSide": [],
+    "MapRotation.Settings.Left": [],
+    "MapRotation.Settings.Right": [],
+    "MapRotation.Settings.Animation": [],
+    "MapRotation.Settings.AnimationNone": [],
+    "MapRotation.Settings.AnimationFast": [],
+    "MapRotation.Settings.AnimationNormal": [],
+    "MapRotation.Settings.AnimationSlow": []
   },
   "entries": {
     "Localization.Menu.Title": {
@@ -2605,6 +2656,84 @@
       "en": "Your nomination",
       "de": "Deine Nominierung",
       "pl": "Twoja nominacja"
+    },
+    "MapRotation.Participation": {
+      "ru": "Проголосовало {voted} из {total}",
+      "en": "Voted {voted} of {total}",
+      "de": "Abgestimmt: {voted} von {total}",
+      "pl": "Zagłosowało {voted} z {total}"
+    },
+    "MapRotation.VoteStats": {
+      "ru": "{count} · {percent}%",
+      "en": "{count} · {percent}%",
+      "de": "{count} · {percent}%",
+      "pl": "{count} · {percent}%"
+    },
+    "MapRotation.VoteFooter": {
+      "ru": "Голос можно изменить до окончания голосования",
+      "en": "You can change your vote until voting ends",
+      "de": "Du kannst deine Stimme bis zum Ende der Abstimmung ändern",
+      "pl": "Możesz zmienić głos do końca głosowania"
+    },
+    "MapRotation.CompactFooter": {
+      "ru": "Открыть голосование: !rtv",
+      "en": "Open voting: !rtv",
+      "de": "Abstimmung öffnen: !rtv",
+      "pl": "Otwórz głosowanie: !rtv"
+    },
+    "MapRotation.ResultDismiss": {
+      "ru": "Итог скроется через {seconds} с",
+      "en": "Result closes in {seconds}s",
+      "de": "Ergebnis schließt in {seconds} s",
+      "pl": "Wynik zniknie za {seconds} s"
+    },
+    "MapRotation.Settings.DockSide": {
+      "ru": "Сворачивать голосование",
+      "en": "Minimize voting to",
+      "de": "Abstimmung minimieren",
+      "pl": "Zwijaj głosowanie"
+    },
+    "MapRotation.Settings.Left": {
+      "ru": "Слева",
+      "en": "Left",
+      "de": "Links",
+      "pl": "Po lewej"
+    },
+    "MapRotation.Settings.Right": {
+      "ru": "Справа",
+      "en": "Right",
+      "de": "Rechts",
+      "pl": "Po prawej"
+    },
+    "MapRotation.Settings.Animation": {
+      "ru": "Анимация",
+      "en": "Animation",
+      "de": "Animation",
+      "pl": "Animacja"
+    },
+    "MapRotation.Settings.AnimationNone": {
+      "ru": "Без анимации",
+      "en": "None",
+      "de": "Keine",
+      "pl": "Brak"
+    },
+    "MapRotation.Settings.AnimationFast": {
+      "ru": "Быстрая",
+      "en": "Fast",
+      "de": "Schnell",
+      "pl": "Szybka"
+    },
+    "MapRotation.Settings.AnimationNormal": {
+      "ru": "Обычная",
+      "en": "Normal",
+      "de": "Normal",
+      "pl": "Normalna"
+    },
+    "MapRotation.Settings.AnimationSlow": {
+      "ru": "Плавная",
+      "en": "Slow",
+      "de": "Langsam",
+      "pl": "Wolna"
     }
   }
 }

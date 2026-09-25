@@ -7,9 +7,11 @@ namespace MapRotation.Core;
 internal sealed class RotationText(Func<ILocalizationApi> localization)
 {
     public string Get(IPlayer? player, string suffix, params (string Name, string Value)[] parameters)
+        => GetKey(player, "MapRotation." + suffix, parameters);
+
+    public string GetKey(IPlayer? player, string key, params (string Name, string Value)[] parameters)
     {
         var api = localization();
-        var key = "MapRotation." + suffix;
         var values = parameters.ToDictionary(parameter => parameter.Name, parameter => (object?)parameter.Value);
         return player is not null
             ? api.FormatForPlayerOrKey(player, key, values)
