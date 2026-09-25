@@ -120,6 +120,43 @@ public sealed class HudMenuTests
         Assert.True(f.Service.IsAnyOpen(f.Player)); f.Click("Close"); Assert.Empty(f.Actions);
         f.Click("Back"); Assert.Equal(HudMenuAction.Back, Assert.Single(f.Actions).Action);
     }
+    [Theory]
+    [InlineData(HudMenuPriority.Normal, false)]
+    [InlineData(HudMenuPriority.Normal, true)]
+    [InlineData(HudMenuPriority.Critical, false)]
+    [InlineData(HudMenuPriority.Critical, true)]
+    public void CloseWithSettingsOpenReleasesInputAndRejectsLaterUpdates(HudMenuPriority priority, bool escape)
+    {
+        using var f = new Fixture();
+        f.Menu = f.Menu with { SettingsText = SettingsLabels(), Options = f.Menu.Options with { Priority = priority } };
+        var id = f.Open();
+        f.Click("Gear");
+        var runtime = f.Current;
+        var runtimeCount = f.Runtimes.Count;
+        Assert.True(runtime.Capture);
+        Assert.True(runtime.Classes[("MenuRoot", "SettingsOpen")]);
+
+        void Close()
+        {
+            if (escape)
+                f.Raise("OnClientKeyStateChanged", Stub<IOnClientKeyStateChangedEvent>((method, _) => method.Name switch
+                { "get_PlayerId" => 1, "get_Key" => KeyKind.Esc, "get_Pressed" => true, _ => null }));
+            else f.Click("Close");
+        }
+        Close();
+        Close();
+
+        Assert.False(runtime.Capture);
+        Assert.Equal(1, runtime.DisposeCount);
+        var action = Assert.Single(f.Actions);
+        Assert.Equal(HudMenuAction.Close, action.Action);
+        Assert.Equal(id, action.MenuId);
+        Assert.False(f.Service.IsAnyOpen(f.Player));
+        Assert.False(f.Service.IsOpen(f.Player, id));
+        Assert.False(f.Service.Update(f.Player, id, f.Menu with { Status = "00:12" }));
+        Assert.Equal(runtimeCount, f.Runtimes.Count);
+        Assert.False(runtime.Capture);
+    }
     [Fact]
     public void ChannelClosePreservesOtherChannelsAndDisposeUnsubscribes()
     {
