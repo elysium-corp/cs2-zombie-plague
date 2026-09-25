@@ -55,7 +55,7 @@
 @keyframes 'MapRotation_fade' { 0% { opacity: 0; } 100% { opacity: 1; } }
 @keyframes 'MapRotation_rise' { 0% { opacity: 0; transform: translateY(24px); } 100% { opacity: 1; transform: translateY(0px); } }
 @keyframes 'MapRotation_zoom' { 0% { opacity: 0; transform: scale3d(0.96, 0.96, 1); } 100% { opacity: 1; transform: scale3d(1, 1, 1); } }
-/* Entrance keyframes use only opacity and transform functions that compiled Panorama styles already rely on. */
+/* Entrance keyframes animate only opacity and transform; tilt is the first project style to use rotateZ. */
 @keyframes 'MapRotation_drop' { 0% { opacity: 0; transform: translateY(-24px); } 100% { opacity: 1; transform: translateY(0px); } }
 @keyframes 'MapRotation_slideLeft' { 0% { opacity: 0; transform: translateX(-48px); } 100% { opacity: 1; transform: translateX(0px); } }
 @keyframes 'MapRotation_slideRight' { 0% { opacity: 0; transform: translateX(48px); } 100% { opacity: 1; transform: translateX(0px); } }
