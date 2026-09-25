@@ -3,6 +3,7 @@ using System;
 using MapRotation.Core.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MapRotation.Core.Database.Migrations
 {
     [DbContext(typeof(MapRotationDbContext))]
-    partial class MapRotationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260925060000_AddMapRotationHudPreferences")]
+    partial class AddMapRotationHudPreferences
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

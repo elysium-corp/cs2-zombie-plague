@@ -83,7 +83,8 @@ internal sealed class HudMenuService(ISwiftlyCore core, Func<int, IHudMenuRuntim
     }
     private static bool Valid(HudMenu menu) => !string.IsNullOrWhiteSpace(menu.Channel) && menu.Channel.Length <= 64
         && (menu.StyleClass.Length == 0 || Regex.IsMatch(menu.StyleClass, "\\A[A-Za-z][A-Za-z0-9_]{0,63}\\z"))
-        && menu.Options.ItemsPerPage is >= 1 and <= 6 && !menu.Items.IsDefault
+        && menu.Options.ItemsPerPage is >= 1 and <= 10 && !menu.Items.IsDefault
+        && Enum.IsDefined(menu.Presentation.Orientation) && menu.Presentation.ScalePercent is 80 or 100 or 120
         && menu.Items.Length <= 1000 && menu.Items.All(item => !string.IsNullOrEmpty(item.Id))
         && menu.Items.All(item => item.ImagePath is null || Regex.IsMatch(item.ImagePath,
             "\\Apanorama/images/custom_game/elysium/assets/[a-f0-9]{64}_png\\.vtex\\z"))
@@ -96,7 +97,7 @@ internal sealed class HudMenuService(ISwiftlyCore core, Func<int, IHudMenuRuntim
         var hud = session.Runtime ??= createRuntime(session.PlayerId);
         if (!hud.IsValid) throw new InvalidOperationException("Сущность HUD-меню удалена");
         hud.Text("Title", menu.Title); hud.Text("Subtitle", menu.Subtitle);
-        hud.Text("Status", menu.Status); hud.Text("CloseText", menu.CloseText); hud.Text("Footer", menu.Footer);
+        hud.Text("Status", menu.Status); hud.Text("Footer", menu.Footer);
         hud.Class("MenuRoot", "Modal", menu.Options.Modal);
         hud.Class("MenuRoot", "Result", menu.View == HudMenuView.Result);
         if (session.StyleClass != menu.StyleClass)
@@ -106,16 +107,40 @@ internal sealed class HudMenuService(ISwiftlyCore core, Func<int, IHudMenuRuntim
         }
         if (menu.StyleClass.Length > 0) hud.Class("MenuRoot", menu.StyleClass, true);
         hud.Class("Close", "Hidden", !menu.Options.Closable);
-        hud.Class("CloseHint", "Hidden", !menu.Options.Closable);
         hud.Class("Back", "Hidden", !menu.ShowBack);
         hud.Class("Status", "Hidden", string.IsNullOrEmpty(menu.Status));
         hud.Class("Footer", "Hidden", string.IsNullOrEmpty(menu.Footer));
+        var settingsEnabled = menu.SettingsText is not null && menu.View != HudMenuView.Result;
+        if (!settingsEnabled) session.SettingsOpen = false;
+        hud.Class("MenuRoot", "HasSettings", settingsEnabled);
+        hud.Class("MenuRoot", "HasBrand", menu.ShowBrand && menu.View != HudMenuView.Result);
+        hud.Class("MenuRoot", "SettingsOpen", session.SettingsOpen);
+        hud.Class("MenuRoot", "Horizontal", menu.Presentation.Orientation == HudMenuOrientation.Horizontal);
+        hud.Class("MenuRoot", "Vertical", menu.Presentation.Orientation == HudMenuOrientation.Vertical);
+        foreach (var scale in new[] { 80, 100, 120 })
+        {
+            hud.Class("MenuRoot", "Scale" + scale, menu.Presentation.ScalePercent == scale);
+            hud.Class("SetScale" + scale, "Selected", menu.Presentation.ScalePercent == scale);
+        }
+        hud.Class("SetHorizontal", "Selected", menu.Presentation.Orientation == HudMenuOrientation.Horizontal);
+        hud.Class("SetVertical", "Selected", menu.Presentation.Orientation == HudMenuOrientation.Vertical);
+        if (menu.SettingsText is { } labels)
+        {
+            hud.Text("SettingsTitle", labels.Title); hud.Text("OrientationLabel", labels.Orientation);
+            hud.Text("SetHorizontalText", labels.Horizontal); hud.Text("SetVerticalText", labels.Vertical);
+            hud.Text("SizeLabel", labels.Size); hud.Text("SetScale80Text", labels.Scale80);
+            hud.Text("SetScale100Text", labels.Scale100); hud.Text("SetScale120Text", labels.Scale120);
+        }
+        var visibleItems = Math.Clamp(menu.Items.Length - session.Page * menu.Options.ItemsPerPage, 0, menu.Options.ItemsPerPage);
+        for (var count = 1; count <= 10; count++) hud.Class("MenuRoot", "PageItems" + count, count == Math.Max(1, visibleItems));
+        hud.Class("MenuRoot", "HasSecondRow", visibleItems > 5);
+        hud.Class("Row1", "Hidden", visibleItems <= 5);
         var pages = PageCount(menu);
         hud.Text("Page", $"{session.Page + 1} / {pages}");
         hud.Class("Pagination", "Hidden", !menu.Options.ShowPagination || pages == 1);
         hud.Class("PreviousPage", "Disabled", session.Page == 0);
         hud.Class("NextPage", "Disabled", session.Page + 1 >= pages);
-        for (var slot = 0; slot < 6; slot++)
+        for (var slot = 0; slot < 10; slot++)
         {
             var index = session.Page * menu.Options.ItemsPerPage + slot;
             var item = slot < menu.Options.ItemsPerPage && index < menu.Items.Length ? menu.Items[index] : null;
@@ -134,6 +159,8 @@ internal sealed class HudMenuService(ISwiftlyCore core, Func<int, IHudMenuRuntim
             hud.Text("Description" + slot, item.Enabled ? item.Description : item.DisabledReason);
             hud.Class("Description" + slot, "Hidden", string.IsNullOrEmpty(item.Enabled ? item.Description : item.DisabledReason));
             hud.Text("Badge" + slot, item.Badge);
+            hud.Class("Badge" + slot, "Hidden", string.IsNullOrEmpty(item.Badge));
+            hud.Class("Item" + slot, "HasBadge", !string.IsNullOrEmpty(item.Badge));
             hud.Class("Item" + slot, "Disabled", !item.Enabled);
             hud.Class("Item" + slot, "Selected", item.Selected);
         }
@@ -154,6 +181,31 @@ internal sealed class HudMenuService(ISwiftlyCore core, Func<int, IHudMenuRuntim
         {
             HudMenuAction action;
             string? itemId = null;
+            if (button is "Gear" or "SettingsClose")
+            {
+                if (session.Menu.SettingsText is null || session.Menu.View == HudMenuView.Result) return;
+                if (button == "SettingsClose" && !session.SettingsOpen) return;
+                session.SettingsOpen = button == "Gear" && !session.SettingsOpen;
+                // Новый HUD не принимает клик по карточке, отправленный до открытия настроек.
+                ReplaceRuntime(session); Render(session); return;
+            }
+            if (button is "SetHorizontal" or "SetVertical" or "SetScale80" or "SetScale100" or "SetScale120")
+            {
+                if (!session.SettingsOpen || session.Menu.SettingsText is null || session.Menu.View == HudMenuView.Result) return;
+                var presentation = button switch
+                {
+                    "SetHorizontal" => session.Menu.Presentation with { Orientation = HudMenuOrientation.Horizontal },
+                    "SetVertical" => session.Menu.Presentation with { Orientation = HudMenuOrientation.Vertical },
+                    "SetScale80" => session.Menu.Presentation with { ScalePercent = 80 },
+                    "SetScale120" => session.Menu.Presentation with { ScalePercent = 120 },
+                    _ => session.Menu.Presentation with { ScalePercent = 100 }
+                };
+                session.Menu = session.Menu with { Presentation = presentation };
+                ReplaceRuntime(session); Render(session);
+                session.Callback(new(session.Id, HudMenuAction.SettingsChanged, null) { Presentation = presentation });
+                return;
+            }
+            if (session.SettingsOpen && button != "Close") return;
             if (button == "Close")
             {
                 if (!session.Menu.Options.Closable) return;
@@ -175,7 +227,7 @@ internal sealed class HudMenuService(ISwiftlyCore core, Func<int, IHudMenuRuntim
                 ReplaceRuntime(session); Render(session);
                 action = button == "NextPage" ? HudMenuAction.NextPage : HudMenuAction.PreviousPage;
             }
-            else if (button.Length == 5 && button.StartsWith("Item", StringComparison.Ordinal) && button[4] is >= '0' and <= '5')
+            else if (button.Length == 5 && button.StartsWith("Item", StringComparison.Ordinal) && button[4] is >= '0' and <= '9')
             {
                 var slot = button[4] - '0';
                 var index = session.Page * session.Menu.Options.ItemsPerPage + slot;
@@ -257,6 +309,7 @@ internal sealed class HudMenuService(ISwiftlyCore core, Func<int, IHudMenuRuntim
         public IHudMenuRuntime? Runtime { get; set; }
         public int Page { get; set; }
         public string StyleClass { get; set; } = "";
-        public string[] ImageClasses { get; } = ["", "", "", "", "", ""];
+        public bool SettingsOpen { get; set; }
+        public string[] ImageClasses { get; } = Enumerable.Repeat("", 10).ToArray();
     }
 }

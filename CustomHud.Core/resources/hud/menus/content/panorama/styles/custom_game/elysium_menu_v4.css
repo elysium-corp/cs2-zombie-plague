@@ -1,54 +1,140 @@
 .MenuViewport { width: 100%; height: 100%; }
-.MenuRoot { width: 100%; height: 100%; visibility: collapse; }
+.MenuRoot { width: 100%; height: 100%; visibility: collapse; font-family: Arial; }
 .MenuRoot.Visible { visibility: visible; }
-.MenuRoot.Modal { background-color: #04080e55; }
-.MenuWindow { width: 560px; horizontal-align: center; vertical-align: center; flow-children: down; padding: 26px 24px 0px; background-color: gradient(linear, 0% 0%, 100% 100%, from(#141d29fa), to(#090f18fa)); border: 1px solid #536581bb; border-radius: 6px; box-shadow: #00000088 0px 14px 32px 0px; }
-.MenuBrandRow { width: 100%; height: 32px; flow-children: right; margin-bottom: 20px; }
-.BrandMark { width: 30px; color: #ab83ff; font-size: 30px; vertical-align: center; }
-.Brand { width: fill-parent-flow(1); color: #bac8ff; font-size: 15px; letter-spacing: 3px; vertical-align: center; margin-left: 12px; }
-.Status { color: #ff8b9d; font-size: 19px; font-weight: bold; horizontal-align: right; vertical-align: center; margin-right: 18px; }
-.Close { width: 30px; height: 30px; horizontal-align: right; }
-.Close Label { color: #bdc9ed; font-size: 30px; horizontal-align: center; vertical-align: center; }
-.Close:hover Label { color: #ffffff; }
-.Title { width: 100%; color: #f4f6ff; font-size: 27px; font-weight: bold; text-align: center; margin-bottom: 9px; }
-.Subtitle { width: 100%; color: #b9c6e9; font-size: 16px; text-align: center; margin-bottom: 24px; }
+.MenuRoot.Modal { background-color: #02161666; }
+.MenuFrame { width: 720px; horizontal-align: center; vertical-align: center; }
+.MenuWindow { width: 720px; flow-children: down; padding: 24px 32px 32px; background-color: #021616f5; border: 1px solid #88CCA380; border-bottom: 3px solid #88CCA3; border-radius: 10px; box-shadow: #00000099 0px 14px 36px 0px; }
+.MenuHeader { width: 100%; height: 136px; border-bottom: 2px solid #88CCA3; }
+.BrandGroup { height: 72px; flow-children: right; visibility: collapse; }
+.HasBrand .BrandGroup { visibility: visible; }
+.BrandMark { width: 72px; height: 72px; vertical-align: center; }
+.Brand { color: #DAB56D; font-size: 32px; letter-spacing: 10px; font-weight: bold; vertical-align: center; margin-left: 22px; }
+.HeaderActions { horizontal-align: right; height: 72px; flow-children: right; }
+.Status { color: #DAB56D; font-size: 36px; font-weight: bold; vertical-align: center; margin-right: 24px; }
+.SettingsButton { width: 48px; height: 48px; vertical-align: center; border: 1px solid transparent; border-radius: 6px; visibility: collapse; }
+.HasSettings .SettingsButton { visibility: visible; }
+.SettingsButton:hover { border: 1px solid #88CCA380; background-color: #0B2220; }
+.SettingsIcon { width: 36px; height: 36px; horizontal-align: center; vertical-align: center; wash-color: #F1F4E9; }
+.SettingsOpen .SettingsIcon { wash-color: #88CCA3; }
+.HeaderDivider { height: 36px; width: 1px; background-color: #88CCA380; vertical-align: center; margin: 0px 16px; visibility: collapse; }
+.HasSettings .HeaderDivider { visibility: visible; }
+.Close { width: 40px; height: 44px; vertical-align: center; }
+.Close Label { color: #F1F4E9; font-size: 36px; horizontal-align: center; vertical-align: center; }
+.Close:hover Label { color: #88CCA3; }
+.Title { width: 100%; height: 50px; vertical-align: bottom; color: #F1F4E9; font-size: 32px; font-weight: bold; text-align: center; text-overflow: shrink min(24px); }
+.Subtitle { width: 100%; height: 56px; padding: 14px 0px; color: #9AAFA3; font-size: 22px; text-align: center; text-overflow: shrink min(17px); }
 .Items { width: 100%; flow-children: down; }
-.MenuItem { width: 100%; min-height: 68px; flow-children: right; margin-bottom: 8px; padding: 10px 14px; background-color: #111a25dd; border: 1px solid #344356; border-radius: 5px; transition-property: background-color, border; transition-duration: 0.12s; }
-.MenuItem:hover { background-color: #21283b; border: 1px solid #9583d0; }
-.MenuItem.Selected { background-color: gradient(linear, 0% 0%, 100% 0%, from(#302044ee), to(#192134ee)); border: 2px solid #a273ff; padding: 9px 13px; }
-.ItemIcon { width: 60px; height: 46px; background-color: gradient(linear, 0% 0%, 100% 100%, from(#29354f), to(#121e30)); border: 1px solid #46506c; border-radius: 4px; vertical-align: center; margin-right: 16px; }
-.ItemIcon Label { font-size: 32px; color: #a6b7ec; horizontal-align: center; vertical-align: center; }
-.ItemText { width: fill-parent-flow(1); flow-children: down; vertical-align: center; }
-.ItemName { color: #f1f4ff; font-size: 19px; font-weight: bold; text-overflow: ellipsis; }
-.ItemDescription { color: #c3a5ff; font-size: 14px; margin-top: 5px; }
-.Badge { color: #e7edff; font-size: 16px; vertical-align: center; margin-left: 14px; }
-.SelectedMark { visibility: collapse; color: #bd9bff; font-size: 23px; vertical-align: center; margin-left: 8px; }
+.ItemRow { width: 100%; flow-children: down; }
+.Row1 { visibility: collapse; }
+.HasSecondRow .Row1 { visibility: visible; }
+.MenuItem { width: 100%; height: 96px; margin-bottom: 8px; background-color: #021616; border: 2px solid #245249; border-radius: 8px; transition-property: background-color, border; transition-duration: 0.12s; }
+.MenuItem:hover { background-color: #0B2220; border: 2px solid #88CCA3aa; }
+.MenuItem.Selected { background-color: #0B2220; border: 2px solid #88CCA3; box-shadow: #88CCA326 0px 0px 8px 0px; }
+.ItemContent { width: 100%; height: 100%; flow-children: right; }
+.ItemIcon { width: 224px; height: 92px; background-color: #0B2220; background-size: cover; background-position: center; background-repeat: no-repeat; border-radius: 5px; }
+.ImagePlaceholder { color: #9AAFA3; font-size: 36px; horizontal-align: center; vertical-align: center; }
+.ItemIcon.HasImage .ImagePlaceholder { visibility: collapse; }
+.ItemText { width: fill-parent-flow(1); flow-children: down; vertical-align: center; padding: 0px 26px; margin-right: 54px; }
+.ItemName { width: 100%; color: #F1F4E9; font-size: 26px; font-weight: bold; text-overflow: ellipsis; }
+.ItemDescription { width: 100%; color: #88CCA3; font-size: 19px; margin-top: 5px; text-overflow: ellipsis; }
+.Badge { color: #F1F4E9; font-size: 18px; padding: 5px 14px; border: 1px solid #9AAFA366; border-radius: 5px; background-color: #0B2220; vertical-align: center; margin-right: 62px; }
+.HasBadge .ItemText { margin-right: 0px; padding-right: 10px; }
+.SelectedMark { visibility: collapse; color: #88CCA3; font-size: 38px; font-weight: bold; horizontal-align: right; vertical-align: center; margin-right: 56px; }
 .Selected .SelectedMark { visibility: visible; }
-.Pagination { horizontal-align: center; height: 46px; flow-children: right; margin-top: 5px; margin-bottom: 10px; }
-.PageArrow { width: 40px; height: 42px; }
-.PageArrow Label { color: #b59bff; font-size: 36px; horizontal-align: center; vertical-align: center; }
-.PageArrow:hover Label { color: #ffffff; }
-.PageLabel { width: 84px; color: #e6edff; font-size: 17px; text-align: center; vertical-align: center; }
-.Footer { width: 100%; padding: 16px; border: 1px solid #53627d; border-radius: 4px; color: #bdcaff; font-size: 16px; white-space: normal; margin-top: 12px; margin-bottom: 14px; }
-.BottomRow { width: 100%; height: 40px; flow-children: right; margin-top: 8px; margin-bottom: 8px; }
-.CloseHint { flow-children: right; vertical-align: center; }
-.Key { color: #e8edfa; font-size: 14px; border: 1px solid #a3adc0; border-radius: 2px; padding: 2px 6px; }
-.CloseText { color: #aab6d0; font-size: 14px; margin-left: 12px; vertical-align: center; }
-.Back { width: 34px; height: 30px; margin-right: 10px; }
-.Back Label { color: #bda3ff; font-size: 28px; }
-.AccentLine { width: 100%; height: 3px; background-color: gradient(linear, 0% 0%, 100% 0%, from(#a278ff), to(#3a355600)); }
-.Result .ItemIcon { width: 100%; height: 140px; margin: 0px 0px 20px; background-color: gradient(linear, 0% 0%, 100% 100%, from(#34284f), to(#16273c)); }
-.Result .ItemIcon Label { font-size: 76px; color: #e2b95e; }
-.ResultTrophy { width: 76px; height: 76px; horizontal-align: center; vertical-align: center; wash-color: #e2b95e; visibility: collapse; }
-.Result .ResultTrophy { visibility: visible; }
-
-.Result .MenuItem { flow-children: down; padding: 18px; }
-.Result .ItemText { width: 100%; }
-.Result .ItemName { width: 100%; text-align: center; font-size: 28px; }
-.Result .ItemDescription { width: 100%; text-align: center; color: #d6e0f6; font-size: 18px; }
-.Result .Badge { visibility: collapse; }
+.HasBadge .SelectedMark { font-size: 25px; margin-right: 34px; }
+.ItemArrow { color: #F1F4E9; font-size: 36px; horizontal-align: right; vertical-align: center; margin-right: 20px; }
+.ResultTrophyPlate { visibility: collapse; }
+.Pagination { horizontal-align: center; height: 48px; flow-children: right; margin-top: 8px; }
+.PageArrow { width: 48px; height: 48px; }
+.PageArrow Label { color: #F1F4E9; font-size: 36px; horizontal-align: center; vertical-align: center; }
+.PageArrow:hover Label { color: #88CCA3; }
+.PageLabel { width: 116px; color: #F1F4E9; font-size: 23px; font-weight: bold; text-align: center; vertical-align: center; }
+.Footer { width: 100%; padding: 16px; border: 1px solid #9AAFA355; border-radius: 6px; color: #9AAFA3; font-size: 20px; text-align: center; white-space: normal; margin-top: 20px; }
+.Back { width: 36px; height: 44px; vertical-align: top; margin-top: 14px; }
+.Back Label { color: #88CCA3; font-size: 34px; }
+.Settings { visibility: collapse; width: 480px; flow-children: down; horizontal-align: right; margin: 100px 24px 0px 0px; padding: 24px; background-color: #021616; border: 1px solid #88CCA380; border-radius: 8px; box-shadow: #000000bb 0px 10px 28px 0px; }
+.SettingsOpen .Settings { visibility: visible; }
+.SettingsHeading { width: 100%; height: 54px; border-bottom: 1px solid #88CCA344; }
+.SettingsTitle { width: 100%; margin-right: 44px; color: #F1F4E9; font-size: 26px; font-weight: bold; }
+.SettingsHeading .Close { horizontal-align: right; height: 30px; vertical-align: top; }
+.SettingsHeading .Close Label { font-size: 28px; }
+.SettingsLabel { width: 100%; color: #F1F4E9; font-size: 22px; margin-top: 20px; margin-bottom: 12px; }
+.SettingsOptions { width: 100%; flow-children: right; }
+.SettingsOption { width: fill-parent-flow(1); height: 48px; margin-right: 10px; border: 1px solid #9AAFA380; border-radius: 6px; background-color: #0B2220; }
+.SettingsOption.LastOption { margin-right: 0px; }
+.SettingsOption Label { color: #F1F4E9; font-size: 19px; text-align: center; horizontal-align: center; vertical-align: center; text-overflow: shrink min(15px); }
+.SettingsOption:hover { border: 1px solid #88CCA3; }
+.SettingsOption.Selected { border: 1px solid #88CCA3; background-color: #88CCA3; }
+.SettingsOption.Selected Label { color: #021616; font-weight: bold; }
+.SettingsDivider { width: 100%; height: 1px; background-color: #88CCA344; margin-top: 24px; }
+.Scale80 .MenuFrame { ui-scale: 80%; }
+.Scale100 .MenuFrame { ui-scale: 100%; }
+.Scale120 .MenuFrame { ui-scale: 120%; }
+.Horizontal .MenuFrame, .Horizontal .MenuWindow { width: 1680px; }
+.Horizontal .MenuHeader { height: 72px; }
+.Horizontal .Title { width: 800px; height: 50px; horizontal-align: center; vertical-align: center; font-size: 40px; }
+.Horizontal .Subtitle { height: 80px; padding: 24px 0px; margin-bottom: 16px; border-bottom: 1px solid #88CCA366; text-align: left; font-size: 26px; }
+.Horizontal .ItemRow { flow-children: right; }
+.Horizontal .Row1 { margin-top: 16px; }
+.Horizontal .MenuItem { width: 310px; height: 286px; margin: 0px 16px 0px 0px; }
+.Horizontal .Slot4 { margin-right: 0px; }
+.Horizontal .ItemContent { flow-children: down; }
+.Horizontal .ItemIcon { width: 100%; height: 194px; border-radius: 5px 5px 0px 0px; }
+.Horizontal .ItemText { width: 100%; height: fill-parent-flow(1); padding: 14px 8px 8px; margin: 0px; }
+.Horizontal .ItemName { text-align: center; font-size: 26px; }
+.Horizontal .ItemDescription { text-align: center; font-size: 19px; margin-top: 4px; }
+.Horizontal .Badge { horizontal-align: center; height: 34px; margin: 0px 0px 10px; padding: 5px 22px; }
+.Horizontal .HasBadge .ItemIcon { height: 164px; }
+.Horizontal .HasBadge .ItemText { padding-top: 10px; padding-bottom: 2px; }
+.Horizontal .HasBadge .ItemName { font-size: 25px; }
+.Horizontal .SelectedMark { vertical-align: top; margin: 10px 14px 0px 0px; font-size: 42px; text-shadow: 0px 2px 4px 2.0 #021616; }
+.Horizontal .ItemArrow { visibility: collapse; }
+.Horizontal .Pagination { margin-top: 22px; }
+.Horizontal.PageItems0 .MenuFrame, .Horizontal.PageItems0 .MenuWindow, .Horizontal.PageItems1 .MenuFrame, .Horizontal.PageItems1 .MenuWindow, .Horizontal.PageItems2 .MenuFrame, .Horizontal.PageItems2 .MenuWindow { width: 720px; }
+.Horizontal.PageItems1 .MenuItem { width: 100%; margin-right: 0px; }
+.Horizontal.PageItems2 .MenuItem { width: 318px; }
+.Horizontal.PageItems2 .Slot1 { margin-right: 0px; }
+.Horizontal.PageItems3 .MenuFrame, .Horizontal.PageItems3 .MenuWindow { width: 1028px; }
+.Horizontal.PageItems4 .MenuFrame, .Horizontal.PageItems4 .MenuWindow { width: 1354px; }
+.Horizontal.PageItems0 .MenuHeader, .Horizontal.PageItems1 .MenuHeader, .Horizontal.PageItems2 .MenuHeader, .Horizontal.PageItems3 .MenuHeader { height: 136px; }
+.Horizontal.PageItems0 .Title, .Horizontal.PageItems1 .Title, .Horizontal.PageItems2 .Title, .Horizontal.PageItems3 .Title { width: 100%; font-size: 32px; vertical-align: bottom; }
+.Horizontal.PageItems4 .Brand { font-size: 27px; letter-spacing: 7px; margin-left: 14px; }
+.Horizontal.PageItems4 .Title { width: 650px; font-size: 34px; }
+.Horizontal.PageItems4 .Status { font-size: 30px; margin-right: 12px; }
+.Vertical.SettingsOpen .MenuFrame { width: 1224px; }
+.Vertical.SettingsOpen .Settings { margin: 0px; }
+.Vertical.HasSecondRow .MenuItem { height: 50px; }
+.Vertical.HasSecondRow .ItemIcon { width: 100px; height: 46px; }
+.Vertical.HasSecondRow .ItemText { padding-left: 16px; padding-right: 8px; }
+.Vertical.HasSecondRow .ItemName { font-size: 20px; }
+.Vertical.HasSecondRow .ItemDescription { font-size: 15px; margin-top: 1px; }
+.Vertical.HasSecondRow .Badge { font-size: 16px; }
+.Vertical.HasSecondRow .SelectedMark { font-size: 27px; }
+.Scale120.Horizontal.PageItems5 .MenuFrame, .Scale120.Horizontal.PageItems5 .MenuWindow, .Scale120.Horizontal.HasSecondRow .MenuFrame, .Scale120.Horizontal.HasSecondRow .MenuWindow { width: 1400px; }
+.Scale120.Horizontal.PageItems5 .MenuItem, .Scale120.Horizontal.HasSecondRow .MenuItem { width: 254px; }
+.Scale120.Horizontal.PageItems5 .Brand, .Scale120.Horizontal.HasSecondRow .Brand { font-size: 27px; letter-spacing: 7px; margin-left: 14px; }
+.Scale120.Horizontal.PageItems5 .Title, .Scale120.Horizontal.HasSecondRow .Title { width: 680px; font-size: 34px; }
+.Scale120.Horizontal.PageItems5 .Status, .Scale120.Horizontal.HasSecondRow .Status { font-size: 30px; margin-right: 12px; }
+.MenuRoot.Result .MenuFrame, .MenuRoot.Result .MenuWindow { width: 850px; }
+.MenuRoot.Result .MenuWindow { padding-top: 24px; border-bottom: 1px solid #88CCA380; }
+.MenuRoot.Result .MenuHeader { height: 70px; border-bottom: 0px solid transparent; }
+.MenuRoot.Result .BrandGroup, .MenuRoot.Result .SettingsButton, .MenuRoot.Result .HeaderDivider, .MenuRoot.Result .Status, .MenuRoot.Result .Settings { visibility: collapse; }
+.MenuRoot.Result .Title { width: 100%; height: 64px; font-size: 48px; vertical-align: center; }
+.MenuRoot.Result .HeaderActions { height: 40px; }
+.MenuRoot.Result .Close Label { color: #9AAFA3; }
+.MenuRoot.Result .Subtitle { height: 52px; padding: 5px 0px 15px; margin: 0px; border: 0px solid transparent; font-size: 26px; text-align: center; }
+.MenuRoot.Result .ItemRow { flow-children: down; }
+.MenuRoot.Result .Row1 { visibility: collapse; }
+.MenuRoot.Result .MenuItem { width: 100%; height: 466px; border: 0px solid transparent; background-color: transparent; box-shadow: none; margin: 0px; }
+.MenuRoot.Result .ItemContent { flow-children: down; }
+.MenuRoot.Result .ItemIcon { width: 100%; height: 328px; border: 1px solid #88CCA380; border-radius: 12px; }
+.MenuRoot.Result .ImagePlaceholder { font-size: 90px; }
+.MenuRoot.Result .ResultTrophyPlate { visibility: visible; width: 64px; height: 64px; horizontal-align: right; margin: 10px 10px 0px 0px; background-color: #021616dd; border-radius: 10px; }
+.MenuRoot.Result .ResultTrophy { width: 46px; height: 46px; horizontal-align: center; vertical-align: center; }
+.MenuRoot.Result .ItemText { width: 100%; height: fill-parent-flow(1); padding: 14px 0px 0px; margin: 0px; }
+.MenuRoot.Result .ItemName { text-align: center; font-size: 62px; }
+.MenuRoot.Result .ItemDescription { text-align: center; color: #DAB56D; font-size: 34px; font-weight: bold; margin-top: 4px; }
+.MenuRoot.Result .Badge, .MenuRoot.Result .SelectedMark, .MenuRoot.Result .ItemArrow, .MenuRoot.Result .Pagination { visibility: collapse; }
+.MenuRoot.Result .Footer { margin-top: 8px; }
 .Disabled { opacity: 0.45; }
 .Hidden { visibility: collapse; }
-
-.ItemIcon { background-size: cover; background-position: center; background-repeat: no-repeat; }
-.ItemIcon.HasImage Label { visibility: collapse; }

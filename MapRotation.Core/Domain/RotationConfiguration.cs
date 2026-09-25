@@ -40,7 +40,7 @@ internal sealed record RotationSettings
             || RtvDelaySeconds < 0 || RtvChangeMode is not ("end_of_round" or "immediate")
             || RtvChangeDelaySeconds is < 0 or > 600 || RecentMapsExcluded is < 0 or > 1000
             || FinalRoundTimeoutSeconds is < 1 or > 7200 || RefreshIntervalSeconds is < 1 or > 3600
-            || MenuItemsPerPage is < 1 or > 6 || ConfigurationVersion < 1) throw new ArgumentException("Некорректные настройки MapRotation");
+            || MenuItemsPerPage is < 1 or > 10 || ConfigurationVersion < 1) throw new ArgumentException("Некорректные настройки MapRotation");
     }
 }
 

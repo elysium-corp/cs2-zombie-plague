@@ -176,6 +176,86 @@ public sealed class HudMenuTests
         Assert.True(f.Current.Capture);
     }
 
+    [Fact]
+    public void TenSlotsRenderAndTenthSlotSelectsItsOwnItem()
+    {
+        using var f = new Fixture();
+        f.Menu = f.Menu with
+        {
+            Items = Enumerable.Range(0, 10).Select(i => new HudMenuItem(i.ToString(), "Map " + i)).ToImmutableArray(),
+            Options = new() { ItemsPerPage = 10 },
+            Presentation = new() { Orientation = HudMenuOrientation.Horizontal }
+        };
+        f.Open();
+        Assert.True(f.Current.Classes[("MenuRoot", "PageItems10")]);
+        Assert.True(f.Current.Classes[("MenuRoot", "HasSecondRow")]);
+        Assert.False(f.Current.Classes[("Item9", "Hidden")]);
+        Assert.True(f.Current.Classes[("Pagination", "Hidden")]);
+        f.Click("Item9");
+        Assert.Equal("9", Assert.Single(f.Actions).ItemId);
+    }
+
+    [Fact]
+    public void SettingsPreservePageAndSelectedItemWithoutSubmittingSelection()
+    {
+        using var f = new Fixture();
+        f.Menu = f.Menu with { SettingsText = SettingsLabels(), Items = f.Menu.Items.SetItem(5, f.Menu.Items[5] with { Selected = true }) };
+        var id = f.Open();
+        f.Click("NextPage"); f.Actions.Clear();
+        var previous = f.Current;
+        f.Click("Gear");
+        f.Click("Item0", previous.Entity);
+        f.Click("Item0"); f.Click("PreviousPage");
+        Assert.Empty(f.Actions);
+        f.Click("SetHorizontal"); f.Click("SetScale120");
+        Assert.All(f.Actions, action => Assert.Equal(HudMenuAction.SettingsChanged, action.Action));
+        var presentation = f.Actions[^1].Presentation!;
+        Assert.Equal(HudMenuOrientation.Horizontal, presentation.Orientation);
+        Assert.Equal(120, presentation.ScalePercent);
+        Assert.True(f.Service.Update(f.Player, id, f.Menu with { Presentation = presentation, Status = "00:12" }));
+        Assert.Equal("2 / 2", f.Current.Texts["Page"]);
+        Assert.True(f.Current.Classes[("Item0", "Selected")]);
+        Assert.True(f.Current.Classes[("MenuRoot", "SettingsOpen")]);
+        f.Click("SettingsClose");
+        Assert.False(f.Current.Classes[("MenuRoot", "SettingsOpen")]);
+        f.Click("Item0");
+        Assert.Equal("5", f.Actions[^1].ItemId);
+    }
+
+    [Fact]
+    public void SettingsButtonsCannotChangeHiddenSettingsOrResultPresentation()
+    {
+        using var f = new Fixture(); f.Open();
+        f.Click("SetHorizontal"); f.Click("Gear"); f.Click("SetScale120");
+        Assert.Empty(f.Actions);
+        f.Menu = f.Menu with { SettingsText = SettingsLabels(), ShowBrand = true, View = HudMenuView.Result };
+        f.Open(); f.Click("Gear"); f.Click("SetScale80");
+        Assert.Empty(f.Actions);
+        Assert.False(f.Current.Classes[("MenuRoot", "HasBrand")]);
+        Assert.False(f.Current.Classes[("MenuRoot", "HasSettings")]);
+    }
+
+    [Fact]
+    public void UpdatingCatalogHidesUnneededPaginationAndSecondRow()
+    {
+        using var f = new Fixture();
+        f.Menu = f.Menu with { Options = new() { ItemsPerPage = 10 } };
+        var id = f.Open();
+        Assert.True(f.Current.Classes[("MenuRoot", "HasSecondRow")]);
+        f.Service.Update(f.Player, id, f.Menu with { Items = f.Menu.Items[..4] });
+        Assert.True(f.Current.Classes[("MenuRoot", "PageItems4")]);
+        Assert.False(f.Current.Classes[("MenuRoot", "HasSecondRow")]);
+        Assert.True(f.Current.Classes[("Pagination", "Hidden")]);
+        Assert.True(f.Current.Classes[("Row1", "Hidden")]);
+        Assert.False(f.Current.Texts.ContainsKey("CloseText"));
+    }
+
+    private static HudMenuSettingsText SettingsLabels() => new()
+    {
+        Title = "Settings", Orientation = "Orientation", Horizontal = "Horizontal", Vertical = "Vertical",
+        Size = "Size", Scale80 = "80%", Scale100 = "100%", Scale120 = "120%"
+    };
+
     private sealed class Fixture : IDisposable
     {
         public Dictionary<string, Delegate> Handlers { get; } = [];

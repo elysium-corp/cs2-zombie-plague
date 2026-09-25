@@ -14,7 +14,7 @@ namespace Localization.Core.Tests;
 public sealed class MapRotationLocalizationTests
 {
     private const string InitialMigration = "20260923010000_AddMapRotationLocalization";
-    private const string CompleteMigration = "20260924140000_AddPassiveMapRotationLocalization";
+    private const string CompleteMigration = "20260925060000_AddMapRotationHudSettingsLocalization";
     private static readonly string[] RequiredSuffixes =
     [
         "Loading", "TimeLeft", "NextMap", "LastRound", "NotSelected", "RtvDelay", "RtvRemaining",
@@ -23,7 +23,9 @@ public sealed class MapRotationLocalizationTests
         "Close", "NoMaps", "ResultTitle", "LastRoundDescription", "ScheduledResult", "RtvAdded",
         "VoteStarted", "ForcedChange", "HudUnavailable", "RtvTitle", "RtvProgress", "CardSummary",
         "Admin.ReloadQueued", "Admin.VoteStarted", "Admin.VoteUnavailable", "Admin.NextMapSet", "Admin.InvalidMap",
-        "InactiveNoMaps", "UnlimitedTime", "Inactive"
+        "InactiveNoMaps", "UnlimitedTime", "Inactive", "YourNomination",
+        "Settings.Title", "Settings.Orientation", "Settings.Horizontal", "Settings.Vertical", "Settings.Size",
+        "Settings.Scale80", "Settings.Scale100", "Settings.Scale120"
     ];
 
     [Theory]

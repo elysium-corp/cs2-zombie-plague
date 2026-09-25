@@ -27,12 +27,21 @@ public sealed class CmsPresentationTests
         Assert.Contains("hud_image_path character varying(256)", script);
         Assert.Contains("hud_settings jsonb", script);
         Assert.Contains("menu_items_per_page integer", script);
+        Assert.Contains("CREATE TABLE map_rotation.player_preferences", script);
+        Assert.Contains("hud_scale IN (80, 100, 120)", script);
         Assert.Contains("20260924150000_AddMapRotationCmsPresentation", db.Database.GetMigrations());
     }
 
     [Theory]
-    [InlineData(0)]
+    [InlineData(1)]
     [InlineData(7)]
+    [InlineData(10)]
+    public void PageSizeAcceptsFullGridWithoutLimitingVoteOptions(int size) =>
+        new RotationSettings { MenuItemsPerPage = size, VoteOptionsCount = 30 }.Validate();
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(11)]
     public void PageSizeMatchesTheHudSlotContract(int size) =>
         Assert.Throws<ArgumentException>(() => new RotationSettings { MenuItemsPerPage = size }.Validate());
 }

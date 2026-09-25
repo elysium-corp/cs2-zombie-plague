@@ -1,17 +1,14 @@
-.MenuRoot.MapRotation .MenuWindow { width: 650px; background-color: #111923f5; border-radius: 12px; border: 1px solid #a98aff66; }
+.MenuRoot.MapRotation .MenuWindow { background-color: #021616f5; border-color: #88CCA380; border-bottom-color: #88CCA3; border-radius: 10px; }
+.MenuRoot.MapRotation .Title, .MenuRoot.MapRotation .ItemName { color: #F1F4E9; }
+.MenuRoot.MapRotation .Subtitle, .MenuRoot.MapRotation .Footer { color: #9AAFA3; }
+.MenuRoot.MapRotation .Brand, .MenuRoot.MapRotation .Status { color: #DAB56D; }
+.MenuRoot.MapRotation .MenuItem { background-color: #021616; border-color: #245249; }
+.MenuRoot.MapRotation .MenuItem:hover { background-color: #0B2220; border-color: #88CCA3aa; }
+.MenuRoot.MapRotation .MenuItem.Selected { background-color: #0B2220; border-color: #88CCA3; }
+.MenuRoot.MapRotation .SelectedMark, .MenuRoot.MapRotation .ItemDescription { color: #88CCA3; }
+.MenuRoot.MapRotation.Result .MenuItem { background-color: transparent; border-color: transparent; }
+.MenuRoot.MapRotation.Result .ItemDescription { color: #DAB56D; }
 .MenuRoot.MapRotation.Visible .MenuWindow { animation-name: MapRotation_rise; animation-duration: 0.240s; animation-timing-function: ease-out; animation-iteration-count: 1; }
-.MenuRoot.MapRotation .Title, .MenuRoot.MapRotation .ItemName { color: #f4f6ff; }
-.MenuRoot.MapRotation .Subtitle, .MenuRoot.MapRotation .CloseText { color: #b9c6e9; }
-.MenuRoot.MapRotation .Subtitle { visibility: visible; }
-.MenuRoot.MapRotation .BrandMark, .MenuRoot.MapRotation .SelectedMark, .MenuRoot.MapRotation .ItemDescription, .MenuRoot.MapRotation .PageArrow Label { color: #a98aff; }
-.MenuRoot.MapRotation .MenuItem { min-height: 80px; border-radius: 12px; }
-.MenuRoot.MapRotation .MenuItem.Selected { border: 2px solid #a98aff; background-color: #a98aff22; }
-.MenuRoot.MapRotation .MenuItem:hover { border: 1px solid #a98aff; }
-.MenuRoot.MapRotation .ItemIcon { width: 108px; height: 54px; visibility: visible; border-radius: 5px; }
-.MenuRoot.MapRotation .ItemName { font-size: 19px; }
-.MenuRoot.MapRotation.Result .ItemName { font-size: 28px; }
-.MenuRoot.MapRotation.Result .ItemIcon { width: 100%; height: 180px; }
-.MenuRoot.MapRotation .AccentLine { background-color: #a98aff; }
 @keyframes 'MapRotation_fade' { 0% { opacity: 0; } 100% { opacity: 1; } }
 @keyframes 'MapRotation_rise' { 0% { opacity: 0; transform: translateY(24px); } 100% { opacity: 1; transform: translateY(0px); } }
 @keyframes 'MapRotation_zoom' { 0% { opacity: 0; transform: scale3d(0.96, 0.96, 1); } 100% { opacity: 1; transform: scale3d(1, 1, 1); } }

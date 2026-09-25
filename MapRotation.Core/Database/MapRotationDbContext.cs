@@ -8,6 +8,7 @@ internal sealed class MapRotationDbContext(DbContextOptions<MapRotationDbContext
     public const string SchemaName = "map_rotation";
     public DbSet<RotationSettings> Settings => Set<RotationSettings>();
     public DbSet<RotationMap> Maps => Set<RotationMap>();
+    public DbSet<RotationHudPreferenceEntity> PlayerPreferences => Set<RotationHudPreferenceEntity>();
     public DbSet<RuntimeEntity> Runtime => Set<RuntimeEntity>();
     public DbSet<HistoryEntity> History => Set<HistoryEntity>();
     public DbSet<VoteEntity> Votes => Set<VoteEntity>();
@@ -34,6 +35,16 @@ internal sealed class MapRotationDbContext(DbContextOptions<MapRotationDbContext
         maps.Property(x => x.AllowAutoRotation).HasDefaultValue(true);
         maps.Property(x => x.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
         maps.Property(x => x.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+        var preferences = modelBuilder.Entity<RotationHudPreferenceEntity>();
+        preferences.ToTable("player_preferences", table =>
+        {
+            table.HasCheckConstraint("ck_player_preferences_orientation", "orientation IN ('horizontal', 'vertical')");
+            table.HasCheckConstraint("ck_player_preferences_hud_scale", "hud_scale IN (80, 100, 120)");
+        });
+        preferences.HasKey(x => x.SteamId);
+        preferences.Property(x => x.SteamId).ValueGeneratedNever();
+        preferences.Property(x => x.Orientation).HasMaxLength(10).HasDefaultValue("horizontal");
+        preferences.Property(x => x.HudScale).HasDefaultValue(100);
         var runtime = modelBuilder.Entity<RuntimeEntity>();
         runtime.ToTable("runtime_state"); runtime.HasKey(x => x.Id);
         runtime.Property(x => x.Id).ValueGeneratedNever();
@@ -86,4 +97,11 @@ internal sealed class VoteOptionEntity
     public string MapName { get; set; } = "";
     public string DisplayName { get; set; } = "";
     public int Votes { get; set; }
+}
+
+internal sealed class RotationHudPreferenceEntity
+{
+    public long SteamId { get; set; }
+    public string Orientation { get; set; } = "horizontal";
+    public int HudScale { get; set; } = 100;
 }
