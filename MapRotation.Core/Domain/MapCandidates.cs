@@ -40,17 +40,19 @@ internal sealed class MapCandidates(IRotationRandom random)
     public ImmutableArray<RotationMap> VoteOptions(ImmutableArray<RotationMap> eligible,
         IReadOnlyDictionary<ulong, long> nominations, RotationSettings settings)
     {
+        var limit = Math.Clamp(settings.VoteOptionsCount, 1, 6);
+        var nominationLimit = Math.Clamp(settings.NominationSlots, 0, limit);
         List<RotationMap> selected = [];
         foreach (var group in nominations.Values.GroupBy(id => id).GroupBy(group => group.Count()).OrderByDescending(g => g.Key))
         {
             var tied = group.Select(entry => eligible.FirstOrDefault(map => map.Id == entry.Key)).OfType<RotationMap>().ToList();
-            while (tied.Count > 0 && selected.Count < settings.NominationSlots)
+            while (tied.Count > 0 && selected.Count < nominationLimit)
             {
                 var map = Tie(tied); tied.Remove(map); selected.Add(map);
             }
         }
         var remaining = eligible.Where(map => selected.All(item => item.Id != map.Id)).ToList();
-        while (selected.Count < settings.VoteOptionsCount && Weighted(remaining) is { } map)
+        while (selected.Count < limit && Weighted(remaining) is { } map)
         {
             selected.Add(map); remaining.Remove(map);
         }

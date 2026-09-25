@@ -39,7 +39,7 @@ public sealed class HudMenuTests
         f.Open(); Assert.True(called); Assert.True(f.Current.Capture);
     }
     [Fact]
-    public void PaginationRecreatesEntityAndRejectsOldPageClicks()
+    public void PageIdentityChangesRejectOldClicksWithoutClosingLogicalMenu()
     {
         using var f = new Fixture(); f.Open(); var old = f.Current;
         f.Click("NextPage"); Assert.Equal("2 / 2", f.Current.Texts["Page"]); Assert.Equal(1, old.DisposeCount);
@@ -214,22 +214,22 @@ public sealed class HudMenuTests
     }
 
     [Fact]
-    public void TenSlotsRenderAndTenthSlotSelectsItsOwnItem()
+    public void TwelveSlotsRenderAndTwelfthSlotSelectsItsOwnItem()
     {
         using var f = new Fixture();
         f.Menu = f.Menu with
         {
-            Items = Enumerable.Range(0, 10).Select(i => new HudMenuItem(i.ToString(), "Map " + i)).ToImmutableArray(),
-            Options = new() { ItemsPerPage = 10 },
+            Items = Enumerable.Range(0, 12).Select(i => new HudMenuItem(i.ToString(), "Map " + i)).ToImmutableArray(),
+            Options = new() { ItemsPerPage = 12 },
             Presentation = new() { Orientation = HudMenuOrientation.Horizontal }
         };
         f.Open();
-        Assert.True(f.Current.Classes[("MenuRoot", "PageItems10")]);
+        Assert.True(f.Current.Classes[("MenuRoot", "PageItems12")]);
         Assert.True(f.Current.Classes[("MenuRoot", "HasSecondRow")]);
-        Assert.False(f.Current.Classes[("Item9", "Hidden")]);
+        Assert.False(f.Current.Classes[("Item11", "Hidden")]);
         Assert.True(f.Current.Classes[("Pagination", "Hidden")]);
-        f.Click("Item9");
-        Assert.Equal("9", Assert.Single(f.Actions).ItemId);
+        f.Click("Item11");
+        Assert.Equal("11", Assert.Single(f.Actions).ItemId);
     }
 
     [Fact]
@@ -254,6 +254,7 @@ public sealed class HudMenuTests
         Assert.True(f.Current.Classes[("Item0", "Selected")]);
         Assert.True(f.Current.Classes[("MenuRoot", "SettingsOpen")]);
         f.Click("SettingsClose");
+        Assert.Same(previous, f.Current);
         Assert.False(f.Current.Classes[("MenuRoot", "SettingsOpen")]);
         f.Click("Item0");
         Assert.Equal("5", f.Actions[^1].ItemId);
@@ -287,6 +288,102 @@ public sealed class HudMenuTests
         Assert.False(f.Current.Texts.ContainsKey("CloseText"));
     }
 
+    [Fact]
+    public void SelectionAndVoteProgressUpdateWithoutReplacingEntity()
+    {
+        using var f = new Fixture(); var id = f.Open(); var original = f.Current;
+        f.Service.Update(f.Player, id, f.Menu with
+        {
+            Participation = "14 / 24",
+            Items = f.Menu.Items.SetItem(0, f.Menu.Items[0] with { Selected = true, Percent = 42 })
+        });
+        Assert.Same(original, f.Current);
+        Assert.True(original.Classes[("Item0", "Selected")]);
+        Assert.True(original.Classes[("Bar0", "Pct42")]);
+        Assert.Equal("14 / 24", original.Texts["Participation"]);
+    }
+
+    [Fact]
+    public void PageTransitionPreparesHiddenReplacementAndKeepsOldFrameUntilHandoff()
+    {
+        using var f = new Fixture();
+        f.Menu = f.Menu with { Presentation = new() { Animation = HudMenuAnimation.Normal } };
+        var id = f.Open(); var outgoing = f.Current;
+        f.Click("NextPage"); var incoming = f.Current;
+        Assert.Equal(0, outgoing.DisposeCount);
+        Assert.True(outgoing.Capture);
+        Assert.False(incoming.Capture);
+        Assert.True(outgoing.Classes[("MenuRoot", "PageLeavingNext")]);
+        f.Click("Item0", outgoing.Entity); f.Click("Item0", incoming.Entity);
+        Assert.DoesNotContain(f.Actions, action => action.Action == HudMenuAction.Select);
+        f.FinishNextTransition();
+        Assert.Equal(1, outgoing.DisposeCount);
+        Assert.True(incoming.Capture);
+        f.FinishNextTransition();
+        f.Click("Item0", outgoing.Entity);
+        Assert.DoesNotContain(f.Actions, action => action.Action == HudMenuAction.Select);
+        f.Click("Item0", incoming.Entity);
+        Assert.Equal("5", f.Actions[^1].ItemId);
+        Assert.True(f.Service.IsOpen(f.Player, id));
+    }
+
+    [Fact]
+    public void ClosedTransitionCannotShowPreparedEntityLater()
+    {
+        using var f = new Fixture();
+        f.Menu = f.Menu with { Presentation = new() { Animation = HudMenuAnimation.Normal } };
+        var id = f.Open(); f.Click("NextPage");
+        f.Service.Close(f.Player, id); f.FinishNextTransition();
+        Assert.All(f.Runtimes, runtime => { Assert.Equal(1, runtime.DisposeCount); Assert.False(runtime.Capture); });
+        Assert.False(f.Service.IsOpen(f.Player, id));
+    }
+
+    [Fact]
+    public void CompactVoteAndResultStayPassiveOnTheSameEntity()
+    {
+        using var f = new Fixture();
+        f.Menu = f.Menu with { Options = new() { Priority = HudMenuPriority.Critical, CollapseOnClose = true } };
+        var opening = 0; f.Service.Opening += _ => opening++;
+        var id = f.Open(); var runtime = f.Current;
+        f.Click("Close");
+        Assert.Same(runtime, f.Current); Assert.False(runtime.Capture);
+        Assert.True(runtime.Classes[("MenuRoot", "Compact")]);
+        Assert.True(f.Service.IsOpen(f.Player, id)); Assert.False(f.Service.IsAnyOpen(f.Player));
+        f.Actions.Clear(); f.Click("Item0"); f.Click("Close");
+        Assert.Empty(f.Actions);
+        f.Service.Update(f.Player, id, f.Menu with { View = HudMenuView.Result, Items = [new("winner", "Winner")] });
+        Assert.Same(runtime, f.Current); Assert.False(runtime.Capture); Assert.Equal(1, opening);
+        f.Service.Update(f.Player, id, f.Menu);
+        Assert.True(f.Current.Capture); Assert.Equal(2, opening);
+    }
+
+    [Fact]
+    public void PassiveCriticalMenuDoesNotBlockNormalMenu()
+    {
+        using var f = new Fixture();
+        var id = f.Service.Open(f.Player, f.Menu with
+        { View = HudMenuView.Compact, Options = new() { Priority = HudMenuPriority.Critical } }, f.Actions.Add)!.Value;
+        Assert.False(f.Service.IsAnyOpen(f.Player));
+        Assert.NotNull(f.Service.Open(f.Player, f.Menu, f.Actions.Add));
+        Assert.False(f.Service.IsOpen(f.Player, id));
+    }
+
+    [Fact]
+    public void LastPageKeepsTwelveSlotViewportAndVerticalNominationBalancesColumns()
+    {
+        using var f = new Fixture();
+        f.Menu = f.Menu with { IsNomination = true, Options = new() { ItemsPerPage = 12 },
+            Items = Enumerable.Range(0, 14).Select(i => new HudMenuItem(i.ToString(), "Map " + i)).ToImmutableArray() };
+        var id = f.Open(); f.Click("NextPage");
+        Assert.True(f.Current.Classes[("MenuRoot", "PageItems12")]);
+        Assert.True(f.Current.Classes[("MenuRoot", "HasSecondRow")]);
+        f.Service.Update(f.Player, id, f.Menu with { Items = f.Menu.Items[..8] });
+        Assert.Equal("Map 0", f.Current.Texts["Name0"]);
+        Assert.Equal("Map 4", f.Current.Texts["Name6"]);
+        Assert.True(f.Current.Classes[("Item4", "Hidden")]);
+        f.Click("Item6"); Assert.Equal("4", f.Actions[^1].ItemId);
+    }
+
     private static HudMenuSettingsText SettingsLabels() => new()
     {
         Title = "Settings", Orientation = "Orientation", Horizontal = "Horizontal", Vertical = "Vertical",
@@ -299,10 +396,11 @@ public sealed class HudMenuTests
         public List<Runtime> Runtimes { get; } = [];
         public List<HudMenuEvent> Actions { get; } = [];
         public IPlayer Player { get; set; } = HudMenuTests.Player(1, 10);
-        public HudMenu Menu { get; set; } = new("test", "Title", "Subtitle", Enumerable.Range(0, 7).Select(i => new HudMenuItem(i.ToString(), "Map " + i)).ToImmutableArray(), new());
+        public HudMenu Menu { get; set; } = new("test", "Title", "Subtitle", Enumerable.Range(0, 7).Select(i => new HudMenuItem(i.ToString(), "Map " + i)).ToImmutableArray(), new()) { Presentation = new() { Animation = HudMenuAnimation.None } };
         public Runtime Current => Runtimes[^1];
         public HudMenuService Service { get; }
         public CancellationTokenSource? Timer;
+        public Queue<(CancellationTokenSource Token, Action Callback)> Delayed { get; } = [];
         public bool FailCreation;
         public bool FailRender;
         public Fixture()
@@ -317,7 +415,13 @@ public sealed class HudMenuTests
                     if (member.Name.StartsWith("add_")) Handlers.Add(name, (Delegate)args![0]!);
                     else Handlers.Remove(name); return null;
                 }),
-                "get_Scheduler" => Proxy(method.ReturnType, (_, _) => Timer = new()),
+                "get_Scheduler" => Proxy(method.ReturnType, (member, args) =>
+                {
+                    var token = new CancellationTokenSource();
+                    if (member.Name == "DelayBySeconds") Delayed.Enqueue((token, (Action)args![1]!));
+                    else Timer = token;
+                    return token;
+                }),
                 _ => throw new InvalidOperationException(method.Name)
             });
             Service = new(core, _ =>
@@ -332,6 +436,11 @@ public sealed class HudMenuTests
             => Raise("OnCustomHudClicked", Stub<IOnCustomHudClickedEvent>((method, _) => method.Name switch
             { "get_PlayerId" => 1, "get_ButtonId" => button, "get_CustomHudLayout" => entity ?? Current.Entity, _ => null }));
         public void Raise(string name, object args) => Handlers[name].DynamicInvoke(args);
+        public void FinishNextTransition()
+        {
+            var (token, callback) = Delayed.Dequeue();
+            if (!token.IsCancellationRequested) callback();
+        }
         public void Dispose() => Service.Dispose();
     }
     private sealed class Runtime(Func<bool> fail) : IHudMenuRuntime

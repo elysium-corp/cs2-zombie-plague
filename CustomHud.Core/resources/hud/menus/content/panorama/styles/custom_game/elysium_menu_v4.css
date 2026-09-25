@@ -1,151 +1,283 @@
+/* Общая геометрия: сервер меняет текст и классы, дерево панелей остаётся стабильным. */
 .MenuViewport { width: 100%; height: 100%; }
 .MenuRoot { width: 100%; height: 100%; visibility: collapse; font-family: Arial; }
 .MenuRoot.Visible { visibility: visible; }
 .MenuRoot.Modal { background-color: #02161666; }
-.MenuFrame { width: 720px; horizontal-align: center; vertical-align: center; }
-.MenuWindow { width: 720px; flow-children: down; padding: 24px 32px 32px; background-color: #021616f5; border: 1px solid #88CCA380; border-bottom: 3px solid #88CCA3; border-radius: 10px; box-shadow: #00000099 0px 14px 36px 0px; }
-.MenuHeader { width: 100%; height: 136px; border-bottom: 2px solid #88CCA3; }
-.BrandGroup { height: 72px; flow-children: right; visibility: collapse; }
+.MenuFrame { width: 680px; horizontal-align: center; vertical-align: center; opacity: 1; transform: translateX(0px) scale3d(1, 1, 1); transition-property: transform, opacity; transition-duration: 0.24s; transition-timing-function: ease-in-out; }
+.MenuWindow { width: 100%; flow-children: down; padding: 20px 24px 22px; background-color: #021616f5; border: 1px solid #88CCA366; border-bottom: 2px solid #88CCA3; border-radius: 10px; box-shadow: #00000088 0px 10px 28px 0px; }
+.MenuHeader { width: 100%; height: 44px; border-bottom: 1px solid #88CCA355; }
+.HasBrand .MenuHeader { height: 88px; }
+.BrandGroup { height: 44px; flow-children: right; visibility: collapse; }
 .HasBrand .BrandGroup { visibility: visible; }
-.BrandMark { width: 72px; height: 72px; vertical-align: center; }
-.Brand { color: #DAB56D; font-size: 32px; letter-spacing: 10px; font-weight: bold; vertical-align: center; margin-left: 22px; }
-.HeaderActions { horizontal-align: right; height: 72px; flow-children: right; }
-.Status { color: #DAB56D; font-size: 36px; font-weight: bold; vertical-align: center; margin-right: 24px; }
-.SettingsButton { width: 48px; height: 48px; vertical-align: center; border: 1px solid transparent; border-radius: 6px; visibility: collapse; }
+.BrandMark { width: 42px; height: 42px; vertical-align: center; opacity: 0.82; }
+.Brand { color: #DAB56D; font-size: 25px; letter-spacing: 6px; font-weight: bold; vertical-align: center; margin-left: 14px; }
+.HeaderActions { horizontal-align: right; height: 42px; flow-children: right; }
+.Status { color: #DAB56D; font-size: 25px; font-weight: bold; vertical-align: center; margin-right: 18px; }
+.SettingsButton { width: 38px; height: 38px; vertical-align: center; border: 1px solid transparent; border-radius: 6px; visibility: collapse; }
 .HasSettings .SettingsButton { visibility: visible; }
-.SettingsButton:hover { border: 1px solid #88CCA380; background-color: #0B2220; }
-.SettingsIcon { width: 36px; height: 36px; horizontal-align: center; vertical-align: center; wash-color: #F1F4E9; }
-.SettingsOpen .SettingsIcon { wash-color: #88CCA3; }
-.HeaderDivider { height: 36px; width: 1px; background-color: #88CCA380; vertical-align: center; margin: 0px 16px; visibility: collapse; }
+.SettingsButton:hover { border-color: #88CCA355; background-color: #0B2220; }
+.SettingsIcon { width: 25px; height: 25px; horizontal-align: center; vertical-align: center; wash-color: #B1C3B8; opacity: 0.8; }
+.SettingsOpen .SettingsIcon { wash-color: #88CCA3; opacity: 1; }
+.HeaderDivider { height: 24px; width: 1px; background-color: #88CCA344; vertical-align: center; margin: 0px 12px; visibility: collapse; }
 .HasSettings .HeaderDivider { visibility: visible; }
-.Close { width: 40px; height: 44px; vertical-align: center; }
-.Close Label { color: #F1F4E9; font-size: 36px; horizontal-align: center; vertical-align: center; }
+.Close { width: 32px; height: 38px; vertical-align: center; }
+.Close Label { color: #C4D2C8; font-size: 30px; horizontal-align: center; vertical-align: center; }
 .Close:hover Label { color: #88CCA3; }
-.Title { width: 100%; height: 50px; vertical-align: bottom; color: #F1F4E9; font-size: 32px; font-weight: bold; text-align: center; text-overflow: shrink min(24px); }
-.Subtitle { width: 100%; height: 56px; padding: 14px 0px; color: #9AAFA3; font-size: 22px; text-align: center; text-overflow: shrink min(17px); }
-.Items { width: 100%; flow-children: down; }
+.Title { width: 100%; height: 36px; vertical-align: bottom; color: #F1F4E9; font-size: 27px; font-weight: bold; text-align: center; text-overflow: shrink min(20px); }
+.MenuRoot .Title { margin-bottom: 6px; }
+.Subtitle { width: 100%; height: 40px; padding: 9px 0px; color: #9AAFA3; font-size: 18px; text-align: center; text-overflow: ellipsis; }
+.Participation { width: 100%; height: 26px; color: #B7CEC0; font-size: 18px; text-align: center; margin-bottom: 12px; visibility: collapse; }
+.HasParticipation .Participation { visibility: visible; }
+.ItemsViewport { width: 100%; height: 588px; overflow: clip; }
+.Items { width: 100%; height: 100%; flow-children: down; opacity: 1; transform: translateX(0px); transition-property: transform, opacity; transition-duration: 0.24s; transition-timing-function: ease-in-out; }
 .ItemRow { width: 100%; flow-children: down; }
 .Row1 { visibility: collapse; }
 .HasSecondRow .Row1 { visibility: visible; }
-.MenuItem { width: 100%; height: 96px; margin-bottom: 8px; background-color: #021616; border: 2px solid #245249; border-radius: 8px; transition-property: background-color, border; transition-duration: 0.12s; }
-.MenuItem:hover { background-color: #0B2220; border: 2px solid #88CCA3aa; }
-.MenuItem.Selected { background-color: #0B2220; border: 2px solid #88CCA3; box-shadow: #88CCA326 0px 0px 8px 0px; }
+.MenuItem { width: 100%; height: 86px; margin-bottom: 12px; background-color: #08211F; border: 1px solid #245249; border-radius: 7px; transition-property: background-color, border; transition-duration: 0.12s; }
+.MenuItem:hover { background-color: #0B2A25; border-color: #88CCA388; }
+.MenuItem.Selected { background-color: #0B2A25; border-color: #88CCA3; }
 .ItemContent { width: 100%; height: 100%; flow-children: right; }
-.ItemIcon { width: 224px; height: 92px; background-color: #0B2220; background-size: cover; background-position: center; background-repeat: no-repeat; border-radius: 5px; }
-.ImagePlaceholder { color: #9AAFA3; font-size: 36px; horizontal-align: center; vertical-align: center; }
+.ItemIcon { width: 150px; height: 84px; background-color: #0B2220; background-size: cover; background-position: center; background-repeat: no-repeat; border-radius: 5px; }
+.ImagePlaceholder { color: #789789; font-size: 28px; horizontal-align: center; vertical-align: center; opacity: 0.65; }
 .ItemIcon.HasImage .ImagePlaceholder { visibility: collapse; }
-.ItemText { width: fill-parent-flow(1); flow-children: down; vertical-align: center; padding: 0px 26px; margin-right: 54px; }
-.ItemName { width: 100%; color: #F1F4E9; font-size: 26px; font-weight: bold; text-overflow: ellipsis; }
-.ItemDescription { width: 100%; color: #88CCA3; font-size: 19px; margin-top: 5px; text-overflow: ellipsis; }
-.Badge { color: #F1F4E9; font-size: 18px; padding: 5px 14px; border: 1px solid #9AAFA366; border-radius: 5px; background-color: #0B2220; vertical-align: center; margin-right: 62px; }
-.HasBadge .ItemText { margin-right: 0px; padding-right: 10px; }
-.SelectedMark { visibility: collapse; color: #88CCA3; font-size: 38px; font-weight: bold; horizontal-align: right; vertical-align: center; margin-right: 56px; }
-.Selected .SelectedMark { visibility: visible; }
-.HasBadge .SelectedMark { font-size: 25px; margin-right: 34px; }
-.ItemArrow { color: #F1F4E9; font-size: 36px; horizontal-align: right; vertical-align: center; margin-right: 20px; }
+.ItemText { width: fill-parent-flow(1); flow-children: down; vertical-align: center; padding: 0px 18px; margin-right: 48px; }
+.ItemName { width: 100%; color: #F1F4E9; font-size: 24px; font-weight: bold; text-overflow: ellipsis; }
+.ItemDescription { width: 100%; color: #91AB9D; font-size: 17px; margin-top: 7px; text-overflow: ellipsis; }
+.Badge { color: #B7CEC0; font-size: 17px; vertical-align: center; margin-right: 48px; }
+.HasBadge .ItemText { margin-right: 0px; padding-right: 12px; }
+.SelectedCircle { visibility: collapse; width: 25px; height: 25px; horizontal-align: right; vertical-align: center; margin-right: 14px; border: 1px solid #88CCA3; border-radius: 50%; background-color: #88CCA3; }
+.Selected .SelectedCircle { visibility: visible; }
+.SelectedMark { color: #08211F; font-size: 20px; font-weight: bold; horizontal-align: center; vertical-align: center; }
+.ItemArrow { visibility: collapse; }
+.VoteTrack { width: 100%; height: 3px; background-color: #173B32; vertical-align: bottom; visibility: collapse; }
+.HasProgress .VoteTrack { visibility: visible; }
+.VoteBar { width: 0%; height: 100%; background-color: #88CCA3; transition-property: width; transition-duration: 0.24s; transition-timing-function: ease-out; }
 .ResultTrophyPlate { visibility: collapse; }
-.Pagination { horizontal-align: center; height: 48px; flow-children: right; margin-top: 8px; }
-.PageArrow { width: 48px; height: 48px; }
-.PageArrow Label { color: #F1F4E9; font-size: 36px; horizontal-align: center; vertical-align: center; }
+.Pagination { horizontal-align: center; height: 36px; flow-children: right; margin-top: 12px; }
+.PageArrow { width: 40px; height: 36px; }
+.PageArrow Label { color: #C4D2C8; font-size: 30px; horizontal-align: center; vertical-align: center; }
 .PageArrow:hover Label { color: #88CCA3; }
-.PageLabel { width: 116px; color: #F1F4E9; font-size: 23px; font-weight: bold; text-align: center; vertical-align: center; }
-.Footer { width: 100%; padding: 16px; border: 1px solid #9AAFA355; border-radius: 6px; color: #9AAFA3; font-size: 20px; text-align: center; white-space: normal; margin-top: 20px; }
-.Back { width: 36px; height: 44px; vertical-align: top; margin-top: 14px; }
-.Back Label { color: #88CCA3; font-size: 34px; }
-.Settings { visibility: collapse; width: 480px; flow-children: down; horizontal-align: right; margin: 100px 24px 0px 0px; padding: 24px; background-color: #021616; border: 1px solid #88CCA380; border-radius: 8px; box-shadow: #000000bb 0px 10px 28px 0px; }
+.PageLabel { width: 100px; color: #B7CEC0; font-size: 19px; text-align: center; vertical-align: center; }
+.Footer { width: 100%; height: 32px; padding: 6px 0px; color: #9AAFA3; font-size: 17px; text-align: center; text-overflow: ellipsis; margin-top: 12px; }
+.Back { width: 32px; height: 38px; vertical-align: top; }
+.Back Label { color: #88CCA3; font-size: 30px; }
+.Settings { visibility: collapse; width: 480px; flow-children: down; horizontal-align: right; vertical-align: center; margin-right: 28px; padding: 24px; background-color: #021616; border: 1px solid #88CCA380; border-radius: 10px; box-shadow: #000000bb 0px 10px 28px 0px; }
 .SettingsOpen .Settings { visibility: visible; }
-.SettingsHeading { width: 100%; height: 54px; border-bottom: 1px solid #88CCA344; }
-.SettingsTitle { width: 100%; margin-right: 44px; color: #F1F4E9; font-size: 26px; font-weight: bold; }
+.SettingsHeading { width: 100%; height: 46px; border-bottom: 1px solid #88CCA344; }
+.SettingsTitle { width: 100%; margin-right: 40px; color: #F1F4E9; font-size: 25px; font-weight: bold; text-overflow: ellipsis; }
 .SettingsHeading .Close { horizontal-align: right; height: 30px; vertical-align: top; }
-.SettingsHeading .Close Label { font-size: 28px; }
-.SettingsLabel { width: 100%; color: #F1F4E9; font-size: 22px; margin-top: 20px; margin-bottom: 12px; }
+.SettingsHeading .Close Label { font-size: 27px; }
+.SettingsGroup { width: 100%; flow-children: down; }
+.SettingsLabel { width: 100%; color: #F1F4E9; font-size: 20px; margin-top: 20px; margin-bottom: 12px; }
 .SettingsOptions { width: 100%; flow-children: right; }
-.SettingsOption { width: fill-parent-flow(1); height: 48px; margin-right: 10px; border: 1px solid #9AAFA380; border-radius: 6px; background-color: #0B2220; }
+.SettingsOption { width: fill-parent-flow(1); height: 44px; margin-right: 8px; border: 1px solid #789789; border-radius: 6px; background-color: #0B2220; }
 .SettingsOption.LastOption { margin-right: 0px; }
-.SettingsOption Label { color: #F1F4E9; font-size: 19px; text-align: center; horizontal-align: center; vertical-align: center; text-overflow: shrink min(15px); }
-.SettingsOption:hover { border: 1px solid #88CCA3; }
-.SettingsOption.Selected { border: 1px solid #88CCA3; background-color: #88CCA3; }
+.SettingsOption Label { color: #F1F4E9; font-size: 17px; text-align: center; horizontal-align: center; vertical-align: center; text-overflow: shrink min(13px); }
+.SettingsOption:hover { border-color: #88CCA3; }
+.SettingsOption.Selected { border-color: #88CCA3; background-color: #88CCA3; }
 .SettingsOption.Selected Label { color: #021616; font-weight: bold; }
-.SettingsDivider { width: 100%; height: 1px; background-color: #88CCA344; margin-top: 24px; }
-.Scale80 .MenuFrame { ui-scale: 80%; }
-.Scale100 .MenuFrame { ui-scale: 100%; }
-.Scale120 .MenuFrame { ui-scale: 120%; }
-.Horizontal .MenuFrame { width: 88%; max-width: 1680px; }
-.Horizontal .MenuWindow { width: 100%; }
-.Horizontal .MenuHeader { height: 72px; }
-.Horizontal .BrandGroup { width: 25%; max-width: 365px; }
-.Horizontal .Brand { width: fill-parent-flow(1); text-overflow: shrink min(18px); }
-.Horizontal .Title { width: 50%; max-width: 800px; height: 50px; horizontal-align: center; vertical-align: center; font-size: 40px; }
-.Horizontal .Subtitle { height: 80px; padding: 24px 0px; margin-bottom: 16px; border-bottom: 1px solid #88CCA366; text-align: left; font-size: 26px; }
+.SettingsDivider { width: 100%; height: 1px; background-color: #88CCA333; margin-top: 20px; }
+.Scale80 .MenuFrame, .Scale80 .Settings { ui-scale: 80%; }
+.Scale100 .MenuFrame, .Scale100 .Settings { ui-scale: 100%; }
+.Scale120 .MenuFrame, .Scale120 .Settings { ui-scale: 120%; }
+/* Шесть широких карточек, одинаковая область и на неполной странице. */
+.Horizontal .MenuFrame { width: 94%; max-width: 1448px; }
+.Scale120.Horizontal .MenuFrame { width: 78.333333%; }
+.Horizontal .ItemsViewport { height: 244px; }
 .Horizontal .ItemRow { flow-children: right; }
-.Horizontal .Row1 { margin-top: 16px; }
-.Horizontal .MenuItem { width: 19.20693%; height: 286px; margin: 0px 0.99132% 0px 0px; }
-.Horizontal .Slot4 { margin-right: 0px; }
+.Horizontal .MenuItem { width: 15.714286%; height: 244px; margin: 0px 1.142857% 0px 0px; }
+.Horizontal .Slot5 { margin-right: 0px; }
 .Horizontal .ItemContent { flow-children: down; }
-.Horizontal .ItemIcon { width: 100%; height: 194px; border-radius: 5px 5px 0px 0px; }
-.Horizontal .ItemText { width: 100%; height: fill-parent-flow(1); padding: 14px 8px 8px; margin: 0px; }
-.Horizontal .ItemName { text-align: center; font-size: 26px; }
-.Horizontal .ItemDescription { text-align: center; font-size: 19px; margin-top: 4px; }
-.Horizontal .Badge { horizontal-align: center; height: 34px; margin: 0px 0px 10px; padding: 5px 22px; }
-.Horizontal .HasBadge .ItemIcon { height: 164px; }
-.Horizontal .HasBadge .ItemText { padding-top: 10px; padding-bottom: 2px; }
-.Horizontal .HasBadge .ItemName { font-size: 25px; }
-.Horizontal .SelectedMark { vertical-align: top; margin: 10px 14px 0px 0px; font-size: 42px; text-shadow: 0px 2px 4px 2.0 #021616; }
-.Horizontal .ItemArrow { visibility: collapse; }
-.Horizontal .Pagination { margin-top: 22px; }
-.Horizontal.PageItems0 .MenuFrame, .Horizontal.PageItems1 .MenuFrame, .Horizontal.PageItems2 .MenuFrame { max-width: 720px; }
-.Horizontal.PageItems1 .MenuItem { width: 100%; margin-right: 0px; }
-.Horizontal.PageItems2 .MenuItem { width: 48.77675%; margin-right: 2.44648%; }
-.Horizontal.PageItems2 .Slot1 { margin-right: 0px; }
-.Horizontal.PageItems3 .MenuFrame { max-width: 1028px; }
-.Horizontal.PageItems3 .MenuItem { width: 32.22453%; margin-right: 1.6632%; }
-.Horizontal.PageItems3 .Slot2 { margin-right: 0px; }
-.Horizontal.PageItems4 .MenuFrame { max-width: 1354px; }
-.Horizontal.PageItems4 .MenuItem { width: 24.06832%; margin-right: 1.24223%; }
-.Horizontal.PageItems4 .Slot3 { margin-right: 0px; }
-.Horizontal.PageItems0 .MenuHeader, .Horizontal.PageItems1 .MenuHeader, .Horizontal.PageItems2 .MenuHeader, .Horizontal.PageItems3 .MenuHeader { height: 136px; }
-.Horizontal.PageItems0 .BrandGroup, .Horizontal.PageItems1 .BrandGroup, .Horizontal.PageItems2 .BrandGroup, .Horizontal.PageItems3 .BrandGroup { width: 56%; }
-.Horizontal.PageItems0 .Title, .Horizontal.PageItems1 .Title, .Horizontal.PageItems2 .Title, .Horizontal.PageItems3 .Title { width: 100%; max-width: 100%; font-size: 32px; vertical-align: bottom; }
-.Horizontal.PageItems4 .Brand { font-size: 27px; letter-spacing: 7px; margin-left: 14px; }
-.Horizontal.PageItems4 .Title { max-width: 650px; font-size: 34px; }
-.Horizontal.PageItems4 .Status { font-size: 30px; margin-right: 12px; }
-.Vertical.SettingsOpen .MenuFrame { width: 88%; max-width: 1224px; }
-.Vertical.SettingsOpen .Settings { margin: 0px; }
-.Vertical.HasSecondRow .MenuItem { height: 50px; }
-.Vertical.HasSecondRow .ItemIcon { width: 100px; height: 46px; }
-.Vertical.HasSecondRow .ItemText { padding-left: 16px; padding-right: 8px; }
-.Vertical.HasSecondRow .ItemName { font-size: 20px; }
-.Vertical.HasSecondRow .ItemDescription { font-size: 15px; margin-top: 1px; }
-.Vertical.HasSecondRow .Badge { font-size: 16px; }
-.Vertical.HasSecondRow .SelectedMark { font-size: 27px; }
-.Scale120.Vertical.SettingsOpen .MenuFrame { width: 73.333333%; }
-.Scale120.Horizontal .MenuFrame { width: 73.333333%; }
-.Scale120.Horizontal.PageItems5 .MenuFrame, .Scale120.Horizontal.HasSecondRow .MenuFrame { max-width: 1400px; }
-.Scale120.Horizontal.PageItems5 .MenuItem, .Scale120.Horizontal.HasSecondRow .MenuItem { width: 19.04047%; margin-right: 1.1994%; }
-.Scale120.Horizontal.PageItems5 .Slot4, .Scale120.Horizontal.HasSecondRow .Slot4 { margin-right: 0px; }
-.Scale120.Horizontal.PageItems5 .Brand, .Scale120.Horizontal.HasSecondRow .Brand { font-size: 27px; letter-spacing: 7px; margin-left: 14px; }
-.Scale120.Horizontal.PageItems5 .Title, .Scale120.Horizontal.HasSecondRow .Title { max-width: 680px; font-size: 34px; }
-.Scale120.Horizontal.PageItems5 .Status, .Scale120.Horizontal.HasSecondRow .Status { font-size: 30px; margin-right: 12px; }
-.MenuRoot.Result .MenuFrame, .MenuRoot.Result .MenuWindow { width: 850px; max-width: 850px; }
-.MenuRoot.Result .MenuWindow { padding: 24px 32px 32px; border-bottom: 1px solid #88CCA380; }
-.MenuRoot.Result .MenuHeader { height: 70px; border-bottom: 0px solid transparent; }
-.MenuRoot.Result .BrandGroup, .MenuRoot.Result .SettingsButton, .MenuRoot.Result .HeaderDivider, .MenuRoot.Result .Status, .MenuRoot.Result .Settings { visibility: collapse; }
-.MenuRoot.Result .Title { width: 100%; max-width: 100%; height: 64px; font-size: 48px; vertical-align: center; }
-.MenuRoot.Result .HeaderActions { height: 40px; }
-.MenuRoot.Result .Close Label { color: #9AAFA3; }
-.MenuRoot.Result .Subtitle { height: 52px; padding: 5px 0px 15px; margin: 0px; border: 0px solid transparent; font-size: 26px; text-align: center; }
-.MenuRoot.Result .ItemRow { flow-children: down; }
-.MenuRoot.Result .Row1 { visibility: collapse; }
-.MenuRoot.Result .MenuItem { width: 100%; height: 466px; border: 0px solid transparent; background-color: transparent; box-shadow: none; margin: 0px; }
+.Horizontal .ItemIcon { width: 100%; height: 142px; border-radius: 5px 5px 0px 0px; }
+.Horizontal .ItemText { width: 100%; height: fill-parent-flow(1); padding: 15px 14px 8px; margin: 0px; }
+.Horizontal .ItemName { text-align: left; font-size: 23px; }
+.Horizontal .ItemDescription { text-align: left; font-size: 16px; margin-top: 8px; }
+.Horizontal .Badge { width: 100%; height: 24px; margin: 0px; padding: 0px 14px 7px; font-size: 17px; }
+.Horizontal .HasBadge .ItemIcon { height: 122px; }
+.Horizontal .SelectedCircle { vertical-align: top; margin: 12px 12px 0px 0px; }
+.Horizontal.HasSecondRow .ItemsViewport { height: 508px; }
+.Horizontal .Row1 { margin-top: 20px; }
+/* Два столбца номинаций имеют собственные шесть слотов и не сжимаются на последней странице. */
+.Vertical.HasSecondRow .MenuFrame { width: 94%; max-width: 1120px; }
+.Scale120.Vertical.HasSecondRow .MenuFrame { width: 78.333333%; }
+.Vertical.HasSecondRow .ItemsViewport { height: 504px; }
+.Vertical.HasSecondRow .Items { flow-children: right; }
+.Vertical.HasSecondRow .ItemRow { width: 49%; }
+.Vertical.HasSecondRow .Row1 { margin-left: 2%; }
+.Vertical.HasSecondRow .MenuItem { height: 72px; margin-bottom: 12px; }
+.Vertical.HasSecondRow .ItemIcon { width: 112px; height: 70px; }
+.Vertical.HasSecondRow .ItemText { padding: 0px 14px; }
+.Vertical.HasSecondRow .ItemName { font-size: 22px; }
+.Vertical.HasSecondRow .ItemDescription { font-size: 16px; margin-top: 6px; }
+/* При 120% высокая вертикальная тема сохраняет место для шести карточек на 1080p. */
+.Scale120.Vertical.List.HasBrand .MenuHeader { height: 64px; }
+.Scale120.Vertical.List .BrandGroup, .Scale120.Vertical.List .HeaderActions { height: 30px; }
+.Scale120.Vertical.List .BrandMark { width: 28px; height: 28px; }
+.Scale120.Vertical.List .Brand { font-size: 21px; letter-spacing: 4px; }
+.Scale120.Vertical.List .Title { height: 28px; font-size: 24px; margin-bottom: 4px; }
+.Scale120.Vertical.List .Status { font-size: 21px; }
+.Scale120.Vertical.List .MenuWindow { padding-top: 16px; padding-bottom: 18px; }
+/* Компактное голосование освобождает центр экрана и ввод; все шесть результатов остаются видны. */
+.MenuRoot.Compact.Modal, .MenuRoot.Result.Modal { background-color: transparent; }
+.MenuRoot.Compact .MenuFrame, .MenuRoot.Result .MenuFrame { width: 380px; max-width: 380px; horizontal-align: right; vertical-align: center; margin: 0px 24px; }
+.MenuRoot.Compact.DockLeft .MenuFrame, .MenuRoot.Result.DockLeft .MenuFrame { horizontal-align: left; }
+.MenuRoot.Compact .MenuWindow, .MenuRoot.Result .MenuWindow { padding: 16px; border-bottom: 1px solid #88CCA366; }
+.MenuRoot.Compact .MenuHeader, .MenuRoot.Result .MenuHeader { height: 36px; }
+.MenuRoot.Compact .BrandGroup, .MenuRoot.Result .BrandGroup, .MenuRoot.Compact .Gear, .MenuRoot.Compact .SettingsButton, .MenuRoot.Compact .HeaderDivider, .MenuRoot.Compact .Close, .MenuRoot.Compact .Back, .MenuRoot.Compact .Settings, .MenuRoot.Result .HeaderActions, .MenuRoot.Result .Back, .MenuRoot.Result .Settings { visibility: collapse; }
+.MenuRoot.Compact .HeaderActions { height: 30px; }
+.MenuRoot.Compact .Status { font-size: 21px; margin: 0px; }
+.MenuRoot.Compact .Title, .MenuRoot.Result .Title { width: 100%; height: 28px; font-size: 22px; text-align: left; margin: 0px; vertical-align: top; }
+.MenuRoot.Compact .Title { width: 78%; }
+.MenuRoot.Compact .Subtitle, .MenuRoot.Result .Subtitle { visibility: collapse; }
+.MenuRoot.Compact .Participation, .MenuRoot.Result .Participation { height: 22px; font-size: 16px; text-align: left; margin: 12px 0px; }
+.MenuRoot.Compact .ItemsViewport { height: 360px; }
+.MenuRoot.Compact .Items, .MenuRoot.Result .Items { flow-children: down; }
+.MenuRoot.Compact .ItemRow, .MenuRoot.Result .ItemRow { width: 100%; flow-children: down; margin: 0px; }
+.MenuRoot.Compact .Row1, .MenuRoot.Result .Row1 { visibility: collapse; }
+.MenuRoot.Compact .MenuItem { width: 100%; height: 50px; margin: 0px 0px 10px; background-color: #08211F; }
+.MenuRoot.Compact .ItemContent { flow-children: right; }
+.MenuRoot.Compact .ItemIcon, .MenuRoot.Compact .ItemDescription, .MenuRoot.Compact .ItemArrow { visibility: collapse; }
+.MenuRoot.Compact .ItemText { width: fill-parent-flow(1); height: 100%; flow-children: down; margin: 0px; padding: 12px 12px 8px; }
+.MenuRoot.Compact .ItemName { width: 100%; font-size: 18px; text-align: left; }
+.MenuRoot.Compact .Badge { width: 80px; height: 100%; font-size: 16px; text-align: right; margin: 0px 34px 0px 0px; padding: 13px 0px 8px; }
+.MenuRoot.Compact .SelectedCircle { width: 20px; height: 20px; vertical-align: center; margin: 0px 8px 0px 0px; }
+.MenuRoot.Compact .SelectedMark { font-size: 16px; }
+.MenuRoot.Compact .Footer, .MenuRoot.Result .Footer { height: 26px; padding: 4px 0px; margin-top: 10px; font-size: 15px; text-align: left; }
+.MenuRoot.Compact .Pagination, .MenuRoot.Result .Pagination { visibility: collapse; }
+/* Итог заменяет компактное голосование на той же стороне. */
+.MenuRoot.Result .ItemsViewport { height: 228px; }
+.MenuRoot.Result .MenuItem { width: 100%; height: 228px; margin: 0px; background-color: transparent; border: 0px solid transparent; box-shadow: none; }
 .MenuRoot.Result .ItemContent { flow-children: down; }
-.MenuRoot.Result .ItemIcon { width: 100%; height: 328px; border: 1px solid #88CCA380; border-radius: 12px; }
-.MenuRoot.Result .ImagePlaceholder { font-size: 90px; }
-.MenuRoot.Result .ResultTrophyPlate { visibility: visible; width: 64px; height: 64px; horizontal-align: right; margin: 10px 10px 0px 0px; background-color: #021616dd; border-radius: 10px; }
-.MenuRoot.Result .ResultTrophy { width: 46px; height: 46px; horizontal-align: center; vertical-align: center; }
-.MenuRoot.Result .ItemText { width: 100%; height: fill-parent-flow(1); padding: 14px 0px 0px; margin: 0px; }
-.MenuRoot.Result .ItemName { text-align: center; font-size: 62px; }
-.MenuRoot.Result .ItemDescription { text-align: center; color: #DAB56D; font-size: 34px; font-weight: bold; margin-top: 4px; }
-.MenuRoot.Result .Badge, .MenuRoot.Result .SelectedMark, .MenuRoot.Result .ItemArrow, .MenuRoot.Result .Pagination { visibility: collapse; }
-.MenuRoot.Result .Footer { margin-top: 8px; }
+.MenuRoot.Result .ItemIcon { width: 100%; height: 138px; border-radius: 6px; border: 1px solid #88CCA355; }
+.MenuRoot.Result .ImagePlaceholder { font-size: 44px; }
+.MenuRoot.Result .ResultTrophyPlate { visibility: visible; width: 36px; height: 36px; horizontal-align: right; margin: 10px 10px 0px 0px; background-color: #021616dd; border-radius: 6px; }
+.MenuRoot.Result .ResultTrophy { width: 25px; height: 25px; horizontal-align: center; vertical-align: center; }
+.MenuRoot.Result .ItemText { width: 100%; height: fill-parent-flow(1); padding: 12px 0px 4px; margin: 0px; }
+.MenuRoot.Result .ItemName { font-size: 25px; text-align: left; }
+.MenuRoot.Result .ItemDescription { color: #9AAFA3; font-size: 16px; text-align: left; margin-top: 5px; }
+.MenuRoot.Result .Badge { width: 100%; height: 24px; color: #DAB56D; font-size: 18px; padding: 0px; margin: 0px; text-align: left; }
+.MenuRoot.Result .SelectedCircle, .MenuRoot.Result .VoteTrack, .MenuRoot.Result .ItemArrow { visibility: collapse; }
+/* Смена страниц двигает только список внутри неизменяемого viewport. */
+.PageLeavingNext .Items { transform: translateX(-44px); opacity: 0; }
+.PageLeavingPrevious .Items { transform: translateX(44px); opacity: 0; }
+.PageEnteringNext .Items { animation-name: MenuPageNext; animation-duration: 0.24s; animation-timing-function: ease-out; animation-iteration-count: 1; transition-duration: 0s; }
+.PageEnteringPrevious .Items { animation-name: MenuPagePrevious; animation-duration: 0.24s; animation-timing-function: ease-out; animation-iteration-count: 1; transition-duration: 0s; }
+.Minimizing.DockRight .MenuFrame { transform: translateX(420px) scale3d(0.35, 0.35, 1); opacity: 0; }
+.Minimizing.DockLeft .MenuFrame { transform: translateX(-420px) scale3d(0.35, 0.35, 1); opacity: 0; }
+.AnimationFast .MenuFrame, .AnimationFast .Items, .AnimationFast .VoteBar { transition-duration: 0.14s; }
+.AnimationNormal .MenuFrame, .AnimationNormal .Items, .AnimationNormal .VoteBar { transition-duration: 0.24s; }
+.AnimationSlow .MenuFrame, .AnimationSlow .Items, .AnimationSlow .VoteBar { transition-duration: 0.38s; }
+.AnimationNone .MenuFrame, .AnimationNone .Items, .AnimationNone .VoteBar { transition-duration: 0s; }
+.AnimationNone .MenuWindow { animation-duration: 0s; }
+.PageEnteringNext .Items, .PageEnteringPrevious .Items { transition-duration: 0s; }
+.AnimationFast .Items { animation-duration: 0.14s; }
+.AnimationNormal .Items { animation-duration: 0.24s; }
+.AnimationSlow .Items { animation-duration: 0.38s; }
+.AnimationNone .Items { animation-duration: 0s; }
+@keyframes 'MenuPageNext' { 0% { opacity: 0; transform: translateX(44px); } 100% { opacity: 1; transform: translateX(0px); } }
+@keyframes 'MenuPagePrevious' { 0% { opacity: 0; transform: translateX(-44px); } 100% { opacity: 1; transform: translateX(0px); } }
 .Disabled { opacity: 0.45; }
 .Hidden { visibility: collapse; }
+
+/* Процент передаётся классом: Custom HUD не требует SetStyle или клиентского JS. */
+.VoteBar.Pct0 { width: 0%; }
+.VoteBar.Pct1 { width: 1%; }
+.VoteBar.Pct2 { width: 2%; }
+.VoteBar.Pct3 { width: 3%; }
+.VoteBar.Pct4 { width: 4%; }
+.VoteBar.Pct5 { width: 5%; }
+.VoteBar.Pct6 { width: 6%; }
+.VoteBar.Pct7 { width: 7%; }
+.VoteBar.Pct8 { width: 8%; }
+.VoteBar.Pct9 { width: 9%; }
+.VoteBar.Pct10 { width: 10%; }
+.VoteBar.Pct11 { width: 11%; }
+.VoteBar.Pct12 { width: 12%; }
+.VoteBar.Pct13 { width: 13%; }
+.VoteBar.Pct14 { width: 14%; }
+.VoteBar.Pct15 { width: 15%; }
+.VoteBar.Pct16 { width: 16%; }
+.VoteBar.Pct17 { width: 17%; }
+.VoteBar.Pct18 { width: 18%; }
+.VoteBar.Pct19 { width: 19%; }
+.VoteBar.Pct20 { width: 20%; }
+.VoteBar.Pct21 { width: 21%; }
+.VoteBar.Pct22 { width: 22%; }
+.VoteBar.Pct23 { width: 23%; }
+.VoteBar.Pct24 { width: 24%; }
+.VoteBar.Pct25 { width: 25%; }
+.VoteBar.Pct26 { width: 26%; }
+.VoteBar.Pct27 { width: 27%; }
+.VoteBar.Pct28 { width: 28%; }
+.VoteBar.Pct29 { width: 29%; }
+.VoteBar.Pct30 { width: 30%; }
+.VoteBar.Pct31 { width: 31%; }
+.VoteBar.Pct32 { width: 32%; }
+.VoteBar.Pct33 { width: 33%; }
+.VoteBar.Pct34 { width: 34%; }
+.VoteBar.Pct35 { width: 35%; }
+.VoteBar.Pct36 { width: 36%; }
+.VoteBar.Pct37 { width: 37%; }
+.VoteBar.Pct38 { width: 38%; }
+.VoteBar.Pct39 { width: 39%; }
+.VoteBar.Pct40 { width: 40%; }
+.VoteBar.Pct41 { width: 41%; }
+.VoteBar.Pct42 { width: 42%; }
+.VoteBar.Pct43 { width: 43%; }
+.VoteBar.Pct44 { width: 44%; }
+.VoteBar.Pct45 { width: 45%; }
+.VoteBar.Pct46 { width: 46%; }
+.VoteBar.Pct47 { width: 47%; }
+.VoteBar.Pct48 { width: 48%; }
+.VoteBar.Pct49 { width: 49%; }
+.VoteBar.Pct50 { width: 50%; }
+.VoteBar.Pct51 { width: 51%; }
+.VoteBar.Pct52 { width: 52%; }
+.VoteBar.Pct53 { width: 53%; }
+.VoteBar.Pct54 { width: 54%; }
+.VoteBar.Pct55 { width: 55%; }
+.VoteBar.Pct56 { width: 56%; }
+.VoteBar.Pct57 { width: 57%; }
+.VoteBar.Pct58 { width: 58%; }
+.VoteBar.Pct59 { width: 59%; }
+.VoteBar.Pct60 { width: 60%; }
+.VoteBar.Pct61 { width: 61%; }
+.VoteBar.Pct62 { width: 62%; }
+.VoteBar.Pct63 { width: 63%; }
+.VoteBar.Pct64 { width: 64%; }
+.VoteBar.Pct65 { width: 65%; }
+.VoteBar.Pct66 { width: 66%; }
+.VoteBar.Pct67 { width: 67%; }
+.VoteBar.Pct68 { width: 68%; }
+.VoteBar.Pct69 { width: 69%; }
+.VoteBar.Pct70 { width: 70%; }
+.VoteBar.Pct71 { width: 71%; }
+.VoteBar.Pct72 { width: 72%; }
+.VoteBar.Pct73 { width: 73%; }
+.VoteBar.Pct74 { width: 74%; }
+.VoteBar.Pct75 { width: 75%; }
+.VoteBar.Pct76 { width: 76%; }
+.VoteBar.Pct77 { width: 77%; }
+.VoteBar.Pct78 { width: 78%; }
+.VoteBar.Pct79 { width: 79%; }
+.VoteBar.Pct80 { width: 80%; }
+.VoteBar.Pct81 { width: 81%; }
+.VoteBar.Pct82 { width: 82%; }
+.VoteBar.Pct83 { width: 83%; }
+.VoteBar.Pct84 { width: 84%; }
+.VoteBar.Pct85 { width: 85%; }
+.VoteBar.Pct86 { width: 86%; }
+.VoteBar.Pct87 { width: 87%; }
+.VoteBar.Pct88 { width: 88%; }
+.VoteBar.Pct89 { width: 89%; }
+.VoteBar.Pct90 { width: 90%; }
+.VoteBar.Pct91 { width: 91%; }
+.VoteBar.Pct92 { width: 92%; }
+.VoteBar.Pct93 { width: 93%; }
+.VoteBar.Pct94 { width: 94%; }
+.VoteBar.Pct95 { width: 95%; }
+.VoteBar.Pct96 { width: 96%; }
+.VoteBar.Pct97 { width: 97%; }
+.VoteBar.Pct98 { width: 98%; }
+.VoteBar.Pct99 { width: 99%; }
+.VoteBar.Pct100 { width: 100%; }

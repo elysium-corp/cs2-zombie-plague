@@ -19,11 +19,10 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
 {
     private const string NominationChannel = "MapRotation.Nomination";
     private const string VoteChannel = "MapRotation.Vote";
-    private const string ResultChannel = "MapRotation.Result";
     private const string CardChannel = "MapRotation.Card";
     private readonly List<Guid> _commands = [];
     private readonly Dictionary<int, (ulong Session, Guid Vote)> _seenVotes = [];
-    private readonly Dictionary<int, (ulong Session, Guid Menu, string Channel)> _opened = [];
+    private readonly Dictionary<int, OpenedHud> _opened = [];
     private ICustomHudMenuApi? _menus;
     private ICustomBannerApi? _banners;
     private ICustomHudApi? _messages;
@@ -40,7 +39,8 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
     private bool _catalogUnavailable;
     private Dictionary<long, MapAvailability> _mapAvailability = [];
     private DateTimeOffset? _mapsCheckedAt;
-    private DateTimeOffset? _resultUntil;
+    private ResultHud? _result;
+    private RotationHudConfiguration _hudConfiguration = RotationHudConfiguration.Parse("{}");
     private DateTimeOffset? _changeRequestedAt;
     private long _publishedRevision = -1;
     private Guid? _lastVote;
@@ -48,6 +48,8 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
     private int _mapEpoch;
     private bool Active => _loaded && !_mapUnloading && engine.RotationEnabled
         && engine.PauseReason != RotationPauseReason.NoMaps;
+    private sealed record OpenedHud(ulong Session, Guid Menu, string Channel, HudMenuView View);
+    private sealed record ResultHud(VoteArchive Archive, RotationMap Winner, DateTimeOffset Until);
 
     public void Bind(ICustomHudMenuApi? menus, ICustomBannerApi? banners, ICustomHudApi? messages)
     {
@@ -109,6 +111,8 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
 
     private void Apply(RotationConfiguration configuration)
     {
+        _hudConfiguration = RotationHudConfiguration.Parse(configuration.Settings.HudSettings);
+        preferences.ConfigureDefaults(_hudConfiguration.Defaults);
         var availability = configuration.Maps.ToDictionary(map => map.Id, maps.Inspect);
         var valid = availability.Where(pair => pair.Value.IsValid).Select(pair => pair.Key).ToArray();
         engine.Configure(configuration, valid);
@@ -158,9 +162,9 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
             case "timeleft":
                 Card(player, Text(player, "TimeLeft"), engine.State == RotationState.FinalRound ? Text(player, "LastRound") : Duration(engine.TimeLeft), "clock"); break;
             case "nextmap":
-                Card(player, Text(player, "NextMap"), engine.NextMap?.DisplayName ?? Text(player, "NotSelected"), "info"); break;
+                Card(player, Text(player, "NextMap"), engine.NextMap is { } next ? MapTitle(player, next) : Text(player, "NotSelected"), "info"); break;
             case "rtv":
-                if (engine.Vote is not null) { OpenVote(player, force: true); break; }
+                if (engine.Vote is not null) { RefreshHud(); OpenVote(player, force: true); break; }
                 var reply = engine.Rtv(player.SteamID);
                 if (reply == RotationReply.Delay) Card(player, Text(player, "RtvDelay"), Duration(TimeSpan.FromSeconds(engine.RtvDelayRemaining)), "clock");
                 else if (reply is RotationReply.Accepted or RotationReply.Duplicate)
@@ -178,7 +182,7 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
                 {
                     var map = Find(context.Args[0]);
                     var result = map is null ? RotationReply.InvalidMap : engine.Nominate(player.SteamID, map.Id);
-                    Card(player, Text(player, "NominationTitle"), result == RotationReply.Accepted ? map!.DisplayName : Text(player, result.ToString()), "info");
+                    Card(player, Text(player, "NominationTitle"), result == RotationReply.Accepted ? MapTitle(player, map!) : Text(player, result.ToString()), "info");
                 }
                 else OpenNomination(player);
                 break;
@@ -217,7 +221,7 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
         {
             var map = context.Args.Length == 1 ? Find(context.Args[0]) : null;
             var accepted = map is not null && maps.IsValid(map) && engine.SetNext(map.Id, context.CommandName == "maprotation_change");
-            context.Reply(accepted ? Text(context.Sender, "Admin.NextMapSet", ("map", map!.DisplayName))
+            context.Reply(accepted ? Text(context.Sender, "Admin.NextMapSet", ("map", MapTitle(context.Sender, map!)))
                 : Text(context.Sender, "Admin.InvalidMap"));
         }
         RefreshHud(); Publish();
@@ -246,52 +250,84 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
         {
             if (action.Action != HudMenuAction.Select || !long.TryParse(action.ItemId, out var id)) return;
             var reply = engine.Nominate(player.SteamID, id);
-            Card(player, Text(player, "NominationTitle"), reply == RotationReply.Accepted
-                ? engine.Configuration.Maps.First(map => map.Id == id).DisplayName : Text(player, reply.ToString()), "info");
+            if (reply != RotationReply.Accepted) Card(player, Text(player, "NominationTitle"), Text(player, reply.ToString()), "info");
+            RefreshHud();
             Publish();
         });
     }
     private HudMenu NominationMenu(IPlayer player) => new(NominationChannel, Text(player, "NominationTitle"), Text(player, "NominationSubtitle"),
-        engine.NominationMaps().OrderBy(map => map.SortOrder).ThenBy(map => map.DisplayName).Select(map => new HudMenuItem(map.Id.ToString(), map.DisplayName,
-            Description: engine.Nomination(player.SteamID) == map.Id ? Text(player, "YourNomination") : "",
+        engine.NominationMaps().OrderBy(map => map.SortOrder).ThenBy(map => map.DisplayName).Select(map => new HudMenuItem(map.Id.ToString(), MapTitle(player, map),
+            Description: map.MapName,
             Selected: engine.Nomination(player.SteamID) == map.Id) { ImagePath = map.HudImagePath }).ToImmutableArray(),
-            new() { CloseOnSelect = true, ItemsPerPage = engine.Settings.MenuItemsPerPage })
+            new() { ItemsPerPage = engine.NominationMaps().Length > 6 ? 12 : 6 })
         { StyleClass = "MapRotation", Presentation = preferences.Get(player), SettingsText = SettingsText(player), ShowBrand = true,
+            IsNomination = true, CloseText = Text(player, "Close"),
             Footer = engine.NominationMaps().IsEmpty ? Text(player, "NoMaps") : "" };
 
-    private HudMenu VoteMenu(IPlayer player, VoteState vote) => new(VoteChannel, Text(player, "VoteTitle"), Text(player, "VoteSubtitle"),
-        vote.Options.Select(map => new HudMenuItem(map.Id.ToString(), map.DisplayName,
-            Description: vote.Votes.GetValueOrDefault(player.SteamID) == map.Id ? Text(player, "YourVote") : "",
-            Badge: Text(player, "Votes", ("count", vote.Votes.Values.Count(id => id == map.Id).ToString())),
-            Selected: vote.Votes.GetValueOrDefault(player.SteamID) == map.Id) { ImagePath = map.HudImagePath }).ToImmutableArray(),
-        new() { Priority = HudMenuPriority.Critical, ItemsPerPage = engine.Settings.MenuItemsPerPage })
-        { StyleClass = "MapRotation", Presentation = preferences.Get(player), SettingsText = SettingsText(player), ShowBrand = true,
-            Status = Duration(vote.EndsAt - clock.GetUtcNow()) };
+    private HudMenu VoteMenu(IPlayer player, VoteState vote, HudMenuView view = HudMenuView.List) => new(VoteChannel,
+        Text(player, "VoteTitle"), Text(player, "VoteSubtitle"), vote.Options.Select(map =>
+        {
+            var count = vote.Votes.Values.Count(id => id == map.Id);
+            var percent = VotePercent(count, vote.Votes.Count);
+            return new HudMenuItem(map.Id.ToString(), MapTitle(player, map), Description: map.MapName,
+                Badge: Text(player, "VoteStats", ("count", count.ToString()), ("percent", percent.ToString())),
+                Selected: vote.Votes.GetValueOrDefault(player.SteamID) == map.Id)
+                { ImagePath = map.HudImagePath, Percent = percent };
+        }).ToImmutableArray(), new()
+        {
+            Priority = HudMenuPriority.Critical, ItemsPerPage = 6, ShowPagination = false, CollapseOnClose = true,
+            CaptureInput = view == HudMenuView.List, Modal = view == HudMenuView.List
+        })
+        {
+            StyleClass = "MapRotation", View = view, Presentation = preferences.Get(player), SettingsText = SettingsText(player),
+            ShowBrand = true, CloseText = Text(player, "Close"), Status = Duration(vote.EndsAt - clock.GetUtcNow()),
+            Participation = Participation(player, vote.Votes.Count, engine.EligibleVoterCount),
+            Footer = Text(player, view == HudMenuView.Compact ? "CompactFooter" : "VoteFooter")
+        };
 
     private void OpenVote(IPlayer player, bool force = false)
     {
         if (engine.Vote is not { } vote || !Eligible(player)) return;
         if (!force && _seenVotes.TryGetValue(player.PlayerID, out var seen) && seen == (player.SessionId, vote.Id)) return;
-        _seenVotes[player.PlayerID] = (player.SessionId, vote.Id);
+        if (_opened.TryGetValue(player.PlayerID, out var opened) && opened.Session == player.SessionId
+            && opened.Channel == VoteChannel && opened.View != HudMenuView.Result
+            && _menus?.Update(player, opened.Menu, VoteMenu(player, vote)) == true)
+        {
+            _opened[player.PlayerID] = opened with { View = HudMenuView.List };
+            _seenVotes[player.PlayerID] = (player.SessionId, vote.Id);
+            return;
+        }
         var session = player.SessionId; var steam = player.SteamID; var playerId = player.PlayerID;
+        // Недоступные ресурсы сообщаются один раз за голосование; команда !rtv разрешает повторную попытку.
+        _seenVotes[player.PlayerID] = (player.SessionId, vote.Id);
         Open(player, VoteMenu(player, vote), action =>
         {
-            if (action.Action != HudMenuAction.Select || !long.TryParse(action.ItemId, out var id)) return;
             var current = core.PlayerManager.GetPlayer(playerId);
             if (current is null || current.SessionId != session || current.SteamID != steam || !Eligible(current)) return;
+            if (action.Action == HudMenuAction.Close)
+            {
+                if (_opened.TryGetValue(playerId, out var currentHud) && currentHud.Menu == action.MenuId && engine.Vote is { } active)
+                {
+                    _opened[playerId] = currentHud with { View = HudMenuView.Compact };
+                    _menus?.Update(current, currentHud.Menu, VoteMenu(current, active, HudMenuView.Compact));
+                }
+                return;
+            }
+            if (action.Action != HudMenuAction.Select || !long.TryParse(action.ItemId, out var id)) return;
             RefreshPlayers();
             if (engine.CastVote(steam, vote.Id, id)) { RefreshHud(); Publish(); }
         });
     }
 
-    private void Open(IPlayer player, HudMenu menu, Action<HudMenuEvent> handler)
+    private bool Open(IPlayer player, HudMenu menu, Action<HudMenuEvent> handler)
     {
         var playerId = player.PlayerID; var sessionId = player.SessionId; var steamId = player.SteamID;
         void OnAction(HudMenuEvent action)
         {
             var current = core.PlayerManager.GetPlayer(playerId);
             if (_disposed || _mapUnloading || current is not { IsValid: true }
-                || current.SessionId != sessionId || current.SteamID != steamId) return;
+                || current.SessionId != sessionId || current.SteamID != steamId
+                || !_opened.TryGetValue(playerId, out var opened) || opened.Menu != action.MenuId) return;
             if (action.Action == HudMenuAction.SettingsChanged)
             {
                 if (action.Presentation is { } presentation && preferences.Set(current, presentation)) RefreshHud();
@@ -299,15 +335,24 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
             }
             handler(action);
         }
-        if (_menus?.Open(player, menu, OnAction) is { } id) _opened[player.PlayerID] = (player.SessionId, id, menu.Channel);
-        else player.SendMessage(MessageType.Chat, text.WithChatTag(player, Text(player, "HudUnavailable")));
+        if (_menus?.Open(player, menu, OnAction) is { } id)
+        {
+            _opened[player.PlayerID] = new(player.SessionId, id, menu.Channel, menu.View);
+            return true;
+        }
+        player.SendMessage(MessageType.Chat, text.WithChatTag(player, Text(player, "HudUnavailable")));
+        return false;
     }
     private HudMenuSettingsText SettingsText(IPlayer player) => new()
     {
         Title = Text(player, "Settings.Title"), Orientation = Text(player, "Settings.Orientation"),
         Horizontal = Text(player, "Settings.Horizontal"), Vertical = Text(player, "Settings.Vertical"),
         Size = Text(player, "Settings.Size"), Scale80 = Text(player, "Settings.Scale80"),
-        Scale100 = Text(player, "Settings.Scale100"), Scale120 = Text(player, "Settings.Scale120")
+        Scale100 = Text(player, "Settings.Scale100"), Scale120 = Text(player, "Settings.Scale120"),
+        DockSide = Text(player, "Settings.DockSide"), Left = Text(player, "Settings.Left"), Right = Text(player, "Settings.Right"),
+        Animation = Text(player, "Settings.Animation"), AnimationNone = Text(player, "Settings.AnimationNone"),
+        AnimationFast = Text(player, "Settings.AnimationFast"), AnimationNormal = Text(player, "Settings.AnimationNormal"),
+        AnimationSlow = Text(player, "Settings.AnimationSlow")
     };
 
     private void RefreshHud()
@@ -324,12 +369,33 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
         _hudSuspended = false;
         if (_lastVote != engine.Vote?.Id)
         {
-            _menus?.CloseChannel(NominationChannel); _menus?.CloseChannel(VoteChannel);
-            if (engine.Vote is not null) ChatAll("VoteStarted");
+            if (engine.Vote is not null)
+            {
+                CloseMenus();
+                _seenVotes.Clear();
+                ChatAll("VoteStarted");
+            }
+            else
+            {
+                foreach (var player in Players())
+                    if (_opened.TryGetValue(player.PlayerID, out var old) && old.Channel == VoteChannel && old.View != HudMenuView.Result)
+                    {
+                        _menus?.Close(player, old.Menu);
+                        _opened.Remove(player.PlayerID);
+                    }
+            }
             _lastVote = engine.Vote?.Id;
         }
-        if (_resultUntil is { } until && clock.GetUtcNow() >= until)
-        { _menus?.CloseChannel(ResultChannel); _resultUntil = null; }
+        if (_result is { } result && clock.GetUtcNow() >= result.Until)
+        {
+            foreach (var player in Players())
+                if (_opened.TryGetValue(player.PlayerID, out var old) && old.View == HudMenuView.Result)
+                {
+                    _menus?.Close(player, old.Menu);
+                    _opened.Remove(player.PlayerID);
+                }
+            _result = null;
+        }
         foreach (var player in Players())
         {
             if (!Eligible(player))
@@ -340,7 +406,10 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
             if (engine.Vote is { } vote) OpenVote(player);
             if (!_opened.TryGetValue(player.PlayerID, out var opened) || opened.Session != player.SessionId) continue;
             if (_menus?.IsOpen(player, opened.Menu) != true) { _opened.Remove(player.PlayerID); continue; }
-            if (opened.Channel == VoteChannel && engine.Vote is { } active) _menus.Update(player, opened.Menu, VoteMenu(player, active));
+            if (opened.Channel == VoteChannel && engine.Vote is { } active)
+                _menus.Update(player, opened.Menu, VoteMenu(player, active, opened.View));
+            else if (opened.View == HudMenuView.Result && _result is { } final)
+                _menus.Update(player, opened.Menu, ResultMenu(player, final));
             if (opened.Channel == NominationChannel)
             {
                 if (engine.State != RotationState.Playing) _menus.Close(player, opened.Menu);
@@ -352,24 +421,47 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
     private void OnVoteFinished(VoteArchive result)
     {
         store.Record(engine.CurrentMap, result);
-        _menus?.CloseChannel(VoteChannel);
-        if (result.WinnerId is not { } id) return;
+        if (_disposed || _mapUnloading || result.WinnerId is not { } id)
+        {
+            _menus?.CloseChannel(VoteChannel);
+            _result = null;
+            return;
+        }
         var winner = engine.Configuration.Maps.FirstOrDefault(map => map.Id == id);
-        if (winner is null) return;
-        _resultUntil = clock.GetUtcNow().AddSeconds(8);
+        if (winner is null) { _menus?.CloseChannel(VoteChannel); return; }
+        _result = new(result, winner, clock.GetUtcNow().AddSeconds(_hudConfiguration.ResultDuration));
         foreach (var player in Players().Where(Eligible))
         {
-            var voteCount = result.Vote.Votes.Values.Count(value => value == id);
-            var menu = new HudMenu(ResultChannel, Text(player, "ResultTitle"), Text(player, "NextMap"),
-                [new(winner.Id.ToString(), winner.DisplayName, Text(player, "Votes", ("count", voteCount.ToString()))) { ImagePath = winner.HudImagePath }],
-                new() { Priority = HudMenuPriority.Critical, CloseOnSelect = true, ShowPagination = false })
+            var menu = ResultMenu(player, _result);
+            if (_opened.TryGetValue(player.PlayerID, out var opened) && opened.Session == player.SessionId
+                && opened.Channel == VoteChannel && _menus?.Update(player, opened.Menu, menu) == true)
             {
-                StyleClass = "MapRotation", View = HudMenuView.Result,
-                Footer = Text(player, engine.State == RotationState.FinalRound ? "LastRoundDescription" : "ScheduledResult")
-            };
-            Open(player, menu, _ => { });
+                _opened[player.PlayerID] = opened with { View = HudMenuView.Result };
+            }
+            else Open(player, menu, _ => { });
         }
     }
+
+    private HudMenu ResultMenu(IPlayer player, ResultHud result)
+    {
+        var count = result.Archive.Vote.Votes.Values.Count(id => id == result.Winner.Id);
+        var percent = VotePercent(count, result.Archive.Vote.Votes.Count);
+        return new(VoteChannel, Text(player, "ResultTitle"), Text(player, "NextMap"),
+            [new(result.Winner.Id.ToString(), MapTitle(player, result.Winner), result.Winner.MapName,
+                Text(player, "VoteStats", ("count", count.ToString()), ("percent", percent.ToString())))
+                { ImagePath = result.Winner.HudImagePath, Percent = percent }],
+            new() { Priority = HudMenuPriority.Critical, ShowPagination = false, CaptureInput = false, Modal = false, Closable = false })
+        {
+            StyleClass = "MapRotation", View = HudMenuView.Result, Presentation = preferences.Get(player),
+            Participation = Participation(player, result.Archive.Vote.Votes.Count, result.Archive.EligibleVoterCount),
+            Footer = Text(player, "ResultDismiss", ("seconds", Math.Max(0, (int)Math.Ceiling((result.Until - clock.GetUtcNow()).TotalSeconds)).ToString()))
+        };
+    }
+
+    private string Participation(IPlayer player, int voted, int total) => Text(player, "Participation", ("voted", voted.ToString()), ("total", total.ToString()));
+    private string MapTitle(IPlayer? player, RotationMap map) => string.IsNullOrWhiteSpace(map.DisplayNameKey)
+        ? map.DisplayName : text.GetKey(player, map.DisplayNameKey);
+    internal static int VotePercent(int count, int total) => total > 0 ? (int)Math.Round(count * 100.0 / total, MidpointRounding.AwayFromZero) : 0;
 
     private void Card(IPlayer player, string title, string value, string icon, string description = "")
     {
@@ -419,6 +511,7 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
     }
     private void OnMapLoad(IOnMapLoadEvent args)
     {
+        CloseMenus();
         _mapEpoch++; _mapUnloading = false; _changeRequestedAt = null; _seenVotes.Clear(); _lastVote = null;
         if (!_loaded) return;
         // Событие загрузки означает новую сессию, включая повтор той же карты.
@@ -473,8 +566,8 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
     }
     private void CloseMenus()
     {
-        _menus?.CloseChannel(NominationChannel); _menus?.CloseChannel(VoteChannel); _menus?.CloseChannel(ResultChannel);
-        _opened.Clear(); _resultUntil = null;
+        _menus?.CloseChannel(NominationChannel); _menus?.CloseChannel(VoteChannel);
+        _opened.Clear(); _result = null;
     }
     public void Dispose()
     {

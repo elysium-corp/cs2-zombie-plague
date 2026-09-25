@@ -196,6 +196,53 @@ public sealed class RotationEngineTests
         f.Clock.Advance(300); Assert.Equal(RotationReply.NotEligible, f.Engine.Rtv(0));
     }
     [Fact]
+    public void ParticipationUsesUniqueEligibleHumansAndFreezesAtVoteCompletion()
+    {
+        var f = new Fixture();
+        f.Engine.SetPlayers([1, 1, 2, 3, 4], eligiblePlayerCount: 10);
+        Assert.Equal(4, f.Engine.EligibleVoterCount);
+        Assert.True(f.Engine.StartVote(NextMapSource.Admin));
+        var vote = f.Engine.Vote!;
+        f.Engine.CastVote(1, vote.Id, 2);
+        f.Engine.CastVote(1, vote.Id, 3);
+        f.Engine.CastVote(2, vote.Id, 3);
+        Assert.Equal(2, f.Engine.Vote!.Votes.Count);
+        f.Clock.Advance(20); f.Engine.Tick();
+        var result = f.Engine.LastResult!;
+        f.Engine.SetPlayers([1]);
+        Assert.Equal(4, result.EligibleVoterCount);
+        Assert.Equal(2, result.Vote.Votes.Count);
+        Assert.Equal(1, f.Engine.EligibleVoterCount);
+    }
+    [Fact]
+    public void LegacyCandidateSettingsCannotProduceMoreThanSixOptions()
+    {
+        var maps = Enumerable.Range(1, 12).Select(id => new RotationMap { Id = id, Weight = 1 }).ToImmutableArray();
+        var nominations = Enumerable.Range(1, 12).ToDictionary(id => (ulong)id, id => (long)id);
+        var candidates = new MapCandidates(new RandomValue());
+        var options = candidates.VoteOptions(maps, nominations, new() { VoteOptionsCount = 30, NominationSlots = 12 });
+        Assert.Equal(6, options.Length);
+        Assert.Equal(6, options.Select(map => map.Id).Distinct().Count());
+    }
+    [Fact]
+    public void LegacyCheckpointRemovesCandidatesAndBallotsOutsideSixSlots()
+    {
+        var f = new Fixture();
+        f.Engine.StartVote(NextMapSource.Admin);
+        var checkpoint = f.Engine.Checkpoint();
+        var options = Enumerable.Range(1, 9).Select(id => f.Maps[1] with { Id = id }).ToImmutableArray();
+        checkpoint = checkpoint with { Vote = checkpoint.Vote! with
+        {
+            Options = options, Votes = new Dictionary<ulong, long> { [1] = 2, [2] = 9 }.ToImmutableDictionary()
+        } };
+        var restored = f.NewEngine();
+        restored.LoadMap("de_current", "", checkpoint);
+        Assert.Equal(6, restored.Vote!.Options.Length);
+        Assert.Equal(2, Assert.Single(restored.Vote.Votes).Value);
+        Assert.Equal(checkpoint.Vote.Id, restored.Vote.Id);
+        Assert.Equal(checkpoint.Vote.EndsAt, restored.Vote.EndsAt);
+    }
+    [Fact]
     public void ConfigRefreshPreservesTheCurrentDeadline()
     {
         var f = new Fixture(); var deadline = f.Engine.Deadline;

@@ -20,7 +20,12 @@ public sealed class RotationHudPreferencesTests
         using var preferences = new RotationHudPreferences(store, queue, tracker);
         var player = Player(10, 100);
         Assert.Equal(HudMenuOrientation.Horizontal, preferences.Get(player).Orientation);
-        var choice = new HudMenuPresentation { Orientation = HudMenuOrientation.Vertical, ScalePercent = 120 };
+        Assert.Equal(80, preferences.Get(player).ScalePercent);
+        var choice = new HudMenuPresentation
+        {
+            Orientation = HudMenuOrientation.Vertical, ScalePercent = 120,
+            DockSide = HudMenuDockSide.Left, Animation = HudMenuAnimation.Slow
+        };
         Assert.True(preferences.Set(player, choice));
         store.Load.SetResult(new() { Orientation = HudMenuOrientation.Horizontal, ScalePercent = 80 });
         await queue.RunAsync(100, () => Task.CompletedTask);
@@ -101,7 +106,29 @@ public sealed class RotationHudPreferencesTests
         using var preferences = new RotationHudPreferences(store, new(), tracker);
         Assert.False(preferences.Set(Player(1, 100), new() { ScalePercent = 125 }));
         Assert.False(preferences.Set(Player(1, 100), new() { Orientation = (HudMenuOrientation)9 }));
+        Assert.False(preferences.Set(Player(1, 100), new() { DockSide = (HudMenuDockSide)9 }));
+        Assert.False(preferences.Set(Player(1, 100), new() { Animation = (HudMenuAnimation)9 }));
         Assert.False(store.LoadStarted.Task.IsCompleted);
+    }
+
+    [Fact]
+    public async Task CmsDefaultsOnlyApplyWhenThePlayerHasNoSavedPreference()
+    {
+        var store = new Store();
+        store.Saved[200] = new() { ScalePercent = 100, DockSide = HudMenuDockSide.Right, Animation = HudMenuAnimation.None };
+        var queue = new SteamIdOperationQueue();
+        using var tracker = new DatabaseTaskTracker(NullLogger<DatabaseTaskTracker>.Instance);
+        using var preferences = new RotationHudPreferences(store, queue, tracker);
+        var configured = RotationHudPreferences.Default with { DockSide = HudMenuDockSide.Left, Animation = HudMenuAnimation.Slow };
+        preferences.ConfigureDefaults(configured);
+        var newcomer = Player(1, 100);
+        Assert.Equal(configured, preferences.Get(newcomer));
+        await queue.RunAsync(100, () => Task.CompletedTask);
+        Assert.Equal(configured, preferences.Get(newcomer));
+        var returning = Player(2, 200);
+        preferences.Get(returning);
+        await queue.RunAsync(200, () => Task.CompletedTask);
+        Assert.Equal(store.Saved[200], preferences.Get(returning));
     }
 
     private static IPlayer Player(ulong session, ulong steamId)
