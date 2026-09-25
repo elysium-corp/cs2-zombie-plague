@@ -310,10 +310,11 @@ internal sealed class KnockbackService(
         var directionX = delta.X / length;
         var directionY = delta.Y / length;
 
-        velocity = new Vector(
-            currentVelocity.X + directionX * force,
-            currentVelocity.Y + directionY * force,
-            currentVelocity.Z
+        velocity = GetHorizontalKnockbackVelocity(
+            currentVelocity,
+            directionX,
+            directionY,
+            force
         );
 
         return true;
@@ -371,14 +372,39 @@ internal sealed class KnockbackService(
         
         var currentVelocity = victimPawn.AbsVelocity;
         var multiplier = recoil * zombieKnockback * hitGroupMultiplier;
+        var horizontalVelocity = GetHorizontalKnockbackVelocity(
+            currentVelocity,
+            direction.X,
+            direction.Y,
+            multiplier
+        );
         
         velocity = new Vector(
-            currentVelocity.X + direction.X * multiplier,
-            currentVelocity.Y + direction.Y * multiplier,
+            horizontalVelocity.X,
+            horizontalVelocity.Y,
             currentVelocity.Z + verticalBoost
         );
 
         return true;
+    }
+
+    private static Vector GetHorizontalKnockbackVelocity(
+        Vector currentVelocity,
+        float directionX,
+        float directionY,
+        float force
+    )
+    {
+        var velocityAlongDirection =
+            currentVelocity.X * directionX +
+            currentVelocity.Y * directionY;
+        var opposingVelocity = MathF.Min(velocityAlongDirection, 0.0f);
+
+        return new Vector(
+            currentVelocity.X - directionX * opposingVelocity + directionX * force,
+            currentVelocity.Y - directionY * opposingVelocity + directionY * force,
+            currentVelocity.Z
+        );
     }
 
     private static float GetDistance(Vector first, Vector second)
