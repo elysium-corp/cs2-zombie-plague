@@ -121,7 +121,8 @@ internal sealed class KnockbackService(
 
     private void OnTakeDamagePost(ref TakeDamageEntityPostContext context)
     {
-        if (context.Params.Info.DamageType == DamageTypes_t.DMG_POISON)
+        if (context.Params.Info.DamageType == DamageTypes_t.DMG_POISON ||
+            context.Params.Info.NumObjectsPenetrated > 0)
         {
             return;
         }
