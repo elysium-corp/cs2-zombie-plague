@@ -68,9 +68,7 @@ internal sealed class KnockbackService(
 
     public void Register()
     {
-        if (_registered ||
-            !config.Value.KnockbackEnabled &&
-            !config.Value.ZombieFriendlyKnockbackEnabled)
+        if (_registered)
         {
             return;
         }
