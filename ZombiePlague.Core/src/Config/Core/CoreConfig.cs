@@ -5,6 +5,12 @@ public sealed class ZombiePlagueCoreConfig
     // Включить отталкивание зомби
     public bool KnockbackEnabled { get; set; } = true;
 
+    // Включить лёгкое отталкивание при ударе зомби другого зомби ножом
+    public bool ZombieFriendlyKnockbackEnabled { get; set; } = true;
+
+    // Сила горизонтального отталкивания зомби другим зомби
+    public float ZombieFriendlyKnockbackForce { get; set; } = 120.0f;
+
     // Множитель отталкивания зомби в голову
     public float KnockbackHeadMultiply { get; set; } = 2.0f;
 

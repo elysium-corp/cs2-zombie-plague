@@ -68,12 +68,13 @@ internal sealed class KnockbackService(
 
     public void Register()
     {
-        if (!config.Value.KnockbackEnabled || _registered)
+        if (_registered)
         {
             return;
         }
 
         _registered = true;
+        core.GameHooks.Entities.TakeDamage.Pre += OnTakeDamagePre;
         core.GameHooks.Entities.TakeDamage.Post += OnTakeDamagePost;
     }
 
@@ -84,6 +85,7 @@ internal sealed class KnockbackService(
             return;
         }
 
+        core.GameHooks.Entities.TakeDamage.Pre -= OnTakeDamagePre;
         core.GameHooks.Entities.TakeDamage.Post -= OnTakeDamagePost;
         _registered = false;
     }
@@ -119,9 +121,61 @@ internal sealed class KnockbackService(
         );
     }
 
+    private void OnTakeDamagePre(ref TakeDamageEntityPreContext context)
+    {
+        if (!config.Value.ZombieFriendlyKnockbackEnabled ||
+            config.Value.ZombieFriendlyKnockbackForce <= 0.0f ||
+            (context.Params.Info.DamageType & DamageTypes_t.DMG_SLASH) == 0)
+        {
+            return;
+        }
+
+        var attacker = context.Params.Info.Attacker.ResolvePlayerFromHandle();
+        var victim = context.Params.Entity.Address.FindPlayerByPawnAddress();
+
+        if (attacker is not { IsValid: true, IsAlive: true } ||
+            victim is not { IsValid: true, IsAlive: true } ||
+            attacker.PlayerID == victim.PlayerID ||
+            !playerManager.IsZombie(attacker) ||
+            !playerManager.IsZombie(victim) ||
+            victim.IsFrozen())
+        {
+            return;
+        }
+
+        var activeWeapon = attacker.PlayerPawn?
+            .WeaponServices?
+            .ActiveWeapon
+            .Value;
+
+        if (activeWeapon is not { IsValidEntity: true } ||
+            !activeWeapon.DesignerName.Contains("knife", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        if (!TryCalculateFriendlyVelocity(
+                attacker,
+                victim,
+                config.Value.ZombieFriendlyKnockbackForce,
+                out var velocity
+            ))
+        {
+            return;
+        }
+
+        TryApplyKnockback(
+            attacker,
+            victim,
+            new KnockbackData(config.Value.ZombieFriendlyKnockbackForce, 0.0f),
+            velocity
+        );
+    }
+
     private void OnTakeDamagePost(ref TakeDamageEntityPostContext context)
     {
-        if (context.Params.Info.DamageType == DamageTypes_t.DMG_POISON ||
+        if (!config.Value.KnockbackEnabled ||
+            context.Params.Info.DamageType == DamageTypes_t.DMG_POISON ||
             context.Params.Info.NumObjectsPenetrated > 0)
         {
             return;
@@ -192,6 +246,16 @@ internal sealed class KnockbackService(
             return false;
         }
 
+        return TryApplyKnockback(attacker, victim, data, velocity);
+    }
+
+    private bool TryApplyKnockback(
+        IPlayer attacker,
+        IPlayer victim,
+        KnockbackData data,
+        Vector velocity
+    )
+    {
         var preContext = new KnockbackApplyingContext(attacker, victim, data, velocity);
 
         if (!hooks.DispatchCancellable(ref preContext))
@@ -209,6 +273,48 @@ internal sealed class KnockbackService(
         );
 
         hooks.Dispatch(ref postContext);
+
+        return true;
+    }
+
+    private static bool TryCalculateFriendlyVelocity(
+        IPlayer attacker,
+        IPlayer victim,
+        float force,
+        out Vector velocity
+    )
+    {
+        velocity = Vector.Zero;
+
+        var attackerOrigin = attacker.PlayerPawn?.AbsOrigin;
+        var victimPawn = victim.PlayerPawn;
+        var victimOrigin = victimPawn?.AbsOrigin;
+
+        if (attackerOrigin is null ||
+            victimPawn is null ||
+            victimOrigin is null ||
+            force <= 0.0f)
+        {
+            return false;
+        }
+
+        var delta = victimOrigin.Value - attackerOrigin.Value;
+        var length = MathF.Sqrt(delta.X * delta.X + delta.Y * delta.Y);
+
+        if (length <= float.Epsilon)
+        {
+            return false;
+        }
+
+        var currentVelocity = victimPawn.AbsVelocity;
+        var directionX = delta.X / length;
+        var directionY = delta.Y / length;
+
+        velocity = new Vector(
+            currentVelocity.X + directionX * force,
+            currentVelocity.Y + directionY * force,
+            currentVelocity.Z
+        );
 
         return true;
     }
