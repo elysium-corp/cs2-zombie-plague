@@ -281,3 +281,1843 @@
 .VoteBar.Pct98 { width: 98%; }
 .VoteBar.Pct99 { width: 99%; }
 .VoteBar.Pct100 { width: 100%; }
+
+/* BEGIN GENERATED MAPROTATION SPACING: scripts/generate-menu-spacing.py */
+/* Интервал между разделами и строками равен VerticalGap; внутри карточки — половине. */
+/* Без класса используется 24px; это также резерв для старого состояния HUD. */
+.MenuRoot.MapRotation .MenuWindow { padding-top: 24px; padding-bottom: 24px; }
+.MenuRoot.MapRotation .MenuHeader { margin-bottom: 24px; }
+.MenuRoot.MapRotation .Subtitle { height: 22px; padding: 0px; margin-bottom: 24px; }
+.MenuRoot.MapRotation .Participation { height: 26px; margin: 0px 0px 24px; }
+.MenuRoot.MapRotation .Footer { height: 26px; padding: 0px; margin-top: 24px; }
+.MenuRoot.MapRotation .Pagination { margin-top: 24px; }
+.MenuRoot.MapRotation.Vertical.List .MenuItem { height: 86px; margin-bottom: 24px; }
+.MenuRoot.MapRotation.Vertical.List .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.Vertical.List .ItemsViewport { height: 636px; }
+.MenuRoot.MapRotation.Vertical.List .ItemIcon { height: 84px; }
+.MenuRoot.MapRotation.Vertical.List .ItemName { height: 30px; text-overflow: shrink min(20px); }
+.MenuRoot.MapRotation.Vertical.List .ItemDescription { height: 18px; font-size: 16px; margin-top: 8px; }
+.MenuRoot.MapRotation.Vertical.List.HasSecondRow .MenuItem { height: 72px; margin-bottom: 24px; }
+.MenuRoot.MapRotation.Vertical.List.HasSecondRow .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.Vertical.List.HasSecondRow .ItemsViewport { height: 552px; }
+.MenuRoot.MapRotation.Vertical.List.HasSecondRow .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.Vertical.List.HasSecondRow .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.Horizontal.List .MenuItem { height: 284px; }
+.MenuRoot.MapRotation.Horizontal.List .ItemsViewport { height: 284px; }
+.MenuRoot.MapRotation.Horizontal.List.HasSecondRow .ItemsViewport { height: 592px; }
+.MenuRoot.MapRotation.Horizontal.List .Row1 { margin-top: 24px; }
+.MenuRoot.MapRotation.Horizontal.List .ItemText { padding-top: 20px; padding-bottom: 12px; }
+.MenuRoot.MapRotation.Horizontal.List .ItemName { height: 38px; }
+.MenuRoot.MapRotation.Horizontal.List .ItemDescription { height: 20px; margin-top: 12px; }
+.MenuRoot.MapRotation.Horizontal.List .Badge { height: 40px; padding-bottom: 12px; }
+.MenuRoot.MapRotation.Scale120.List .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.Scale120.List.HasBrand .MenuHeader { height: 64px; }
+.MenuRoot.MapRotation.Scale120.List .BrandGroup { height: 30px; }
+.MenuRoot.MapRotation.Scale120.List .HeaderActions { height: 30px; }
+.MenuRoot.MapRotation.Scale120.List .BrandMark { width: 28px; height: 28px; }
+.MenuRoot.MapRotation.Scale120.List .Brand { font-size: 21px; letter-spacing: 4px; }
+.MenuRoot.MapRotation.Scale120.List .Title { height: 28px; font-size: 24px; margin-bottom: 4px; }
+.MenuRoot.MapRotation.Scale120.List .Status { font-size: 21px; }
+.MenuRoot.MapRotation.Scale120.Vertical.List .MenuItem { height: 72px; }
+.MenuRoot.MapRotation.Scale120.Vertical.List .ItemsViewport { height: 552px; }
+.MenuRoot.MapRotation.Scale120.Vertical.List .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.Scale120.Vertical.List .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.Compact .MenuHeader { margin-bottom: 24px; }
+.MenuRoot.MapRotation.Compact .Participation { height: 22px; margin: 0px 0px 24px; }
+.MenuRoot.MapRotation.Compact .MenuItem { height: 56px; margin-bottom: 12px; }
+.MenuRoot.MapRotation.Compact .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.Compact .ItemsViewport { height: 396px; }
+.MenuRoot.MapRotation.Compact .ItemText { height: 24px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.Compact .Badge { height: 22px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.Compact .Footer { height: 26px; padding: 0px; margin-top: 24px; }
+.MenuRoot.MapRotation.Result .MenuHeader { margin-bottom: 24px; }
+.MenuRoot.MapRotation.Result .Participation { height: 22px; margin: 0px 0px 24px; }
+.MenuRoot.MapRotation.Result .MenuItem { height: 282px; }
+.MenuRoot.MapRotation.Result .ItemsViewport { height: 282px; }
+.MenuRoot.MapRotation.Result .ItemText { padding-top: 20px; padding-bottom: 12px; }
+.MenuRoot.MapRotation.Result .ItemName { height: 32px; }
+.MenuRoot.MapRotation.Result .ItemDescription { height: 20px; margin-top: 12px; }
+.MenuRoot.MapRotation.Result .Badge { height: 40px; padding-bottom: 12px; }
+.MenuRoot.MapRotation.Result .Footer { height: 26px; padding: 0px; margin-top: 24px; }
+.MenuRoot.MapRotation.VerticalGap0 .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap0 .MenuHeader { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap0 .Subtitle { height: 22px; padding: 0px; margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap0 .Participation { height: 26px; margin: 0px 0px 0px; }
+.MenuRoot.MapRotation.VerticalGap0 .Footer { height: 26px; padding: 0px; margin-top: 0px; }
+.MenuRoot.MapRotation.VerticalGap0 .Pagination { margin-top: 0px; }
+.MenuRoot.MapRotation.VerticalGap0.Vertical.List .MenuItem { height: 86px; margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap0.Vertical.List .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap0.Vertical.List .ItemsViewport { height: 516px; }
+.MenuRoot.MapRotation.VerticalGap0.Vertical.List .ItemIcon { height: 84px; }
+.MenuRoot.MapRotation.VerticalGap0.Vertical.List .ItemName { height: 30px; text-overflow: shrink min(20px); }
+.MenuRoot.MapRotation.VerticalGap0.Vertical.List .ItemDescription { height: 18px; font-size: 16px; margin-top: 0px; }
+.MenuRoot.MapRotation.VerticalGap0.Vertical.List.HasSecondRow .MenuItem { height: 72px; margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap0.Vertical.List.HasSecondRow .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap0.Vertical.List.HasSecondRow .ItemsViewport { height: 432px; }
+.MenuRoot.MapRotation.VerticalGap0.Vertical.List.HasSecondRow .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap0.Vertical.List.HasSecondRow .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap0.Horizontal.List .MenuItem { height: 236px; }
+.MenuRoot.MapRotation.VerticalGap0.Horizontal.List .ItemsViewport { height: 236px; }
+.MenuRoot.MapRotation.VerticalGap0.Horizontal.List.HasSecondRow .ItemsViewport { height: 472px; }
+.MenuRoot.MapRotation.VerticalGap0.Horizontal.List .Row1 { margin-top: 0px; }
+.MenuRoot.MapRotation.VerticalGap0.Horizontal.List .ItemText { padding-top: 8px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap0.Horizontal.List .ItemName { height: 38px; }
+.MenuRoot.MapRotation.VerticalGap0.Horizontal.List .ItemDescription { height: 20px; margin-top: 0px; }
+.MenuRoot.MapRotation.VerticalGap0.Horizontal.List .Badge { height: 28px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap0.Scale120.List .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap0.Scale120.List.HasBrand .MenuHeader { height: 64px; }
+.MenuRoot.MapRotation.VerticalGap0.Scale120.List .BrandGroup { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap0.Scale120.List .HeaderActions { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap0.Scale120.List .BrandMark { width: 28px; height: 28px; }
+.MenuRoot.MapRotation.VerticalGap0.Scale120.List .Brand { font-size: 21px; letter-spacing: 4px; }
+.MenuRoot.MapRotation.VerticalGap0.Scale120.List .Title { height: 28px; font-size: 24px; margin-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap0.Scale120.List .Status { font-size: 21px; }
+.MenuRoot.MapRotation.VerticalGap0.Scale120.Vertical.List .MenuItem { height: 72px; }
+.MenuRoot.MapRotation.VerticalGap0.Scale120.Vertical.List .ItemsViewport { height: 432px; }
+.MenuRoot.MapRotation.VerticalGap0.Scale120.Vertical.List .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap0.Scale120.Vertical.List .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap0.Compact .MenuHeader { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap0.Compact .Participation { height: 22px; margin: 0px 0px 0px; }
+.MenuRoot.MapRotation.VerticalGap0.Compact .MenuItem { height: 44px; margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap0.Compact .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap0.Compact .ItemsViewport { height: 264px; }
+.MenuRoot.MapRotation.VerticalGap0.Compact .ItemText { height: 24px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap0.Compact .Badge { height: 22px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap0.Compact .Footer { height: 26px; padding: 0px; margin-top: 0px; }
+.MenuRoot.MapRotation.VerticalGap0.Result .MenuHeader { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap0.Result .Participation { height: 22px; margin: 0px 0px 0px; }
+.MenuRoot.MapRotation.VerticalGap0.Result .MenuItem { height: 234px; }
+.MenuRoot.MapRotation.VerticalGap0.Result .ItemsViewport { height: 234px; }
+.MenuRoot.MapRotation.VerticalGap0.Result .ItemText { padding-top: 8px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap0.Result .ItemName { height: 32px; }
+.MenuRoot.MapRotation.VerticalGap0.Result .ItemDescription { height: 20px; margin-top: 0px; }
+.MenuRoot.MapRotation.VerticalGap0.Result .Badge { height: 28px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap0.Result .Footer { height: 26px; padding: 0px; margin-top: 0px; }
+.MenuRoot.MapRotation.VerticalGap1 .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap1 .MenuHeader { margin-bottom: 1px; }
+.MenuRoot.MapRotation.VerticalGap1 .Subtitle { height: 22px; padding: 0px; margin-bottom: 1px; }
+.MenuRoot.MapRotation.VerticalGap1 .Participation { height: 26px; margin: 0px 0px 1px; }
+.MenuRoot.MapRotation.VerticalGap1 .Footer { height: 26px; padding: 0px; margin-top: 1px; }
+.MenuRoot.MapRotation.VerticalGap1 .Pagination { margin-top: 1px; }
+.MenuRoot.MapRotation.VerticalGap1.Vertical.List .MenuItem { height: 86px; margin-bottom: 1px; }
+.MenuRoot.MapRotation.VerticalGap1.Vertical.List .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap1.Vertical.List .ItemsViewport { height: 521px; }
+.MenuRoot.MapRotation.VerticalGap1.Vertical.List .ItemIcon { height: 84px; }
+.MenuRoot.MapRotation.VerticalGap1.Vertical.List .ItemName { height: 30px; text-overflow: shrink min(20px); }
+.MenuRoot.MapRotation.VerticalGap1.Vertical.List .ItemDescription { height: 18px; font-size: 16px; margin-top: 1px; }
+.MenuRoot.MapRotation.VerticalGap1.Vertical.List.HasSecondRow .MenuItem { height: 72px; margin-bottom: 1px; }
+.MenuRoot.MapRotation.VerticalGap1.Vertical.List.HasSecondRow .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap1.Vertical.List.HasSecondRow .ItemsViewport { height: 437px; }
+.MenuRoot.MapRotation.VerticalGap1.Vertical.List.HasSecondRow .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap1.Vertical.List.HasSecondRow .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap1.Horizontal.List .MenuItem { height: 238px; }
+.MenuRoot.MapRotation.VerticalGap1.Horizontal.List .ItemsViewport { height: 238px; }
+.MenuRoot.MapRotation.VerticalGap1.Horizontal.List.HasSecondRow .ItemsViewport { height: 477px; }
+.MenuRoot.MapRotation.VerticalGap1.Horizontal.List .Row1 { margin-top: 1px; }
+.MenuRoot.MapRotation.VerticalGap1.Horizontal.List .ItemText { padding-top: 9px; padding-bottom: 1px; }
+.MenuRoot.MapRotation.VerticalGap1.Horizontal.List .ItemName { height: 38px; }
+.MenuRoot.MapRotation.VerticalGap1.Horizontal.List .ItemDescription { height: 20px; margin-top: 1px; }
+.MenuRoot.MapRotation.VerticalGap1.Horizontal.List .Badge { height: 29px; padding-bottom: 1px; }
+.MenuRoot.MapRotation.VerticalGap1.Scale120.List .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap1.Scale120.List.HasBrand .MenuHeader { height: 64px; }
+.MenuRoot.MapRotation.VerticalGap1.Scale120.List .BrandGroup { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap1.Scale120.List .HeaderActions { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap1.Scale120.List .BrandMark { width: 28px; height: 28px; }
+.MenuRoot.MapRotation.VerticalGap1.Scale120.List .Brand { font-size: 21px; letter-spacing: 4px; }
+.MenuRoot.MapRotation.VerticalGap1.Scale120.List .Title { height: 28px; font-size: 24px; margin-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap1.Scale120.List .Status { font-size: 21px; }
+.MenuRoot.MapRotation.VerticalGap1.Scale120.Vertical.List .MenuItem { height: 72px; }
+.MenuRoot.MapRotation.VerticalGap1.Scale120.Vertical.List .ItemsViewport { height: 437px; }
+.MenuRoot.MapRotation.VerticalGap1.Scale120.Vertical.List .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap1.Scale120.Vertical.List .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap1.Compact .MenuHeader { margin-bottom: 1px; }
+.MenuRoot.MapRotation.VerticalGap1.Compact .Participation { height: 22px; margin: 0px 0px 1px; }
+.MenuRoot.MapRotation.VerticalGap1.Compact .MenuItem { height: 45px; margin-bottom: 1px; }
+.MenuRoot.MapRotation.VerticalGap1.Compact .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap1.Compact .ItemsViewport { height: 275px; }
+.MenuRoot.MapRotation.VerticalGap1.Compact .ItemText { height: 24px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap1.Compact .Badge { height: 22px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap1.Compact .Footer { height: 26px; padding: 0px; margin-top: 1px; }
+.MenuRoot.MapRotation.VerticalGap1.Result .MenuHeader { margin-bottom: 1px; }
+.MenuRoot.MapRotation.VerticalGap1.Result .Participation { height: 22px; margin: 0px 0px 1px; }
+.MenuRoot.MapRotation.VerticalGap1.Result .MenuItem { height: 236px; }
+.MenuRoot.MapRotation.VerticalGap1.Result .ItemsViewport { height: 236px; }
+.MenuRoot.MapRotation.VerticalGap1.Result .ItemText { padding-top: 9px; padding-bottom: 1px; }
+.MenuRoot.MapRotation.VerticalGap1.Result .ItemName { height: 32px; }
+.MenuRoot.MapRotation.VerticalGap1.Result .ItemDescription { height: 20px; margin-top: 1px; }
+.MenuRoot.MapRotation.VerticalGap1.Result .Badge { height: 29px; padding-bottom: 1px; }
+.MenuRoot.MapRotation.VerticalGap1.Result .Footer { height: 26px; padding: 0px; margin-top: 1px; }
+.MenuRoot.MapRotation.VerticalGap2 .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap2 .MenuHeader { margin-bottom: 2px; }
+.MenuRoot.MapRotation.VerticalGap2 .Subtitle { height: 22px; padding: 0px; margin-bottom: 2px; }
+.MenuRoot.MapRotation.VerticalGap2 .Participation { height: 26px; margin: 0px 0px 2px; }
+.MenuRoot.MapRotation.VerticalGap2 .Footer { height: 26px; padding: 0px; margin-top: 2px; }
+.MenuRoot.MapRotation.VerticalGap2 .Pagination { margin-top: 2px; }
+.MenuRoot.MapRotation.VerticalGap2.Vertical.List .MenuItem { height: 86px; margin-bottom: 2px; }
+.MenuRoot.MapRotation.VerticalGap2.Vertical.List .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap2.Vertical.List .ItemsViewport { height: 526px; }
+.MenuRoot.MapRotation.VerticalGap2.Vertical.List .ItemIcon { height: 84px; }
+.MenuRoot.MapRotation.VerticalGap2.Vertical.List .ItemName { height: 30px; text-overflow: shrink min(20px); }
+.MenuRoot.MapRotation.VerticalGap2.Vertical.List .ItemDescription { height: 18px; font-size: 16px; margin-top: 1px; }
+.MenuRoot.MapRotation.VerticalGap2.Vertical.List.HasSecondRow .MenuItem { height: 72px; margin-bottom: 2px; }
+.MenuRoot.MapRotation.VerticalGap2.Vertical.List.HasSecondRow .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap2.Vertical.List.HasSecondRow .ItemsViewport { height: 442px; }
+.MenuRoot.MapRotation.VerticalGap2.Vertical.List.HasSecondRow .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap2.Vertical.List.HasSecondRow .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap2.Horizontal.List .MenuItem { height: 240px; }
+.MenuRoot.MapRotation.VerticalGap2.Horizontal.List .ItemsViewport { height: 240px; }
+.MenuRoot.MapRotation.VerticalGap2.Horizontal.List.HasSecondRow .ItemsViewport { height: 482px; }
+.MenuRoot.MapRotation.VerticalGap2.Horizontal.List .Row1 { margin-top: 2px; }
+.MenuRoot.MapRotation.VerticalGap2.Horizontal.List .ItemText { padding-top: 9px; padding-bottom: 1px; }
+.MenuRoot.MapRotation.VerticalGap2.Horizontal.List .ItemName { height: 38px; }
+.MenuRoot.MapRotation.VerticalGap2.Horizontal.List .ItemDescription { height: 20px; margin-top: 1px; }
+.MenuRoot.MapRotation.VerticalGap2.Horizontal.List .Badge { height: 29px; padding-bottom: 1px; }
+.MenuRoot.MapRotation.VerticalGap2.Scale120.List .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap2.Scale120.List.HasBrand .MenuHeader { height: 64px; }
+.MenuRoot.MapRotation.VerticalGap2.Scale120.List .BrandGroup { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap2.Scale120.List .HeaderActions { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap2.Scale120.List .BrandMark { width: 28px; height: 28px; }
+.MenuRoot.MapRotation.VerticalGap2.Scale120.List .Brand { font-size: 21px; letter-spacing: 4px; }
+.MenuRoot.MapRotation.VerticalGap2.Scale120.List .Title { height: 28px; font-size: 24px; margin-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap2.Scale120.List .Status { font-size: 21px; }
+.MenuRoot.MapRotation.VerticalGap2.Scale120.Vertical.List .MenuItem { height: 72px; }
+.MenuRoot.MapRotation.VerticalGap2.Scale120.Vertical.List .ItemsViewport { height: 442px; }
+.MenuRoot.MapRotation.VerticalGap2.Scale120.Vertical.List .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap2.Scale120.Vertical.List .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap2.Compact .MenuHeader { margin-bottom: 2px; }
+.MenuRoot.MapRotation.VerticalGap2.Compact .Participation { height: 22px; margin: 0px 0px 2px; }
+.MenuRoot.MapRotation.VerticalGap2.Compact .MenuItem { height: 45px; margin-bottom: 1px; }
+.MenuRoot.MapRotation.VerticalGap2.Compact .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap2.Compact .ItemsViewport { height: 275px; }
+.MenuRoot.MapRotation.VerticalGap2.Compact .ItemText { height: 24px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap2.Compact .Badge { height: 22px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap2.Compact .Footer { height: 26px; padding: 0px; margin-top: 2px; }
+.MenuRoot.MapRotation.VerticalGap2.Result .MenuHeader { margin-bottom: 2px; }
+.MenuRoot.MapRotation.VerticalGap2.Result .Participation { height: 22px; margin: 0px 0px 2px; }
+.MenuRoot.MapRotation.VerticalGap2.Result .MenuItem { height: 238px; }
+.MenuRoot.MapRotation.VerticalGap2.Result .ItemsViewport { height: 238px; }
+.MenuRoot.MapRotation.VerticalGap2.Result .ItemText { padding-top: 9px; padding-bottom: 1px; }
+.MenuRoot.MapRotation.VerticalGap2.Result .ItemName { height: 32px; }
+.MenuRoot.MapRotation.VerticalGap2.Result .ItemDescription { height: 20px; margin-top: 1px; }
+.MenuRoot.MapRotation.VerticalGap2.Result .Badge { height: 29px; padding-bottom: 1px; }
+.MenuRoot.MapRotation.VerticalGap2.Result .Footer { height: 26px; padding: 0px; margin-top: 2px; }
+.MenuRoot.MapRotation.VerticalGap3 .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap3 .MenuHeader { margin-bottom: 3px; }
+.MenuRoot.MapRotation.VerticalGap3 .Subtitle { height: 22px; padding: 0px; margin-bottom: 3px; }
+.MenuRoot.MapRotation.VerticalGap3 .Participation { height: 26px; margin: 0px 0px 3px; }
+.MenuRoot.MapRotation.VerticalGap3 .Footer { height: 26px; padding: 0px; margin-top: 3px; }
+.MenuRoot.MapRotation.VerticalGap3 .Pagination { margin-top: 3px; }
+.MenuRoot.MapRotation.VerticalGap3.Vertical.List .MenuItem { height: 86px; margin-bottom: 3px; }
+.MenuRoot.MapRotation.VerticalGap3.Vertical.List .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap3.Vertical.List .ItemsViewport { height: 531px; }
+.MenuRoot.MapRotation.VerticalGap3.Vertical.List .ItemIcon { height: 84px; }
+.MenuRoot.MapRotation.VerticalGap3.Vertical.List .ItemName { height: 30px; text-overflow: shrink min(20px); }
+.MenuRoot.MapRotation.VerticalGap3.Vertical.List .ItemDescription { height: 18px; font-size: 16px; margin-top: 2px; }
+.MenuRoot.MapRotation.VerticalGap3.Vertical.List.HasSecondRow .MenuItem { height: 72px; margin-bottom: 3px; }
+.MenuRoot.MapRotation.VerticalGap3.Vertical.List.HasSecondRow .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap3.Vertical.List.HasSecondRow .ItemsViewport { height: 447px; }
+.MenuRoot.MapRotation.VerticalGap3.Vertical.List.HasSecondRow .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap3.Vertical.List.HasSecondRow .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap3.Horizontal.List .MenuItem { height: 242px; }
+.MenuRoot.MapRotation.VerticalGap3.Horizontal.List .ItemsViewport { height: 242px; }
+.MenuRoot.MapRotation.VerticalGap3.Horizontal.List.HasSecondRow .ItemsViewport { height: 487px; }
+.MenuRoot.MapRotation.VerticalGap3.Horizontal.List .Row1 { margin-top: 3px; }
+.MenuRoot.MapRotation.VerticalGap3.Horizontal.List .ItemText { padding-top: 10px; padding-bottom: 2px; }
+.MenuRoot.MapRotation.VerticalGap3.Horizontal.List .ItemName { height: 38px; }
+.MenuRoot.MapRotation.VerticalGap3.Horizontal.List .ItemDescription { height: 20px; margin-top: 2px; }
+.MenuRoot.MapRotation.VerticalGap3.Horizontal.List .Badge { height: 30px; padding-bottom: 2px; }
+.MenuRoot.MapRotation.VerticalGap3.Scale120.List .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap3.Scale120.List.HasBrand .MenuHeader { height: 64px; }
+.MenuRoot.MapRotation.VerticalGap3.Scale120.List .BrandGroup { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap3.Scale120.List .HeaderActions { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap3.Scale120.List .BrandMark { width: 28px; height: 28px; }
+.MenuRoot.MapRotation.VerticalGap3.Scale120.List .Brand { font-size: 21px; letter-spacing: 4px; }
+.MenuRoot.MapRotation.VerticalGap3.Scale120.List .Title { height: 28px; font-size: 24px; margin-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap3.Scale120.List .Status { font-size: 21px; }
+.MenuRoot.MapRotation.VerticalGap3.Scale120.Vertical.List .MenuItem { height: 72px; }
+.MenuRoot.MapRotation.VerticalGap3.Scale120.Vertical.List .ItemsViewport { height: 447px; }
+.MenuRoot.MapRotation.VerticalGap3.Scale120.Vertical.List .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap3.Scale120.Vertical.List .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap3.Compact .MenuHeader { margin-bottom: 3px; }
+.MenuRoot.MapRotation.VerticalGap3.Compact .Participation { height: 22px; margin: 0px 0px 3px; }
+.MenuRoot.MapRotation.VerticalGap3.Compact .MenuItem { height: 46px; margin-bottom: 2px; }
+.MenuRoot.MapRotation.VerticalGap3.Compact .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap3.Compact .ItemsViewport { height: 286px; }
+.MenuRoot.MapRotation.VerticalGap3.Compact .ItemText { height: 24px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap3.Compact .Badge { height: 22px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap3.Compact .Footer { height: 26px; padding: 0px; margin-top: 3px; }
+.MenuRoot.MapRotation.VerticalGap3.Result .MenuHeader { margin-bottom: 3px; }
+.MenuRoot.MapRotation.VerticalGap3.Result .Participation { height: 22px; margin: 0px 0px 3px; }
+.MenuRoot.MapRotation.VerticalGap3.Result .MenuItem { height: 240px; }
+.MenuRoot.MapRotation.VerticalGap3.Result .ItemsViewport { height: 240px; }
+.MenuRoot.MapRotation.VerticalGap3.Result .ItemText { padding-top: 10px; padding-bottom: 2px; }
+.MenuRoot.MapRotation.VerticalGap3.Result .ItemName { height: 32px; }
+.MenuRoot.MapRotation.VerticalGap3.Result .ItemDescription { height: 20px; margin-top: 2px; }
+.MenuRoot.MapRotation.VerticalGap3.Result .Badge { height: 30px; padding-bottom: 2px; }
+.MenuRoot.MapRotation.VerticalGap3.Result .Footer { height: 26px; padding: 0px; margin-top: 3px; }
+.MenuRoot.MapRotation.VerticalGap4 .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap4 .MenuHeader { margin-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap4 .Subtitle { height: 22px; padding: 0px; margin-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap4 .Participation { height: 26px; margin: 0px 0px 4px; }
+.MenuRoot.MapRotation.VerticalGap4 .Footer { height: 26px; padding: 0px; margin-top: 4px; }
+.MenuRoot.MapRotation.VerticalGap4 .Pagination { margin-top: 4px; }
+.MenuRoot.MapRotation.VerticalGap4.Vertical.List .MenuItem { height: 86px; margin-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap4.Vertical.List .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap4.Vertical.List .ItemsViewport { height: 536px; }
+.MenuRoot.MapRotation.VerticalGap4.Vertical.List .ItemIcon { height: 84px; }
+.MenuRoot.MapRotation.VerticalGap4.Vertical.List .ItemName { height: 30px; text-overflow: shrink min(20px); }
+.MenuRoot.MapRotation.VerticalGap4.Vertical.List .ItemDescription { height: 18px; font-size: 16px; margin-top: 2px; }
+.MenuRoot.MapRotation.VerticalGap4.Vertical.List.HasSecondRow .MenuItem { height: 72px; margin-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap4.Vertical.List.HasSecondRow .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap4.Vertical.List.HasSecondRow .ItemsViewport { height: 452px; }
+.MenuRoot.MapRotation.VerticalGap4.Vertical.List.HasSecondRow .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap4.Vertical.List.HasSecondRow .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap4.Horizontal.List .MenuItem { height: 244px; }
+.MenuRoot.MapRotation.VerticalGap4.Horizontal.List .ItemsViewport { height: 244px; }
+.MenuRoot.MapRotation.VerticalGap4.Horizontal.List.HasSecondRow .ItemsViewport { height: 492px; }
+.MenuRoot.MapRotation.VerticalGap4.Horizontal.List .Row1 { margin-top: 4px; }
+.MenuRoot.MapRotation.VerticalGap4.Horizontal.List .ItemText { padding-top: 10px; padding-bottom: 2px; }
+.MenuRoot.MapRotation.VerticalGap4.Horizontal.List .ItemName { height: 38px; }
+.MenuRoot.MapRotation.VerticalGap4.Horizontal.List .ItemDescription { height: 20px; margin-top: 2px; }
+.MenuRoot.MapRotation.VerticalGap4.Horizontal.List .Badge { height: 30px; padding-bottom: 2px; }
+.MenuRoot.MapRotation.VerticalGap4.Scale120.List .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap4.Scale120.List.HasBrand .MenuHeader { height: 64px; }
+.MenuRoot.MapRotation.VerticalGap4.Scale120.List .BrandGroup { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap4.Scale120.List .HeaderActions { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap4.Scale120.List .BrandMark { width: 28px; height: 28px; }
+.MenuRoot.MapRotation.VerticalGap4.Scale120.List .Brand { font-size: 21px; letter-spacing: 4px; }
+.MenuRoot.MapRotation.VerticalGap4.Scale120.List .Title { height: 28px; font-size: 24px; margin-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap4.Scale120.List .Status { font-size: 21px; }
+.MenuRoot.MapRotation.VerticalGap4.Scale120.Vertical.List .MenuItem { height: 72px; }
+.MenuRoot.MapRotation.VerticalGap4.Scale120.Vertical.List .ItemsViewport { height: 452px; }
+.MenuRoot.MapRotation.VerticalGap4.Scale120.Vertical.List .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap4.Scale120.Vertical.List .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap4.Compact .MenuHeader { margin-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap4.Compact .Participation { height: 22px; margin: 0px 0px 4px; }
+.MenuRoot.MapRotation.VerticalGap4.Compact .MenuItem { height: 46px; margin-bottom: 2px; }
+.MenuRoot.MapRotation.VerticalGap4.Compact .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap4.Compact .ItemsViewport { height: 286px; }
+.MenuRoot.MapRotation.VerticalGap4.Compact .ItemText { height: 24px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap4.Compact .Badge { height: 22px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap4.Compact .Footer { height: 26px; padding: 0px; margin-top: 4px; }
+.MenuRoot.MapRotation.VerticalGap4.Result .MenuHeader { margin-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap4.Result .Participation { height: 22px; margin: 0px 0px 4px; }
+.MenuRoot.MapRotation.VerticalGap4.Result .MenuItem { height: 242px; }
+.MenuRoot.MapRotation.VerticalGap4.Result .ItemsViewport { height: 242px; }
+.MenuRoot.MapRotation.VerticalGap4.Result .ItemText { padding-top: 10px; padding-bottom: 2px; }
+.MenuRoot.MapRotation.VerticalGap4.Result .ItemName { height: 32px; }
+.MenuRoot.MapRotation.VerticalGap4.Result .ItemDescription { height: 20px; margin-top: 2px; }
+.MenuRoot.MapRotation.VerticalGap4.Result .Badge { height: 30px; padding-bottom: 2px; }
+.MenuRoot.MapRotation.VerticalGap4.Result .Footer { height: 26px; padding: 0px; margin-top: 4px; }
+.MenuRoot.MapRotation.VerticalGap5 .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap5 .MenuHeader { margin-bottom: 5px; }
+.MenuRoot.MapRotation.VerticalGap5 .Subtitle { height: 22px; padding: 0px; margin-bottom: 5px; }
+.MenuRoot.MapRotation.VerticalGap5 .Participation { height: 26px; margin: 0px 0px 5px; }
+.MenuRoot.MapRotation.VerticalGap5 .Footer { height: 26px; padding: 0px; margin-top: 5px; }
+.MenuRoot.MapRotation.VerticalGap5 .Pagination { margin-top: 5px; }
+.MenuRoot.MapRotation.VerticalGap5.Vertical.List .MenuItem { height: 86px; margin-bottom: 5px; }
+.MenuRoot.MapRotation.VerticalGap5.Vertical.List .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap5.Vertical.List .ItemsViewport { height: 541px; }
+.MenuRoot.MapRotation.VerticalGap5.Vertical.List .ItemIcon { height: 84px; }
+.MenuRoot.MapRotation.VerticalGap5.Vertical.List .ItemName { height: 30px; text-overflow: shrink min(20px); }
+.MenuRoot.MapRotation.VerticalGap5.Vertical.List .ItemDescription { height: 18px; font-size: 16px; margin-top: 3px; }
+.MenuRoot.MapRotation.VerticalGap5.Vertical.List.HasSecondRow .MenuItem { height: 72px; margin-bottom: 5px; }
+.MenuRoot.MapRotation.VerticalGap5.Vertical.List.HasSecondRow .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap5.Vertical.List.HasSecondRow .ItemsViewport { height: 457px; }
+.MenuRoot.MapRotation.VerticalGap5.Vertical.List.HasSecondRow .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap5.Vertical.List.HasSecondRow .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap5.Horizontal.List .MenuItem { height: 246px; }
+.MenuRoot.MapRotation.VerticalGap5.Horizontal.List .ItemsViewport { height: 246px; }
+.MenuRoot.MapRotation.VerticalGap5.Horizontal.List.HasSecondRow .ItemsViewport { height: 497px; }
+.MenuRoot.MapRotation.VerticalGap5.Horizontal.List .Row1 { margin-top: 5px; }
+.MenuRoot.MapRotation.VerticalGap5.Horizontal.List .ItemText { padding-top: 11px; padding-bottom: 3px; }
+.MenuRoot.MapRotation.VerticalGap5.Horizontal.List .ItemName { height: 38px; }
+.MenuRoot.MapRotation.VerticalGap5.Horizontal.List .ItemDescription { height: 20px; margin-top: 3px; }
+.MenuRoot.MapRotation.VerticalGap5.Horizontal.List .Badge { height: 31px; padding-bottom: 3px; }
+.MenuRoot.MapRotation.VerticalGap5.Scale120.List .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap5.Scale120.List.HasBrand .MenuHeader { height: 64px; }
+.MenuRoot.MapRotation.VerticalGap5.Scale120.List .BrandGroup { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap5.Scale120.List .HeaderActions { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap5.Scale120.List .BrandMark { width: 28px; height: 28px; }
+.MenuRoot.MapRotation.VerticalGap5.Scale120.List .Brand { font-size: 21px; letter-spacing: 4px; }
+.MenuRoot.MapRotation.VerticalGap5.Scale120.List .Title { height: 28px; font-size: 24px; margin-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap5.Scale120.List .Status { font-size: 21px; }
+.MenuRoot.MapRotation.VerticalGap5.Scale120.Vertical.List .MenuItem { height: 72px; }
+.MenuRoot.MapRotation.VerticalGap5.Scale120.Vertical.List .ItemsViewport { height: 457px; }
+.MenuRoot.MapRotation.VerticalGap5.Scale120.Vertical.List .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap5.Scale120.Vertical.List .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap5.Compact .MenuHeader { margin-bottom: 5px; }
+.MenuRoot.MapRotation.VerticalGap5.Compact .Participation { height: 22px; margin: 0px 0px 5px; }
+.MenuRoot.MapRotation.VerticalGap5.Compact .MenuItem { height: 47px; margin-bottom: 3px; }
+.MenuRoot.MapRotation.VerticalGap5.Compact .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap5.Compact .ItemsViewport { height: 297px; }
+.MenuRoot.MapRotation.VerticalGap5.Compact .ItemText { height: 24px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap5.Compact .Badge { height: 22px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap5.Compact .Footer { height: 26px; padding: 0px; margin-top: 5px; }
+.MenuRoot.MapRotation.VerticalGap5.Result .MenuHeader { margin-bottom: 5px; }
+.MenuRoot.MapRotation.VerticalGap5.Result .Participation { height: 22px; margin: 0px 0px 5px; }
+.MenuRoot.MapRotation.VerticalGap5.Result .MenuItem { height: 244px; }
+.MenuRoot.MapRotation.VerticalGap5.Result .ItemsViewport { height: 244px; }
+.MenuRoot.MapRotation.VerticalGap5.Result .ItemText { padding-top: 11px; padding-bottom: 3px; }
+.MenuRoot.MapRotation.VerticalGap5.Result .ItemName { height: 32px; }
+.MenuRoot.MapRotation.VerticalGap5.Result .ItemDescription { height: 20px; margin-top: 3px; }
+.MenuRoot.MapRotation.VerticalGap5.Result .Badge { height: 31px; padding-bottom: 3px; }
+.MenuRoot.MapRotation.VerticalGap5.Result .Footer { height: 26px; padding: 0px; margin-top: 5px; }
+.MenuRoot.MapRotation.VerticalGap6 .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap6 .MenuHeader { margin-bottom: 6px; }
+.MenuRoot.MapRotation.VerticalGap6 .Subtitle { height: 22px; padding: 0px; margin-bottom: 6px; }
+.MenuRoot.MapRotation.VerticalGap6 .Participation { height: 26px; margin: 0px 0px 6px; }
+.MenuRoot.MapRotation.VerticalGap6 .Footer { height: 26px; padding: 0px; margin-top: 6px; }
+.MenuRoot.MapRotation.VerticalGap6 .Pagination { margin-top: 6px; }
+.MenuRoot.MapRotation.VerticalGap6.Vertical.List .MenuItem { height: 86px; margin-bottom: 6px; }
+.MenuRoot.MapRotation.VerticalGap6.Vertical.List .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap6.Vertical.List .ItemsViewport { height: 546px; }
+.MenuRoot.MapRotation.VerticalGap6.Vertical.List .ItemIcon { height: 84px; }
+.MenuRoot.MapRotation.VerticalGap6.Vertical.List .ItemName { height: 30px; text-overflow: shrink min(20px); }
+.MenuRoot.MapRotation.VerticalGap6.Vertical.List .ItemDescription { height: 18px; font-size: 16px; margin-top: 3px; }
+.MenuRoot.MapRotation.VerticalGap6.Vertical.List.HasSecondRow .MenuItem { height: 72px; margin-bottom: 6px; }
+.MenuRoot.MapRotation.VerticalGap6.Vertical.List.HasSecondRow .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap6.Vertical.List.HasSecondRow .ItemsViewport { height: 462px; }
+.MenuRoot.MapRotation.VerticalGap6.Vertical.List.HasSecondRow .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap6.Vertical.List.HasSecondRow .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap6.Horizontal.List .MenuItem { height: 248px; }
+.MenuRoot.MapRotation.VerticalGap6.Horizontal.List .ItemsViewport { height: 248px; }
+.MenuRoot.MapRotation.VerticalGap6.Horizontal.List.HasSecondRow .ItemsViewport { height: 502px; }
+.MenuRoot.MapRotation.VerticalGap6.Horizontal.List .Row1 { margin-top: 6px; }
+.MenuRoot.MapRotation.VerticalGap6.Horizontal.List .ItemText { padding-top: 11px; padding-bottom: 3px; }
+.MenuRoot.MapRotation.VerticalGap6.Horizontal.List .ItemName { height: 38px; }
+.MenuRoot.MapRotation.VerticalGap6.Horizontal.List .ItemDescription { height: 20px; margin-top: 3px; }
+.MenuRoot.MapRotation.VerticalGap6.Horizontal.List .Badge { height: 31px; padding-bottom: 3px; }
+.MenuRoot.MapRotation.VerticalGap6.Scale120.List .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap6.Scale120.List.HasBrand .MenuHeader { height: 64px; }
+.MenuRoot.MapRotation.VerticalGap6.Scale120.List .BrandGroup { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap6.Scale120.List .HeaderActions { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap6.Scale120.List .BrandMark { width: 28px; height: 28px; }
+.MenuRoot.MapRotation.VerticalGap6.Scale120.List .Brand { font-size: 21px; letter-spacing: 4px; }
+.MenuRoot.MapRotation.VerticalGap6.Scale120.List .Title { height: 28px; font-size: 24px; margin-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap6.Scale120.List .Status { font-size: 21px; }
+.MenuRoot.MapRotation.VerticalGap6.Scale120.Vertical.List .MenuItem { height: 72px; }
+.MenuRoot.MapRotation.VerticalGap6.Scale120.Vertical.List .ItemsViewport { height: 462px; }
+.MenuRoot.MapRotation.VerticalGap6.Scale120.Vertical.List .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap6.Scale120.Vertical.List .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap6.Compact .MenuHeader { margin-bottom: 6px; }
+.MenuRoot.MapRotation.VerticalGap6.Compact .Participation { height: 22px; margin: 0px 0px 6px; }
+.MenuRoot.MapRotation.VerticalGap6.Compact .MenuItem { height: 47px; margin-bottom: 3px; }
+.MenuRoot.MapRotation.VerticalGap6.Compact .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap6.Compact .ItemsViewport { height: 297px; }
+.MenuRoot.MapRotation.VerticalGap6.Compact .ItemText { height: 24px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap6.Compact .Badge { height: 22px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap6.Compact .Footer { height: 26px; padding: 0px; margin-top: 6px; }
+.MenuRoot.MapRotation.VerticalGap6.Result .MenuHeader { margin-bottom: 6px; }
+.MenuRoot.MapRotation.VerticalGap6.Result .Participation { height: 22px; margin: 0px 0px 6px; }
+.MenuRoot.MapRotation.VerticalGap6.Result .MenuItem { height: 246px; }
+.MenuRoot.MapRotation.VerticalGap6.Result .ItemsViewport { height: 246px; }
+.MenuRoot.MapRotation.VerticalGap6.Result .ItemText { padding-top: 11px; padding-bottom: 3px; }
+.MenuRoot.MapRotation.VerticalGap6.Result .ItemName { height: 32px; }
+.MenuRoot.MapRotation.VerticalGap6.Result .ItemDescription { height: 20px; margin-top: 3px; }
+.MenuRoot.MapRotation.VerticalGap6.Result .Badge { height: 31px; padding-bottom: 3px; }
+.MenuRoot.MapRotation.VerticalGap6.Result .Footer { height: 26px; padding: 0px; margin-top: 6px; }
+.MenuRoot.MapRotation.VerticalGap7 .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap7 .MenuHeader { margin-bottom: 7px; }
+.MenuRoot.MapRotation.VerticalGap7 .Subtitle { height: 22px; padding: 0px; margin-bottom: 7px; }
+.MenuRoot.MapRotation.VerticalGap7 .Participation { height: 26px; margin: 0px 0px 7px; }
+.MenuRoot.MapRotation.VerticalGap7 .Footer { height: 26px; padding: 0px; margin-top: 7px; }
+.MenuRoot.MapRotation.VerticalGap7 .Pagination { margin-top: 7px; }
+.MenuRoot.MapRotation.VerticalGap7.Vertical.List .MenuItem { height: 86px; margin-bottom: 7px; }
+.MenuRoot.MapRotation.VerticalGap7.Vertical.List .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap7.Vertical.List .ItemsViewport { height: 551px; }
+.MenuRoot.MapRotation.VerticalGap7.Vertical.List .ItemIcon { height: 84px; }
+.MenuRoot.MapRotation.VerticalGap7.Vertical.List .ItemName { height: 30px; text-overflow: shrink min(20px); }
+.MenuRoot.MapRotation.VerticalGap7.Vertical.List .ItemDescription { height: 18px; font-size: 16px; margin-top: 4px; }
+.MenuRoot.MapRotation.VerticalGap7.Vertical.List.HasSecondRow .MenuItem { height: 72px; margin-bottom: 7px; }
+.MenuRoot.MapRotation.VerticalGap7.Vertical.List.HasSecondRow .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap7.Vertical.List.HasSecondRow .ItemsViewport { height: 467px; }
+.MenuRoot.MapRotation.VerticalGap7.Vertical.List.HasSecondRow .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap7.Vertical.List.HasSecondRow .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap7.Horizontal.List .MenuItem { height: 250px; }
+.MenuRoot.MapRotation.VerticalGap7.Horizontal.List .ItemsViewport { height: 250px; }
+.MenuRoot.MapRotation.VerticalGap7.Horizontal.List.HasSecondRow .ItemsViewport { height: 507px; }
+.MenuRoot.MapRotation.VerticalGap7.Horizontal.List .Row1 { margin-top: 7px; }
+.MenuRoot.MapRotation.VerticalGap7.Horizontal.List .ItemText { padding-top: 12px; padding-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap7.Horizontal.List .ItemName { height: 38px; }
+.MenuRoot.MapRotation.VerticalGap7.Horizontal.List .ItemDescription { height: 20px; margin-top: 4px; }
+.MenuRoot.MapRotation.VerticalGap7.Horizontal.List .Badge { height: 32px; padding-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap7.Scale120.List .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap7.Scale120.List.HasBrand .MenuHeader { height: 64px; }
+.MenuRoot.MapRotation.VerticalGap7.Scale120.List .BrandGroup { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap7.Scale120.List .HeaderActions { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap7.Scale120.List .BrandMark { width: 28px; height: 28px; }
+.MenuRoot.MapRotation.VerticalGap7.Scale120.List .Brand { font-size: 21px; letter-spacing: 4px; }
+.MenuRoot.MapRotation.VerticalGap7.Scale120.List .Title { height: 28px; font-size: 24px; margin-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap7.Scale120.List .Status { font-size: 21px; }
+.MenuRoot.MapRotation.VerticalGap7.Scale120.Vertical.List .MenuItem { height: 72px; }
+.MenuRoot.MapRotation.VerticalGap7.Scale120.Vertical.List .ItemsViewport { height: 467px; }
+.MenuRoot.MapRotation.VerticalGap7.Scale120.Vertical.List .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap7.Scale120.Vertical.List .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap7.Compact .MenuHeader { margin-bottom: 7px; }
+.MenuRoot.MapRotation.VerticalGap7.Compact .Participation { height: 22px; margin: 0px 0px 7px; }
+.MenuRoot.MapRotation.VerticalGap7.Compact .MenuItem { height: 48px; margin-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap7.Compact .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap7.Compact .ItemsViewport { height: 308px; }
+.MenuRoot.MapRotation.VerticalGap7.Compact .ItemText { height: 24px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap7.Compact .Badge { height: 22px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap7.Compact .Footer { height: 26px; padding: 0px; margin-top: 7px; }
+.MenuRoot.MapRotation.VerticalGap7.Result .MenuHeader { margin-bottom: 7px; }
+.MenuRoot.MapRotation.VerticalGap7.Result .Participation { height: 22px; margin: 0px 0px 7px; }
+.MenuRoot.MapRotation.VerticalGap7.Result .MenuItem { height: 248px; }
+.MenuRoot.MapRotation.VerticalGap7.Result .ItemsViewport { height: 248px; }
+.MenuRoot.MapRotation.VerticalGap7.Result .ItemText { padding-top: 12px; padding-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap7.Result .ItemName { height: 32px; }
+.MenuRoot.MapRotation.VerticalGap7.Result .ItemDescription { height: 20px; margin-top: 4px; }
+.MenuRoot.MapRotation.VerticalGap7.Result .Badge { height: 32px; padding-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap7.Result .Footer { height: 26px; padding: 0px; margin-top: 7px; }
+.MenuRoot.MapRotation.VerticalGap8 .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap8 .MenuHeader { margin-bottom: 8px; }
+.MenuRoot.MapRotation.VerticalGap8 .Subtitle { height: 22px; padding: 0px; margin-bottom: 8px; }
+.MenuRoot.MapRotation.VerticalGap8 .Participation { height: 26px; margin: 0px 0px 8px; }
+.MenuRoot.MapRotation.VerticalGap8 .Footer { height: 26px; padding: 0px; margin-top: 8px; }
+.MenuRoot.MapRotation.VerticalGap8 .Pagination { margin-top: 8px; }
+.MenuRoot.MapRotation.VerticalGap8.Vertical.List .MenuItem { height: 86px; margin-bottom: 8px; }
+.MenuRoot.MapRotation.VerticalGap8.Vertical.List .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap8.Vertical.List .ItemsViewport { height: 556px; }
+.MenuRoot.MapRotation.VerticalGap8.Vertical.List .ItemIcon { height: 84px; }
+.MenuRoot.MapRotation.VerticalGap8.Vertical.List .ItemName { height: 30px; text-overflow: shrink min(20px); }
+.MenuRoot.MapRotation.VerticalGap8.Vertical.List .ItemDescription { height: 18px; font-size: 16px; margin-top: 4px; }
+.MenuRoot.MapRotation.VerticalGap8.Vertical.List.HasSecondRow .MenuItem { height: 72px; margin-bottom: 8px; }
+.MenuRoot.MapRotation.VerticalGap8.Vertical.List.HasSecondRow .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap8.Vertical.List.HasSecondRow .ItemsViewport { height: 472px; }
+.MenuRoot.MapRotation.VerticalGap8.Vertical.List.HasSecondRow .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap8.Vertical.List.HasSecondRow .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap8.Horizontal.List .MenuItem { height: 252px; }
+.MenuRoot.MapRotation.VerticalGap8.Horizontal.List .ItemsViewport { height: 252px; }
+.MenuRoot.MapRotation.VerticalGap8.Horizontal.List.HasSecondRow .ItemsViewport { height: 512px; }
+.MenuRoot.MapRotation.VerticalGap8.Horizontal.List .Row1 { margin-top: 8px; }
+.MenuRoot.MapRotation.VerticalGap8.Horizontal.List .ItemText { padding-top: 12px; padding-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap8.Horizontal.List .ItemName { height: 38px; }
+.MenuRoot.MapRotation.VerticalGap8.Horizontal.List .ItemDescription { height: 20px; margin-top: 4px; }
+.MenuRoot.MapRotation.VerticalGap8.Horizontal.List .Badge { height: 32px; padding-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap8.Scale120.List .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap8.Scale120.List.HasBrand .MenuHeader { height: 64px; }
+.MenuRoot.MapRotation.VerticalGap8.Scale120.List .BrandGroup { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap8.Scale120.List .HeaderActions { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap8.Scale120.List .BrandMark { width: 28px; height: 28px; }
+.MenuRoot.MapRotation.VerticalGap8.Scale120.List .Brand { font-size: 21px; letter-spacing: 4px; }
+.MenuRoot.MapRotation.VerticalGap8.Scale120.List .Title { height: 28px; font-size: 24px; margin-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap8.Scale120.List .Status { font-size: 21px; }
+.MenuRoot.MapRotation.VerticalGap8.Scale120.Vertical.List .MenuItem { height: 72px; }
+.MenuRoot.MapRotation.VerticalGap8.Scale120.Vertical.List .ItemsViewport { height: 472px; }
+.MenuRoot.MapRotation.VerticalGap8.Scale120.Vertical.List .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap8.Scale120.Vertical.List .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap8.Compact .MenuHeader { margin-bottom: 8px; }
+.MenuRoot.MapRotation.VerticalGap8.Compact .Participation { height: 22px; margin: 0px 0px 8px; }
+.MenuRoot.MapRotation.VerticalGap8.Compact .MenuItem { height: 48px; margin-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap8.Compact .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap8.Compact .ItemsViewport { height: 308px; }
+.MenuRoot.MapRotation.VerticalGap8.Compact .ItemText { height: 24px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap8.Compact .Badge { height: 22px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap8.Compact .Footer { height: 26px; padding: 0px; margin-top: 8px; }
+.MenuRoot.MapRotation.VerticalGap8.Result .MenuHeader { margin-bottom: 8px; }
+.MenuRoot.MapRotation.VerticalGap8.Result .Participation { height: 22px; margin: 0px 0px 8px; }
+.MenuRoot.MapRotation.VerticalGap8.Result .MenuItem { height: 250px; }
+.MenuRoot.MapRotation.VerticalGap8.Result .ItemsViewport { height: 250px; }
+.MenuRoot.MapRotation.VerticalGap8.Result .ItemText { padding-top: 12px; padding-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap8.Result .ItemName { height: 32px; }
+.MenuRoot.MapRotation.VerticalGap8.Result .ItemDescription { height: 20px; margin-top: 4px; }
+.MenuRoot.MapRotation.VerticalGap8.Result .Badge { height: 32px; padding-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap8.Result .Footer { height: 26px; padding: 0px; margin-top: 8px; }
+.MenuRoot.MapRotation.VerticalGap9 .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap9 .MenuHeader { margin-bottom: 9px; }
+.MenuRoot.MapRotation.VerticalGap9 .Subtitle { height: 22px; padding: 0px; margin-bottom: 9px; }
+.MenuRoot.MapRotation.VerticalGap9 .Participation { height: 26px; margin: 0px 0px 9px; }
+.MenuRoot.MapRotation.VerticalGap9 .Footer { height: 26px; padding: 0px; margin-top: 9px; }
+.MenuRoot.MapRotation.VerticalGap9 .Pagination { margin-top: 9px; }
+.MenuRoot.MapRotation.VerticalGap9.Vertical.List .MenuItem { height: 86px; margin-bottom: 9px; }
+.MenuRoot.MapRotation.VerticalGap9.Vertical.List .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap9.Vertical.List .ItemsViewport { height: 561px; }
+.MenuRoot.MapRotation.VerticalGap9.Vertical.List .ItemIcon { height: 84px; }
+.MenuRoot.MapRotation.VerticalGap9.Vertical.List .ItemName { height: 30px; text-overflow: shrink min(20px); }
+.MenuRoot.MapRotation.VerticalGap9.Vertical.List .ItemDescription { height: 18px; font-size: 16px; margin-top: 5px; }
+.MenuRoot.MapRotation.VerticalGap9.Vertical.List.HasSecondRow .MenuItem { height: 72px; margin-bottom: 9px; }
+.MenuRoot.MapRotation.VerticalGap9.Vertical.List.HasSecondRow .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap9.Vertical.List.HasSecondRow .ItemsViewport { height: 477px; }
+.MenuRoot.MapRotation.VerticalGap9.Vertical.List.HasSecondRow .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap9.Vertical.List.HasSecondRow .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap9.Horizontal.List .MenuItem { height: 254px; }
+.MenuRoot.MapRotation.VerticalGap9.Horizontal.List .ItemsViewport { height: 254px; }
+.MenuRoot.MapRotation.VerticalGap9.Horizontal.List.HasSecondRow .ItemsViewport { height: 517px; }
+.MenuRoot.MapRotation.VerticalGap9.Horizontal.List .Row1 { margin-top: 9px; }
+.MenuRoot.MapRotation.VerticalGap9.Horizontal.List .ItemText { padding-top: 13px; padding-bottom: 5px; }
+.MenuRoot.MapRotation.VerticalGap9.Horizontal.List .ItemName { height: 38px; }
+.MenuRoot.MapRotation.VerticalGap9.Horizontal.List .ItemDescription { height: 20px; margin-top: 5px; }
+.MenuRoot.MapRotation.VerticalGap9.Horizontal.List .Badge { height: 33px; padding-bottom: 5px; }
+.MenuRoot.MapRotation.VerticalGap9.Scale120.List .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap9.Scale120.List.HasBrand .MenuHeader { height: 64px; }
+.MenuRoot.MapRotation.VerticalGap9.Scale120.List .BrandGroup { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap9.Scale120.List .HeaderActions { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap9.Scale120.List .BrandMark { width: 28px; height: 28px; }
+.MenuRoot.MapRotation.VerticalGap9.Scale120.List .Brand { font-size: 21px; letter-spacing: 4px; }
+.MenuRoot.MapRotation.VerticalGap9.Scale120.List .Title { height: 28px; font-size: 24px; margin-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap9.Scale120.List .Status { font-size: 21px; }
+.MenuRoot.MapRotation.VerticalGap9.Scale120.Vertical.List .MenuItem { height: 72px; }
+.MenuRoot.MapRotation.VerticalGap9.Scale120.Vertical.List .ItemsViewport { height: 477px; }
+.MenuRoot.MapRotation.VerticalGap9.Scale120.Vertical.List .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap9.Scale120.Vertical.List .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap9.Compact .MenuHeader { margin-bottom: 9px; }
+.MenuRoot.MapRotation.VerticalGap9.Compact .Participation { height: 22px; margin: 0px 0px 9px; }
+.MenuRoot.MapRotation.VerticalGap9.Compact .MenuItem { height: 49px; margin-bottom: 5px; }
+.MenuRoot.MapRotation.VerticalGap9.Compact .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap9.Compact .ItemsViewport { height: 319px; }
+.MenuRoot.MapRotation.VerticalGap9.Compact .ItemText { height: 24px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap9.Compact .Badge { height: 22px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap9.Compact .Footer { height: 26px; padding: 0px; margin-top: 9px; }
+.MenuRoot.MapRotation.VerticalGap9.Result .MenuHeader { margin-bottom: 9px; }
+.MenuRoot.MapRotation.VerticalGap9.Result .Participation { height: 22px; margin: 0px 0px 9px; }
+.MenuRoot.MapRotation.VerticalGap9.Result .MenuItem { height: 252px; }
+.MenuRoot.MapRotation.VerticalGap9.Result .ItemsViewport { height: 252px; }
+.MenuRoot.MapRotation.VerticalGap9.Result .ItemText { padding-top: 13px; padding-bottom: 5px; }
+.MenuRoot.MapRotation.VerticalGap9.Result .ItemName { height: 32px; }
+.MenuRoot.MapRotation.VerticalGap9.Result .ItemDescription { height: 20px; margin-top: 5px; }
+.MenuRoot.MapRotation.VerticalGap9.Result .Badge { height: 33px; padding-bottom: 5px; }
+.MenuRoot.MapRotation.VerticalGap9.Result .Footer { height: 26px; padding: 0px; margin-top: 9px; }
+.MenuRoot.MapRotation.VerticalGap10 .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap10 .MenuHeader { margin-bottom: 10px; }
+.MenuRoot.MapRotation.VerticalGap10 .Subtitle { height: 22px; padding: 0px; margin-bottom: 10px; }
+.MenuRoot.MapRotation.VerticalGap10 .Participation { height: 26px; margin: 0px 0px 10px; }
+.MenuRoot.MapRotation.VerticalGap10 .Footer { height: 26px; padding: 0px; margin-top: 10px; }
+.MenuRoot.MapRotation.VerticalGap10 .Pagination { margin-top: 10px; }
+.MenuRoot.MapRotation.VerticalGap10.Vertical.List .MenuItem { height: 86px; margin-bottom: 10px; }
+.MenuRoot.MapRotation.VerticalGap10.Vertical.List .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap10.Vertical.List .ItemsViewport { height: 566px; }
+.MenuRoot.MapRotation.VerticalGap10.Vertical.List .ItemIcon { height: 84px; }
+.MenuRoot.MapRotation.VerticalGap10.Vertical.List .ItemName { height: 30px; text-overflow: shrink min(20px); }
+.MenuRoot.MapRotation.VerticalGap10.Vertical.List .ItemDescription { height: 18px; font-size: 16px; margin-top: 5px; }
+.MenuRoot.MapRotation.VerticalGap10.Vertical.List.HasSecondRow .MenuItem { height: 72px; margin-bottom: 10px; }
+.MenuRoot.MapRotation.VerticalGap10.Vertical.List.HasSecondRow .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap10.Vertical.List.HasSecondRow .ItemsViewport { height: 482px; }
+.MenuRoot.MapRotation.VerticalGap10.Vertical.List.HasSecondRow .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap10.Vertical.List.HasSecondRow .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap10.Horizontal.List .MenuItem { height: 256px; }
+.MenuRoot.MapRotation.VerticalGap10.Horizontal.List .ItemsViewport { height: 256px; }
+.MenuRoot.MapRotation.VerticalGap10.Horizontal.List.HasSecondRow .ItemsViewport { height: 522px; }
+.MenuRoot.MapRotation.VerticalGap10.Horizontal.List .Row1 { margin-top: 10px; }
+.MenuRoot.MapRotation.VerticalGap10.Horizontal.List .ItemText { padding-top: 13px; padding-bottom: 5px; }
+.MenuRoot.MapRotation.VerticalGap10.Horizontal.List .ItemName { height: 38px; }
+.MenuRoot.MapRotation.VerticalGap10.Horizontal.List .ItemDescription { height: 20px; margin-top: 5px; }
+.MenuRoot.MapRotation.VerticalGap10.Horizontal.List .Badge { height: 33px; padding-bottom: 5px; }
+.MenuRoot.MapRotation.VerticalGap10.Scale120.List .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap10.Scale120.List.HasBrand .MenuHeader { height: 64px; }
+.MenuRoot.MapRotation.VerticalGap10.Scale120.List .BrandGroup { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap10.Scale120.List .HeaderActions { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap10.Scale120.List .BrandMark { width: 28px; height: 28px; }
+.MenuRoot.MapRotation.VerticalGap10.Scale120.List .Brand { font-size: 21px; letter-spacing: 4px; }
+.MenuRoot.MapRotation.VerticalGap10.Scale120.List .Title { height: 28px; font-size: 24px; margin-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap10.Scale120.List .Status { font-size: 21px; }
+.MenuRoot.MapRotation.VerticalGap10.Scale120.Vertical.List .MenuItem { height: 72px; }
+.MenuRoot.MapRotation.VerticalGap10.Scale120.Vertical.List .ItemsViewport { height: 482px; }
+.MenuRoot.MapRotation.VerticalGap10.Scale120.Vertical.List .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap10.Scale120.Vertical.List .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap10.Compact .MenuHeader { margin-bottom: 10px; }
+.MenuRoot.MapRotation.VerticalGap10.Compact .Participation { height: 22px; margin: 0px 0px 10px; }
+.MenuRoot.MapRotation.VerticalGap10.Compact .MenuItem { height: 49px; margin-bottom: 5px; }
+.MenuRoot.MapRotation.VerticalGap10.Compact .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap10.Compact .ItemsViewport { height: 319px; }
+.MenuRoot.MapRotation.VerticalGap10.Compact .ItemText { height: 24px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap10.Compact .Badge { height: 22px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap10.Compact .Footer { height: 26px; padding: 0px; margin-top: 10px; }
+.MenuRoot.MapRotation.VerticalGap10.Result .MenuHeader { margin-bottom: 10px; }
+.MenuRoot.MapRotation.VerticalGap10.Result .Participation { height: 22px; margin: 0px 0px 10px; }
+.MenuRoot.MapRotation.VerticalGap10.Result .MenuItem { height: 254px; }
+.MenuRoot.MapRotation.VerticalGap10.Result .ItemsViewport { height: 254px; }
+.MenuRoot.MapRotation.VerticalGap10.Result .ItemText { padding-top: 13px; padding-bottom: 5px; }
+.MenuRoot.MapRotation.VerticalGap10.Result .ItemName { height: 32px; }
+.MenuRoot.MapRotation.VerticalGap10.Result .ItemDescription { height: 20px; margin-top: 5px; }
+.MenuRoot.MapRotation.VerticalGap10.Result .Badge { height: 33px; padding-bottom: 5px; }
+.MenuRoot.MapRotation.VerticalGap10.Result .Footer { height: 26px; padding: 0px; margin-top: 10px; }
+.MenuRoot.MapRotation.VerticalGap11 .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap11 .MenuHeader { margin-bottom: 11px; }
+.MenuRoot.MapRotation.VerticalGap11 .Subtitle { height: 22px; padding: 0px; margin-bottom: 11px; }
+.MenuRoot.MapRotation.VerticalGap11 .Participation { height: 26px; margin: 0px 0px 11px; }
+.MenuRoot.MapRotation.VerticalGap11 .Footer { height: 26px; padding: 0px; margin-top: 11px; }
+.MenuRoot.MapRotation.VerticalGap11 .Pagination { margin-top: 11px; }
+.MenuRoot.MapRotation.VerticalGap11.Vertical.List .MenuItem { height: 86px; margin-bottom: 11px; }
+.MenuRoot.MapRotation.VerticalGap11.Vertical.List .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap11.Vertical.List .ItemsViewport { height: 571px; }
+.MenuRoot.MapRotation.VerticalGap11.Vertical.List .ItemIcon { height: 84px; }
+.MenuRoot.MapRotation.VerticalGap11.Vertical.List .ItemName { height: 30px; text-overflow: shrink min(20px); }
+.MenuRoot.MapRotation.VerticalGap11.Vertical.List .ItemDescription { height: 18px; font-size: 16px; margin-top: 6px; }
+.MenuRoot.MapRotation.VerticalGap11.Vertical.List.HasSecondRow .MenuItem { height: 72px; margin-bottom: 11px; }
+.MenuRoot.MapRotation.VerticalGap11.Vertical.List.HasSecondRow .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap11.Vertical.List.HasSecondRow .ItemsViewport { height: 487px; }
+.MenuRoot.MapRotation.VerticalGap11.Vertical.List.HasSecondRow .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap11.Vertical.List.HasSecondRow .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap11.Horizontal.List .MenuItem { height: 258px; }
+.MenuRoot.MapRotation.VerticalGap11.Horizontal.List .ItemsViewport { height: 258px; }
+.MenuRoot.MapRotation.VerticalGap11.Horizontal.List.HasSecondRow .ItemsViewport { height: 527px; }
+.MenuRoot.MapRotation.VerticalGap11.Horizontal.List .Row1 { margin-top: 11px; }
+.MenuRoot.MapRotation.VerticalGap11.Horizontal.List .ItemText { padding-top: 14px; padding-bottom: 6px; }
+.MenuRoot.MapRotation.VerticalGap11.Horizontal.List .ItemName { height: 38px; }
+.MenuRoot.MapRotation.VerticalGap11.Horizontal.List .ItemDescription { height: 20px; margin-top: 6px; }
+.MenuRoot.MapRotation.VerticalGap11.Horizontal.List .Badge { height: 34px; padding-bottom: 6px; }
+.MenuRoot.MapRotation.VerticalGap11.Scale120.List .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap11.Scale120.List.HasBrand .MenuHeader { height: 64px; }
+.MenuRoot.MapRotation.VerticalGap11.Scale120.List .BrandGroup { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap11.Scale120.List .HeaderActions { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap11.Scale120.List .BrandMark { width: 28px; height: 28px; }
+.MenuRoot.MapRotation.VerticalGap11.Scale120.List .Brand { font-size: 21px; letter-spacing: 4px; }
+.MenuRoot.MapRotation.VerticalGap11.Scale120.List .Title { height: 28px; font-size: 24px; margin-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap11.Scale120.List .Status { font-size: 21px; }
+.MenuRoot.MapRotation.VerticalGap11.Scale120.Vertical.List .MenuItem { height: 72px; }
+.MenuRoot.MapRotation.VerticalGap11.Scale120.Vertical.List .ItemsViewport { height: 487px; }
+.MenuRoot.MapRotation.VerticalGap11.Scale120.Vertical.List .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap11.Scale120.Vertical.List .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap11.Compact .MenuHeader { margin-bottom: 11px; }
+.MenuRoot.MapRotation.VerticalGap11.Compact .Participation { height: 22px; margin: 0px 0px 11px; }
+.MenuRoot.MapRotation.VerticalGap11.Compact .MenuItem { height: 50px; margin-bottom: 6px; }
+.MenuRoot.MapRotation.VerticalGap11.Compact .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap11.Compact .ItemsViewport { height: 330px; }
+.MenuRoot.MapRotation.VerticalGap11.Compact .ItemText { height: 24px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap11.Compact .Badge { height: 22px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap11.Compact .Footer { height: 26px; padding: 0px; margin-top: 11px; }
+.MenuRoot.MapRotation.VerticalGap11.Result .MenuHeader { margin-bottom: 11px; }
+.MenuRoot.MapRotation.VerticalGap11.Result .Participation { height: 22px; margin: 0px 0px 11px; }
+.MenuRoot.MapRotation.VerticalGap11.Result .MenuItem { height: 256px; }
+.MenuRoot.MapRotation.VerticalGap11.Result .ItemsViewport { height: 256px; }
+.MenuRoot.MapRotation.VerticalGap11.Result .ItemText { padding-top: 14px; padding-bottom: 6px; }
+.MenuRoot.MapRotation.VerticalGap11.Result .ItemName { height: 32px; }
+.MenuRoot.MapRotation.VerticalGap11.Result .ItemDescription { height: 20px; margin-top: 6px; }
+.MenuRoot.MapRotation.VerticalGap11.Result .Badge { height: 34px; padding-bottom: 6px; }
+.MenuRoot.MapRotation.VerticalGap11.Result .Footer { height: 26px; padding: 0px; margin-top: 11px; }
+.MenuRoot.MapRotation.VerticalGap12 .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap12 .MenuHeader { margin-bottom: 12px; }
+.MenuRoot.MapRotation.VerticalGap12 .Subtitle { height: 22px; padding: 0px; margin-bottom: 12px; }
+.MenuRoot.MapRotation.VerticalGap12 .Participation { height: 26px; margin: 0px 0px 12px; }
+.MenuRoot.MapRotation.VerticalGap12 .Footer { height: 26px; padding: 0px; margin-top: 12px; }
+.MenuRoot.MapRotation.VerticalGap12 .Pagination { margin-top: 12px; }
+.MenuRoot.MapRotation.VerticalGap12.Vertical.List .MenuItem { height: 86px; margin-bottom: 12px; }
+.MenuRoot.MapRotation.VerticalGap12.Vertical.List .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap12.Vertical.List .ItemsViewport { height: 576px; }
+.MenuRoot.MapRotation.VerticalGap12.Vertical.List .ItemIcon { height: 84px; }
+.MenuRoot.MapRotation.VerticalGap12.Vertical.List .ItemName { height: 30px; text-overflow: shrink min(20px); }
+.MenuRoot.MapRotation.VerticalGap12.Vertical.List .ItemDescription { height: 18px; font-size: 16px; margin-top: 6px; }
+.MenuRoot.MapRotation.VerticalGap12.Vertical.List.HasSecondRow .MenuItem { height: 72px; margin-bottom: 12px; }
+.MenuRoot.MapRotation.VerticalGap12.Vertical.List.HasSecondRow .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap12.Vertical.List.HasSecondRow .ItemsViewport { height: 492px; }
+.MenuRoot.MapRotation.VerticalGap12.Vertical.List.HasSecondRow .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap12.Vertical.List.HasSecondRow .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap12.Horizontal.List .MenuItem { height: 260px; }
+.MenuRoot.MapRotation.VerticalGap12.Horizontal.List .ItemsViewport { height: 260px; }
+.MenuRoot.MapRotation.VerticalGap12.Horizontal.List.HasSecondRow .ItemsViewport { height: 532px; }
+.MenuRoot.MapRotation.VerticalGap12.Horizontal.List .Row1 { margin-top: 12px; }
+.MenuRoot.MapRotation.VerticalGap12.Horizontal.List .ItemText { padding-top: 14px; padding-bottom: 6px; }
+.MenuRoot.MapRotation.VerticalGap12.Horizontal.List .ItemName { height: 38px; }
+.MenuRoot.MapRotation.VerticalGap12.Horizontal.List .ItemDescription { height: 20px; margin-top: 6px; }
+.MenuRoot.MapRotation.VerticalGap12.Horizontal.List .Badge { height: 34px; padding-bottom: 6px; }
+.MenuRoot.MapRotation.VerticalGap12.Scale120.List .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap12.Scale120.List.HasBrand .MenuHeader { height: 64px; }
+.MenuRoot.MapRotation.VerticalGap12.Scale120.List .BrandGroup { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap12.Scale120.List .HeaderActions { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap12.Scale120.List .BrandMark { width: 28px; height: 28px; }
+.MenuRoot.MapRotation.VerticalGap12.Scale120.List .Brand { font-size: 21px; letter-spacing: 4px; }
+.MenuRoot.MapRotation.VerticalGap12.Scale120.List .Title { height: 28px; font-size: 24px; margin-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap12.Scale120.List .Status { font-size: 21px; }
+.MenuRoot.MapRotation.VerticalGap12.Scale120.Vertical.List .MenuItem { height: 72px; }
+.MenuRoot.MapRotation.VerticalGap12.Scale120.Vertical.List .ItemsViewport { height: 492px; }
+.MenuRoot.MapRotation.VerticalGap12.Scale120.Vertical.List .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap12.Scale120.Vertical.List .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap12.Compact .MenuHeader { margin-bottom: 12px; }
+.MenuRoot.MapRotation.VerticalGap12.Compact .Participation { height: 22px; margin: 0px 0px 12px; }
+.MenuRoot.MapRotation.VerticalGap12.Compact .MenuItem { height: 50px; margin-bottom: 6px; }
+.MenuRoot.MapRotation.VerticalGap12.Compact .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap12.Compact .ItemsViewport { height: 330px; }
+.MenuRoot.MapRotation.VerticalGap12.Compact .ItemText { height: 24px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap12.Compact .Badge { height: 22px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap12.Compact .Footer { height: 26px; padding: 0px; margin-top: 12px; }
+.MenuRoot.MapRotation.VerticalGap12.Result .MenuHeader { margin-bottom: 12px; }
+.MenuRoot.MapRotation.VerticalGap12.Result .Participation { height: 22px; margin: 0px 0px 12px; }
+.MenuRoot.MapRotation.VerticalGap12.Result .MenuItem { height: 258px; }
+.MenuRoot.MapRotation.VerticalGap12.Result .ItemsViewport { height: 258px; }
+.MenuRoot.MapRotation.VerticalGap12.Result .ItemText { padding-top: 14px; padding-bottom: 6px; }
+.MenuRoot.MapRotation.VerticalGap12.Result .ItemName { height: 32px; }
+.MenuRoot.MapRotation.VerticalGap12.Result .ItemDescription { height: 20px; margin-top: 6px; }
+.MenuRoot.MapRotation.VerticalGap12.Result .Badge { height: 34px; padding-bottom: 6px; }
+.MenuRoot.MapRotation.VerticalGap12.Result .Footer { height: 26px; padding: 0px; margin-top: 12px; }
+.MenuRoot.MapRotation.VerticalGap13 .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap13 .MenuHeader { margin-bottom: 13px; }
+.MenuRoot.MapRotation.VerticalGap13 .Subtitle { height: 22px; padding: 0px; margin-bottom: 13px; }
+.MenuRoot.MapRotation.VerticalGap13 .Participation { height: 26px; margin: 0px 0px 13px; }
+.MenuRoot.MapRotation.VerticalGap13 .Footer { height: 26px; padding: 0px; margin-top: 13px; }
+.MenuRoot.MapRotation.VerticalGap13 .Pagination { margin-top: 13px; }
+.MenuRoot.MapRotation.VerticalGap13.Vertical.List .MenuItem { height: 86px; margin-bottom: 13px; }
+.MenuRoot.MapRotation.VerticalGap13.Vertical.List .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap13.Vertical.List .ItemsViewport { height: 581px; }
+.MenuRoot.MapRotation.VerticalGap13.Vertical.List .ItemIcon { height: 84px; }
+.MenuRoot.MapRotation.VerticalGap13.Vertical.List .ItemName { height: 30px; text-overflow: shrink min(20px); }
+.MenuRoot.MapRotation.VerticalGap13.Vertical.List .ItemDescription { height: 18px; font-size: 16px; margin-top: 7px; }
+.MenuRoot.MapRotation.VerticalGap13.Vertical.List.HasSecondRow .MenuItem { height: 72px; margin-bottom: 13px; }
+.MenuRoot.MapRotation.VerticalGap13.Vertical.List.HasSecondRow .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap13.Vertical.List.HasSecondRow .ItemsViewport { height: 497px; }
+.MenuRoot.MapRotation.VerticalGap13.Vertical.List.HasSecondRow .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap13.Vertical.List.HasSecondRow .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap13.Horizontal.List .MenuItem { height: 262px; }
+.MenuRoot.MapRotation.VerticalGap13.Horizontal.List .ItemsViewport { height: 262px; }
+.MenuRoot.MapRotation.VerticalGap13.Horizontal.List.HasSecondRow .ItemsViewport { height: 537px; }
+.MenuRoot.MapRotation.VerticalGap13.Horizontal.List .Row1 { margin-top: 13px; }
+.MenuRoot.MapRotation.VerticalGap13.Horizontal.List .ItemText { padding-top: 15px; padding-bottom: 7px; }
+.MenuRoot.MapRotation.VerticalGap13.Horizontal.List .ItemName { height: 38px; }
+.MenuRoot.MapRotation.VerticalGap13.Horizontal.List .ItemDescription { height: 20px; margin-top: 7px; }
+.MenuRoot.MapRotation.VerticalGap13.Horizontal.List .Badge { height: 35px; padding-bottom: 7px; }
+.MenuRoot.MapRotation.VerticalGap13.Scale120.List .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap13.Scale120.List.HasBrand .MenuHeader { height: 64px; }
+.MenuRoot.MapRotation.VerticalGap13.Scale120.List .BrandGroup { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap13.Scale120.List .HeaderActions { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap13.Scale120.List .BrandMark { width: 28px; height: 28px; }
+.MenuRoot.MapRotation.VerticalGap13.Scale120.List .Brand { font-size: 21px; letter-spacing: 4px; }
+.MenuRoot.MapRotation.VerticalGap13.Scale120.List .Title { height: 28px; font-size: 24px; margin-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap13.Scale120.List .Status { font-size: 21px; }
+.MenuRoot.MapRotation.VerticalGap13.Scale120.Vertical.List .MenuItem { height: 72px; }
+.MenuRoot.MapRotation.VerticalGap13.Scale120.Vertical.List .ItemsViewport { height: 497px; }
+.MenuRoot.MapRotation.VerticalGap13.Scale120.Vertical.List .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap13.Scale120.Vertical.List .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap13.Compact .MenuHeader { margin-bottom: 13px; }
+.MenuRoot.MapRotation.VerticalGap13.Compact .Participation { height: 22px; margin: 0px 0px 13px; }
+.MenuRoot.MapRotation.VerticalGap13.Compact .MenuItem { height: 51px; margin-bottom: 7px; }
+.MenuRoot.MapRotation.VerticalGap13.Compact .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap13.Compact .ItemsViewport { height: 341px; }
+.MenuRoot.MapRotation.VerticalGap13.Compact .ItemText { height: 24px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap13.Compact .Badge { height: 22px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap13.Compact .Footer { height: 26px; padding: 0px; margin-top: 13px; }
+.MenuRoot.MapRotation.VerticalGap13.Result .MenuHeader { margin-bottom: 13px; }
+.MenuRoot.MapRotation.VerticalGap13.Result .Participation { height: 22px; margin: 0px 0px 13px; }
+.MenuRoot.MapRotation.VerticalGap13.Result .MenuItem { height: 260px; }
+.MenuRoot.MapRotation.VerticalGap13.Result .ItemsViewport { height: 260px; }
+.MenuRoot.MapRotation.VerticalGap13.Result .ItemText { padding-top: 15px; padding-bottom: 7px; }
+.MenuRoot.MapRotation.VerticalGap13.Result .ItemName { height: 32px; }
+.MenuRoot.MapRotation.VerticalGap13.Result .ItemDescription { height: 20px; margin-top: 7px; }
+.MenuRoot.MapRotation.VerticalGap13.Result .Badge { height: 35px; padding-bottom: 7px; }
+.MenuRoot.MapRotation.VerticalGap13.Result .Footer { height: 26px; padding: 0px; margin-top: 13px; }
+.MenuRoot.MapRotation.VerticalGap14 .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap14 .MenuHeader { margin-bottom: 14px; }
+.MenuRoot.MapRotation.VerticalGap14 .Subtitle { height: 22px; padding: 0px; margin-bottom: 14px; }
+.MenuRoot.MapRotation.VerticalGap14 .Participation { height: 26px; margin: 0px 0px 14px; }
+.MenuRoot.MapRotation.VerticalGap14 .Footer { height: 26px; padding: 0px; margin-top: 14px; }
+.MenuRoot.MapRotation.VerticalGap14 .Pagination { margin-top: 14px; }
+.MenuRoot.MapRotation.VerticalGap14.Vertical.List .MenuItem { height: 86px; margin-bottom: 14px; }
+.MenuRoot.MapRotation.VerticalGap14.Vertical.List .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap14.Vertical.List .ItemsViewport { height: 586px; }
+.MenuRoot.MapRotation.VerticalGap14.Vertical.List .ItemIcon { height: 84px; }
+.MenuRoot.MapRotation.VerticalGap14.Vertical.List .ItemName { height: 30px; text-overflow: shrink min(20px); }
+.MenuRoot.MapRotation.VerticalGap14.Vertical.List .ItemDescription { height: 18px; font-size: 16px; margin-top: 7px; }
+.MenuRoot.MapRotation.VerticalGap14.Vertical.List.HasSecondRow .MenuItem { height: 72px; margin-bottom: 14px; }
+.MenuRoot.MapRotation.VerticalGap14.Vertical.List.HasSecondRow .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap14.Vertical.List.HasSecondRow .ItemsViewport { height: 502px; }
+.MenuRoot.MapRotation.VerticalGap14.Vertical.List.HasSecondRow .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap14.Vertical.List.HasSecondRow .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap14.Horizontal.List .MenuItem { height: 264px; }
+.MenuRoot.MapRotation.VerticalGap14.Horizontal.List .ItemsViewport { height: 264px; }
+.MenuRoot.MapRotation.VerticalGap14.Horizontal.List.HasSecondRow .ItemsViewport { height: 542px; }
+.MenuRoot.MapRotation.VerticalGap14.Horizontal.List .Row1 { margin-top: 14px; }
+.MenuRoot.MapRotation.VerticalGap14.Horizontal.List .ItemText { padding-top: 15px; padding-bottom: 7px; }
+.MenuRoot.MapRotation.VerticalGap14.Horizontal.List .ItemName { height: 38px; }
+.MenuRoot.MapRotation.VerticalGap14.Horizontal.List .ItemDescription { height: 20px; margin-top: 7px; }
+.MenuRoot.MapRotation.VerticalGap14.Horizontal.List .Badge { height: 35px; padding-bottom: 7px; }
+.MenuRoot.MapRotation.VerticalGap14.Scale120.List .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap14.Scale120.List.HasBrand .MenuHeader { height: 64px; }
+.MenuRoot.MapRotation.VerticalGap14.Scale120.List .BrandGroup { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap14.Scale120.List .HeaderActions { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap14.Scale120.List .BrandMark { width: 28px; height: 28px; }
+.MenuRoot.MapRotation.VerticalGap14.Scale120.List .Brand { font-size: 21px; letter-spacing: 4px; }
+.MenuRoot.MapRotation.VerticalGap14.Scale120.List .Title { height: 28px; font-size: 24px; margin-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap14.Scale120.List .Status { font-size: 21px; }
+.MenuRoot.MapRotation.VerticalGap14.Scale120.Vertical.List .MenuItem { height: 72px; }
+.MenuRoot.MapRotation.VerticalGap14.Scale120.Vertical.List .ItemsViewport { height: 502px; }
+.MenuRoot.MapRotation.VerticalGap14.Scale120.Vertical.List .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap14.Scale120.Vertical.List .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap14.Compact .MenuHeader { margin-bottom: 14px; }
+.MenuRoot.MapRotation.VerticalGap14.Compact .Participation { height: 22px; margin: 0px 0px 14px; }
+.MenuRoot.MapRotation.VerticalGap14.Compact .MenuItem { height: 51px; margin-bottom: 7px; }
+.MenuRoot.MapRotation.VerticalGap14.Compact .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap14.Compact .ItemsViewport { height: 341px; }
+.MenuRoot.MapRotation.VerticalGap14.Compact .ItemText { height: 24px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap14.Compact .Badge { height: 22px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap14.Compact .Footer { height: 26px; padding: 0px; margin-top: 14px; }
+.MenuRoot.MapRotation.VerticalGap14.Result .MenuHeader { margin-bottom: 14px; }
+.MenuRoot.MapRotation.VerticalGap14.Result .Participation { height: 22px; margin: 0px 0px 14px; }
+.MenuRoot.MapRotation.VerticalGap14.Result .MenuItem { height: 262px; }
+.MenuRoot.MapRotation.VerticalGap14.Result .ItemsViewport { height: 262px; }
+.MenuRoot.MapRotation.VerticalGap14.Result .ItemText { padding-top: 15px; padding-bottom: 7px; }
+.MenuRoot.MapRotation.VerticalGap14.Result .ItemName { height: 32px; }
+.MenuRoot.MapRotation.VerticalGap14.Result .ItemDescription { height: 20px; margin-top: 7px; }
+.MenuRoot.MapRotation.VerticalGap14.Result .Badge { height: 35px; padding-bottom: 7px; }
+.MenuRoot.MapRotation.VerticalGap14.Result .Footer { height: 26px; padding: 0px; margin-top: 14px; }
+.MenuRoot.MapRotation.VerticalGap15 .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap15 .MenuHeader { margin-bottom: 15px; }
+.MenuRoot.MapRotation.VerticalGap15 .Subtitle { height: 22px; padding: 0px; margin-bottom: 15px; }
+.MenuRoot.MapRotation.VerticalGap15 .Participation { height: 26px; margin: 0px 0px 15px; }
+.MenuRoot.MapRotation.VerticalGap15 .Footer { height: 26px; padding: 0px; margin-top: 15px; }
+.MenuRoot.MapRotation.VerticalGap15 .Pagination { margin-top: 15px; }
+.MenuRoot.MapRotation.VerticalGap15.Vertical.List .MenuItem { height: 86px; margin-bottom: 15px; }
+.MenuRoot.MapRotation.VerticalGap15.Vertical.List .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap15.Vertical.List .ItemsViewport { height: 591px; }
+.MenuRoot.MapRotation.VerticalGap15.Vertical.List .ItemIcon { height: 84px; }
+.MenuRoot.MapRotation.VerticalGap15.Vertical.List .ItemName { height: 30px; text-overflow: shrink min(20px); }
+.MenuRoot.MapRotation.VerticalGap15.Vertical.List .ItemDescription { height: 18px; font-size: 16px; margin-top: 8px; }
+.MenuRoot.MapRotation.VerticalGap15.Vertical.List.HasSecondRow .MenuItem { height: 72px; margin-bottom: 15px; }
+.MenuRoot.MapRotation.VerticalGap15.Vertical.List.HasSecondRow .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap15.Vertical.List.HasSecondRow .ItemsViewport { height: 507px; }
+.MenuRoot.MapRotation.VerticalGap15.Vertical.List.HasSecondRow .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap15.Vertical.List.HasSecondRow .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap15.Horizontal.List .MenuItem { height: 266px; }
+.MenuRoot.MapRotation.VerticalGap15.Horizontal.List .ItemsViewport { height: 266px; }
+.MenuRoot.MapRotation.VerticalGap15.Horizontal.List.HasSecondRow .ItemsViewport { height: 547px; }
+.MenuRoot.MapRotation.VerticalGap15.Horizontal.List .Row1 { margin-top: 15px; }
+.MenuRoot.MapRotation.VerticalGap15.Horizontal.List .ItemText { padding-top: 16px; padding-bottom: 8px; }
+.MenuRoot.MapRotation.VerticalGap15.Horizontal.List .ItemName { height: 38px; }
+.MenuRoot.MapRotation.VerticalGap15.Horizontal.List .ItemDescription { height: 20px; margin-top: 8px; }
+.MenuRoot.MapRotation.VerticalGap15.Horizontal.List .Badge { height: 36px; padding-bottom: 8px; }
+.MenuRoot.MapRotation.VerticalGap15.Scale120.List .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap15.Scale120.List.HasBrand .MenuHeader { height: 64px; }
+.MenuRoot.MapRotation.VerticalGap15.Scale120.List .BrandGroup { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap15.Scale120.List .HeaderActions { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap15.Scale120.List .BrandMark { width: 28px; height: 28px; }
+.MenuRoot.MapRotation.VerticalGap15.Scale120.List .Brand { font-size: 21px; letter-spacing: 4px; }
+.MenuRoot.MapRotation.VerticalGap15.Scale120.List .Title { height: 28px; font-size: 24px; margin-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap15.Scale120.List .Status { font-size: 21px; }
+.MenuRoot.MapRotation.VerticalGap15.Scale120.Vertical.List .MenuItem { height: 72px; }
+.MenuRoot.MapRotation.VerticalGap15.Scale120.Vertical.List .ItemsViewport { height: 507px; }
+.MenuRoot.MapRotation.VerticalGap15.Scale120.Vertical.List .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap15.Scale120.Vertical.List .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap15.Compact .MenuHeader { margin-bottom: 15px; }
+.MenuRoot.MapRotation.VerticalGap15.Compact .Participation { height: 22px; margin: 0px 0px 15px; }
+.MenuRoot.MapRotation.VerticalGap15.Compact .MenuItem { height: 52px; margin-bottom: 8px; }
+.MenuRoot.MapRotation.VerticalGap15.Compact .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap15.Compact .ItemsViewport { height: 352px; }
+.MenuRoot.MapRotation.VerticalGap15.Compact .ItemText { height: 24px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap15.Compact .Badge { height: 22px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap15.Compact .Footer { height: 26px; padding: 0px; margin-top: 15px; }
+.MenuRoot.MapRotation.VerticalGap15.Result .MenuHeader { margin-bottom: 15px; }
+.MenuRoot.MapRotation.VerticalGap15.Result .Participation { height: 22px; margin: 0px 0px 15px; }
+.MenuRoot.MapRotation.VerticalGap15.Result .MenuItem { height: 264px; }
+.MenuRoot.MapRotation.VerticalGap15.Result .ItemsViewport { height: 264px; }
+.MenuRoot.MapRotation.VerticalGap15.Result .ItemText { padding-top: 16px; padding-bottom: 8px; }
+.MenuRoot.MapRotation.VerticalGap15.Result .ItemName { height: 32px; }
+.MenuRoot.MapRotation.VerticalGap15.Result .ItemDescription { height: 20px; margin-top: 8px; }
+.MenuRoot.MapRotation.VerticalGap15.Result .Badge { height: 36px; padding-bottom: 8px; }
+.MenuRoot.MapRotation.VerticalGap15.Result .Footer { height: 26px; padding: 0px; margin-top: 15px; }
+.MenuRoot.MapRotation.VerticalGap16 .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap16 .MenuHeader { margin-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap16 .Subtitle { height: 22px; padding: 0px; margin-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap16 .Participation { height: 26px; margin: 0px 0px 16px; }
+.MenuRoot.MapRotation.VerticalGap16 .Footer { height: 26px; padding: 0px; margin-top: 16px; }
+.MenuRoot.MapRotation.VerticalGap16 .Pagination { margin-top: 16px; }
+.MenuRoot.MapRotation.VerticalGap16.Vertical.List .MenuItem { height: 86px; margin-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap16.Vertical.List .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap16.Vertical.List .ItemsViewport { height: 596px; }
+.MenuRoot.MapRotation.VerticalGap16.Vertical.List .ItemIcon { height: 84px; }
+.MenuRoot.MapRotation.VerticalGap16.Vertical.List .ItemName { height: 30px; text-overflow: shrink min(20px); }
+.MenuRoot.MapRotation.VerticalGap16.Vertical.List .ItemDescription { height: 18px; font-size: 16px; margin-top: 8px; }
+.MenuRoot.MapRotation.VerticalGap16.Vertical.List.HasSecondRow .MenuItem { height: 72px; margin-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap16.Vertical.List.HasSecondRow .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap16.Vertical.List.HasSecondRow .ItemsViewport { height: 512px; }
+.MenuRoot.MapRotation.VerticalGap16.Vertical.List.HasSecondRow .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap16.Vertical.List.HasSecondRow .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap16.Horizontal.List .MenuItem { height: 268px; }
+.MenuRoot.MapRotation.VerticalGap16.Horizontal.List .ItemsViewport { height: 268px; }
+.MenuRoot.MapRotation.VerticalGap16.Horizontal.List.HasSecondRow .ItemsViewport { height: 552px; }
+.MenuRoot.MapRotation.VerticalGap16.Horizontal.List .Row1 { margin-top: 16px; }
+.MenuRoot.MapRotation.VerticalGap16.Horizontal.List .ItemText { padding-top: 16px; padding-bottom: 8px; }
+.MenuRoot.MapRotation.VerticalGap16.Horizontal.List .ItemName { height: 38px; }
+.MenuRoot.MapRotation.VerticalGap16.Horizontal.List .ItemDescription { height: 20px; margin-top: 8px; }
+.MenuRoot.MapRotation.VerticalGap16.Horizontal.List .Badge { height: 36px; padding-bottom: 8px; }
+.MenuRoot.MapRotation.VerticalGap16.Scale120.List .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap16.Scale120.List.HasBrand .MenuHeader { height: 64px; }
+.MenuRoot.MapRotation.VerticalGap16.Scale120.List .BrandGroup { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap16.Scale120.List .HeaderActions { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap16.Scale120.List .BrandMark { width: 28px; height: 28px; }
+.MenuRoot.MapRotation.VerticalGap16.Scale120.List .Brand { font-size: 21px; letter-spacing: 4px; }
+.MenuRoot.MapRotation.VerticalGap16.Scale120.List .Title { height: 28px; font-size: 24px; margin-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap16.Scale120.List .Status { font-size: 21px; }
+.MenuRoot.MapRotation.VerticalGap16.Scale120.Vertical.List .MenuItem { height: 72px; }
+.MenuRoot.MapRotation.VerticalGap16.Scale120.Vertical.List .ItemsViewport { height: 512px; }
+.MenuRoot.MapRotation.VerticalGap16.Scale120.Vertical.List .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap16.Scale120.Vertical.List .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap16.Compact .MenuHeader { margin-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap16.Compact .Participation { height: 22px; margin: 0px 0px 16px; }
+.MenuRoot.MapRotation.VerticalGap16.Compact .MenuItem { height: 52px; margin-bottom: 8px; }
+.MenuRoot.MapRotation.VerticalGap16.Compact .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap16.Compact .ItemsViewport { height: 352px; }
+.MenuRoot.MapRotation.VerticalGap16.Compact .ItemText { height: 24px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap16.Compact .Badge { height: 22px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap16.Compact .Footer { height: 26px; padding: 0px; margin-top: 16px; }
+.MenuRoot.MapRotation.VerticalGap16.Result .MenuHeader { margin-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap16.Result .Participation { height: 22px; margin: 0px 0px 16px; }
+.MenuRoot.MapRotation.VerticalGap16.Result .MenuItem { height: 266px; }
+.MenuRoot.MapRotation.VerticalGap16.Result .ItemsViewport { height: 266px; }
+.MenuRoot.MapRotation.VerticalGap16.Result .ItemText { padding-top: 16px; padding-bottom: 8px; }
+.MenuRoot.MapRotation.VerticalGap16.Result .ItemName { height: 32px; }
+.MenuRoot.MapRotation.VerticalGap16.Result .ItemDescription { height: 20px; margin-top: 8px; }
+.MenuRoot.MapRotation.VerticalGap16.Result .Badge { height: 36px; padding-bottom: 8px; }
+.MenuRoot.MapRotation.VerticalGap16.Result .Footer { height: 26px; padding: 0px; margin-top: 16px; }
+.MenuRoot.MapRotation.VerticalGap17 .MenuWindow { padding-top: 17px; padding-bottom: 17px; }
+.MenuRoot.MapRotation.VerticalGap17 .MenuHeader { margin-bottom: 17px; }
+.MenuRoot.MapRotation.VerticalGap17 .Subtitle { height: 22px; padding: 0px; margin-bottom: 17px; }
+.MenuRoot.MapRotation.VerticalGap17 .Participation { height: 26px; margin: 0px 0px 17px; }
+.MenuRoot.MapRotation.VerticalGap17 .Footer { height: 26px; padding: 0px; margin-top: 17px; }
+.MenuRoot.MapRotation.VerticalGap17 .Pagination { margin-top: 17px; }
+.MenuRoot.MapRotation.VerticalGap17.Vertical.List .MenuItem { height: 86px; margin-bottom: 17px; }
+.MenuRoot.MapRotation.VerticalGap17.Vertical.List .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap17.Vertical.List .ItemsViewport { height: 601px; }
+.MenuRoot.MapRotation.VerticalGap17.Vertical.List .ItemIcon { height: 84px; }
+.MenuRoot.MapRotation.VerticalGap17.Vertical.List .ItemName { height: 30px; text-overflow: shrink min(20px); }
+.MenuRoot.MapRotation.VerticalGap17.Vertical.List .ItemDescription { height: 18px; font-size: 16px; margin-top: 8px; }
+.MenuRoot.MapRotation.VerticalGap17.Vertical.List.HasSecondRow .MenuItem { height: 72px; margin-bottom: 17px; }
+.MenuRoot.MapRotation.VerticalGap17.Vertical.List.HasSecondRow .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap17.Vertical.List.HasSecondRow .ItemsViewport { height: 517px; }
+.MenuRoot.MapRotation.VerticalGap17.Vertical.List.HasSecondRow .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap17.Vertical.List.HasSecondRow .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap17.Horizontal.List .MenuItem { height: 270px; }
+.MenuRoot.MapRotation.VerticalGap17.Horizontal.List .ItemsViewport { height: 270px; }
+.MenuRoot.MapRotation.VerticalGap17.Horizontal.List.HasSecondRow .ItemsViewport { height: 557px; }
+.MenuRoot.MapRotation.VerticalGap17.Horizontal.List .Row1 { margin-top: 17px; }
+.MenuRoot.MapRotation.VerticalGap17.Horizontal.List .ItemText { padding-top: 17px; padding-bottom: 9px; }
+.MenuRoot.MapRotation.VerticalGap17.Horizontal.List .ItemName { height: 38px; }
+.MenuRoot.MapRotation.VerticalGap17.Horizontal.List .ItemDescription { height: 20px; margin-top: 9px; }
+.MenuRoot.MapRotation.VerticalGap17.Horizontal.List .Badge { height: 37px; padding-bottom: 9px; }
+.MenuRoot.MapRotation.VerticalGap17.Scale120.List .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap17.Scale120.List.HasBrand .MenuHeader { height: 64px; }
+.MenuRoot.MapRotation.VerticalGap17.Scale120.List .BrandGroup { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap17.Scale120.List .HeaderActions { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap17.Scale120.List .BrandMark { width: 28px; height: 28px; }
+.MenuRoot.MapRotation.VerticalGap17.Scale120.List .Brand { font-size: 21px; letter-spacing: 4px; }
+.MenuRoot.MapRotation.VerticalGap17.Scale120.List .Title { height: 28px; font-size: 24px; margin-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap17.Scale120.List .Status { font-size: 21px; }
+.MenuRoot.MapRotation.VerticalGap17.Scale120.Vertical.List .MenuItem { height: 72px; }
+.MenuRoot.MapRotation.VerticalGap17.Scale120.Vertical.List .ItemsViewport { height: 517px; }
+.MenuRoot.MapRotation.VerticalGap17.Scale120.Vertical.List .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap17.Scale120.Vertical.List .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap17.Compact .MenuHeader { margin-bottom: 17px; }
+.MenuRoot.MapRotation.VerticalGap17.Compact .Participation { height: 22px; margin: 0px 0px 17px; }
+.MenuRoot.MapRotation.VerticalGap17.Compact .MenuItem { height: 53px; margin-bottom: 9px; }
+.MenuRoot.MapRotation.VerticalGap17.Compact .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap17.Compact .ItemsViewport { height: 363px; }
+.MenuRoot.MapRotation.VerticalGap17.Compact .ItemText { height: 24px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap17.Compact .Badge { height: 22px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap17.Compact .Footer { height: 26px; padding: 0px; margin-top: 17px; }
+.MenuRoot.MapRotation.VerticalGap17.Result .MenuHeader { margin-bottom: 17px; }
+.MenuRoot.MapRotation.VerticalGap17.Result .Participation { height: 22px; margin: 0px 0px 17px; }
+.MenuRoot.MapRotation.VerticalGap17.Result .MenuItem { height: 268px; }
+.MenuRoot.MapRotation.VerticalGap17.Result .ItemsViewport { height: 268px; }
+.MenuRoot.MapRotation.VerticalGap17.Result .ItemText { padding-top: 17px; padding-bottom: 9px; }
+.MenuRoot.MapRotation.VerticalGap17.Result .ItemName { height: 32px; }
+.MenuRoot.MapRotation.VerticalGap17.Result .ItemDescription { height: 20px; margin-top: 9px; }
+.MenuRoot.MapRotation.VerticalGap17.Result .Badge { height: 37px; padding-bottom: 9px; }
+.MenuRoot.MapRotation.VerticalGap17.Result .Footer { height: 26px; padding: 0px; margin-top: 17px; }
+.MenuRoot.MapRotation.VerticalGap18 .MenuWindow { padding-top: 18px; padding-bottom: 18px; }
+.MenuRoot.MapRotation.VerticalGap18 .MenuHeader { margin-bottom: 18px; }
+.MenuRoot.MapRotation.VerticalGap18 .Subtitle { height: 22px; padding: 0px; margin-bottom: 18px; }
+.MenuRoot.MapRotation.VerticalGap18 .Participation { height: 26px; margin: 0px 0px 18px; }
+.MenuRoot.MapRotation.VerticalGap18 .Footer { height: 26px; padding: 0px; margin-top: 18px; }
+.MenuRoot.MapRotation.VerticalGap18 .Pagination { margin-top: 18px; }
+.MenuRoot.MapRotation.VerticalGap18.Vertical.List .MenuItem { height: 86px; margin-bottom: 18px; }
+.MenuRoot.MapRotation.VerticalGap18.Vertical.List .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap18.Vertical.List .ItemsViewport { height: 606px; }
+.MenuRoot.MapRotation.VerticalGap18.Vertical.List .ItemIcon { height: 84px; }
+.MenuRoot.MapRotation.VerticalGap18.Vertical.List .ItemName { height: 30px; text-overflow: shrink min(20px); }
+.MenuRoot.MapRotation.VerticalGap18.Vertical.List .ItemDescription { height: 18px; font-size: 16px; margin-top: 8px; }
+.MenuRoot.MapRotation.VerticalGap18.Vertical.List.HasSecondRow .MenuItem { height: 72px; margin-bottom: 18px; }
+.MenuRoot.MapRotation.VerticalGap18.Vertical.List.HasSecondRow .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap18.Vertical.List.HasSecondRow .ItemsViewport { height: 522px; }
+.MenuRoot.MapRotation.VerticalGap18.Vertical.List.HasSecondRow .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap18.Vertical.List.HasSecondRow .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap18.Horizontal.List .MenuItem { height: 272px; }
+.MenuRoot.MapRotation.VerticalGap18.Horizontal.List .ItemsViewport { height: 272px; }
+.MenuRoot.MapRotation.VerticalGap18.Horizontal.List.HasSecondRow .ItemsViewport { height: 562px; }
+.MenuRoot.MapRotation.VerticalGap18.Horizontal.List .Row1 { margin-top: 18px; }
+.MenuRoot.MapRotation.VerticalGap18.Horizontal.List .ItemText { padding-top: 17px; padding-bottom: 9px; }
+.MenuRoot.MapRotation.VerticalGap18.Horizontal.List .ItemName { height: 38px; }
+.MenuRoot.MapRotation.VerticalGap18.Horizontal.List .ItemDescription { height: 20px; margin-top: 9px; }
+.MenuRoot.MapRotation.VerticalGap18.Horizontal.List .Badge { height: 37px; padding-bottom: 9px; }
+.MenuRoot.MapRotation.VerticalGap18.Scale120.List .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap18.Scale120.List.HasBrand .MenuHeader { height: 64px; }
+.MenuRoot.MapRotation.VerticalGap18.Scale120.List .BrandGroup { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap18.Scale120.List .HeaderActions { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap18.Scale120.List .BrandMark { width: 28px; height: 28px; }
+.MenuRoot.MapRotation.VerticalGap18.Scale120.List .Brand { font-size: 21px; letter-spacing: 4px; }
+.MenuRoot.MapRotation.VerticalGap18.Scale120.List .Title { height: 28px; font-size: 24px; margin-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap18.Scale120.List .Status { font-size: 21px; }
+.MenuRoot.MapRotation.VerticalGap18.Scale120.Vertical.List .MenuItem { height: 72px; }
+.MenuRoot.MapRotation.VerticalGap18.Scale120.Vertical.List .ItemsViewport { height: 522px; }
+.MenuRoot.MapRotation.VerticalGap18.Scale120.Vertical.List .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap18.Scale120.Vertical.List .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap18.Compact .MenuHeader { margin-bottom: 18px; }
+.MenuRoot.MapRotation.VerticalGap18.Compact .Participation { height: 22px; margin: 0px 0px 18px; }
+.MenuRoot.MapRotation.VerticalGap18.Compact .MenuItem { height: 53px; margin-bottom: 9px; }
+.MenuRoot.MapRotation.VerticalGap18.Compact .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap18.Compact .ItemsViewport { height: 363px; }
+.MenuRoot.MapRotation.VerticalGap18.Compact .ItemText { height: 24px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap18.Compact .Badge { height: 22px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap18.Compact .Footer { height: 26px; padding: 0px; margin-top: 18px; }
+.MenuRoot.MapRotation.VerticalGap18.Result .MenuHeader { margin-bottom: 18px; }
+.MenuRoot.MapRotation.VerticalGap18.Result .Participation { height: 22px; margin: 0px 0px 18px; }
+.MenuRoot.MapRotation.VerticalGap18.Result .MenuItem { height: 270px; }
+.MenuRoot.MapRotation.VerticalGap18.Result .ItemsViewport { height: 270px; }
+.MenuRoot.MapRotation.VerticalGap18.Result .ItemText { padding-top: 17px; padding-bottom: 9px; }
+.MenuRoot.MapRotation.VerticalGap18.Result .ItemName { height: 32px; }
+.MenuRoot.MapRotation.VerticalGap18.Result .ItemDescription { height: 20px; margin-top: 9px; }
+.MenuRoot.MapRotation.VerticalGap18.Result .Badge { height: 37px; padding-bottom: 9px; }
+.MenuRoot.MapRotation.VerticalGap18.Result .Footer { height: 26px; padding: 0px; margin-top: 18px; }
+.MenuRoot.MapRotation.VerticalGap19 .MenuWindow { padding-top: 19px; padding-bottom: 19px; }
+.MenuRoot.MapRotation.VerticalGap19 .MenuHeader { margin-bottom: 19px; }
+.MenuRoot.MapRotation.VerticalGap19 .Subtitle { height: 22px; padding: 0px; margin-bottom: 19px; }
+.MenuRoot.MapRotation.VerticalGap19 .Participation { height: 26px; margin: 0px 0px 19px; }
+.MenuRoot.MapRotation.VerticalGap19 .Footer { height: 26px; padding: 0px; margin-top: 19px; }
+.MenuRoot.MapRotation.VerticalGap19 .Pagination { margin-top: 19px; }
+.MenuRoot.MapRotation.VerticalGap19.Vertical.List .MenuItem { height: 86px; margin-bottom: 19px; }
+.MenuRoot.MapRotation.VerticalGap19.Vertical.List .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap19.Vertical.List .ItemsViewport { height: 611px; }
+.MenuRoot.MapRotation.VerticalGap19.Vertical.List .ItemIcon { height: 84px; }
+.MenuRoot.MapRotation.VerticalGap19.Vertical.List .ItemName { height: 30px; text-overflow: shrink min(20px); }
+.MenuRoot.MapRotation.VerticalGap19.Vertical.List .ItemDescription { height: 18px; font-size: 16px; margin-top: 8px; }
+.MenuRoot.MapRotation.VerticalGap19.Vertical.List.HasSecondRow .MenuItem { height: 72px; margin-bottom: 19px; }
+.MenuRoot.MapRotation.VerticalGap19.Vertical.List.HasSecondRow .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap19.Vertical.List.HasSecondRow .ItemsViewport { height: 527px; }
+.MenuRoot.MapRotation.VerticalGap19.Vertical.List.HasSecondRow .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap19.Vertical.List.HasSecondRow .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap19.Horizontal.List .MenuItem { height: 274px; }
+.MenuRoot.MapRotation.VerticalGap19.Horizontal.List .ItemsViewport { height: 274px; }
+.MenuRoot.MapRotation.VerticalGap19.Horizontal.List.HasSecondRow .ItemsViewport { height: 567px; }
+.MenuRoot.MapRotation.VerticalGap19.Horizontal.List .Row1 { margin-top: 19px; }
+.MenuRoot.MapRotation.VerticalGap19.Horizontal.List .ItemText { padding-top: 18px; padding-bottom: 10px; }
+.MenuRoot.MapRotation.VerticalGap19.Horizontal.List .ItemName { height: 38px; }
+.MenuRoot.MapRotation.VerticalGap19.Horizontal.List .ItemDescription { height: 20px; margin-top: 10px; }
+.MenuRoot.MapRotation.VerticalGap19.Horizontal.List .Badge { height: 38px; padding-bottom: 10px; }
+.MenuRoot.MapRotation.VerticalGap19.Scale120.List .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap19.Scale120.List.HasBrand .MenuHeader { height: 64px; }
+.MenuRoot.MapRotation.VerticalGap19.Scale120.List .BrandGroup { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap19.Scale120.List .HeaderActions { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap19.Scale120.List .BrandMark { width: 28px; height: 28px; }
+.MenuRoot.MapRotation.VerticalGap19.Scale120.List .Brand { font-size: 21px; letter-spacing: 4px; }
+.MenuRoot.MapRotation.VerticalGap19.Scale120.List .Title { height: 28px; font-size: 24px; margin-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap19.Scale120.List .Status { font-size: 21px; }
+.MenuRoot.MapRotation.VerticalGap19.Scale120.Vertical.List .MenuItem { height: 72px; }
+.MenuRoot.MapRotation.VerticalGap19.Scale120.Vertical.List .ItemsViewport { height: 527px; }
+.MenuRoot.MapRotation.VerticalGap19.Scale120.Vertical.List .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap19.Scale120.Vertical.List .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap19.Compact .MenuHeader { margin-bottom: 19px; }
+.MenuRoot.MapRotation.VerticalGap19.Compact .Participation { height: 22px; margin: 0px 0px 19px; }
+.MenuRoot.MapRotation.VerticalGap19.Compact .MenuItem { height: 54px; margin-bottom: 10px; }
+.MenuRoot.MapRotation.VerticalGap19.Compact .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap19.Compact .ItemsViewport { height: 374px; }
+.MenuRoot.MapRotation.VerticalGap19.Compact .ItemText { height: 24px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap19.Compact .Badge { height: 22px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap19.Compact .Footer { height: 26px; padding: 0px; margin-top: 19px; }
+.MenuRoot.MapRotation.VerticalGap19.Result .MenuHeader { margin-bottom: 19px; }
+.MenuRoot.MapRotation.VerticalGap19.Result .Participation { height: 22px; margin: 0px 0px 19px; }
+.MenuRoot.MapRotation.VerticalGap19.Result .MenuItem { height: 272px; }
+.MenuRoot.MapRotation.VerticalGap19.Result .ItemsViewport { height: 272px; }
+.MenuRoot.MapRotation.VerticalGap19.Result .ItemText { padding-top: 18px; padding-bottom: 10px; }
+.MenuRoot.MapRotation.VerticalGap19.Result .ItemName { height: 32px; }
+.MenuRoot.MapRotation.VerticalGap19.Result .ItemDescription { height: 20px; margin-top: 10px; }
+.MenuRoot.MapRotation.VerticalGap19.Result .Badge { height: 38px; padding-bottom: 10px; }
+.MenuRoot.MapRotation.VerticalGap19.Result .Footer { height: 26px; padding: 0px; margin-top: 19px; }
+.MenuRoot.MapRotation.VerticalGap20 .MenuWindow { padding-top: 20px; padding-bottom: 20px; }
+.MenuRoot.MapRotation.VerticalGap20 .MenuHeader { margin-bottom: 20px; }
+.MenuRoot.MapRotation.VerticalGap20 .Subtitle { height: 22px; padding: 0px; margin-bottom: 20px; }
+.MenuRoot.MapRotation.VerticalGap20 .Participation { height: 26px; margin: 0px 0px 20px; }
+.MenuRoot.MapRotation.VerticalGap20 .Footer { height: 26px; padding: 0px; margin-top: 20px; }
+.MenuRoot.MapRotation.VerticalGap20 .Pagination { margin-top: 20px; }
+.MenuRoot.MapRotation.VerticalGap20.Vertical.List .MenuItem { height: 86px; margin-bottom: 20px; }
+.MenuRoot.MapRotation.VerticalGap20.Vertical.List .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap20.Vertical.List .ItemsViewport { height: 616px; }
+.MenuRoot.MapRotation.VerticalGap20.Vertical.List .ItemIcon { height: 84px; }
+.MenuRoot.MapRotation.VerticalGap20.Vertical.List .ItemName { height: 30px; text-overflow: shrink min(20px); }
+.MenuRoot.MapRotation.VerticalGap20.Vertical.List .ItemDescription { height: 18px; font-size: 16px; margin-top: 8px; }
+.MenuRoot.MapRotation.VerticalGap20.Vertical.List.HasSecondRow .MenuItem { height: 72px; margin-bottom: 20px; }
+.MenuRoot.MapRotation.VerticalGap20.Vertical.List.HasSecondRow .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap20.Vertical.List.HasSecondRow .ItemsViewport { height: 532px; }
+.MenuRoot.MapRotation.VerticalGap20.Vertical.List.HasSecondRow .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap20.Vertical.List.HasSecondRow .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap20.Horizontal.List .MenuItem { height: 276px; }
+.MenuRoot.MapRotation.VerticalGap20.Horizontal.List .ItemsViewport { height: 276px; }
+.MenuRoot.MapRotation.VerticalGap20.Horizontal.List.HasSecondRow .ItemsViewport { height: 572px; }
+.MenuRoot.MapRotation.VerticalGap20.Horizontal.List .Row1 { margin-top: 20px; }
+.MenuRoot.MapRotation.VerticalGap20.Horizontal.List .ItemText { padding-top: 18px; padding-bottom: 10px; }
+.MenuRoot.MapRotation.VerticalGap20.Horizontal.List .ItemName { height: 38px; }
+.MenuRoot.MapRotation.VerticalGap20.Horizontal.List .ItemDescription { height: 20px; margin-top: 10px; }
+.MenuRoot.MapRotation.VerticalGap20.Horizontal.List .Badge { height: 38px; padding-bottom: 10px; }
+.MenuRoot.MapRotation.VerticalGap20.Scale120.List .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap20.Scale120.List.HasBrand .MenuHeader { height: 64px; }
+.MenuRoot.MapRotation.VerticalGap20.Scale120.List .BrandGroup { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap20.Scale120.List .HeaderActions { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap20.Scale120.List .BrandMark { width: 28px; height: 28px; }
+.MenuRoot.MapRotation.VerticalGap20.Scale120.List .Brand { font-size: 21px; letter-spacing: 4px; }
+.MenuRoot.MapRotation.VerticalGap20.Scale120.List .Title { height: 28px; font-size: 24px; margin-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap20.Scale120.List .Status { font-size: 21px; }
+.MenuRoot.MapRotation.VerticalGap20.Scale120.Vertical.List .MenuItem { height: 72px; }
+.MenuRoot.MapRotation.VerticalGap20.Scale120.Vertical.List .ItemsViewport { height: 532px; }
+.MenuRoot.MapRotation.VerticalGap20.Scale120.Vertical.List .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap20.Scale120.Vertical.List .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap20.Compact .MenuHeader { margin-bottom: 20px; }
+.MenuRoot.MapRotation.VerticalGap20.Compact .Participation { height: 22px; margin: 0px 0px 20px; }
+.MenuRoot.MapRotation.VerticalGap20.Compact .MenuItem { height: 54px; margin-bottom: 10px; }
+.MenuRoot.MapRotation.VerticalGap20.Compact .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap20.Compact .ItemsViewport { height: 374px; }
+.MenuRoot.MapRotation.VerticalGap20.Compact .ItemText { height: 24px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap20.Compact .Badge { height: 22px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap20.Compact .Footer { height: 26px; padding: 0px; margin-top: 20px; }
+.MenuRoot.MapRotation.VerticalGap20.Result .MenuHeader { margin-bottom: 20px; }
+.MenuRoot.MapRotation.VerticalGap20.Result .Participation { height: 22px; margin: 0px 0px 20px; }
+.MenuRoot.MapRotation.VerticalGap20.Result .MenuItem { height: 274px; }
+.MenuRoot.MapRotation.VerticalGap20.Result .ItemsViewport { height: 274px; }
+.MenuRoot.MapRotation.VerticalGap20.Result .ItemText { padding-top: 18px; padding-bottom: 10px; }
+.MenuRoot.MapRotation.VerticalGap20.Result .ItemName { height: 32px; }
+.MenuRoot.MapRotation.VerticalGap20.Result .ItemDescription { height: 20px; margin-top: 10px; }
+.MenuRoot.MapRotation.VerticalGap20.Result .Badge { height: 38px; padding-bottom: 10px; }
+.MenuRoot.MapRotation.VerticalGap20.Result .Footer { height: 26px; padding: 0px; margin-top: 20px; }
+.MenuRoot.MapRotation.VerticalGap21 .MenuWindow { padding-top: 21px; padding-bottom: 21px; }
+.MenuRoot.MapRotation.VerticalGap21 .MenuHeader { margin-bottom: 21px; }
+.MenuRoot.MapRotation.VerticalGap21 .Subtitle { height: 22px; padding: 0px; margin-bottom: 21px; }
+.MenuRoot.MapRotation.VerticalGap21 .Participation { height: 26px; margin: 0px 0px 21px; }
+.MenuRoot.MapRotation.VerticalGap21 .Footer { height: 26px; padding: 0px; margin-top: 21px; }
+.MenuRoot.MapRotation.VerticalGap21 .Pagination { margin-top: 21px; }
+.MenuRoot.MapRotation.VerticalGap21.Vertical.List .MenuItem { height: 86px; margin-bottom: 21px; }
+.MenuRoot.MapRotation.VerticalGap21.Vertical.List .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap21.Vertical.List .ItemsViewport { height: 621px; }
+.MenuRoot.MapRotation.VerticalGap21.Vertical.List .ItemIcon { height: 84px; }
+.MenuRoot.MapRotation.VerticalGap21.Vertical.List .ItemName { height: 30px; text-overflow: shrink min(20px); }
+.MenuRoot.MapRotation.VerticalGap21.Vertical.List .ItemDescription { height: 18px; font-size: 16px; margin-top: 8px; }
+.MenuRoot.MapRotation.VerticalGap21.Vertical.List.HasSecondRow .MenuItem { height: 72px; margin-bottom: 21px; }
+.MenuRoot.MapRotation.VerticalGap21.Vertical.List.HasSecondRow .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap21.Vertical.List.HasSecondRow .ItemsViewport { height: 537px; }
+.MenuRoot.MapRotation.VerticalGap21.Vertical.List.HasSecondRow .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap21.Vertical.List.HasSecondRow .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap21.Horizontal.List .MenuItem { height: 278px; }
+.MenuRoot.MapRotation.VerticalGap21.Horizontal.List .ItemsViewport { height: 278px; }
+.MenuRoot.MapRotation.VerticalGap21.Horizontal.List.HasSecondRow .ItemsViewport { height: 577px; }
+.MenuRoot.MapRotation.VerticalGap21.Horizontal.List .Row1 { margin-top: 21px; }
+.MenuRoot.MapRotation.VerticalGap21.Horizontal.List .ItemText { padding-top: 19px; padding-bottom: 11px; }
+.MenuRoot.MapRotation.VerticalGap21.Horizontal.List .ItemName { height: 38px; }
+.MenuRoot.MapRotation.VerticalGap21.Horizontal.List .ItemDescription { height: 20px; margin-top: 11px; }
+.MenuRoot.MapRotation.VerticalGap21.Horizontal.List .Badge { height: 39px; padding-bottom: 11px; }
+.MenuRoot.MapRotation.VerticalGap21.Scale120.List .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap21.Scale120.List.HasBrand .MenuHeader { height: 64px; }
+.MenuRoot.MapRotation.VerticalGap21.Scale120.List .BrandGroup { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap21.Scale120.List .HeaderActions { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap21.Scale120.List .BrandMark { width: 28px; height: 28px; }
+.MenuRoot.MapRotation.VerticalGap21.Scale120.List .Brand { font-size: 21px; letter-spacing: 4px; }
+.MenuRoot.MapRotation.VerticalGap21.Scale120.List .Title { height: 28px; font-size: 24px; margin-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap21.Scale120.List .Status { font-size: 21px; }
+.MenuRoot.MapRotation.VerticalGap21.Scale120.Vertical.List .MenuItem { height: 72px; }
+.MenuRoot.MapRotation.VerticalGap21.Scale120.Vertical.List .ItemsViewport { height: 537px; }
+.MenuRoot.MapRotation.VerticalGap21.Scale120.Vertical.List .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap21.Scale120.Vertical.List .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap21.Compact .MenuHeader { margin-bottom: 21px; }
+.MenuRoot.MapRotation.VerticalGap21.Compact .Participation { height: 22px; margin: 0px 0px 21px; }
+.MenuRoot.MapRotation.VerticalGap21.Compact .MenuItem { height: 55px; margin-bottom: 11px; }
+.MenuRoot.MapRotation.VerticalGap21.Compact .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap21.Compact .ItemsViewport { height: 385px; }
+.MenuRoot.MapRotation.VerticalGap21.Compact .ItemText { height: 24px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap21.Compact .Badge { height: 22px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap21.Compact .Footer { height: 26px; padding: 0px; margin-top: 21px; }
+.MenuRoot.MapRotation.VerticalGap21.Result .MenuHeader { margin-bottom: 21px; }
+.MenuRoot.MapRotation.VerticalGap21.Result .Participation { height: 22px; margin: 0px 0px 21px; }
+.MenuRoot.MapRotation.VerticalGap21.Result .MenuItem { height: 276px; }
+.MenuRoot.MapRotation.VerticalGap21.Result .ItemsViewport { height: 276px; }
+.MenuRoot.MapRotation.VerticalGap21.Result .ItemText { padding-top: 19px; padding-bottom: 11px; }
+.MenuRoot.MapRotation.VerticalGap21.Result .ItemName { height: 32px; }
+.MenuRoot.MapRotation.VerticalGap21.Result .ItemDescription { height: 20px; margin-top: 11px; }
+.MenuRoot.MapRotation.VerticalGap21.Result .Badge { height: 39px; padding-bottom: 11px; }
+.MenuRoot.MapRotation.VerticalGap21.Result .Footer { height: 26px; padding: 0px; margin-top: 21px; }
+.MenuRoot.MapRotation.VerticalGap22 .MenuWindow { padding-top: 22px; padding-bottom: 22px; }
+.MenuRoot.MapRotation.VerticalGap22 .MenuHeader { margin-bottom: 22px; }
+.MenuRoot.MapRotation.VerticalGap22 .Subtitle { height: 22px; padding: 0px; margin-bottom: 22px; }
+.MenuRoot.MapRotation.VerticalGap22 .Participation { height: 26px; margin: 0px 0px 22px; }
+.MenuRoot.MapRotation.VerticalGap22 .Footer { height: 26px; padding: 0px; margin-top: 22px; }
+.MenuRoot.MapRotation.VerticalGap22 .Pagination { margin-top: 22px; }
+.MenuRoot.MapRotation.VerticalGap22.Vertical.List .MenuItem { height: 86px; margin-bottom: 22px; }
+.MenuRoot.MapRotation.VerticalGap22.Vertical.List .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap22.Vertical.List .ItemsViewport { height: 626px; }
+.MenuRoot.MapRotation.VerticalGap22.Vertical.List .ItemIcon { height: 84px; }
+.MenuRoot.MapRotation.VerticalGap22.Vertical.List .ItemName { height: 30px; text-overflow: shrink min(20px); }
+.MenuRoot.MapRotation.VerticalGap22.Vertical.List .ItemDescription { height: 18px; font-size: 16px; margin-top: 8px; }
+.MenuRoot.MapRotation.VerticalGap22.Vertical.List.HasSecondRow .MenuItem { height: 72px; margin-bottom: 22px; }
+.MenuRoot.MapRotation.VerticalGap22.Vertical.List.HasSecondRow .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap22.Vertical.List.HasSecondRow .ItemsViewport { height: 542px; }
+.MenuRoot.MapRotation.VerticalGap22.Vertical.List.HasSecondRow .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap22.Vertical.List.HasSecondRow .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap22.Horizontal.List .MenuItem { height: 280px; }
+.MenuRoot.MapRotation.VerticalGap22.Horizontal.List .ItemsViewport { height: 280px; }
+.MenuRoot.MapRotation.VerticalGap22.Horizontal.List.HasSecondRow .ItemsViewport { height: 582px; }
+.MenuRoot.MapRotation.VerticalGap22.Horizontal.List .Row1 { margin-top: 22px; }
+.MenuRoot.MapRotation.VerticalGap22.Horizontal.List .ItemText { padding-top: 19px; padding-bottom: 11px; }
+.MenuRoot.MapRotation.VerticalGap22.Horizontal.List .ItemName { height: 38px; }
+.MenuRoot.MapRotation.VerticalGap22.Horizontal.List .ItemDescription { height: 20px; margin-top: 11px; }
+.MenuRoot.MapRotation.VerticalGap22.Horizontal.List .Badge { height: 39px; padding-bottom: 11px; }
+.MenuRoot.MapRotation.VerticalGap22.Scale120.List .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap22.Scale120.List.HasBrand .MenuHeader { height: 64px; }
+.MenuRoot.MapRotation.VerticalGap22.Scale120.List .BrandGroup { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap22.Scale120.List .HeaderActions { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap22.Scale120.List .BrandMark { width: 28px; height: 28px; }
+.MenuRoot.MapRotation.VerticalGap22.Scale120.List .Brand { font-size: 21px; letter-spacing: 4px; }
+.MenuRoot.MapRotation.VerticalGap22.Scale120.List .Title { height: 28px; font-size: 24px; margin-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap22.Scale120.List .Status { font-size: 21px; }
+.MenuRoot.MapRotation.VerticalGap22.Scale120.Vertical.List .MenuItem { height: 72px; }
+.MenuRoot.MapRotation.VerticalGap22.Scale120.Vertical.List .ItemsViewport { height: 542px; }
+.MenuRoot.MapRotation.VerticalGap22.Scale120.Vertical.List .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap22.Scale120.Vertical.List .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap22.Compact .MenuHeader { margin-bottom: 22px; }
+.MenuRoot.MapRotation.VerticalGap22.Compact .Participation { height: 22px; margin: 0px 0px 22px; }
+.MenuRoot.MapRotation.VerticalGap22.Compact .MenuItem { height: 55px; margin-bottom: 11px; }
+.MenuRoot.MapRotation.VerticalGap22.Compact .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap22.Compact .ItemsViewport { height: 385px; }
+.MenuRoot.MapRotation.VerticalGap22.Compact .ItemText { height: 24px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap22.Compact .Badge { height: 22px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap22.Compact .Footer { height: 26px; padding: 0px; margin-top: 22px; }
+.MenuRoot.MapRotation.VerticalGap22.Result .MenuHeader { margin-bottom: 22px; }
+.MenuRoot.MapRotation.VerticalGap22.Result .Participation { height: 22px; margin: 0px 0px 22px; }
+.MenuRoot.MapRotation.VerticalGap22.Result .MenuItem { height: 278px; }
+.MenuRoot.MapRotation.VerticalGap22.Result .ItemsViewport { height: 278px; }
+.MenuRoot.MapRotation.VerticalGap22.Result .ItemText { padding-top: 19px; padding-bottom: 11px; }
+.MenuRoot.MapRotation.VerticalGap22.Result .ItemName { height: 32px; }
+.MenuRoot.MapRotation.VerticalGap22.Result .ItemDescription { height: 20px; margin-top: 11px; }
+.MenuRoot.MapRotation.VerticalGap22.Result .Badge { height: 39px; padding-bottom: 11px; }
+.MenuRoot.MapRotation.VerticalGap22.Result .Footer { height: 26px; padding: 0px; margin-top: 22px; }
+.MenuRoot.MapRotation.VerticalGap23 .MenuWindow { padding-top: 23px; padding-bottom: 23px; }
+.MenuRoot.MapRotation.VerticalGap23 .MenuHeader { margin-bottom: 23px; }
+.MenuRoot.MapRotation.VerticalGap23 .Subtitle { height: 22px; padding: 0px; margin-bottom: 23px; }
+.MenuRoot.MapRotation.VerticalGap23 .Participation { height: 26px; margin: 0px 0px 23px; }
+.MenuRoot.MapRotation.VerticalGap23 .Footer { height: 26px; padding: 0px; margin-top: 23px; }
+.MenuRoot.MapRotation.VerticalGap23 .Pagination { margin-top: 23px; }
+.MenuRoot.MapRotation.VerticalGap23.Vertical.List .MenuItem { height: 86px; margin-bottom: 23px; }
+.MenuRoot.MapRotation.VerticalGap23.Vertical.List .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap23.Vertical.List .ItemsViewport { height: 631px; }
+.MenuRoot.MapRotation.VerticalGap23.Vertical.List .ItemIcon { height: 84px; }
+.MenuRoot.MapRotation.VerticalGap23.Vertical.List .ItemName { height: 30px; text-overflow: shrink min(20px); }
+.MenuRoot.MapRotation.VerticalGap23.Vertical.List .ItemDescription { height: 18px; font-size: 16px; margin-top: 8px; }
+.MenuRoot.MapRotation.VerticalGap23.Vertical.List.HasSecondRow .MenuItem { height: 72px; margin-bottom: 23px; }
+.MenuRoot.MapRotation.VerticalGap23.Vertical.List.HasSecondRow .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap23.Vertical.List.HasSecondRow .ItemsViewport { height: 547px; }
+.MenuRoot.MapRotation.VerticalGap23.Vertical.List.HasSecondRow .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap23.Vertical.List.HasSecondRow .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap23.Horizontal.List .MenuItem { height: 282px; }
+.MenuRoot.MapRotation.VerticalGap23.Horizontal.List .ItemsViewport { height: 282px; }
+.MenuRoot.MapRotation.VerticalGap23.Horizontal.List.HasSecondRow .ItemsViewport { height: 587px; }
+.MenuRoot.MapRotation.VerticalGap23.Horizontal.List .Row1 { margin-top: 23px; }
+.MenuRoot.MapRotation.VerticalGap23.Horizontal.List .ItemText { padding-top: 20px; padding-bottom: 12px; }
+.MenuRoot.MapRotation.VerticalGap23.Horizontal.List .ItemName { height: 38px; }
+.MenuRoot.MapRotation.VerticalGap23.Horizontal.List .ItemDescription { height: 20px; margin-top: 12px; }
+.MenuRoot.MapRotation.VerticalGap23.Horizontal.List .Badge { height: 40px; padding-bottom: 12px; }
+.MenuRoot.MapRotation.VerticalGap23.Scale120.List .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap23.Scale120.List.HasBrand .MenuHeader { height: 64px; }
+.MenuRoot.MapRotation.VerticalGap23.Scale120.List .BrandGroup { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap23.Scale120.List .HeaderActions { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap23.Scale120.List .BrandMark { width: 28px; height: 28px; }
+.MenuRoot.MapRotation.VerticalGap23.Scale120.List .Brand { font-size: 21px; letter-spacing: 4px; }
+.MenuRoot.MapRotation.VerticalGap23.Scale120.List .Title { height: 28px; font-size: 24px; margin-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap23.Scale120.List .Status { font-size: 21px; }
+.MenuRoot.MapRotation.VerticalGap23.Scale120.Vertical.List .MenuItem { height: 72px; }
+.MenuRoot.MapRotation.VerticalGap23.Scale120.Vertical.List .ItemsViewport { height: 547px; }
+.MenuRoot.MapRotation.VerticalGap23.Scale120.Vertical.List .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap23.Scale120.Vertical.List .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap23.Compact .MenuHeader { margin-bottom: 23px; }
+.MenuRoot.MapRotation.VerticalGap23.Compact .Participation { height: 22px; margin: 0px 0px 23px; }
+.MenuRoot.MapRotation.VerticalGap23.Compact .MenuItem { height: 56px; margin-bottom: 12px; }
+.MenuRoot.MapRotation.VerticalGap23.Compact .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap23.Compact .ItemsViewport { height: 396px; }
+.MenuRoot.MapRotation.VerticalGap23.Compact .ItemText { height: 24px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap23.Compact .Badge { height: 22px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap23.Compact .Footer { height: 26px; padding: 0px; margin-top: 23px; }
+.MenuRoot.MapRotation.VerticalGap23.Result .MenuHeader { margin-bottom: 23px; }
+.MenuRoot.MapRotation.VerticalGap23.Result .Participation { height: 22px; margin: 0px 0px 23px; }
+.MenuRoot.MapRotation.VerticalGap23.Result .MenuItem { height: 280px; }
+.MenuRoot.MapRotation.VerticalGap23.Result .ItemsViewport { height: 280px; }
+.MenuRoot.MapRotation.VerticalGap23.Result .ItemText { padding-top: 20px; padding-bottom: 12px; }
+.MenuRoot.MapRotation.VerticalGap23.Result .ItemName { height: 32px; }
+.MenuRoot.MapRotation.VerticalGap23.Result .ItemDescription { height: 20px; margin-top: 12px; }
+.MenuRoot.MapRotation.VerticalGap23.Result .Badge { height: 40px; padding-bottom: 12px; }
+.MenuRoot.MapRotation.VerticalGap23.Result .Footer { height: 26px; padding: 0px; margin-top: 23px; }
+.MenuRoot.MapRotation.VerticalGap24 .MenuWindow { padding-top: 24px; padding-bottom: 24px; }
+.MenuRoot.MapRotation.VerticalGap24 .MenuHeader { margin-bottom: 24px; }
+.MenuRoot.MapRotation.VerticalGap24 .Subtitle { height: 22px; padding: 0px; margin-bottom: 24px; }
+.MenuRoot.MapRotation.VerticalGap24 .Participation { height: 26px; margin: 0px 0px 24px; }
+.MenuRoot.MapRotation.VerticalGap24 .Footer { height: 26px; padding: 0px; margin-top: 24px; }
+.MenuRoot.MapRotation.VerticalGap24 .Pagination { margin-top: 24px; }
+.MenuRoot.MapRotation.VerticalGap24.Vertical.List .MenuItem { height: 86px; margin-bottom: 24px; }
+.MenuRoot.MapRotation.VerticalGap24.Vertical.List .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap24.Vertical.List .ItemsViewport { height: 636px; }
+.MenuRoot.MapRotation.VerticalGap24.Vertical.List .ItemIcon { height: 84px; }
+.MenuRoot.MapRotation.VerticalGap24.Vertical.List .ItemName { height: 30px; text-overflow: shrink min(20px); }
+.MenuRoot.MapRotation.VerticalGap24.Vertical.List .ItemDescription { height: 18px; font-size: 16px; margin-top: 8px; }
+.MenuRoot.MapRotation.VerticalGap24.Vertical.List.HasSecondRow .MenuItem { height: 72px; margin-bottom: 24px; }
+.MenuRoot.MapRotation.VerticalGap24.Vertical.List.HasSecondRow .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap24.Vertical.List.HasSecondRow .ItemsViewport { height: 552px; }
+.MenuRoot.MapRotation.VerticalGap24.Vertical.List.HasSecondRow .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap24.Vertical.List.HasSecondRow .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap24.Horizontal.List .MenuItem { height: 284px; }
+.MenuRoot.MapRotation.VerticalGap24.Horizontal.List .ItemsViewport { height: 284px; }
+.MenuRoot.MapRotation.VerticalGap24.Horizontal.List.HasSecondRow .ItemsViewport { height: 592px; }
+.MenuRoot.MapRotation.VerticalGap24.Horizontal.List .Row1 { margin-top: 24px; }
+.MenuRoot.MapRotation.VerticalGap24.Horizontal.List .ItemText { padding-top: 20px; padding-bottom: 12px; }
+.MenuRoot.MapRotation.VerticalGap24.Horizontal.List .ItemName { height: 38px; }
+.MenuRoot.MapRotation.VerticalGap24.Horizontal.List .ItemDescription { height: 20px; margin-top: 12px; }
+.MenuRoot.MapRotation.VerticalGap24.Horizontal.List .Badge { height: 40px; padding-bottom: 12px; }
+.MenuRoot.MapRotation.VerticalGap24.Scale120.List .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap24.Scale120.List.HasBrand .MenuHeader { height: 64px; }
+.MenuRoot.MapRotation.VerticalGap24.Scale120.List .BrandGroup { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap24.Scale120.List .HeaderActions { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap24.Scale120.List .BrandMark { width: 28px; height: 28px; }
+.MenuRoot.MapRotation.VerticalGap24.Scale120.List .Brand { font-size: 21px; letter-spacing: 4px; }
+.MenuRoot.MapRotation.VerticalGap24.Scale120.List .Title { height: 28px; font-size: 24px; margin-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap24.Scale120.List .Status { font-size: 21px; }
+.MenuRoot.MapRotation.VerticalGap24.Scale120.Vertical.List .MenuItem { height: 72px; }
+.MenuRoot.MapRotation.VerticalGap24.Scale120.Vertical.List .ItemsViewport { height: 552px; }
+.MenuRoot.MapRotation.VerticalGap24.Scale120.Vertical.List .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap24.Scale120.Vertical.List .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap24.Compact .MenuHeader { margin-bottom: 24px; }
+.MenuRoot.MapRotation.VerticalGap24.Compact .Participation { height: 22px; margin: 0px 0px 24px; }
+.MenuRoot.MapRotation.VerticalGap24.Compact .MenuItem { height: 56px; margin-bottom: 12px; }
+.MenuRoot.MapRotation.VerticalGap24.Compact .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap24.Compact .ItemsViewport { height: 396px; }
+.MenuRoot.MapRotation.VerticalGap24.Compact .ItemText { height: 24px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap24.Compact .Badge { height: 22px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap24.Compact .Footer { height: 26px; padding: 0px; margin-top: 24px; }
+.MenuRoot.MapRotation.VerticalGap24.Result .MenuHeader { margin-bottom: 24px; }
+.MenuRoot.MapRotation.VerticalGap24.Result .Participation { height: 22px; margin: 0px 0px 24px; }
+.MenuRoot.MapRotation.VerticalGap24.Result .MenuItem { height: 282px; }
+.MenuRoot.MapRotation.VerticalGap24.Result .ItemsViewport { height: 282px; }
+.MenuRoot.MapRotation.VerticalGap24.Result .ItemText { padding-top: 20px; padding-bottom: 12px; }
+.MenuRoot.MapRotation.VerticalGap24.Result .ItemName { height: 32px; }
+.MenuRoot.MapRotation.VerticalGap24.Result .ItemDescription { height: 20px; margin-top: 12px; }
+.MenuRoot.MapRotation.VerticalGap24.Result .Badge { height: 40px; padding-bottom: 12px; }
+.MenuRoot.MapRotation.VerticalGap24.Result .Footer { height: 26px; padding: 0px; margin-top: 24px; }
+.MenuRoot.MapRotation.VerticalGap25 .MenuWindow { padding-top: 25px; padding-bottom: 25px; }
+.MenuRoot.MapRotation.VerticalGap25 .MenuHeader { margin-bottom: 25px; }
+.MenuRoot.MapRotation.VerticalGap25 .Subtitle { height: 22px; padding: 0px; margin-bottom: 25px; }
+.MenuRoot.MapRotation.VerticalGap25 .Participation { height: 26px; margin: 0px 0px 25px; }
+.MenuRoot.MapRotation.VerticalGap25 .Footer { height: 26px; padding: 0px; margin-top: 25px; }
+.MenuRoot.MapRotation.VerticalGap25 .Pagination { margin-top: 25px; }
+.MenuRoot.MapRotation.VerticalGap25.Vertical.List .MenuItem { height: 86px; margin-bottom: 25px; }
+.MenuRoot.MapRotation.VerticalGap25.Vertical.List .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap25.Vertical.List .ItemsViewport { height: 641px; }
+.MenuRoot.MapRotation.VerticalGap25.Vertical.List .ItemIcon { height: 84px; }
+.MenuRoot.MapRotation.VerticalGap25.Vertical.List .ItemName { height: 30px; text-overflow: shrink min(20px); }
+.MenuRoot.MapRotation.VerticalGap25.Vertical.List .ItemDescription { height: 18px; font-size: 16px; margin-top: 8px; }
+.MenuRoot.MapRotation.VerticalGap25.Vertical.List.HasSecondRow .MenuItem { height: 72px; margin-bottom: 25px; }
+.MenuRoot.MapRotation.VerticalGap25.Vertical.List.HasSecondRow .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap25.Vertical.List.HasSecondRow .ItemsViewport { height: 557px; }
+.MenuRoot.MapRotation.VerticalGap25.Vertical.List.HasSecondRow .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap25.Vertical.List.HasSecondRow .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap25.Horizontal.List .MenuItem { height: 286px; }
+.MenuRoot.MapRotation.VerticalGap25.Horizontal.List .ItemsViewport { height: 286px; }
+.MenuRoot.MapRotation.VerticalGap25.Horizontal.List.HasSecondRow .ItemsViewport { height: 597px; }
+.MenuRoot.MapRotation.VerticalGap25.Horizontal.List .Row1 { margin-top: 25px; }
+.MenuRoot.MapRotation.VerticalGap25.Horizontal.List .ItemText { padding-top: 21px; padding-bottom: 13px; }
+.MenuRoot.MapRotation.VerticalGap25.Horizontal.List .ItemName { height: 38px; }
+.MenuRoot.MapRotation.VerticalGap25.Horizontal.List .ItemDescription { height: 20px; margin-top: 13px; }
+.MenuRoot.MapRotation.VerticalGap25.Horizontal.List .Badge { height: 41px; padding-bottom: 13px; }
+.MenuRoot.MapRotation.VerticalGap25.Scale120.List .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap25.Scale120.List.HasBrand .MenuHeader { height: 64px; }
+.MenuRoot.MapRotation.VerticalGap25.Scale120.List .BrandGroup { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap25.Scale120.List .HeaderActions { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap25.Scale120.List .BrandMark { width: 28px; height: 28px; }
+.MenuRoot.MapRotation.VerticalGap25.Scale120.List .Brand { font-size: 21px; letter-spacing: 4px; }
+.MenuRoot.MapRotation.VerticalGap25.Scale120.List .Title { height: 28px; font-size: 24px; margin-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap25.Scale120.List .Status { font-size: 21px; }
+.MenuRoot.MapRotation.VerticalGap25.Scale120.Vertical.List .MenuItem { height: 72px; }
+.MenuRoot.MapRotation.VerticalGap25.Scale120.Vertical.List .ItemsViewport { height: 557px; }
+.MenuRoot.MapRotation.VerticalGap25.Scale120.Vertical.List .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap25.Scale120.Vertical.List .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap25.Compact .MenuHeader { margin-bottom: 25px; }
+.MenuRoot.MapRotation.VerticalGap25.Compact .Participation { height: 22px; margin: 0px 0px 25px; }
+.MenuRoot.MapRotation.VerticalGap25.Compact .MenuItem { height: 57px; margin-bottom: 13px; }
+.MenuRoot.MapRotation.VerticalGap25.Compact .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap25.Compact .ItemsViewport { height: 407px; }
+.MenuRoot.MapRotation.VerticalGap25.Compact .ItemText { height: 24px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap25.Compact .Badge { height: 22px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap25.Compact .Footer { height: 26px; padding: 0px; margin-top: 25px; }
+.MenuRoot.MapRotation.VerticalGap25.Result .MenuHeader { margin-bottom: 25px; }
+.MenuRoot.MapRotation.VerticalGap25.Result .Participation { height: 22px; margin: 0px 0px 25px; }
+.MenuRoot.MapRotation.VerticalGap25.Result .MenuItem { height: 284px; }
+.MenuRoot.MapRotation.VerticalGap25.Result .ItemsViewport { height: 284px; }
+.MenuRoot.MapRotation.VerticalGap25.Result .ItemText { padding-top: 21px; padding-bottom: 13px; }
+.MenuRoot.MapRotation.VerticalGap25.Result .ItemName { height: 32px; }
+.MenuRoot.MapRotation.VerticalGap25.Result .ItemDescription { height: 20px; margin-top: 13px; }
+.MenuRoot.MapRotation.VerticalGap25.Result .Badge { height: 41px; padding-bottom: 13px; }
+.MenuRoot.MapRotation.VerticalGap25.Result .Footer { height: 26px; padding: 0px; margin-top: 25px; }
+.MenuRoot.MapRotation.VerticalGap26 .MenuWindow { padding-top: 26px; padding-bottom: 26px; }
+.MenuRoot.MapRotation.VerticalGap26 .MenuHeader { margin-bottom: 26px; }
+.MenuRoot.MapRotation.VerticalGap26 .Subtitle { height: 22px; padding: 0px; margin-bottom: 26px; }
+.MenuRoot.MapRotation.VerticalGap26 .Participation { height: 26px; margin: 0px 0px 26px; }
+.MenuRoot.MapRotation.VerticalGap26 .Footer { height: 26px; padding: 0px; margin-top: 26px; }
+.MenuRoot.MapRotation.VerticalGap26 .Pagination { margin-top: 26px; }
+.MenuRoot.MapRotation.VerticalGap26.Vertical.List .MenuItem { height: 86px; margin-bottom: 26px; }
+.MenuRoot.MapRotation.VerticalGap26.Vertical.List .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap26.Vertical.List .ItemsViewport { height: 646px; }
+.MenuRoot.MapRotation.VerticalGap26.Vertical.List .ItemIcon { height: 84px; }
+.MenuRoot.MapRotation.VerticalGap26.Vertical.List .ItemName { height: 30px; text-overflow: shrink min(20px); }
+.MenuRoot.MapRotation.VerticalGap26.Vertical.List .ItemDescription { height: 18px; font-size: 16px; margin-top: 8px; }
+.MenuRoot.MapRotation.VerticalGap26.Vertical.List.HasSecondRow .MenuItem { height: 72px; margin-bottom: 26px; }
+.MenuRoot.MapRotation.VerticalGap26.Vertical.List.HasSecondRow .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap26.Vertical.List.HasSecondRow .ItemsViewport { height: 562px; }
+.MenuRoot.MapRotation.VerticalGap26.Vertical.List.HasSecondRow .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap26.Vertical.List.HasSecondRow .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap26.Horizontal.List .MenuItem { height: 288px; }
+.MenuRoot.MapRotation.VerticalGap26.Horizontal.List .ItemsViewport { height: 288px; }
+.MenuRoot.MapRotation.VerticalGap26.Horizontal.List.HasSecondRow .ItemsViewport { height: 602px; }
+.MenuRoot.MapRotation.VerticalGap26.Horizontal.List .Row1 { margin-top: 26px; }
+.MenuRoot.MapRotation.VerticalGap26.Horizontal.List .ItemText { padding-top: 21px; padding-bottom: 13px; }
+.MenuRoot.MapRotation.VerticalGap26.Horizontal.List .ItemName { height: 38px; }
+.MenuRoot.MapRotation.VerticalGap26.Horizontal.List .ItemDescription { height: 20px; margin-top: 13px; }
+.MenuRoot.MapRotation.VerticalGap26.Horizontal.List .Badge { height: 41px; padding-bottom: 13px; }
+.MenuRoot.MapRotation.VerticalGap26.Scale120.List .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap26.Scale120.List.HasBrand .MenuHeader { height: 64px; }
+.MenuRoot.MapRotation.VerticalGap26.Scale120.List .BrandGroup { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap26.Scale120.List .HeaderActions { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap26.Scale120.List .BrandMark { width: 28px; height: 28px; }
+.MenuRoot.MapRotation.VerticalGap26.Scale120.List .Brand { font-size: 21px; letter-spacing: 4px; }
+.MenuRoot.MapRotation.VerticalGap26.Scale120.List .Title { height: 28px; font-size: 24px; margin-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap26.Scale120.List .Status { font-size: 21px; }
+.MenuRoot.MapRotation.VerticalGap26.Scale120.Vertical.List .MenuItem { height: 72px; }
+.MenuRoot.MapRotation.VerticalGap26.Scale120.Vertical.List .ItemsViewport { height: 562px; }
+.MenuRoot.MapRotation.VerticalGap26.Scale120.Vertical.List .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap26.Scale120.Vertical.List .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap26.Compact .MenuHeader { margin-bottom: 26px; }
+.MenuRoot.MapRotation.VerticalGap26.Compact .Participation { height: 22px; margin: 0px 0px 26px; }
+.MenuRoot.MapRotation.VerticalGap26.Compact .MenuItem { height: 57px; margin-bottom: 13px; }
+.MenuRoot.MapRotation.VerticalGap26.Compact .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap26.Compact .ItemsViewport { height: 407px; }
+.MenuRoot.MapRotation.VerticalGap26.Compact .ItemText { height: 24px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap26.Compact .Badge { height: 22px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap26.Compact .Footer { height: 26px; padding: 0px; margin-top: 26px; }
+.MenuRoot.MapRotation.VerticalGap26.Result .MenuHeader { margin-bottom: 26px; }
+.MenuRoot.MapRotation.VerticalGap26.Result .Participation { height: 22px; margin: 0px 0px 26px; }
+.MenuRoot.MapRotation.VerticalGap26.Result .MenuItem { height: 286px; }
+.MenuRoot.MapRotation.VerticalGap26.Result .ItemsViewport { height: 286px; }
+.MenuRoot.MapRotation.VerticalGap26.Result .ItemText { padding-top: 21px; padding-bottom: 13px; }
+.MenuRoot.MapRotation.VerticalGap26.Result .ItemName { height: 32px; }
+.MenuRoot.MapRotation.VerticalGap26.Result .ItemDescription { height: 20px; margin-top: 13px; }
+.MenuRoot.MapRotation.VerticalGap26.Result .Badge { height: 41px; padding-bottom: 13px; }
+.MenuRoot.MapRotation.VerticalGap26.Result .Footer { height: 26px; padding: 0px; margin-top: 26px; }
+.MenuRoot.MapRotation.VerticalGap27 .MenuWindow { padding-top: 27px; padding-bottom: 27px; }
+.MenuRoot.MapRotation.VerticalGap27 .MenuHeader { margin-bottom: 27px; }
+.MenuRoot.MapRotation.VerticalGap27 .Subtitle { height: 22px; padding: 0px; margin-bottom: 27px; }
+.MenuRoot.MapRotation.VerticalGap27 .Participation { height: 26px; margin: 0px 0px 27px; }
+.MenuRoot.MapRotation.VerticalGap27 .Footer { height: 26px; padding: 0px; margin-top: 27px; }
+.MenuRoot.MapRotation.VerticalGap27 .Pagination { margin-top: 27px; }
+.MenuRoot.MapRotation.VerticalGap27.Vertical.List .MenuItem { height: 86px; margin-bottom: 27px; }
+.MenuRoot.MapRotation.VerticalGap27.Vertical.List .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap27.Vertical.List .ItemsViewport { height: 651px; }
+.MenuRoot.MapRotation.VerticalGap27.Vertical.List .ItemIcon { height: 84px; }
+.MenuRoot.MapRotation.VerticalGap27.Vertical.List .ItemName { height: 30px; text-overflow: shrink min(20px); }
+.MenuRoot.MapRotation.VerticalGap27.Vertical.List .ItemDescription { height: 18px; font-size: 16px; margin-top: 8px; }
+.MenuRoot.MapRotation.VerticalGap27.Vertical.List.HasSecondRow .MenuItem { height: 72px; margin-bottom: 27px; }
+.MenuRoot.MapRotation.VerticalGap27.Vertical.List.HasSecondRow .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap27.Vertical.List.HasSecondRow .ItemsViewport { height: 567px; }
+.MenuRoot.MapRotation.VerticalGap27.Vertical.List.HasSecondRow .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap27.Vertical.List.HasSecondRow .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap27.Horizontal.List .MenuItem { height: 290px; }
+.MenuRoot.MapRotation.VerticalGap27.Horizontal.List .ItemsViewport { height: 290px; }
+.MenuRoot.MapRotation.VerticalGap27.Horizontal.List.HasSecondRow .ItemsViewport { height: 607px; }
+.MenuRoot.MapRotation.VerticalGap27.Horizontal.List .Row1 { margin-top: 27px; }
+.MenuRoot.MapRotation.VerticalGap27.Horizontal.List .ItemText { padding-top: 22px; padding-bottom: 14px; }
+.MenuRoot.MapRotation.VerticalGap27.Horizontal.List .ItemName { height: 38px; }
+.MenuRoot.MapRotation.VerticalGap27.Horizontal.List .ItemDescription { height: 20px; margin-top: 14px; }
+.MenuRoot.MapRotation.VerticalGap27.Horizontal.List .Badge { height: 42px; padding-bottom: 14px; }
+.MenuRoot.MapRotation.VerticalGap27.Scale120.List .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap27.Scale120.List.HasBrand .MenuHeader { height: 64px; }
+.MenuRoot.MapRotation.VerticalGap27.Scale120.List .BrandGroup { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap27.Scale120.List .HeaderActions { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap27.Scale120.List .BrandMark { width: 28px; height: 28px; }
+.MenuRoot.MapRotation.VerticalGap27.Scale120.List .Brand { font-size: 21px; letter-spacing: 4px; }
+.MenuRoot.MapRotation.VerticalGap27.Scale120.List .Title { height: 28px; font-size: 24px; margin-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap27.Scale120.List .Status { font-size: 21px; }
+.MenuRoot.MapRotation.VerticalGap27.Scale120.Vertical.List .MenuItem { height: 72px; }
+.MenuRoot.MapRotation.VerticalGap27.Scale120.Vertical.List .ItemsViewport { height: 567px; }
+.MenuRoot.MapRotation.VerticalGap27.Scale120.Vertical.List .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap27.Scale120.Vertical.List .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap27.Compact .MenuHeader { margin-bottom: 27px; }
+.MenuRoot.MapRotation.VerticalGap27.Compact .Participation { height: 22px; margin: 0px 0px 27px; }
+.MenuRoot.MapRotation.VerticalGap27.Compact .MenuItem { height: 58px; margin-bottom: 14px; }
+.MenuRoot.MapRotation.VerticalGap27.Compact .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap27.Compact .ItemsViewport { height: 418px; }
+.MenuRoot.MapRotation.VerticalGap27.Compact .ItemText { height: 24px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap27.Compact .Badge { height: 22px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap27.Compact .Footer { height: 26px; padding: 0px; margin-top: 27px; }
+.MenuRoot.MapRotation.VerticalGap27.Result .MenuHeader { margin-bottom: 27px; }
+.MenuRoot.MapRotation.VerticalGap27.Result .Participation { height: 22px; margin: 0px 0px 27px; }
+.MenuRoot.MapRotation.VerticalGap27.Result .MenuItem { height: 288px; }
+.MenuRoot.MapRotation.VerticalGap27.Result .ItemsViewport { height: 288px; }
+.MenuRoot.MapRotation.VerticalGap27.Result .ItemText { padding-top: 22px; padding-bottom: 14px; }
+.MenuRoot.MapRotation.VerticalGap27.Result .ItemName { height: 32px; }
+.MenuRoot.MapRotation.VerticalGap27.Result .ItemDescription { height: 20px; margin-top: 14px; }
+.MenuRoot.MapRotation.VerticalGap27.Result .Badge { height: 42px; padding-bottom: 14px; }
+.MenuRoot.MapRotation.VerticalGap27.Result .Footer { height: 26px; padding: 0px; margin-top: 27px; }
+.MenuRoot.MapRotation.VerticalGap28 .MenuWindow { padding-top: 28px; padding-bottom: 28px; }
+.MenuRoot.MapRotation.VerticalGap28 .MenuHeader { margin-bottom: 28px; }
+.MenuRoot.MapRotation.VerticalGap28 .Subtitle { height: 22px; padding: 0px; margin-bottom: 28px; }
+.MenuRoot.MapRotation.VerticalGap28 .Participation { height: 26px; margin: 0px 0px 28px; }
+.MenuRoot.MapRotation.VerticalGap28 .Footer { height: 26px; padding: 0px; margin-top: 28px; }
+.MenuRoot.MapRotation.VerticalGap28 .Pagination { margin-top: 28px; }
+.MenuRoot.MapRotation.VerticalGap28.Vertical.List .MenuItem { height: 86px; margin-bottom: 28px; }
+.MenuRoot.MapRotation.VerticalGap28.Vertical.List .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap28.Vertical.List .ItemsViewport { height: 656px; }
+.MenuRoot.MapRotation.VerticalGap28.Vertical.List .ItemIcon { height: 84px; }
+.MenuRoot.MapRotation.VerticalGap28.Vertical.List .ItemName { height: 30px; text-overflow: shrink min(20px); }
+.MenuRoot.MapRotation.VerticalGap28.Vertical.List .ItemDescription { height: 18px; font-size: 16px; margin-top: 8px; }
+.MenuRoot.MapRotation.VerticalGap28.Vertical.List.HasSecondRow .MenuItem { height: 72px; margin-bottom: 28px; }
+.MenuRoot.MapRotation.VerticalGap28.Vertical.List.HasSecondRow .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap28.Vertical.List.HasSecondRow .ItemsViewport { height: 572px; }
+.MenuRoot.MapRotation.VerticalGap28.Vertical.List.HasSecondRow .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap28.Vertical.List.HasSecondRow .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap28.Horizontal.List .MenuItem { height: 292px; }
+.MenuRoot.MapRotation.VerticalGap28.Horizontal.List .ItemsViewport { height: 292px; }
+.MenuRoot.MapRotation.VerticalGap28.Horizontal.List.HasSecondRow .ItemsViewport { height: 612px; }
+.MenuRoot.MapRotation.VerticalGap28.Horizontal.List .Row1 { margin-top: 28px; }
+.MenuRoot.MapRotation.VerticalGap28.Horizontal.List .ItemText { padding-top: 22px; padding-bottom: 14px; }
+.MenuRoot.MapRotation.VerticalGap28.Horizontal.List .ItemName { height: 38px; }
+.MenuRoot.MapRotation.VerticalGap28.Horizontal.List .ItemDescription { height: 20px; margin-top: 14px; }
+.MenuRoot.MapRotation.VerticalGap28.Horizontal.List .Badge { height: 42px; padding-bottom: 14px; }
+.MenuRoot.MapRotation.VerticalGap28.Scale120.List .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap28.Scale120.List.HasBrand .MenuHeader { height: 64px; }
+.MenuRoot.MapRotation.VerticalGap28.Scale120.List .BrandGroup { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap28.Scale120.List .HeaderActions { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap28.Scale120.List .BrandMark { width: 28px; height: 28px; }
+.MenuRoot.MapRotation.VerticalGap28.Scale120.List .Brand { font-size: 21px; letter-spacing: 4px; }
+.MenuRoot.MapRotation.VerticalGap28.Scale120.List .Title { height: 28px; font-size: 24px; margin-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap28.Scale120.List .Status { font-size: 21px; }
+.MenuRoot.MapRotation.VerticalGap28.Scale120.Vertical.List .MenuItem { height: 72px; }
+.MenuRoot.MapRotation.VerticalGap28.Scale120.Vertical.List .ItemsViewport { height: 572px; }
+.MenuRoot.MapRotation.VerticalGap28.Scale120.Vertical.List .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap28.Scale120.Vertical.List .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap28.Compact .MenuHeader { margin-bottom: 28px; }
+.MenuRoot.MapRotation.VerticalGap28.Compact .Participation { height: 22px; margin: 0px 0px 28px; }
+.MenuRoot.MapRotation.VerticalGap28.Compact .MenuItem { height: 58px; margin-bottom: 14px; }
+.MenuRoot.MapRotation.VerticalGap28.Compact .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap28.Compact .ItemsViewport { height: 418px; }
+.MenuRoot.MapRotation.VerticalGap28.Compact .ItemText { height: 24px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap28.Compact .Badge { height: 22px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap28.Compact .Footer { height: 26px; padding: 0px; margin-top: 28px; }
+.MenuRoot.MapRotation.VerticalGap28.Result .MenuHeader { margin-bottom: 28px; }
+.MenuRoot.MapRotation.VerticalGap28.Result .Participation { height: 22px; margin: 0px 0px 28px; }
+.MenuRoot.MapRotation.VerticalGap28.Result .MenuItem { height: 290px; }
+.MenuRoot.MapRotation.VerticalGap28.Result .ItemsViewport { height: 290px; }
+.MenuRoot.MapRotation.VerticalGap28.Result .ItemText { padding-top: 22px; padding-bottom: 14px; }
+.MenuRoot.MapRotation.VerticalGap28.Result .ItemName { height: 32px; }
+.MenuRoot.MapRotation.VerticalGap28.Result .ItemDescription { height: 20px; margin-top: 14px; }
+.MenuRoot.MapRotation.VerticalGap28.Result .Badge { height: 42px; padding-bottom: 14px; }
+.MenuRoot.MapRotation.VerticalGap28.Result .Footer { height: 26px; padding: 0px; margin-top: 28px; }
+.MenuRoot.MapRotation.VerticalGap29 .MenuWindow { padding-top: 29px; padding-bottom: 29px; }
+.MenuRoot.MapRotation.VerticalGap29 .MenuHeader { margin-bottom: 29px; }
+.MenuRoot.MapRotation.VerticalGap29 .Subtitle { height: 22px; padding: 0px; margin-bottom: 29px; }
+.MenuRoot.MapRotation.VerticalGap29 .Participation { height: 26px; margin: 0px 0px 29px; }
+.MenuRoot.MapRotation.VerticalGap29 .Footer { height: 26px; padding: 0px; margin-top: 29px; }
+.MenuRoot.MapRotation.VerticalGap29 .Pagination { margin-top: 29px; }
+.MenuRoot.MapRotation.VerticalGap29.Vertical.List .MenuItem { height: 86px; margin-bottom: 29px; }
+.MenuRoot.MapRotation.VerticalGap29.Vertical.List .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap29.Vertical.List .ItemsViewport { height: 661px; }
+.MenuRoot.MapRotation.VerticalGap29.Vertical.List .ItemIcon { height: 84px; }
+.MenuRoot.MapRotation.VerticalGap29.Vertical.List .ItemName { height: 30px; text-overflow: shrink min(20px); }
+.MenuRoot.MapRotation.VerticalGap29.Vertical.List .ItemDescription { height: 18px; font-size: 16px; margin-top: 8px; }
+.MenuRoot.MapRotation.VerticalGap29.Vertical.List.HasSecondRow .MenuItem { height: 72px; margin-bottom: 29px; }
+.MenuRoot.MapRotation.VerticalGap29.Vertical.List.HasSecondRow .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap29.Vertical.List.HasSecondRow .ItemsViewport { height: 577px; }
+.MenuRoot.MapRotation.VerticalGap29.Vertical.List.HasSecondRow .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap29.Vertical.List.HasSecondRow .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap29.Horizontal.List .MenuItem { height: 294px; }
+.MenuRoot.MapRotation.VerticalGap29.Horizontal.List .ItemsViewport { height: 294px; }
+.MenuRoot.MapRotation.VerticalGap29.Horizontal.List.HasSecondRow .ItemsViewport { height: 617px; }
+.MenuRoot.MapRotation.VerticalGap29.Horizontal.List .Row1 { margin-top: 29px; }
+.MenuRoot.MapRotation.VerticalGap29.Horizontal.List .ItemText { padding-top: 23px; padding-bottom: 15px; }
+.MenuRoot.MapRotation.VerticalGap29.Horizontal.List .ItemName { height: 38px; }
+.MenuRoot.MapRotation.VerticalGap29.Horizontal.List .ItemDescription { height: 20px; margin-top: 15px; }
+.MenuRoot.MapRotation.VerticalGap29.Horizontal.List .Badge { height: 43px; padding-bottom: 15px; }
+.MenuRoot.MapRotation.VerticalGap29.Scale120.List .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap29.Scale120.List.HasBrand .MenuHeader { height: 64px; }
+.MenuRoot.MapRotation.VerticalGap29.Scale120.List .BrandGroup { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap29.Scale120.List .HeaderActions { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap29.Scale120.List .BrandMark { width: 28px; height: 28px; }
+.MenuRoot.MapRotation.VerticalGap29.Scale120.List .Brand { font-size: 21px; letter-spacing: 4px; }
+.MenuRoot.MapRotation.VerticalGap29.Scale120.List .Title { height: 28px; font-size: 24px; margin-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap29.Scale120.List .Status { font-size: 21px; }
+.MenuRoot.MapRotation.VerticalGap29.Scale120.Vertical.List .MenuItem { height: 72px; }
+.MenuRoot.MapRotation.VerticalGap29.Scale120.Vertical.List .ItemsViewport { height: 577px; }
+.MenuRoot.MapRotation.VerticalGap29.Scale120.Vertical.List .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap29.Scale120.Vertical.List .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap29.Compact .MenuHeader { margin-bottom: 29px; }
+.MenuRoot.MapRotation.VerticalGap29.Compact .Participation { height: 22px; margin: 0px 0px 29px; }
+.MenuRoot.MapRotation.VerticalGap29.Compact .MenuItem { height: 59px; margin-bottom: 15px; }
+.MenuRoot.MapRotation.VerticalGap29.Compact .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap29.Compact .ItemsViewport { height: 429px; }
+.MenuRoot.MapRotation.VerticalGap29.Compact .ItemText { height: 24px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap29.Compact .Badge { height: 22px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap29.Compact .Footer { height: 26px; padding: 0px; margin-top: 29px; }
+.MenuRoot.MapRotation.VerticalGap29.Result .MenuHeader { margin-bottom: 29px; }
+.MenuRoot.MapRotation.VerticalGap29.Result .Participation { height: 22px; margin: 0px 0px 29px; }
+.MenuRoot.MapRotation.VerticalGap29.Result .MenuItem { height: 292px; }
+.MenuRoot.MapRotation.VerticalGap29.Result .ItemsViewport { height: 292px; }
+.MenuRoot.MapRotation.VerticalGap29.Result .ItemText { padding-top: 23px; padding-bottom: 15px; }
+.MenuRoot.MapRotation.VerticalGap29.Result .ItemName { height: 32px; }
+.MenuRoot.MapRotation.VerticalGap29.Result .ItemDescription { height: 20px; margin-top: 15px; }
+.MenuRoot.MapRotation.VerticalGap29.Result .Badge { height: 43px; padding-bottom: 15px; }
+.MenuRoot.MapRotation.VerticalGap29.Result .Footer { height: 26px; padding: 0px; margin-top: 29px; }
+.MenuRoot.MapRotation.VerticalGap30 .MenuWindow { padding-top: 30px; padding-bottom: 30px; }
+.MenuRoot.MapRotation.VerticalGap30 .MenuHeader { margin-bottom: 30px; }
+.MenuRoot.MapRotation.VerticalGap30 .Subtitle { height: 22px; padding: 0px; margin-bottom: 30px; }
+.MenuRoot.MapRotation.VerticalGap30 .Participation { height: 26px; margin: 0px 0px 30px; }
+.MenuRoot.MapRotation.VerticalGap30 .Footer { height: 26px; padding: 0px; margin-top: 30px; }
+.MenuRoot.MapRotation.VerticalGap30 .Pagination { margin-top: 30px; }
+.MenuRoot.MapRotation.VerticalGap30.Vertical.List .MenuItem { height: 86px; margin-bottom: 30px; }
+.MenuRoot.MapRotation.VerticalGap30.Vertical.List .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap30.Vertical.List .ItemsViewport { height: 666px; }
+.MenuRoot.MapRotation.VerticalGap30.Vertical.List .ItemIcon { height: 84px; }
+.MenuRoot.MapRotation.VerticalGap30.Vertical.List .ItemName { height: 30px; text-overflow: shrink min(20px); }
+.MenuRoot.MapRotation.VerticalGap30.Vertical.List .ItemDescription { height: 18px; font-size: 16px; margin-top: 8px; }
+.MenuRoot.MapRotation.VerticalGap30.Vertical.List.HasSecondRow .MenuItem { height: 72px; margin-bottom: 30px; }
+.MenuRoot.MapRotation.VerticalGap30.Vertical.List.HasSecondRow .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap30.Vertical.List.HasSecondRow .ItemsViewport { height: 582px; }
+.MenuRoot.MapRotation.VerticalGap30.Vertical.List.HasSecondRow .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap30.Vertical.List.HasSecondRow .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap30.Horizontal.List .MenuItem { height: 296px; }
+.MenuRoot.MapRotation.VerticalGap30.Horizontal.List .ItemsViewport { height: 296px; }
+.MenuRoot.MapRotation.VerticalGap30.Horizontal.List.HasSecondRow .ItemsViewport { height: 622px; }
+.MenuRoot.MapRotation.VerticalGap30.Horizontal.List .Row1 { margin-top: 30px; }
+.MenuRoot.MapRotation.VerticalGap30.Horizontal.List .ItemText { padding-top: 23px; padding-bottom: 15px; }
+.MenuRoot.MapRotation.VerticalGap30.Horizontal.List .ItemName { height: 38px; }
+.MenuRoot.MapRotation.VerticalGap30.Horizontal.List .ItemDescription { height: 20px; margin-top: 15px; }
+.MenuRoot.MapRotation.VerticalGap30.Horizontal.List .Badge { height: 43px; padding-bottom: 15px; }
+.MenuRoot.MapRotation.VerticalGap30.Scale120.List .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap30.Scale120.List.HasBrand .MenuHeader { height: 64px; }
+.MenuRoot.MapRotation.VerticalGap30.Scale120.List .BrandGroup { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap30.Scale120.List .HeaderActions { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap30.Scale120.List .BrandMark { width: 28px; height: 28px; }
+.MenuRoot.MapRotation.VerticalGap30.Scale120.List .Brand { font-size: 21px; letter-spacing: 4px; }
+.MenuRoot.MapRotation.VerticalGap30.Scale120.List .Title { height: 28px; font-size: 24px; margin-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap30.Scale120.List .Status { font-size: 21px; }
+.MenuRoot.MapRotation.VerticalGap30.Scale120.Vertical.List .MenuItem { height: 72px; }
+.MenuRoot.MapRotation.VerticalGap30.Scale120.Vertical.List .ItemsViewport { height: 582px; }
+.MenuRoot.MapRotation.VerticalGap30.Scale120.Vertical.List .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap30.Scale120.Vertical.List .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap30.Compact .MenuHeader { margin-bottom: 30px; }
+.MenuRoot.MapRotation.VerticalGap30.Compact .Participation { height: 22px; margin: 0px 0px 30px; }
+.MenuRoot.MapRotation.VerticalGap30.Compact .MenuItem { height: 59px; margin-bottom: 15px; }
+.MenuRoot.MapRotation.VerticalGap30.Compact .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap30.Compact .ItemsViewport { height: 429px; }
+.MenuRoot.MapRotation.VerticalGap30.Compact .ItemText { height: 24px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap30.Compact .Badge { height: 22px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap30.Compact .Footer { height: 26px; padding: 0px; margin-top: 30px; }
+.MenuRoot.MapRotation.VerticalGap30.Result .MenuHeader { margin-bottom: 30px; }
+.MenuRoot.MapRotation.VerticalGap30.Result .Participation { height: 22px; margin: 0px 0px 30px; }
+.MenuRoot.MapRotation.VerticalGap30.Result .MenuItem { height: 294px; }
+.MenuRoot.MapRotation.VerticalGap30.Result .ItemsViewport { height: 294px; }
+.MenuRoot.MapRotation.VerticalGap30.Result .ItemText { padding-top: 23px; padding-bottom: 15px; }
+.MenuRoot.MapRotation.VerticalGap30.Result .ItemName { height: 32px; }
+.MenuRoot.MapRotation.VerticalGap30.Result .ItemDescription { height: 20px; margin-top: 15px; }
+.MenuRoot.MapRotation.VerticalGap30.Result .Badge { height: 43px; padding-bottom: 15px; }
+.MenuRoot.MapRotation.VerticalGap30.Result .Footer { height: 26px; padding: 0px; margin-top: 30px; }
+.MenuRoot.MapRotation.VerticalGap31 .MenuWindow { padding-top: 31px; padding-bottom: 31px; }
+.MenuRoot.MapRotation.VerticalGap31 .MenuHeader { margin-bottom: 31px; }
+.MenuRoot.MapRotation.VerticalGap31 .Subtitle { height: 22px; padding: 0px; margin-bottom: 31px; }
+.MenuRoot.MapRotation.VerticalGap31 .Participation { height: 26px; margin: 0px 0px 31px; }
+.MenuRoot.MapRotation.VerticalGap31 .Footer { height: 26px; padding: 0px; margin-top: 31px; }
+.MenuRoot.MapRotation.VerticalGap31 .Pagination { margin-top: 31px; }
+.MenuRoot.MapRotation.VerticalGap31.Vertical.List .MenuItem { height: 86px; margin-bottom: 31px; }
+.MenuRoot.MapRotation.VerticalGap31.Vertical.List .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap31.Vertical.List .ItemsViewport { height: 671px; }
+.MenuRoot.MapRotation.VerticalGap31.Vertical.List .ItemIcon { height: 84px; }
+.MenuRoot.MapRotation.VerticalGap31.Vertical.List .ItemName { height: 30px; text-overflow: shrink min(20px); }
+.MenuRoot.MapRotation.VerticalGap31.Vertical.List .ItemDescription { height: 18px; font-size: 16px; margin-top: 8px; }
+.MenuRoot.MapRotation.VerticalGap31.Vertical.List.HasSecondRow .MenuItem { height: 72px; margin-bottom: 31px; }
+.MenuRoot.MapRotation.VerticalGap31.Vertical.List.HasSecondRow .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap31.Vertical.List.HasSecondRow .ItemsViewport { height: 587px; }
+.MenuRoot.MapRotation.VerticalGap31.Vertical.List.HasSecondRow .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap31.Vertical.List.HasSecondRow .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap31.Horizontal.List .MenuItem { height: 298px; }
+.MenuRoot.MapRotation.VerticalGap31.Horizontal.List .ItemsViewport { height: 298px; }
+.MenuRoot.MapRotation.VerticalGap31.Horizontal.List.HasSecondRow .ItemsViewport { height: 627px; }
+.MenuRoot.MapRotation.VerticalGap31.Horizontal.List .Row1 { margin-top: 31px; }
+.MenuRoot.MapRotation.VerticalGap31.Horizontal.List .ItemText { padding-top: 24px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap31.Horizontal.List .ItemName { height: 38px; }
+.MenuRoot.MapRotation.VerticalGap31.Horizontal.List .ItemDescription { height: 20px; margin-top: 16px; }
+.MenuRoot.MapRotation.VerticalGap31.Horizontal.List .Badge { height: 44px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap31.Scale120.List .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap31.Scale120.List.HasBrand .MenuHeader { height: 64px; }
+.MenuRoot.MapRotation.VerticalGap31.Scale120.List .BrandGroup { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap31.Scale120.List .HeaderActions { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap31.Scale120.List .BrandMark { width: 28px; height: 28px; }
+.MenuRoot.MapRotation.VerticalGap31.Scale120.List .Brand { font-size: 21px; letter-spacing: 4px; }
+.MenuRoot.MapRotation.VerticalGap31.Scale120.List .Title { height: 28px; font-size: 24px; margin-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap31.Scale120.List .Status { font-size: 21px; }
+.MenuRoot.MapRotation.VerticalGap31.Scale120.Vertical.List .MenuItem { height: 72px; }
+.MenuRoot.MapRotation.VerticalGap31.Scale120.Vertical.List .ItemsViewport { height: 587px; }
+.MenuRoot.MapRotation.VerticalGap31.Scale120.Vertical.List .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap31.Scale120.Vertical.List .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap31.Compact .MenuHeader { margin-bottom: 31px; }
+.MenuRoot.MapRotation.VerticalGap31.Compact .Participation { height: 22px; margin: 0px 0px 31px; }
+.MenuRoot.MapRotation.VerticalGap31.Compact .MenuItem { height: 60px; margin-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap31.Compact .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap31.Compact .ItemsViewport { height: 440px; }
+.MenuRoot.MapRotation.VerticalGap31.Compact .ItemText { height: 24px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap31.Compact .Badge { height: 22px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap31.Compact .Footer { height: 26px; padding: 0px; margin-top: 31px; }
+.MenuRoot.MapRotation.VerticalGap31.Result .MenuHeader { margin-bottom: 31px; }
+.MenuRoot.MapRotation.VerticalGap31.Result .Participation { height: 22px; margin: 0px 0px 31px; }
+.MenuRoot.MapRotation.VerticalGap31.Result .MenuItem { height: 296px; }
+.MenuRoot.MapRotation.VerticalGap31.Result .ItemsViewport { height: 296px; }
+.MenuRoot.MapRotation.VerticalGap31.Result .ItemText { padding-top: 24px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap31.Result .ItemName { height: 32px; }
+.MenuRoot.MapRotation.VerticalGap31.Result .ItemDescription { height: 20px; margin-top: 16px; }
+.MenuRoot.MapRotation.VerticalGap31.Result .Badge { height: 44px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap31.Result .Footer { height: 26px; padding: 0px; margin-top: 31px; }
+.MenuRoot.MapRotation.VerticalGap32 .MenuWindow { padding-top: 32px; padding-bottom: 32px; }
+.MenuRoot.MapRotation.VerticalGap32 .MenuHeader { margin-bottom: 32px; }
+.MenuRoot.MapRotation.VerticalGap32 .Subtitle { height: 22px; padding: 0px; margin-bottom: 32px; }
+.MenuRoot.MapRotation.VerticalGap32 .Participation { height: 26px; margin: 0px 0px 32px; }
+.MenuRoot.MapRotation.VerticalGap32 .Footer { height: 26px; padding: 0px; margin-top: 32px; }
+.MenuRoot.MapRotation.VerticalGap32 .Pagination { margin-top: 32px; }
+.MenuRoot.MapRotation.VerticalGap32.Vertical.List .MenuItem { height: 86px; margin-bottom: 32px; }
+.MenuRoot.MapRotation.VerticalGap32.Vertical.List .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap32.Vertical.List .ItemsViewport { height: 676px; }
+.MenuRoot.MapRotation.VerticalGap32.Vertical.List .ItemIcon { height: 84px; }
+.MenuRoot.MapRotation.VerticalGap32.Vertical.List .ItemName { height: 30px; text-overflow: shrink min(20px); }
+.MenuRoot.MapRotation.VerticalGap32.Vertical.List .ItemDescription { height: 18px; font-size: 16px; margin-top: 8px; }
+.MenuRoot.MapRotation.VerticalGap32.Vertical.List.HasSecondRow .MenuItem { height: 72px; margin-bottom: 32px; }
+.MenuRoot.MapRotation.VerticalGap32.Vertical.List.HasSecondRow .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap32.Vertical.List.HasSecondRow .ItemsViewport { height: 592px; }
+.MenuRoot.MapRotation.VerticalGap32.Vertical.List.HasSecondRow .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap32.Vertical.List.HasSecondRow .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap32.Horizontal.List .MenuItem { height: 300px; }
+.MenuRoot.MapRotation.VerticalGap32.Horizontal.List .ItemsViewport { height: 300px; }
+.MenuRoot.MapRotation.VerticalGap32.Horizontal.List.HasSecondRow .ItemsViewport { height: 632px; }
+.MenuRoot.MapRotation.VerticalGap32.Horizontal.List .Row1 { margin-top: 32px; }
+.MenuRoot.MapRotation.VerticalGap32.Horizontal.List .ItemText { padding-top: 24px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap32.Horizontal.List .ItemName { height: 38px; }
+.MenuRoot.MapRotation.VerticalGap32.Horizontal.List .ItemDescription { height: 20px; margin-top: 16px; }
+.MenuRoot.MapRotation.VerticalGap32.Horizontal.List .Badge { height: 44px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap32.Scale120.List .MenuWindow { padding-top: 16px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap32.Scale120.List.HasBrand .MenuHeader { height: 64px; }
+.MenuRoot.MapRotation.VerticalGap32.Scale120.List .BrandGroup { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap32.Scale120.List .HeaderActions { height: 30px; }
+.MenuRoot.MapRotation.VerticalGap32.Scale120.List .BrandMark { width: 28px; height: 28px; }
+.MenuRoot.MapRotation.VerticalGap32.Scale120.List .Brand { font-size: 21px; letter-spacing: 4px; }
+.MenuRoot.MapRotation.VerticalGap32.Scale120.List .Title { height: 28px; font-size: 24px; margin-bottom: 4px; }
+.MenuRoot.MapRotation.VerticalGap32.Scale120.List .Status { font-size: 21px; }
+.MenuRoot.MapRotation.VerticalGap32.Scale120.Vertical.List .MenuItem { height: 72px; }
+.MenuRoot.MapRotation.VerticalGap32.Scale120.Vertical.List .ItemsViewport { height: 592px; }
+.MenuRoot.MapRotation.VerticalGap32.Scale120.Vertical.List .ItemIcon { height: 70px; }
+.MenuRoot.MapRotation.VerticalGap32.Scale120.Vertical.List .ItemName { font-size: 22px; }
+.MenuRoot.MapRotation.VerticalGap32.Compact .MenuHeader { margin-bottom: 32px; }
+.MenuRoot.MapRotation.VerticalGap32.Compact .Participation { height: 22px; margin: 0px 0px 32px; }
+.MenuRoot.MapRotation.VerticalGap32.Compact .MenuItem { height: 60px; margin-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap32.Compact .Slot5 { margin-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap32.Compact .ItemsViewport { height: 440px; }
+.MenuRoot.MapRotation.VerticalGap32.Compact .ItemText { height: 24px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap32.Compact .Badge { height: 22px; vertical-align: center; padding-top: 0px; padding-bottom: 0px; }
+.MenuRoot.MapRotation.VerticalGap32.Compact .Footer { height: 26px; padding: 0px; margin-top: 32px; }
+.MenuRoot.MapRotation.VerticalGap32.Result .MenuHeader { margin-bottom: 32px; }
+.MenuRoot.MapRotation.VerticalGap32.Result .Participation { height: 22px; margin: 0px 0px 32px; }
+.MenuRoot.MapRotation.VerticalGap32.Result .MenuItem { height: 298px; }
+.MenuRoot.MapRotation.VerticalGap32.Result .ItemsViewport { height: 298px; }
+.MenuRoot.MapRotation.VerticalGap32.Result .ItemText { padding-top: 24px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap32.Result .ItemName { height: 32px; }
+.MenuRoot.MapRotation.VerticalGap32.Result .ItemDescription { height: 20px; margin-top: 16px; }
+.MenuRoot.MapRotation.VerticalGap32.Result .Badge { height: 44px; padding-bottom: 16px; }
+.MenuRoot.MapRotation.VerticalGap32.Result .Footer { height: 26px; padding: 0px; margin-top: 32px; }

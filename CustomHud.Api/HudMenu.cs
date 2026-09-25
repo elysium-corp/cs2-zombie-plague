@@ -128,6 +128,8 @@ public sealed record HudMenu(string Channel, string Title, string Subtitle,
 {
     /// <summary>Необязательный класс оформления из скомпилированного CSS, без пробелов и селекторов.</summary>
     public string StyleClass { get; init; } = "";
+    /// <summary>Вертикальный интервал в логических пикселях Panorama от 0 до 32; null сохраняет интервалы шаблона. Задаётся сервером отдельно от личных настроек.</summary>
+    public int? VerticalGap { get; init; }
     /// <summary>Личный вид; рендерер сохраняет его в событии SettingsChanged, а хранение выполняет потребитель.</summary>
     public HudMenuPresentation Presentation { get; init; } = new();
     /// <summary>Наличие подписей разрешает шестерёнку; null скрывает настройки. Для результата настройки всегда скрыты.</summary>

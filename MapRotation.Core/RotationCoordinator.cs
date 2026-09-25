@@ -260,7 +260,7 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
             Description: map.MapName,
             Selected: engine.Nomination(player.SteamID) == map.Id) { ImagePath = map.HudImagePath }).ToImmutableArray(),
             new() { ItemsPerPage = engine.NominationMaps().Length > 6 ? 12 : 6 })
-        { StyleClass = "MapRotation", Presentation = preferences.Get(player), SettingsText = SettingsText(player), ShowBrand = true,
+        { StyleClass = "MapRotation", VerticalGap = _hudConfiguration.VerticalGap, Presentation = preferences.Get(player), SettingsText = SettingsText(player), ShowBrand = true,
             IsNomination = true, CloseText = Text(player, "Close"),
             Footer = engine.NominationMaps().IsEmpty ? Text(player, "NoMaps") : "" };
 
@@ -279,7 +279,7 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
             CaptureInput = view == HudMenuView.List, Modal = view == HudMenuView.List
         })
         {
-            StyleClass = "MapRotation", View = view, Presentation = preferences.Get(player), SettingsText = SettingsText(player),
+            StyleClass = "MapRotation", VerticalGap = _hudConfiguration.VerticalGap, View = view, Presentation = preferences.Get(player), SettingsText = SettingsText(player),
             ShowBrand = true, CloseText = Text(player, "Close"), Status = Duration(vote.EndsAt - clock.GetUtcNow()),
             Participation = Participation(player, vote.Votes.Count, engine.EligibleVoterCount),
             Footer = Text(player, view == HudMenuView.Compact ? "CompactFooter" : "VoteFooter")
@@ -452,7 +452,7 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
                 { ImagePath = result.Winner.HudImagePath, Percent = percent }],
             new() { Priority = HudMenuPriority.Critical, ShowPagination = false, CaptureInput = false, Modal = false, Closable = false })
         {
-            StyleClass = "MapRotation", View = HudMenuView.Result, Presentation = preferences.Get(player),
+            StyleClass = "MapRotation", VerticalGap = _hudConfiguration.VerticalGap, View = HudMenuView.Result, Presentation = preferences.Get(player),
             Participation = Participation(player, result.Archive.Vote.Votes.Count, result.Archive.EligibleVoterCount),
             Footer = Text(player, "ResultDismiss", ("seconds", Math.Max(0, (int)Math.Ceiling((result.Until - clock.GetUtcNow()).TotalSeconds)).ToString()))
         };
