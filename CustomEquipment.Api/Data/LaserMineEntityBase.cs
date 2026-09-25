@@ -71,7 +71,6 @@ public abstract class LaserMineEntityBase(ISwiftlyCore core) : IDisposable
         Owner = owner;
 
         var team = playerPawn.Team;
-        var ownerHandle = core.EntitySystem.GetRefEHandle(playerPawn).Raw;
 
         try
         {
@@ -104,9 +103,6 @@ public abstract class LaserMineEntityBase(ISwiftlyCore core) : IDisposable
                 LastKnownPosition = position;
 
                 mine.Team = team;
-
-                mine.OwnerEntity.Raw = ownerHandle;
-                mine.OwnerEntityUpdated();
 
                 mine.MaxHealth = MaxHealth;
                 mine.MaxHealthUpdated();
