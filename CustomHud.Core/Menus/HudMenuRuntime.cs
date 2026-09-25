@@ -32,7 +32,13 @@ internal sealed class PanoramaMenuRuntime : IHudMenuRuntime
 
     public PanoramaMenuRuntime(ISwiftlyCore core, int playerId)
     {
-        foreach (var path in new[] { Layout, Style, MapStyle })
+        foreach (var path in new[]
+        {
+            Layout, Style, MapStyle,
+            "panorama/images/custom_game/elysium/menus/elysium_logo_v4.vsvg_c",
+            "panorama/images/custom_game/elysium/menus/settings_v4.vsvg_c",
+            "panorama/images/custom_game/elysium/menus/trophy_v4.vsvg_c"
+        })
             if (!core.GameFileSystem.FileExists(path, "GAME")) throw new FileNotFoundException("Menu HUD: " + path);
         _playerId = playerId;
         _entity = core.EntitySystem.CreateEntity<CCSCustomHudLayout>();

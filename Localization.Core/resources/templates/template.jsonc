@@ -1,8 +1,8 @@
 {
   "schemaVersion": 4,
-  "version": 24,
-  "generatedAt": "2026-09-24T14:00:00Z",
-  "checksum": "sha256:24bd21beaca5828fe7fdb5db56c0b0f7147e3f17ba4de66a7956bf4befde9178",
+  "version": 25,
+  "generatedAt": "2026-09-25T06:00:00Z",
+  "checksum": "sha256:7c88640137078c96f37fcf4a917c673be5a00014b443aa45f8e6de84fdbf9e48",
   "serverFallbackLanguage": "ru",
   "languages": [
     "ru",
@@ -618,7 +618,16 @@
         "example": "Gorodok"
       }
     ],
-    "MapRotation.Admin.InvalidMap": []
+    "MapRotation.Admin.InvalidMap": [],
+    "MapRotation.Settings.Title": [],
+    "MapRotation.Settings.Orientation": [],
+    "MapRotation.Settings.Horizontal": [],
+    "MapRotation.Settings.Vertical": [],
+    "MapRotation.Settings.Size": [],
+    "MapRotation.Settings.Scale80": [],
+    "MapRotation.Settings.Scale100": [],
+    "MapRotation.Settings.Scale120": [],
+    "MapRotation.YourNomination": []
   },
   "entries": {
     "Localization.Menu.Title": {
@@ -2542,6 +2551,60 @@
       "en": "Map not found or unavailable",
       "de": "Karte nicht gefunden oder nicht verfügbar",
       "pl": "Nie znaleziono mapy lub jest ona niedostępna"
+    },
+    "MapRotation.Settings.Title": {
+      "ru": "Настройки меню",
+      "en": "Menu settings",
+      "de": "Menüeinstellungen",
+      "pl": "Ustawienia menu"
+    },
+    "MapRotation.Settings.Orientation": {
+      "ru": "Ориентация",
+      "en": "Orientation",
+      "de": "Ausrichtung",
+      "pl": "Orientacja"
+    },
+    "MapRotation.Settings.Horizontal": {
+      "ru": "Горизонтально",
+      "en": "Horizontal",
+      "de": "Horizontal",
+      "pl": "Poziomo"
+    },
+    "MapRotation.Settings.Vertical": {
+      "ru": "Вертикально",
+      "en": "Vertical",
+      "de": "Vertikal",
+      "pl": "Pionowo"
+    },
+    "MapRotation.Settings.Size": {
+      "ru": "Размер меню",
+      "en": "Menu size",
+      "de": "Menügröße",
+      "pl": "Rozmiar menu"
+    },
+    "MapRotation.Settings.Scale80": {
+      "ru": "80%",
+      "en": "80%",
+      "de": "80%",
+      "pl": "80%"
+    },
+    "MapRotation.Settings.Scale100": {
+      "ru": "100%",
+      "en": "100%",
+      "de": "100%",
+      "pl": "100%"
+    },
+    "MapRotation.Settings.Scale120": {
+      "ru": "120%",
+      "en": "120%",
+      "de": "120%",
+      "pl": "120%"
+    },
+    "MapRotation.YourNomination": {
+      "ru": "Ваша номинация",
+      "en": "Your nomination",
+      "de": "Deine Nominierung",
+      "pl": "Twoja nominacja"
     }
   }
 }
