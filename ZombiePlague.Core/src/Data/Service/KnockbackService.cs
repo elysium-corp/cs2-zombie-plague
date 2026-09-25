@@ -121,7 +121,7 @@ internal sealed class KnockbackService(
 
     private void OnTakeDamagePost(ref TakeDamageEntityPostContext context)
     {
-        if (context.Params.Info.DamageCustom == DamageCustomIds.LaserMine)
+        if (context.Params.Info.DamageType == DamageTypes_t.DMG_POISON)
         {
             return;
         }
