@@ -109,6 +109,7 @@ internal sealed class HudMenuService(ISwiftlyCore core, Func<int, IHudMenuRuntim
         && Enum.IsDefined(menu.Presentation.DockSide) && Enum.IsDefined(menu.Presentation.Animation)
         && menu.Presentation.ScalePercent is 80 or 100 or 120
         && menu.VerticalGap is null or >= 0 and <= 32
+        && menu.HorizontalGap is null or >= 0 and <= 32
         && menu.Items.Length <= 1000 && menu.Items.All(item => !string.IsNullOrEmpty(item.Id) && item.Percent is null or >= 0 and <= 100)
         && menu.Items.All(item => item.ImagePath is null || Regex.IsMatch(item.ImagePath,
             "\\Apanorama/images/custom_game/elysium/assets/[a-f0-9]{64}_png\\.vtex\\z"))
@@ -175,6 +176,12 @@ internal sealed class HudMenuService(ISwiftlyCore core, Func<int, IHudMenuRuntim
             if (surface.VerticalGap is { } previousGap) hud.Class("MenuRoot", "VerticalGap" + previousGap, false);
             if (menu.VerticalGap is { } gap) hud.Class("MenuRoot", "VerticalGap" + gap, true);
             surface.VerticalGap = menu.VerticalGap;
+        }
+        if (surface.HorizontalGap != menu.HorizontalGap)
+        {
+            if (surface.HorizontalGap is { } previousGap) hud.Class("MenuRoot", "HorizontalGap" + previousGap, false);
+            if (menu.HorizontalGap is { } gap) hud.Class("MenuRoot", "HorizontalGap" + gap, true);
+            surface.HorizontalGap = menu.HorizontalGap;
         }
         hud.Class("Close", "Hidden", !menu.Options.Closable || menu.View != HudMenuView.List);
         hud.Class("Back", "Hidden", !menu.ShowBack || menu.View != HudMenuView.List);
@@ -481,6 +488,7 @@ internal sealed class HudMenuService(ISwiftlyCore core, Func<int, IHudMenuRuntim
         public IHudMenuRuntime Runtime { get; } = runtime;
         public string StyleClass { get; set; } = "";
         public int? VerticalGap { get; set; }
+        public int? HorizontalGap { get; set; }
         public string[] ImageClasses { get; } = Enumerable.Repeat("", SlotCount).ToArray();
         public int?[] PercentClasses { get; } = new int?[SlotCount];
     }

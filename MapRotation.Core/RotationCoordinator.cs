@@ -260,7 +260,7 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
             Description: map.MapName,
             Selected: engine.Nomination(player.SteamID) == map.Id) { ImagePath = map.HudImagePath }).ToImmutableArray(),
             new() { ItemsPerPage = engine.NominationMaps().Length > 6 ? 12 : 6 })
-        { StyleClass = "MapRotation", VerticalGap = _hudConfiguration.VerticalGap, Presentation = preferences.Get(player), SettingsText = SettingsText(player), ShowBrand = true,
+        { StyleClass = "MapRotation", VerticalGap = _hudConfiguration.VerticalGap, HorizontalGap = _hudConfiguration.HorizontalGap, Presentation = preferences.Get(player), SettingsText = SettingsText(player), ShowBrand = true,
             IsNomination = true, CloseText = Text(player, "Close"),
             Footer = engine.NominationMaps().IsEmpty ? Text(player, "NoMaps") : "" };
 
@@ -275,11 +275,11 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
                 { ImagePath = map.HudImagePath, Percent = percent };
         }).ToImmutableArray(), new()
         {
-            Priority = HudMenuPriority.Critical, ItemsPerPage = 6, ShowPagination = false, CollapseOnClose = true,
+            Priority = HudMenuPriority.Critical, ItemsPerPage = 6, ShowPagination = false, CollapseOnClose = !_hudConfiguration.HideOnClose,
             CaptureInput = view == HudMenuView.List, Modal = view == HudMenuView.List
         })
         {
-            StyleClass = "MapRotation", VerticalGap = _hudConfiguration.VerticalGap, View = view, Presentation = preferences.Get(player), SettingsText = SettingsText(player),
+            StyleClass = "MapRotation", VerticalGap = _hudConfiguration.VerticalGap, HorizontalGap = _hudConfiguration.HorizontalGap, View = view, Presentation = preferences.Get(player), SettingsText = SettingsText(player),
             ShowBrand = true, CloseText = Text(player, "Close"), Status = Duration(vote.EndsAt - clock.GetUtcNow()),
             Participation = Participation(player, vote.Votes.Count, engine.EligibleVoterCount),
             Footer = Text(player, view == HudMenuView.Compact ? "CompactFooter" : "VoteFooter")
@@ -306,7 +306,15 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
             if (current is null || current.SessionId != session || current.SteamID != steam || !Eligible(current)) return;
             if (action.Action == HudMenuAction.Close)
             {
-                if (_opened.TryGetValue(playerId, out var currentHud) && currentHud.Menu == action.MenuId && engine.Vote is { } active)
+                if (!_opened.TryGetValue(playerId, out var currentHud) || currentHud.Menu != action.MenuId) return;
+                // Скрытое голосование продолжается: !rtv открывает его снова, а итог получают все участники.
+                if (_hudConfiguration.HideOnClose || _menus?.IsOpen(current, currentHud.Menu) != true)
+                {
+                    _menus?.Close(current, currentHud.Menu);
+                    _opened.Remove(playerId);
+                    return;
+                }
+                if (engine.Vote is { } active)
                 {
                     _opened[playerId] = currentHud with { View = HudMenuView.Compact };
                     _menus?.Update(current, currentHud.Menu, VoteMenu(current, active, HudMenuView.Compact));
@@ -429,6 +437,16 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
         }
         var winner = engine.Configuration.Maps.FirstOrDefault(map => map.Id == id);
         if (winner is null) { _menus?.CloseChannel(VoteChannel); return; }
+        if (!_hudConfiguration.ShowResult)
+        {
+            // Карточка победителя отключена в CMS: голосование закрывается, следующая карта сообщается в чат.
+            _menus?.CloseChannel(VoteChannel);
+            _result = null;
+            foreach (var player in Players().Where(Eligible))
+                player.SendMessage(MessageType.Chat, text.WithChatTag(player, Text(player, "CardSummary",
+                    ("title", Text(player, "NextMap")), ("value", MapTitle(player, winner)), ("description", "")).Trim()));
+            return;
+        }
         _result = new(result, winner, clock.GetUtcNow().AddSeconds(_hudConfiguration.ResultDuration));
         foreach (var player in Players().Where(Eligible))
         {
@@ -452,7 +470,7 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
                 { ImagePath = result.Winner.HudImagePath, Percent = percent }],
             new() { Priority = HudMenuPriority.Critical, ShowPagination = false, CaptureInput = false, Modal = false, Closable = false })
         {
-            StyleClass = "MapRotation", VerticalGap = _hudConfiguration.VerticalGap, View = HudMenuView.Result, Presentation = preferences.Get(player),
+            StyleClass = "MapRotation", VerticalGap = _hudConfiguration.VerticalGap, HorizontalGap = _hudConfiguration.HorizontalGap, View = HudMenuView.Result, Presentation = preferences.Get(player),
             Participation = Participation(player, result.Archive.Vote.Votes.Count, result.Archive.EligibleVoterCount),
             Footer = Text(player, "ResultDismiss", ("seconds", Math.Max(0, (int)Math.Ceiling((result.Until - clock.GetUtcNow()).TotalSeconds)).ToString()))
         };

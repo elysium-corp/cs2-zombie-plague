@@ -3,14 +3,20 @@ using CustomHud.Api;
 
 namespace MapRotation.Core;
 
-/// <summary>Параметры HUD из CMS; вертикальный интервал выбирает готовый вариант скомпилированного оформления.</summary>
-internal sealed record RotationHudConfiguration(HudMenuPresentation Defaults, int ResultDuration, int VerticalGap)
+/// <summary>Параметры HUD из CMS; интервалы выбирают готовые варианты скомпилированного оформления.</summary>
+/// <param name="HideOnClose">Кнопка закрытия полностью скрывает голосование вместо сворачивания к краю.</param>
+/// <param name="ShowResult">Показывать карточку победителя после голосования.</param>
+internal sealed record RotationHudConfiguration(HudMenuPresentation Defaults, int ResultDuration, int VerticalGap,
+    int HorizontalGap = 16, bool HideOnClose = false, bool ShowResult = true)
 {
     public static RotationHudConfiguration Parse(string json)
     {
         var defaults = RotationHudPreferences.Default;
         var resultDuration = 6;
         var verticalGap = 24;
+        var horizontalGap = 16;
+        var hideOnClose = false;
+        var showResult = true;
         try
         {
             using var document = JsonDocument.Parse(json);
@@ -32,11 +38,18 @@ internal sealed record RotationHudConfiguration(HudMenuPresentation Defaults, in
             if (root.TryGetProperty("verticalGap", out var gap) && gap.ValueKind == JsonValueKind.Number
                 && gap.TryGetInt32(out var pixels))
                 verticalGap = Math.Clamp(pixels, 0, 32);
+            if (root.TryGetProperty("horizontalGap", out var columns) && columns.ValueKind == JsonValueKind.Number
+                && columns.TryGetInt32(out var columnPixels))
+                horizontalGap = Math.Clamp(columnPixels, 0, 32);
+            if (root.TryGetProperty("voteClose", out var close) && close.ValueKind == JsonValueKind.String)
+                hideOnClose = close.GetString() == "hide";
+            if (root.TryGetProperty("showResult", out var result) && result.ValueKind is JsonValueKind.True or JsonValueKind.False)
+                showResult = result.GetBoolean();
         }
         catch (JsonException)
         {
             // Повреждение оформления не должно отключать ротацию карт.
         }
-        return new(defaults, resultDuration, verticalGap);
+        return new(defaults, resultDuration, verticalGap, horizontalGap, hideOnClose, showResult);
     }
 }

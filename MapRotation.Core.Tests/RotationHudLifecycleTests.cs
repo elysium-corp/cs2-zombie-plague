@@ -112,6 +112,50 @@ public sealed class RotationHudLifecycleTests
     }
 
     [Fact]
+    public void HidingTheVoteRemovesItUntilRtvWhileTheResultStillAppears()
+    {
+        using var f = new Fixture();
+        f.Refresh();
+        f.ApplyAppearance("{\"voteClose\":\"hide\",\"horizontalGap\":8}");
+        f.Refresh();
+        Assert.False(f.Menus.Menu!.Options.CollapseOnClose);
+        Assert.Equal(8, f.Menus.Menu.HorizontalGap);
+        f.Menus.Act(HudMenuAction.Close);
+        Assert.False(f.Menus.Visible);
+        f.Game.Clock.Advance(1); f.Refresh();
+        Assert.False(f.Menus.Visible);
+        Assert.Equal(1, f.Menus.OpenCount);
+        f.Invoke("OpenVote", f.Player, true);
+        Assert.True(f.Menus.Visible);
+        Assert.Equal(HudMenuView.List, f.Menus.Menu.View);
+        Assert.Equal(2, f.Menus.OpenCount);
+        f.Menus.Act(HudMenuAction.Close);
+        f.Game.Engine.CastVote(1, f.Game.Engine.Vote!.Id, 2);
+        f.Game.Clock.Advance(20); f.Game.Engine.Tick(); f.Refresh();
+        Assert.True(f.Menus.Visible);
+        Assert.Equal(HudMenuView.Result, f.Menus.Menu.View);
+        Assert.Equal(8, f.Menus.Menu.HorizontalGap);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void DisabledResultClosesTheVoteAndAnnouncesTheNextMapInChat(bool compact)
+    {
+        using var f = new Fixture();
+        f.Refresh();
+        f.ApplyAppearance("{\"showResult\":false}");
+        f.Refresh();
+        if (compact) f.Menus.Act(HudMenuAction.Close);
+        f.Game.Engine.CastVote(1, f.Game.Engine.Vote!.Id, 2);
+        f.Game.Clock.Advance(20); f.Game.Engine.Tick(); f.Refresh();
+        Assert.False(f.Menus.Visible);
+        Assert.NotEqual(HudMenuView.Result, f.Menus.Menu!.View);
+        Assert.Equal(1, f.Menus.OpenCount);
+        Assert.Equal("MapRotation.CardSummary", Assert.Single(f.Messages));
+    }
+
+    [Fact]
     public void CancellingAVoteClosesThePanelWithoutCreatingAWinner()
     {
         using var f = new Fixture();
@@ -127,12 +171,8 @@ public sealed class RotationHudLifecycleTests
     {
         public RotationEngineTests.Fixture Game { get; } = new();
         public Menus Menus { get; } = new();
-        public IPlayer Player { get; } = (IPlayer)Proxy(typeof(IPlayer), (method, _) => method.Name switch
-        {
-            "get_IsValid" => true, "get_IsFakeClient" => false, "get_PlayerID" => 1,
-            "get_SteamID" => 1UL, "get_SessionId" => 10UL,
-            _ => throw new InvalidOperationException(method.Name)
-        });
+        public List<string> Messages { get; } = [];
+        public IPlayer Player { get; }
         private readonly DatabaseTaskTracker _tasks = new(NullLogger<DatabaseTaskTracker>.Instance);
         private readonly RotationHudPreferences _preferences;
         private readonly RotationStore _store = new(null!, NullLogger<RotationStore>.Instance, Path.GetTempPath());
@@ -140,6 +180,16 @@ public sealed class RotationHudLifecycleTests
 
         public Fixture(bool startVote = true)
         {
+            Player = (IPlayer)Proxy(typeof(IPlayer), (method, args) =>
+            {
+                if (method.Name == "SendMessage") { Messages.Add((string)args![1]!); return null; }
+                return method.Name switch
+                {
+                    "get_IsValid" => true, "get_IsFakeClient" => false, "get_PlayerID" => 1,
+                    "get_SteamID" => 1UL, "get_SessionId" => 10UL,
+                    _ => throw new InvalidOperationException(method.Name)
+                };
+            });
             var core = (ISwiftlyCore)Proxy(typeof(ISwiftlyCore), (method, _) => method.Name switch
             {
                 "get_PlayerManager" => Proxy(method.ReturnType, (member, _) => member.Name switch
@@ -157,6 +207,7 @@ public sealed class RotationHudLifecycleTests
             });
             var localization = (ILocalizationApi)Proxy(typeof(ILocalizationApi), (method, args) =>
             {
+                if (method.Name == nameof(ILocalizationApi.GetTagForPlayer)) return null;
                 if (method.Name != nameof(ILocalizationApi.FormatForPlayer)) throw new InvalidOperationException(method.Name);
                 var key = (string)args![1]!;
                 var values = (IReadOnlyDictionary<string, object?>)args[2]!;

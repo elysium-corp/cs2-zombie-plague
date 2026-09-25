@@ -18,6 +18,31 @@ public sealed class RotationHudConfigurationTests
         Assert.Equal(HudMenuAnimation.Normal, settings.Defaults.Animation);
         Assert.Equal(6, settings.ResultDuration);
         Assert.Equal(24, settings.VerticalGap);
+        Assert.Equal(16, settings.HorizontalGap);
+        Assert.False(settings.HideOnClose);
+        Assert.True(settings.ShowResult);
+    }
+
+    [Theory]
+    [InlineData("{}", 16)]
+    [InlineData("{\"horizontalGap\":\"8\"}", 16)]
+    [InlineData("{\"horizontalGap\":8.5}", 16)]
+    [InlineData("{\"horizontalGap\":-4}", 0)]
+    [InlineData("{\"horizontalGap\":8}", 8)]
+    [InlineData("{\"horizontalGap\":64}", 32)]
+    public void HorizontalGapAcceptsIntegersAndKeepsTheFormerCardGap(string json, int expected)
+        => Assert.Equal(expected, RotationHudConfiguration.Parse(json).HorizontalGap);
+
+    [Theory]
+    [InlineData("{\"voteClose\":\"hide\",\"showResult\":false}", true, false)]
+    [InlineData("{\"voteClose\":\"collapse\",\"showResult\":true}", false, true)]
+    [InlineData("{\"voteClose\":\"unknown\",\"showResult\":\"false\"}", false, true)]
+    [InlineData("{\"voteClose\":1,\"showResult\":0}", false, true)]
+    public void CloseAndResultOptionsFallBackToCollapsingAndShowingTheWinner(string json, bool hide, bool show)
+    {
+        var settings = RotationHudConfiguration.Parse(json);
+        Assert.Equal(hide, settings.HideOnClose);
+        Assert.Equal(show, settings.ShowResult);
     }
 
     [Theory]
