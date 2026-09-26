@@ -1,6 +1,7 @@
 using Common.Effects.Effects.Contracts;
 using Common.Effects.Effects.Settings;
 using SwiftlyS2.Shared;
+using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
 
@@ -14,6 +15,9 @@ public sealed class Burn(
     BurnSettings? settings
 ) : BaseTickEffect(core, callback, caster, target)
 {
+    /// <summary>Идентификатор урона горения для обработчиков игровых режимов.</summary>
+    public const uint DamageCustomId = 0x4255524E;
+
     private const string ParticleName =
         "particles/inferno_fx/molotov_child_flame01a.vpcf";
 
@@ -99,27 +103,18 @@ public sealed class Burn(
         var casterPawn =
             Caster?.PlayerPawn;
 
-        if (
-            casterPawn != null &&
-            casterPawn.IsValid
+        var attacker = casterPawn is { IsValid: true } ? casterPawn : null;
+        var damageInfo = new CTakeDamageInfo(
+            damage,
+            DamageTypes_t.DMG_BURN,
+            inflictor: attacker ?? targetPawn,
+            attacker: attacker
         )
         {
-            targetPawn.TakeDamage(
-                damage,
-                DamageTypes_t.DMG_ACID,
-                inflictor: casterPawn,
-                attacker: casterPawn
-            );
+            DamageCustom = DamageCustomId
+        };
 
-            return;
-        }
-        
-        targetPawn.TakeDamage(
-            damage,
-            DamageTypes_t.DMG_ACID,
-            inflictor: targetPawn,
-            attacker: null
-        );
+        targetPawn.TakeDamage(damageInfo);
     }
 
     private static int GetFireDamage(

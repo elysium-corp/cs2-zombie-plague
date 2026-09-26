@@ -39,8 +39,10 @@ internal sealed class EquipmentService(
     private readonly List<ItemBase> _items = [];
     private readonly HashSet<int> _laserMineGrantPlayers = [];
     private readonly HashSet<(ulong SessionId, nint PawnAddress)> _pendingReapplications = [];
+    private readonly GrenadeThrowTracker _grenadeThrows = new();
     private Guid _itemPickupHook;
     private Guid _itemEquipHook;
+    private Guid _weaponFireHook;
     private int _generation;
     private bool _initialized;
 
@@ -60,6 +62,7 @@ internal sealed class EquipmentService(
         core.GameHooks.Weapons.CanUse.Pre += OnWeaponCanUsePre;
         _itemPickupHook = core.GameEvent.HookPost<EventItemPickup>(OnItemPickup);
         _itemEquipHook = core.GameEvent.HookPost<EventItemEquip>(OnItemEquip);
+        _weaponFireHook = core.GameEvent.HookPre<EventWeaponFire>(OnWeaponFire);
 
         var playerEvents = zombiePlagueApi().Events.Players;
         playerEvents.Infected.Hook(OnPlayerInfected);
@@ -87,6 +90,7 @@ internal sealed class EquipmentService(
         core.GameHooks.Weapons.CanUse.Pre -= OnWeaponCanUsePre;
         core.GameEvent.Unhook(_itemPickupHook);
         core.GameEvent.Unhook(_itemEquipHook);
+        core.GameEvent.Unhook(_weaponFireHook);
 
         var playerEvents = zombiePlagueApi().Events.Players;
         playerEvents.Infected.Unhook(OnPlayerInfected);
@@ -98,6 +102,7 @@ internal sealed class EquipmentService(
         _items.Clear();
         _laserMineGrantPlayers.Clear();
         _pendingReapplications.Clear();
+        _grenadeThrows.Clear();
     }
 
     public bool CanUseItem(IPlayer player, ItemBase item)
@@ -489,8 +494,11 @@ internal sealed class EquipmentService(
 
         if (entity is not CBaseCSGrenadeProjectile) return;
 
+        var generation = _generation;
         core.Scheduler.NextWorldUpdate(() =>
         {
+            if (!_initialized || generation != _generation || !entity.IsValid) return;
+
             var projectile = entity.As<CBaseCSGrenadeProjectile>();
             var grenade = ResolveGrenadeByProjectile(projectile);
 
@@ -551,6 +559,29 @@ internal sealed class EquipmentService(
     private HookResult OnItemEquip(EventItemEquip @event)
     {
         ScheduleCustomizationReapply(@event.UserIdPlayer);
+        return HookResult.Continue;
+    }
+
+    private HookResult OnWeaponFire(EventWeaponFire @event)
+    {
+        if (@event.Weapon is not ("incgrenade" or "molotov" or "hegrenade" or "smokegrenade" or "flashbang" or "decoy"))
+        {
+            return HookResult.Continue;
+        }
+
+        var player = @event.UserIdPlayer;
+        if (player is not { IsValid: true, PlayerPawn: { IsValid: true } pawn })
+        {
+            return HookResult.Continue;
+        }
+
+        if (GetActiveItem<GrenadeItemBase>(player) is { } grenade &&
+            @event.Weapon == grenade.InheritorName.Replace("weapon_", ""))
+        {
+            // После броска движок удаляет последнюю гранату из инвентаря.
+            _grenadeThrows.Capture(pawn.Address, @event.Weapon, grenade, Environment.TickCount64);
+        }
+
         return HookResult.Continue;
     }
 
@@ -665,6 +696,15 @@ internal sealed class EquipmentService(
 
         if (thrower == null || !thrower.IsValid) return null;
 
+        var weaponName = projectile is CMolotovProjectile { IsIncGrenade: true }
+            ? WeaponName.Inc
+            : projectile.DesignerName.Replace("_projectile", "");
+
+        if (_grenadeThrows.TryTake(thrower.Address, weaponName, Environment.TickCount64) is { } thrown)
+        {
+            return thrown;
+        }
+
         if (projectile is CMolotovProjectile { IsIncGrenade: true })
         {
             var incenderiary = thrower.WeaponServices?.FindWeaponByName(WeaponName.Inc);
@@ -771,6 +811,7 @@ internal sealed class EquipmentService(
     {
         _generation++;
         _pendingReapplications.Clear();
+        _grenadeThrows.Clear();
         core.Scheduler.NextWorldUpdate(RemoveForbiddenBombsAndLegacyCarriers);
     }
 

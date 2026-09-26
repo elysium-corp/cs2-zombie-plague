@@ -40,6 +40,10 @@ internal abstract class InfectionBase(
 
         if (!IsZombieAttackingHuman(attacker, victim)) return;
 
+        // Горение способности наносит урон, но не заражает и не расходует броню как нож.
+        if (InfectionDamagePolicy.IsBurnDamage(context.Params.Info.DamageType,
+                context.Params.Info.DamageCustom)) return;
+
         var activeWeapon = attacker.PlayerPawn?
             .WeaponServices?
             .ActiveWeapon

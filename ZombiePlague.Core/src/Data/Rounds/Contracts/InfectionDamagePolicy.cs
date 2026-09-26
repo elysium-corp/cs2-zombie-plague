@@ -1,3 +1,4 @@
+using Common.Effects.Effects;
 using SwiftlyS2.Shared.SchemaDefinitions;
 using ZombiePlague.Core.Config.Core;
 
@@ -12,6 +13,12 @@ internal enum InfectionKnifeHitOutcome
 
 internal static class InfectionDamagePolicy
 {
+    internal static bool IsBurnDamage(DamageTypes_t damageType, uint damageCustom)
+    {
+        return damageCustom == Burn.DamageCustomId &&
+               (damageType & DamageTypes_t.DMG_BURN) != 0;
+    }
+
     internal static bool IsKnifeAttack(DamageTypes_t damageType, string? activeWeaponName)
     {
         return (damageType & DamageTypes_t.DMG_SLASH) != 0 &&

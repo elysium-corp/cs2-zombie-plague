@@ -1,3 +1,4 @@
+using Common.Effects.Effects;
 using SwiftlyS2.Shared.SchemaDefinitions;
 using Xunit;
 using ZombiePlague.Core.Config.Core;
@@ -7,6 +8,17 @@ namespace ZombiePlague.Core.Tests;
 
 public sealed class InfectionDamagePolicyTests
 {
+    [Theory]
+    [InlineData(DamageTypes_t.DMG_BURN, Burn.DamageCustomId, true)]
+    [InlineData(DamageTypes_t.DMG_BURN | DamageTypes_t.DMG_BLAST, Burn.DamageCustomId, true)]
+    [InlineData(DamageTypes_t.DMG_BURN, 0u, false)]
+    [InlineData(DamageTypes_t.DMG_SLASH, Burn.DamageCustomId, false)]
+    [InlineData(DamageTypes_t.DMG_BLAST, 0u, false)]
+    public void IsBurnDamage_OnlyAllowsMarkedEffectDamage(DamageTypes_t damageType, uint custom, bool expected)
+    {
+        Assert.Equal(expected, InfectionDamagePolicy.IsBurnDamage(damageType, custom));
+    }
+
     [Fact]
     public void IsKnifeAttack_RejectsBlastDamage_EvenWhenKnifeIsActive()
     {

@@ -116,7 +116,7 @@ public sealed class EquipmentPickupTests
                 "get_GameEvent" => Stub(method.ReturnType, (member, args) =>
                 {
                     if (member.Name == "Unhook") return null;
-                    Assert.Equal("HookPost", member.Name);
+                    Assert.Contains(member.Name, new[] { "HookPost", "HookPre" });
                     _gameHandlers.Add(member.GetGenericArguments()[0], (Delegate)args![0]!);
                     return Guid.NewGuid();
                 }),

@@ -57,7 +57,39 @@ internal sealed class GrenadeHandler
         }
     }
 
-    private void AddThrownGrenade(IPlayer thrower, CBaseCSGrenadeProjectile projectile, IGrenade grenade)
+    internal void OnMolotovDetonated(IPlayer thrower, Vector position,
+        Action<IGrenade, CBaseCSGrenadeProjectile, Vector> onDetonated)
+    {
+        if (!_grenades.TryGetValue(thrower, out var entries)) return;
+
+        GrenadeEntry? nearest = null;
+        var nearestDistanceSquared = 64f * 64f;
+        foreach (var entry in entries)
+        {
+            if (entry.Projectile is not CMolotovProjectile { IsValidEntity: true, AbsOrigin: { } origin })
+            {
+                continue;
+            }
+
+            var dx = origin.X - position.X;
+            var dy = origin.Y - position.Y;
+            var dz = origin.Z - position.Z;
+            var distanceSquared = dx * dx + dy * dy + dz * dz;
+            if (distanceSquared > nearestDistanceSquared) continue;
+
+            nearest = entry;
+            nearestDistanceSquared = distanceSquared;
+        }
+
+        if (nearest is null) return;
+
+        // Событие приходит внутри детонации, до удаления снаряда движком.
+        // Удаляем запись заранее, чтобы OnTick не применил эффект повторно.
+        RemoveThrownGrenade(thrower, nearest.Projectile);
+        onDetonated(nearest.Grenade, nearest.Projectile, position);
+    }
+
+    internal void AddThrownGrenade(IPlayer thrower, CBaseCSGrenadeProjectile projectile, IGrenade grenade)
     {
         if (_trackedCount >= MaximumTrackedGrenades) return;
 
