@@ -31,7 +31,16 @@ internal sealed record FrostNadeSettings(
     float Radius,
     float Duration,
     float DamageReduction
-) : IGameplayItemBehaviorSettings;
+) : IGameplayItemBehaviorSettings
+{
+    public string TrailParticle { get; init; } =
+        "particles/zombieplague/icegrenade/icegrenade_trail.vpcf";
+
+    public string ExplosionParticle { get; init; } =
+        "particles/zombieplague/icegrenade/icegrenade_explosion.vpcf";
+
+    public float ExplosionParticleLifetime { get; init; } = 2.5f;
+}
 
 internal sealed record JumpNadeSettings(
     float Radius,
