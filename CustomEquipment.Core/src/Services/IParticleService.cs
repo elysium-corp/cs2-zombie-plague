@@ -22,6 +22,8 @@ internal interface IParticleService
         float lifetime) where TWeapon : CCSWeaponBase;
 
 
+    public CParticleSystem CreateParticleAttached(string particleName, CEntityInstance entity);
+
     public CParticleSystem CreateParticleAttached(string particleName, CEntityInstance entity, Attachment attachment);
 
     public ParticleContext CreateParticleAttached(string particleName, CEntityInstance entity, Attachment attachment,
