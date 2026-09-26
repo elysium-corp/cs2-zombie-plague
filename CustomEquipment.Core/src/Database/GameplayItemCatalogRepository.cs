@@ -168,8 +168,10 @@ internal sealed class GameplayItemCatalogRepository(
                 break;
 
             case FrostNadeSettings frost:
-                RequirePositive(key, frost.Radius, frost.Duration);
+                RequirePositive(key, frost.Radius, frost.Duration, frost.ExplosionParticleLifetime);
                 RequireRange(key, frost.DamageReduction, 0f, 1f);
+                RequireParticlePath(key, frost.TrailParticle);
+                RequireParticlePath(key, frost.ExplosionParticle);
                 break;
 
             case JumpNadeSettings jump:
