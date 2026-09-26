@@ -40,24 +40,37 @@ public sealed class SpectatorAccessTests
     }
 
     [Fact]
-    public void ChoiceIsKeptUntilTheReturnAndRequiresThePermission()
+    public void OnlyTheOwnChoiceInTheCurrentConnectionAndMapKeepsAPlayerInSpectators()
     {
         var admin = new Mock<IAdminApi>();
-        var player = Mock.Of<IPlayer>(value => value.SteamID == 76561198000000001UL);
-        admin.Setup(value => value.HasPermission(player, "admin.spectate")).Returns(true);
+        var session = 10UL;
+        var player = new Mock<IPlayer>();
+        player.SetupGet(value => value.SteamID).Returns(76561198000000001UL);
+        player.SetupGet(value => value.PlayerID).Returns(3);
+        player.SetupGet(value => value.SessionId).Returns(() => session);
+        admin.Setup(value => value.HasPermission(player.Object, "admin.spectate")).Returns(true);
         var access = new SpectatorAccess(admin.Object, Options.Create(new ZombiePlagueCoreConfig()));
 
-        Assert.False(access.ChoseSpectators(player));
-        access.RememberSpectator(player);
-        Assert.True(access.ChoseSpectators(player));
+        // Право само по себе не держит игрока в наблюдателях: нужен его собственный выбор.
+        Assert.False(access.IsVoluntarySpectator(player.Object));
+        access.MarkVoluntarySpectator(player.Object);
+        Assert.True(access.IsVoluntarySpectator(player.Object));
 
-        // Снятое право возвращает игрока в игру даже при сохранённом выборе.
-        admin.Setup(value => value.HasPermission(player, "admin.spectate")).Returns(false);
-        Assert.False(access.ChoseSpectators(player));
+        // Переподключение — новое подключение в том же слоте: игрок входит в игру как все.
+        session = 11;
+        Assert.False(access.IsVoluntarySpectator(player.Object));
 
-        admin.Setup(value => value.HasPermission(player, "admin.spectate")).Returns(true);
-        access.ForgetSpectator(player);
-        Assert.False(access.ChoseSpectators(player));
+        access.MarkVoluntarySpectator(player.Object);
+        access.ForgetAll();
+        Assert.False(access.IsVoluntarySpectator(player.Object));
+
+        access.MarkVoluntarySpectator(player.Object);
+        access.Forget(player.Object);
+        Assert.False(access.IsVoluntarySpectator(player.Object));
+
+        access.MarkVoluntarySpectator(player.Object);
+        admin.Setup(value => value.HasPermission(player.Object, "admin.spectate")).Returns(false);
+        Assert.False(access.IsVoluntarySpectator(player.Object));
     }
 
     private static SpectatorAccess Access(string[] configured, string granted, out IPlayer player)

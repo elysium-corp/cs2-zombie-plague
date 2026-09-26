@@ -105,10 +105,11 @@ internal sealed class RoundManager(
 
         foreach (var player in allPlayers)
         {
-            // Зритель с правом из SpectatorPermissions сам решает, когда войти в игру:
-            // его не переводим в CT и не учитываем в минимуме игроков. Роль прошлого раунда
-            // снимаем, чтобы он не считался зомби. Остальных зрителей режим возвращает в игру.
-            if (IsSpectator(player) && spectators.CanSpectate(player))
+            // Зритель, который сам ушёл в наблюдатели на этой карте (право из SpectatorPermissions),
+            // сам решает, когда вернуться: его не переводим в CT и не учитываем в минимуме игроков.
+            // Роль прошлого раунда снимаем, чтобы он не считался зомби. Остальных зрителей,
+            // в том числе оставшихся после смены карты, режим возвращает в игру.
+            if (IsSpectator(player) && spectators.IsVoluntarySpectator(player))
             {
                 playerManager.Remove(player);
                 continue;

@@ -123,14 +123,6 @@ internal sealed class PlayerService(
                 playerPreferencesCoordinator.Initialize(player);
             }
 
-            // Игрок с правом наблюдателя, ушедший в наблюдатели, остаётся там после смены карты
-            // или переподключения, а не входит в CT автоматически.
-            if (spectators.ChoseSpectators(player))
-            {
-                player.ChangeTeam(Team.Spectator);
-                return;
-            }
-
             bool humanized;
             using (ConnectionDiagnostics.Begin(core.Logger, "ZombiePlague.humanize", playerId, sessionId, attempt))
             {
@@ -225,6 +217,8 @@ internal sealed class PlayerService(
             return HookResult.Continue;
         }
 
+        // После переподключения игрок с правом наблюдателя входит в игру как все.
+        spectators.Forget(player);
         playerPreferencesCoordinator.SaveAndRemove(player);
         playerManager.Remove(player);
 

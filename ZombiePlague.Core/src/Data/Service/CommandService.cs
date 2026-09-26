@@ -1,4 +1,5 @@
 ﻿using SwiftlyS2.Shared;
+using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.Misc;
 using SwiftlyS2.Shared.Players;
 using ZombiePlague.Core.Data.Managers.Contracts;
@@ -25,6 +26,7 @@ internal sealed class CommandService(
     public void Register()
     {
         _commandHook = core.Command.HookClientCommand(OnClientCommand);
+        core.Event.OnMapLoad += OnMapLoad;
 
         mainMenu.RegisterCommands();
         zClassMenu.RegisterCommands();
@@ -40,7 +42,11 @@ internal sealed class CommandService(
         abilityHudMenu.UnregisterCommands();
         
         core.Command.UnhookClientCommand(_commandHook);
+        core.Event.OnMapLoad -= OnMapLoad;
     }
+
+    // Наблюдатели — только собственный выбор на текущей карте: после смены карты все входят в игру.
+    private void OnMapLoad(IOnMapLoadEvent @event) => spectators.ForgetAll();
     
     // Стороны назначает режим. Выбор команды доступен только игрокам с правом из SpectatorPermissions,
     // и только для перехода в наблюдатели и возвращения из них.
@@ -88,7 +94,7 @@ internal sealed class CommandService(
             return;
         }
 
-        spectators.RememberSpectator(player);
+        spectators.MarkVoluntarySpectator(player);
 
         // Роль снимается до смены команды: гибель при уходе не считается заражением
         // и не запускает возрождение, которое вернуло бы игрока в команду.
@@ -103,7 +109,7 @@ internal sealed class CommandService(
             return;
         }
 
-        spectators.ForgetSpectator(player);
+        spectators.Forget(player);
 
         // Человек входит в CT; во время подготовки он возрождается человеком,
         // в идущем раунде заражения — зомби, в остальных режимах ждёт следующего раунда.

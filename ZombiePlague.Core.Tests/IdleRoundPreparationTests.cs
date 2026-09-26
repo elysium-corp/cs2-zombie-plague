@@ -433,9 +433,10 @@ public sealed class IdleRoundPreparationTests
     private sealed class SpectatorRules : ISpectatorAccess
     {
         public bool CanSpectate(IPlayer player) => true;
-        public bool ChoseSpectators(IPlayer player) => false;
-        public void RememberSpectator(IPlayer player) { }
-        public void ForgetSpectator(IPlayer player) { }
+        public bool IsVoluntarySpectator(IPlayer player) => true;
+        public void MarkVoluntarySpectator(IPlayer player) { }
+        public void Forget(IPlayer player) { }
+        public void ForgetAll() { }
     }
 
     private sealed class RoundRegistry : IRoundRegistrator

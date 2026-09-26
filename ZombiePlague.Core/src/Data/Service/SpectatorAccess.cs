@@ -7,27 +7,33 @@ namespace ZombiePlague.Core.Data.Service;
 
 /// <summary>
 /// Право игрока находиться в наблюдателях по разрешениям Admin.Api из <c>SpectatorPermissions</c>
-/// и его выбор остаться там после смены карты или переподключения.
+/// и отметка, что он ушёл туда сам в текущем подключении на текущей карте.
 /// </summary>
 internal interface ISpectatorAccess
 {
     /// <summary>Есть ли у игрока хотя бы одно из разрешений, открывающих наблюдателей.</summary>
     bool CanSpectate(IPlayer player);
 
-    /// <summary>Игрок сам ушёл в наблюдатели и по-прежнему имеет на это право.</summary>
-    bool ChoseSpectators(IPlayer player);
+    /// <summary>
+    /// Игрок сам ушёл в наблюдатели в текущем подключении на текущей карте и по-прежнему имеет право.
+    /// Только такого наблюдателя режим не возвращает в игру.
+    /// </summary>
+    bool IsVoluntarySpectator(IPlayer player);
 
-    /// <summary>Запоминает, что игрок ушёл в наблюдатели.</summary>
-    void RememberSpectator(IPlayer player);
+    /// <summary>Отмечает, что игрок сам ушёл в наблюдатели.</summary>
+    void MarkVoluntarySpectator(IPlayer player);
 
-    /// <summary>Забывает выбор после возвращения игрока в игру.</summary>
-    void ForgetSpectator(IPlayer player);
+    /// <summary>Снимает отметку после возвращения в игру или отключения.</summary>
+    void Forget(IPlayer player);
+
+    /// <summary>Снимает все отметки при смене карты: все игроки снова входят в игру.</summary>
+    void ForgetAll();
 }
 
 internal sealed class SpectatorAccess(IAdminApi admin, IOptions<ZombiePlagueCoreConfig> config) : ISpectatorAccess
 {
-    // Выбор хранится до выгрузки плагина: смена карты переподключает игроков без команды.
-    private readonly HashSet<ulong> _chosen = [];
+    // Отметка привязана к подключению: после переподключения игрок входит в игру как все.
+    private readonly Dictionary<int, ulong> _voluntary = [];
 
     public bool CanSpectate(IPlayer player)
     {
@@ -36,21 +42,25 @@ internal sealed class SpectatorAccess(IAdminApi admin, IOptions<ZombiePlagueCore
                    !string.IsNullOrWhiteSpace(permission) && admin.HasPermission(player, permission));
     }
 
-    public bool ChoseSpectators(IPlayer player)
+    public bool IsVoluntarySpectator(IPlayer player)
     {
-        return _chosen.Contains(player.SteamID) && CanSpectate(player);
+        return _voluntary.TryGetValue(player.PlayerID, out var session) &&
+               session == player.SessionId &&
+               CanSpectate(player);
     }
 
-    public void RememberSpectator(IPlayer player)
+    public void MarkVoluntarySpectator(IPlayer player)
     {
-        if (player.SteamID != 0)
-        {
-            _chosen.Add(player.SteamID);
-        }
+        _voluntary[player.PlayerID] = player.SessionId;
     }
 
-    public void ForgetSpectator(IPlayer player)
+    public void Forget(IPlayer player)
     {
-        _chosen.Remove(player.SteamID);
+        _voluntary.Remove(player.PlayerID);
+    }
+
+    public void ForgetAll()
+    {
+        _voluntary.Clear();
     }
 }
