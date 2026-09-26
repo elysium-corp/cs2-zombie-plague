@@ -108,17 +108,25 @@ internal sealed class ParticleService(ISwiftlyCore core) : IParticleService
         return new ParticleContext(particle, token);
     }
 
-    public CParticleSystem CreateParticleAttached(string particleName, CEntityInstance entity, Attachment attachment)
+    public CParticleSystem CreateParticleAttached(string particleName, CEntityInstance entity)
     {
         var particle = core.EntitySystem.CreateEntity<CParticleSystem>();
-        
+
         particle.StartActive = true;
         particle.EffectName = particleName;
         particle.SetParent(entity);
-        particle.SetParentAttachment(entity, attachment);
         particle.Teleport(Vector.Zero, null, null);
-        
+
         particle.DispatchSpawn();
+
+        return particle;
+    }
+
+    public CParticleSystem CreateParticleAttached(string particleName, CEntityInstance entity, Attachment attachment)
+    {
+        var particle = CreateParticleAttached(particleName, entity);
+
+        particle.SetParentAttachment(entity, attachment);
 
         return particle;
     }
