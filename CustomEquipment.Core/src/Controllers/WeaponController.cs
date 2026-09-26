@@ -29,6 +29,7 @@ internal sealed class WeaponController(
 ) : IWeaponController, IDisposable
 {
     private Guid _guidBulletImpactPost = Guid.Empty;
+    private Guid _molotovDetonateHook = Guid.Empty;
     private bool _initialized;
 
     private readonly GrenadeHandler _grenadeHandler = new();
@@ -44,11 +45,13 @@ internal sealed class WeaponController(
 
         _initialized = true;
         core.Event.OnTick += OnTick;
+        core.Event.OnMapLoad += OnMapLoad;
         core.GameHooks.Entities.TakeDamage.Pre += OnEntityTakeDamage;
 
         events.Grenades.Thrown.Hook(OnGrenadeThrown);
 
         _guidBulletImpactPost = core.GameEvent.HookPost<EventBulletImpact>(OnBulletImpactPost);
+        _molotovDetonateHook = core.GameEvent.HookPre<EventMolotovDetonate>(OnMolotovDetonate);
     }
 
     public void Dispose()
@@ -60,6 +63,7 @@ internal sealed class WeaponController(
 
         _initialized = false;
         core.Event.OnTick -= OnTick;
+        core.Event.OnMapLoad -= OnMapLoad;
         core.GameHooks.Entities.TakeDamage.Pre -= OnEntityTakeDamage;
 
         events.Grenades.Thrown.Unhook(OnGrenadeThrown);
@@ -69,11 +73,30 @@ internal sealed class WeaponController(
             core.GameEvent.Unhook(_guidBulletImpactPost);
             _guidBulletImpactPost = Guid.Empty;
         }
+        if (_molotovDetonateHook != Guid.Empty)
+        {
+            core.GameEvent.Unhook(_molotovDetonateHook);
+            _molotovDetonateHook = Guid.Empty;
+        }
         _grenadeHandler.Clear();
     }
 
     private void OnTick() =>
         _grenadeHandler.OnTick(OnGrenadeDetonated);
+
+    private void OnMapLoad(IOnMapLoadEvent _) => _grenadeHandler.Clear();
+
+    private HookResult OnMolotovDetonate(EventMolotovDetonate @event)
+    {
+        if (@event.UserIdPlayer is { IsValid: true } thrower)
+        {
+            _grenadeHandler.OnMolotovDetonated(thrower, new Vector(@event.X, @event.Y, @event.Z),
+                (grenade, projectile, position) => HandleGrenadeDetonation(grenade, projectile, position,
+                    removeProjectile: false));
+        }
+
+        return HookResult.Continue;
+    }
 
     private void OnGrenadeThrown(ref GrenadeThrownContext context) =>
         _grenadeHandler.OnGrenadeThrown(context.Grenade, context.Projectile);
@@ -81,7 +104,13 @@ internal sealed class WeaponController(
     private void OnGrenadeDetonated(
         IGrenade grenade,
         CBaseCSGrenadeProjectile projectile,
-        Vector position)
+        Vector position) => HandleGrenadeDetonation(grenade, projectile, position, removeProjectile: true);
+
+    private void HandleGrenadeDetonation(
+        IGrenade grenade,
+        CBaseCSGrenadeProjectile projectile,
+        Vector position,
+        bool removeProjectile)
     {
         var preContext = new GrenadeDetonatingContext(grenade, projectile, position);
 
@@ -111,7 +140,8 @@ internal sealed class WeaponController(
             return;
         }
 
-        preContext.Projectile.Despawn();
+        // Внутри molotov_detonate снарядом ещё пользуется движок; удалит его сам.
+        if (removeProjectile) preContext.Projectile.Despawn();
         baseGrenade.OnDetonate(thrower, preContext.Position);
 
         var postContext = new GrenadeDetonatedContext(
