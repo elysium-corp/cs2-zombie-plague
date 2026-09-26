@@ -357,7 +357,12 @@ internal sealed class KnockbackService(
             knockbackData.PickDistance
         );
 
-        if (recoil < config.Value.MinKnockbackForce)
+        var hitGroupMultiplier = isHeadShot
+            ? config.Value.KnockbackHeadMultiply
+            : config.Value.KnockbackBodyMultiply;
+        var multiplier = recoil * zombieKnockback * hitGroupMultiplier;
+
+        if (multiplier < config.Value.MinKnockbackForce)
         {
             return false;
         }
@@ -366,12 +371,7 @@ internal sealed class KnockbackService(
         var verticalBoost = isOnGround
             ? config.Value.GroundKnockback
             : config.Value.AirKnockback;
-        var hitGroupMultiplier = isHeadShot
-            ? config.Value.KnockbackHeadMultiply
-            : config.Value.KnockbackBodyMultiply;
-        
         var currentVelocity = victimPawn.AbsVelocity;
-        var multiplier = recoil * zombieKnockback * hitGroupMultiplier;
         var horizontalVelocity = GetHorizontalKnockbackVelocity(
             currentVelocity,
             direction.X,
