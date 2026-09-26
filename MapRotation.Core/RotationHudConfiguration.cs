@@ -7,8 +7,9 @@ namespace MapRotation.Core;
 /// <summary>Параметры HUD из CMS; интервалы выбирают готовые варианты скомпилированного оформления.</summary>
 /// <param name="HideOnClose">Кнопка закрытия полностью скрывает голосование вместо сворачивания к краю.</param>
 /// <param name="ShowResult">Показывать карточку победителя после голосования.</param>
+/// <param name="AllowVoteChange">Разрешить менять голос; без разрешения первый выбор фиксируется, а меню сворачивается.</param>
 internal sealed record RotationHudConfiguration(HudMenuPresentation Defaults, int ResultDuration, int VerticalGap,
-    int HorizontalGap = 16, bool HideOnClose = false, bool ShowResult = true)
+    int HorizontalGap = 16, bool HideOnClose = false, bool ShowResult = true, bool AllowVoteChange = false)
 {
     /// <summary>Анимации появления темы CMS; имя класса — ThemeEntrance и значение с заглавной буквы.</summary>
     private static readonly string[] Animations = ["none", "fade", "rise", "drop", "slideLeft", "slideRight", "zoom", "zoomOut", "pop", "tilt"];
@@ -24,6 +25,7 @@ internal sealed record RotationHudConfiguration(HudMenuPresentation Defaults, in
         var horizontalGap = 16;
         var hideOnClose = false;
         var showResult = true;
+        var allowVoteChange = false;
         var themeClasses = ImmutableArray.CreateBuilder<string>();
         try
         {
@@ -53,13 +55,14 @@ internal sealed record RotationHudConfiguration(HudMenuPresentation Defaults, in
                 hideOnClose = close.GetString() == "hide";
             if (root.TryGetProperty("showResult", out var result) && result.ValueKind is JsonValueKind.True or JsonValueKind.False)
                 showResult = result.GetBoolean();
+            if (Flag(root, "voteChange") is { } voteChange) allowVoteChange = voteChange;
             ThemeClassesOf(root, themeClasses);
         }
         catch (JsonException)
         {
             // Повреждение оформления не должно отключать ротацию карт.
         }
-        return new(defaults, resultDuration, verticalGap, horizontalGap, hideOnClose, showResult) { ThemeClasses = themeClasses.ToImmutable() };
+        return new(defaults, resultDuration, verticalGap, horizontalGap, hideOnClose, showResult, allowVoteChange) { ThemeClasses = themeClasses.ToImmutable() };
     }
 
     // Отсутствующий или неверный параметр не даёт класса: остаётся значение, экспортированное в тему.

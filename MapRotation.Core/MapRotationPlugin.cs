@@ -15,7 +15,7 @@ using SwiftlyS2.Shared.Plugins;
 
 namespace MapRotation.Core;
 
-[PluginMetadata(Id = "MapRotation.Core", Version = "1.6.0", Name = "Elysium Map Rotation", Author = "Elysium",
+[PluginMetadata(Id = "MapRotation.Core", Version = "1.7.0", Name = "Elysium Map Rotation", Author = "Elysium",
     Description = "Ротация карт, RTV, номинации и голосование через Custom HUD")]
 internal sealed class MapRotationPlugin(ISwiftlyCore core) : Plugin<MapRotationModule>(core)
 {

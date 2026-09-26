@@ -7,6 +7,7 @@ using MapRotation.Core.Database;
 using MapRotation.Core.Domain;
 using Microsoft.Extensions.Logging.Abstractions;
 using SwiftlyS2.Shared;
+using SwiftlyS2.Shared.Commands;
 using SwiftlyS2.Shared.Players;
 using Xunit;
 
@@ -21,6 +22,8 @@ public sealed class RotationHudLifecycleTests
     public void CatalogRefreshAppliesSpacingToExistingVoteAndResultWithoutResettingPersonalSettings(HudMenuView view)
     {
         using var f = new Fixture();
+        f.Refresh();
+        // Голос подаётся мимо HUD, чтобы меню осталось в исходном виде.
         f.Game.Engine.CastVote(1, f.Game.Engine.Vote!.Id, 2);
         f.Refresh();
         Assert.Equal(24, f.Menus.Menu!.VerticalGap);
@@ -170,6 +173,78 @@ public sealed class RotationHudLifecycleTests
     }
 
     [Fact]
+    public void FirstChoiceIsFinalAndCollapsesTheVoteByDefault()
+    {
+        using var f = new Fixture();
+        f.Refresh();
+        var id = f.Menus.Id;
+        f.Menus.Select("2");
+        Assert.Equal(2, f.Game.Engine.Vote!.Votes[1]);
+        Assert.Equal(HudMenuView.Compact, f.Menus.Menu!.View);
+        Assert.False(f.Menus.Menu.Options.CaptureInput);
+        Assert.Equal("2", Assert.Single(f.Menus.Menu.Items, item => item.Selected).Id);
+
+        f.Menus.Select("3");
+        Assert.False(f.Game.Engine.CastVote(1, f.Game.Engine.Vote!.Id, 3, allowChange: false));
+        Assert.Equal(2, f.Game.Engine.Vote!.Votes[1]);
+
+        // !rtv больше не возвращает выбор: проголосовавший видит компактные результаты.
+        f.Invoke("OpenVote", f.Player, true);
+        Assert.Equal(HudMenuView.Compact, f.Menus.Menu.View);
+        Assert.False(f.Menus.Menu.Options.CaptureInput);
+        Assert.Equal(id, f.Menus.Id);
+        Assert.Equal(1, f.Menus.OpenCount);
+    }
+
+    [Fact]
+    public void HiddenVoteDisappearsAfterTheFinalChoiceAndRtvShowsOnlyTheResults()
+    {
+        using var f = new Fixture();
+        f.ApplyAppearance("{\"voteClose\":\"hide\"}");
+        f.Refresh();
+        f.Menus.Select("2");
+        Assert.False(f.Menus.Visible);
+        f.Invoke("OpenVote", f.Player, true);
+        Assert.True(f.Menus.Visible);
+        Assert.Equal(HudMenuView.Compact, f.Menus.Menu!.View);
+        Assert.False(f.Menus.Menu.Options.CaptureInput);
+        Assert.Equal(2, f.Game.Engine.Vote!.Votes[1]);
+    }
+
+    [Fact]
+    public void AllowedVoteChangeKeepsTheListOpenAndAcceptsANewChoice()
+    {
+        using var f = new Fixture();
+        f.ApplyAppearance("{\"voteChange\":true}");
+        f.Refresh();
+        f.Menus.Select("2");
+        Assert.Equal(HudMenuView.List, f.Menus.Menu!.View);
+        Assert.True(f.Menus.Menu.Options.CaptureInput);
+        f.Menus.Select("3");
+        Assert.Equal(3, f.Game.Engine.Vote!.Votes[1]);
+        Assert.Equal("3", Assert.Single(f.Menus.Menu.Items, item => item.Selected).Id);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("de_map3")]
+    public void NominateDuringAVoteOpensTheVoteInsteadOfNominating(string map)
+    {
+        var args = map.Length == 0 ? Array.Empty<string>() : [map];
+        using var f = new Fixture();
+        f.Refresh();
+        f.Menus.Act(HudMenuAction.Close);
+        Assert.Equal(HudMenuView.Compact, f.Menus.Menu!.View);
+
+        f.Command("nominate", args);
+
+        Assert.Equal("MapRotation.Vote", f.Menus.Menu.Channel);
+        Assert.Equal(HudMenuView.List, f.Menus.Menu.View);
+        Assert.Contains("MapRotation.Locked", f.Texts);
+        Assert.Null(f.Game.Engine.Nomination(1));
+    }
+
+    [Fact]
     public void CancellingAVoteClosesThePanelWithoutCreatingAWinner()
     {
         using var f = new Fixture();
@@ -186,6 +261,7 @@ public sealed class RotationHudLifecycleTests
         public RotationEngineTests.Fixture Game { get; } = new();
         public Menus Menus { get; } = new();
         public List<string> Messages { get; } = [];
+        public List<string> Texts { get; } = [];
         public IPlayer Player { get; }
         private readonly DatabaseTaskTracker _tasks = new(NullLogger<DatabaseTaskTracker>.Instance);
         private readonly RotationHudPreferences _preferences;
@@ -224,6 +300,7 @@ public sealed class RotationHudLifecycleTests
                 if (method.Name == nameof(ILocalizationApi.GetTagForPlayer)) return null;
                 if (method.Name != nameof(ILocalizationApi.FormatForPlayer)) throw new InvalidOperationException(method.Name);
                 var key = (string)args![1]!;
+                Texts.Add(key);
                 var values = (IReadOnlyDictionary<string, object?>)args[2]!;
                 return key == "MapRotation.Participation" ? $"{values["voted"]}/{values["total"]}" : key;
             });
@@ -238,6 +315,12 @@ public sealed class RotationHudLifecycleTests
         }
 
         public void Refresh() => Invoke("RefreshHud");
+        public void Command(string name, string[] args) => Invoke("PlayerCommand", Proxy(typeof(ICommandContext), (method, _) => method.Name switch
+        {
+            "get_Sender" => Player, "get_CommandName" => name, "get_Args" => args, "get_IsSentByPlayer" => true,
+            "Reply" => null,
+            _ => throw new InvalidOperationException(method.Name)
+        }));
         public void ApplyAppearance(string json) => Invoke("Apply", Game.Engine.Configuration with
         {
             Settings = Game.Engine.Settings with { HudSettings = json }
@@ -275,6 +358,7 @@ public sealed class RotationHudLifecycleTests
         public bool IsOpen(IPlayer player, Guid menuId) => Visible && Id == menuId;
         public void CloseChannel(string channel) { if (Menu?.Channel == channel) Visible = false; }
         public void Act(HudMenuAction action) => _handler!(new(Id, action, null));
+        public void Select(string item) => _handler!(new(Id, HudMenuAction.Select, item));
     }
 
     private static object Proxy(Type type, Func<MethodInfo, object?[]?, object?> handler)

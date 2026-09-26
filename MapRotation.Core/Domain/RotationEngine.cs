@@ -212,10 +212,12 @@ internal sealed class RotationEngine(TimeProvider clock, IRotationRandom random)
         return true;
     }
 
-    public bool CastVote(ulong steam, Guid voteId, long mapId)
+    /// <param name="allowChange">Можно ли заменить уже поданный голос; иначе учитывается только первый выбор.</param>
+    public bool CastVote(ulong steam, Guid voteId, long mapId, bool allowChange = true)
     {
         if (Vote is not { } vote || vote.Id != voteId || clock.GetUtcNow() >= vote.EndsAt || !_eligible.Contains(steam)
             || !vote.Options.Any(map => map.Id == mapId)) return false;
+        if (!allowChange && vote.Votes.ContainsKey(steam)) return false;
         Vote = vote with { Votes = vote.Votes.SetItem(steam, mapId) }; Revision++;
         return true;
     }
