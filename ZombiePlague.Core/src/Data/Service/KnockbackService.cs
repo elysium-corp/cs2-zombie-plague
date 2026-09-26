@@ -67,6 +67,9 @@ internal sealed class KnockbackService(
 
     private bool _registered;
 
+    // Горизонтальная скорость игрока до обработки урона от падения, по адресу pawn.
+    private readonly Dictionary<nint, Vector> _fallVelocities = [];
+
     public void Register()
     {
         if (_registered)
@@ -88,6 +91,7 @@ internal sealed class KnockbackService(
 
         core.GameHooks.Entities.TakeDamage.Pre -= OnTakeDamagePre;
         core.GameHooks.Entities.TakeDamage.Post -= OnTakeDamagePost;
+        _fallVelocities.Clear();
         _registered = false;
     }
 
@@ -124,6 +128,12 @@ internal sealed class KnockbackService(
 
     private void OnTakeDamagePre(ref TakeDamageEntityPreContext context)
     {
+        if (FallDamageMovement.IsFallDamage(context.Params.Info.DamageType))
+        {
+            PrepareFallDamage(ref context);
+            return;
+        }
+
         if (!config.Value.ZombieFriendlyKnockbackEnabled ||
             config.Value.ZombieFriendlyKnockbackForce <= 0.0f ||
             (context.Params.Info.DamageType & DamageTypes_t.DMG_SLASH) == 0)
@@ -173,8 +183,54 @@ internal sealed class KnockbackService(
         );
     }
 
+    // Урон от падения не должен сдвигать игрока: сила удара обнуляется, а горизонтальная
+    // скорость после обработки урона возвращается к значению до него.
+    // Сам урон и вертикальная скорость остаются штатными.
+    private void PrepareFallDamage(ref TakeDamageEntityPreContext context)
+    {
+        var address = context.Params.Entity.Address;
+        var victim = address.FindPlayerByPawnAddress();
+
+        if (victim is not { IsValid: true, IsAlive: true } ||
+            victim.PlayerPawn is not { IsValid: true } pawn)
+        {
+            _fallVelocities.Remove(address);
+            return;
+        }
+
+        context.Params.Info.DamageForce = Vector.Zero;
+        _fallVelocities[address] = pawn.AbsVelocity;
+    }
+
+    private void RestoreFallVelocity(ref TakeDamageEntityPostContext context)
+    {
+        var address = context.Params.Entity.Address;
+
+        if (!_fallVelocities.Remove(address, out var before))
+        {
+            return;
+        }
+
+        var victim = address.FindPlayerByPawnAddress();
+
+        if (victim is not { IsValid: true, IsAlive: true } ||
+            victim.PlayerPawn is not { IsValid: true } pawn ||
+            !FallDamageMovement.TryRestore(before, pawn.AbsVelocity, out var velocity))
+        {
+            return;
+        }
+
+        victim.Teleport(null, null, velocity);
+    }
+
     private void OnTakeDamagePost(ref TakeDamageEntityPostContext context)
     {
+        if (FallDamageMovement.IsFallDamage(context.Params.Info.DamageType))
+        {
+            RestoreFallVelocity(ref context);
+            return;
+        }
+
         if (!config.Value.KnockbackEnabled ||
             context.Params.Info.DamageType == DamageTypes_t.DMG_POISON ||
             (context.Params.Info.DamageType & DamageTypes_t.DMG_BURN) != 0 &&

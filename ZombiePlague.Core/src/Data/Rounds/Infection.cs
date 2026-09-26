@@ -38,7 +38,9 @@ internal sealed class Infection(
             return SetFirstZombie(zombie);
         }
 
-        if (humans.Length == 0)
+        // Без второго игрока первый зомби сразу выигрывает раунд, и сервер
+        // бесконечно заражает единственного игрока.
+        if (humans.Length < 2)
         {
             return false;
         }
@@ -58,7 +60,14 @@ internal sealed class Infection(
     public override bool CanStart()
     {
         var humansCount = PlayerManager.GetAllAliveHumans().Count();
-        
+
+        // Заражённый администратором во время подготовки игрок становится
+        // первым зомби, если ему есть кого заражать.
+        if (PlayerManager.GetAllAliveZombies().Any())
+        {
+            return humansCount > 0;
+        }
+
         return humansCount > 1;
     }
     

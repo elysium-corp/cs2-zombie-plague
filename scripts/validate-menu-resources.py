@@ -17,7 +17,10 @@ for index in range(12):
     for prefix in ('Item', 'Image', 'Name', 'Description', 'Badge', 'Bar'):
         assert prefix + str(index) in ids, f'Missing binding {prefix}{index}'
     item = xml.find(f'.//Button[@id="Item{index}"]')
-    assert item.find('./Panel[@class="SelectedCircle"]/Label[@class="SelectedMark"]') is not None
+    # Галочка — векторное изображение: символ ✓ в шрифте Panorama смещён относительно круга
+    mark = item.find('./Panel[@class="SelectedCircle"]/Image[@class="SelectedMark"]')
+    assert mark is not None and mark.get('src') == 's2r://panorama/images/custom_game/elysium/menus/check_v4.vsvg'
+    assert (base / 'images/custom_game/elysium/menus/check_v4.svg').is_file()
     assert item.find(f'.//Panel[@id="Bar{index}"]') is not None
 for row in range(2):
     items = xml.find(f'.//Panel[@id="Row{row}"]').findall('Button')
@@ -29,7 +32,7 @@ assert '.Selected .SelectedCircle { visibility: visible;' in css
 for element in xml.iter():
     assert not {'html', 'onclick', 'onactivate'}.intersection(element.attrib), 'Unsupported client attribute'
     if element.tag == 'Label':
-        assert element.get('text') in {'{s:value}', 'ELYSIUM', '‹', '›', '×', '✓', '◈'}, 'Unlocalized text'
+        assert element.get('text') in {'{s:value}', 'ELYSIUM', '‹', '›', '×', '◈'}, 'Unlocalized text'
 assert xml.find('.//Panel[@class="MenuFrame"]/Panel[@id="Settings"]') is None
 assert xml.find('.//Panel[@id="MenuRoot"]/Panel[@id="Settings"]') is not None
 for name in ('Participation', 'DockSideLabel', 'AnimationLabel', 'DockSettings', 'AnimationSettings'):

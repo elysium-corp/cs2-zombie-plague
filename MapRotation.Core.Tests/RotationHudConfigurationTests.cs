@@ -65,6 +65,16 @@ public sealed class RotationHudConfigurationTests
     }
 
     [Theory]
+    [InlineData("{}", false)]
+    [InlineData("not json", false)]
+    [InlineData("{\"voteChange\":\"true\"}", false)]
+    [InlineData("{\"voteChange\":1}", false)]
+    [InlineData("{\"voteChange\":false}", false)]
+    [InlineData("{\"voteChange\":true}", true)]
+    public void VoteChangeIsDisabledUnlessTheCmsExplicitlyAllowsIt(string json, bool expected)
+        => Assert.Equal(expected, RotationHudConfiguration.Parse(json).AllowVoteChange);
+
+    [Theory]
     [InlineData("{}", 24)]
     [InlineData("{\"cardWidth\":220,\"rowHeight\":86}", 24)]
     [InlineData("not json", 24)]

@@ -6,6 +6,7 @@ using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.GameHooks;
 using SwiftlyS2.Shared.Misc;
+using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.ProtobufDefinitions;
 using SwiftlyS2.Shared.SchemaDefinitions;
@@ -49,9 +50,19 @@ internal sealed class RoundManager(
     private uint _countdownSoundEvent;
     private uint _preparationSoundEvent;
 
+    // Смерть единственного ожидающего игрока уже завершила игровой раунд CS2;
+    // до round_end подготовка не должна никого возрождать.
+    private bool _nextRoundRequested;
+
     private const float DelayPreparationTimer = 1.5f;
 
     private const int PeriodSecondsPreparationTask = 1;
+
+    private const int MinimumPlayersFloor = 2;
+
+    private const float WaitingRoundRestartDelay = 3.0f;
+
+    private int RequiredPlayers => Math.Max(MinimumPlayersFloor, config.Value.MinimumPlayers);
 
     public void Prepare()
     {
@@ -83,18 +94,21 @@ internal sealed class RoundManager(
 
         foreach (var player in allPlayers)
         {
+            // Зритель сам решает, когда войти в игру: его не переводим в CT
+            // и не учитываем в минимуме игроков. Роль прошлого раунда снимаем,
+            // чтобы зритель не считался зомби; при входе в команду он получит новую.
+            if (IsSpectator(player))
+            {
+                playerManager.Remove(player);
+                continue;
+            }
+
             playerManager.TrySetHuman(player);
         }
 
-        _remainingPreparationTime = config.Value.PreStartDelay;
+        _nextRoundRequested = false;
 
-        _countdownSoundPlayed = false;
-
-        _preparationTimer = core.Scheduler.DelayAndRepeatBySeconds(
-            delaySeconds: DelayPreparationTimer,
-            periodSeconds: PeriodSecondsPreparationTask,
-            task: OnPrepareTask
-        );
+        StartPreparationTimer();
 
         var postContext = new RoundPreparedContext(_remainingPreparationTime);
         hooks.Dispatch(ref postContext);
@@ -108,7 +122,15 @@ internal sealed class RoundManager(
             return;
         }
 
-        var round = TakeNextRound() ?? CreateRandomRoundOrDefault();
+        var round = TakeNextRound() ?? CreateRandomRound();
+
+        if (round is null)
+        {
+            // Ни один режим не может начаться: подготовка продолжается,
+            // единственного живого игрока нельзя делать первым зомби.
+            DispatchStartRejected(null, RoundStartRejectionReason.CannotStart);
+            return;
+        }
 
         StartRound(round);
     }
@@ -138,7 +160,13 @@ internal sealed class RoundManager(
             return RoundStartResult.NotPreparing;
         }
 
-        var round = CreateRandomRoundOrDefault();
+        var round = CreateRandomRound();
+
+        if (round is null)
+        {
+            DispatchStartRejected(null, RoundStartRejectionReason.CannotStart);
+            return RoundStartResult.CannotStart;
+        }
 
         return StartRound(round);
     }
@@ -245,7 +273,16 @@ internal sealed class RoundManager(
     {
         if (IsPreparing)
         {
-            ScheduleRespawn(@event.UserIdPlayer);
+            // Пока игроков меньше минимума, смерть ожидающего игрока начинает следующий раунд:
+            // CS2 заново возродит всех, а подготовка продолжит ждать второго игрока.
+            if (IsWaitingForPlayers())
+            {
+                RequestNextRound();
+            }
+            else
+            {
+                ScheduleRespawn(@event.UserIdPlayer);
+            }
 
             return HookResult.Continue;
         }
@@ -260,6 +297,21 @@ internal sealed class RoundManager(
 
     public HookResult OnPlayerTeam(EventPlayerTeam @event)
     {
+        if (IsPreparing)
+        {
+            // Без ботов вход в команду — единственный момент, когда игрок получает Pawn.
+            // Возрождаем его человеком сразу, не дожидаясь очередного тика подготовки.
+            if (!@event.Disconnect &&
+                @event.Team is (byte)Team.T or (byte)Team.CT &&
+                @event.OldTeam is not ((byte)Team.T or (byte)Team.CT) &&
+                @event.UserIdPlayer is { } player)
+            {
+                core.Scheduler.NextWorldUpdate(() => AdmitPreparationPlayer(player));
+            }
+
+            return HookResult.Continue;
+        }
+
         return CurrentRound?.HandlePlayerTeam(@event) ?? HookResult.Continue;
     }
 
@@ -287,22 +339,26 @@ internal sealed class RoundManager(
 
     private void OnPrepareTask()
     {
-        if (_preparationTimer is null)
+        if (_preparationTimer is null || _nextRoundRequested)
         {
             return;
         }
 
-        // Пустой сервер не должен исчерпывать подготовку: неудачный StartRound
-        // остановит таймер, после чего первому игроку некуда будет подключиться.
-        // Сохраняем IsPreparing, чтобы late-join игрок мог возродиться человеком.
-        if (!playerManager.GetAllAliveHumans().Any() && !playerManager.GetAllAliveZombies().Any())
+        RespawnIdleParticipants();
+
+        // Пока в командах меньше минимума игроков, подготовка не расходует отсчёт:
+        // раунд с одним игроком сразу закончился бы его заражением. IsPreparing
+        // сохраняется, чтобы подключившийся игрок возродился человеком.
+        if (IsWaitingForPlayers())
         {
-            _remainingPreparationTime = config.Value.PreStartDelay;
-            _countdownSoundPlayed = false;
+            HoldCountdown();
             return;
         }
 
-        _remainingPreparationTime--;
+        if (_remainingPreparationTime > 0)
+        {
+            _remainingPreparationTime--;
+        }
 
         if (!_countdownSoundPlayed && _remainingPreparationTime == 10)
         {
@@ -311,7 +367,12 @@ internal sealed class RoundManager(
 
         if (_remainingPreparationTime < 1)
         {
-            Start();
+            // Погибший во время отсчёта игрок ещё ждёт возрождения: раунд начнётся,
+            // когда живых участников снова хватит.
+            if (CountParticipants(aliveOnly: true) >= RequiredPlayers)
+            {
+                Start();
+            }
 
             return;
         }
@@ -334,7 +395,7 @@ internal sealed class RoundManager(
         return NextRound.CanStart() ? NextRound : null;
     }
 
-    private RoundBase CreateRandomRoundOrDefault()
+    private RoundBase? CreateRandomRound()
     {
         var candidates = roundRegistrator
             .GetAllEnabled()
@@ -354,7 +415,10 @@ internal sealed class RoundManager(
             }
         }
 
-        return roundFactory.Create<Infection>();
+        // Инфекция остаётся резервным режимом, но только когда ей есть кого заражать.
+        var infection = roundFactory.Create<Infection>();
+
+        return infection.CanStart() ? infection : null;
     }
 
     internal static IRoundConfig SelectByWeight(IReadOnlyCollection<IRoundConfig> candidates, Random random)
@@ -435,6 +499,10 @@ internal sealed class RoundManager(
         {
             CurrentRound = null;
 
+            // Без подготовки и без раунда погибшие не возрождаются до конца раунда CS2,
+            // поэтому неудачный старт возвращает сервер к ожиданию.
+            StartPreparationTimer();
+
             DispatchStartRejected(round.Id, RoundStartRejectionReason.CannotStart);
 
             return RoundStartResult.CannotStart;
@@ -465,7 +533,7 @@ internal sealed class RoundManager(
 
         var infection = roundFactory.Create<Infection>();
 
-        if (TryStartRoundInternal(infection))
+        if (infection.CanStart() && TryStartRoundInternal(infection))
         {
             startedRound = infection;
 
@@ -475,6 +543,114 @@ internal sealed class RoundManager(
         startedRound = null;
 
         return false;
+    }
+
+    private void StartPreparationTimer()
+    {
+        _preparationTimer?.Cancel();
+
+        _remainingPreparationTime = config.Value.PreStartDelay;
+
+        _countdownSoundPlayed = false;
+
+        _preparationTimer = core.Scheduler.DelayAndRepeatBySeconds(
+            delaySeconds: DelayPreparationTimer,
+            periodSeconds: PeriodSecondsPreparationTask,
+            task: OnPrepareTask
+        );
+    }
+
+    private void HoldCountdown()
+    {
+        if (_remainingPreparationTime == config.Value.PreStartDelay && !_countdownSoundPlayed)
+        {
+            return;
+        }
+
+        // Игрок ушёл во время отсчёта: следующий участник получит полный отсчёт заново.
+        _remainingPreparationTime = config.Value.PreStartDelay;
+        _countdownSoundPlayed = false;
+
+        notifications?.Clear("ZombiePlague.Round.Preparing");
+        StopSound(ref _countdownSoundEvent);
+    }
+
+    private bool IsWaitingForPlayers()
+    {
+        return CountParticipants(aliveOnly: false) < RequiredPlayers;
+    }
+
+    private int CountParticipants(bool aliveOnly)
+    {
+        return core.PlayerManager
+            .GetAllPlayers()
+            .Count(player => IsParticipant(player) && (!aliveOnly || player.IsAlive));
+    }
+
+    // Участник — полностью подключённый игрок или бот в команде T/CT.
+    // Подключающиеся игроки ещё не валидны, зрители находятся вне этих команд.
+    private static bool IsParticipant(IPlayer player)
+    {
+        return player.IsValid && player.Controller.Team is Team.T or Team.CT;
+    }
+
+    private static bool IsSpectator(IPlayer player)
+    {
+        return player.IsValid && player.Controller.Team == Team.Spectator;
+    }
+
+    private void RespawnIdleParticipants()
+    {
+        foreach (var player in core.PlayerManager.GetAllPlayers())
+        {
+            if (!IsParticipant(player) || _preparationRespawns.ContainsKey(player.PlayerID))
+            {
+                continue;
+            }
+
+            AdmitPreparationPlayer(player);
+        }
+    }
+
+    // Игрок в команде T/CT, который так и не получил роль или остался мёртвым
+    // (например, вошёл в команду после неудачной инициализации при подключении),
+    // становится человеком и возрождается.
+    private void AdmitPreparationPlayer(IPlayer player)
+    {
+        if (!IsPreparing || _nextRoundRequested || !IsParticipant(player))
+        {
+            return;
+        }
+
+        if (!player.IsAlive)
+        {
+            TryRespawnPlayer(player);
+            return;
+        }
+
+        if (!playerManager.TryGetRole(player, out _))
+        {
+            playerManager.TrySetHuman(player);
+        }
+    }
+
+    private void RequestNextRound()
+    {
+        if (_nextRoundRequested)
+        {
+            return;
+        }
+
+        _nextRoundRequested = true;
+
+        foreach (var respawn in _preparationRespawns.Values)
+        {
+            respawn.Cancel();
+        }
+
+        _preparationRespawns.Clear();
+
+        core.Game.TerminateRound(RoundEndReason.RoundDraw, WaitingRoundRestartDelay);
     }
 
     public bool TryRespawnPlayer(IPlayer player)
@@ -575,26 +751,24 @@ internal sealed class RoundManager(
 
     private void CancelPreparationSounds()
     {
-        if (_countdownSoundEvent != 0)
+        StopSound(ref _countdownSoundEvent);
+        StopSound(ref _preparationSoundEvent);
+    }
+
+    private void StopSound(ref uint soundEvent)
+    {
+        if (soundEvent != 0)
         {
+            var guid = unchecked((int)soundEvent);
+
             core.NetMessage.Send<CMsgSosStopSoundEvent>(message =>
             {
-                message.SoundeventGuid = unchecked((int)_countdownSoundEvent);
+                message.SoundeventGuid = guid;
                 message.Recipients.AddAllPlayers();
             });
         }
 
-        if (_preparationSoundEvent != 0)
-        {
-            core.NetMessage.Send<CMsgSosStopSoundEvent>(message =>
-            {
-                message.SoundeventGuid = unchecked((int)_preparationSoundEvent);
-                message.Recipients.AddAllPlayers();
-            });
-        }
-
-        _countdownSoundEvent = 0;
-        _preparationSoundEvent = 0;
+        soundEvent = 0;
     }
 
     private bool IsWarmupActive()

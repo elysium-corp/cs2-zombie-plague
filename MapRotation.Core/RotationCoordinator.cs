@@ -178,7 +178,13 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
                 else Card(player, Text(player, "RtvTitle"), Text(player, reply.ToString()), "warning");
                 RefreshHud(); break;
             case "nominate":
-                if (context.Args.Length > 0)
+                // Во время голосования номинации закрыты: вместо меню номинаций игрок получает само голосование.
+                if (engine.Vote is not null)
+                {
+                    Card(player, Text(player, "NominationTitle"), Text(player, nameof(RotationReply.Locked)), "warning");
+                    RefreshHud(); OpenVote(player, force: true);
+                }
+                else if (context.Args.Length > 0)
                 {
                     var map = Find(context.Args[0]);
                     var result = map is null ? RotationReply.InvalidMap : engine.Nominate(player.SteamID, map.Id);
@@ -289,42 +295,54 @@ internal sealed class RotationCoordinator(ISwiftlyCore core, RotationEngine engi
     {
         if (engine.Vote is not { } vote || !Eligible(player)) return;
         if (!force && _seenVotes.TryGetValue(player.PlayerID, out var seen) && seen == (player.SessionId, vote.Id)) return;
+        // Проголосовавший без права смены видит только компактные результаты: его выбор уже зафиксирован.
+        var view = VoteLocked(player.SteamID, vote) ? HudMenuView.Compact : HudMenuView.List;
         if (_opened.TryGetValue(player.PlayerID, out var opened) && opened.Session == player.SessionId
             && opened.Channel == VoteChannel && opened.View != HudMenuView.Result
-            && _menus?.Update(player, opened.Menu, VoteMenu(player, vote)) == true)
+            && _menus?.Update(player, opened.Menu, VoteMenu(player, vote, view)) == true)
         {
-            _opened[player.PlayerID] = opened with { View = HudMenuView.List };
+            _opened[player.PlayerID] = opened with { View = view };
             _seenVotes[player.PlayerID] = (player.SessionId, vote.Id);
             return;
         }
         var session = player.SessionId; var steam = player.SteamID; var playerId = player.PlayerID;
         // Недоступные ресурсы сообщаются один раз за голосование; команда !rtv разрешает повторную попытку.
         _seenVotes[player.PlayerID] = (player.SessionId, vote.Id);
-        Open(player, VoteMenu(player, vote), action =>
+        Open(player, VoteMenu(player, vote, view), action =>
         {
             var current = core.PlayerManager.GetPlayer(playerId);
             if (current is null || current.SessionId != session || current.SteamID != steam || !Eligible(current)) return;
+            if (!_opened.TryGetValue(playerId, out var currentHud) || currentHud.Menu != action.MenuId) return;
             if (action.Action == HudMenuAction.Close)
             {
-                if (!_opened.TryGetValue(playerId, out var currentHud) || currentHud.Menu != action.MenuId) return;
-                // Скрытое голосование продолжается: !rtv открывает его снова, а итог получают все участники.
-                if (_hudConfiguration.HideOnClose || _menus?.IsOpen(current, currentHud.Menu) != true)
-                {
-                    _menus?.Close(current, currentHud.Menu);
-                    _opened.Remove(playerId);
-                    return;
-                }
-                if (engine.Vote is { } active)
-                {
-                    _opened[playerId] = currentHud with { View = HudMenuView.Compact };
-                    _menus?.Update(current, currentHud.Menu, VoteMenu(current, active, HudMenuView.Compact));
-                }
+                CollapseVote(current, playerId, currentHud);
                 return;
             }
             if (action.Action != HudMenuAction.Select || !long.TryParse(action.ItemId, out var id)) return;
             RefreshPlayers();
-            if (engine.CastVote(steam, vote.Id, id)) { RefreshHud(); Publish(); }
+            if (!engine.CastVote(steam, vote.Id, id, _hudConfiguration.AllowVoteChange)) return;
+            // Без права смены голос фиксируется первым выбором: меню сворачивается так же, как кнопкой закрытия.
+            if (!_hudConfiguration.AllowVoteChange) CollapseVote(current, playerId, currentHud);
+            RefreshHud(); Publish();
         });
+    }
+
+    private bool VoteLocked(ulong steam, VoteState vote) => !_hudConfiguration.AllowVoteChange && vote.Votes.ContainsKey(steam);
+
+    private void CollapseVote(IPlayer player, int playerId, OpenedHud hud)
+    {
+        // Скрытое голосование продолжается: !rtv открывает его снова, а итог получают все участники.
+        if (_hudConfiguration.HideOnClose || _menus?.IsOpen(player, hud.Menu) != true)
+        {
+            _menus?.Close(player, hud.Menu);
+            _opened.Remove(playerId);
+            return;
+        }
+        if (engine.Vote is { } active)
+        {
+            _opened[playerId] = hud with { View = HudMenuView.Compact };
+            _menus?.Update(player, hud.Menu, VoteMenu(player, active, HudMenuView.Compact));
+        }
     }
 
     private bool Open(IPlayer player, HudMenu menu, Action<HudMenuEvent> handler)

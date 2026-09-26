@@ -48,7 +48,7 @@
                                     </Panel>
                                     <Label class="ItemArrow" text="›" hittest="false" />
                                     <Panel class="SelectedCircle" hittest="false">
-                                        <Label class="SelectedMark" text="✓" hittest="false" />
+                                        <Image class="SelectedMark" src="s2r://panorama/images/custom_game/elysium/menus/check_v4.vsvg" hittest="false" />
                                     </Panel>
                                     <Panel class="VoteTrack" hittest="false">
                                         <Panel id="Bar0" class="VoteBar Pct0" hittest="false" />
@@ -70,7 +70,7 @@
                                     </Panel>
                                     <Label class="ItemArrow" text="›" hittest="false" />
                                     <Panel class="SelectedCircle" hittest="false">
-                                        <Label class="SelectedMark" text="✓" hittest="false" />
+                                        <Image class="SelectedMark" src="s2r://panorama/images/custom_game/elysium/menus/check_v4.vsvg" hittest="false" />
                                     </Panel>
                                     <Panel class="VoteTrack" hittest="false">
                                         <Panel id="Bar1" class="VoteBar Pct0" hittest="false" />
@@ -92,7 +92,7 @@
                                     </Panel>
                                     <Label class="ItemArrow" text="›" hittest="false" />
                                     <Panel class="SelectedCircle" hittest="false">
-                                        <Label class="SelectedMark" text="✓" hittest="false" />
+                                        <Image class="SelectedMark" src="s2r://panorama/images/custom_game/elysium/menus/check_v4.vsvg" hittest="false" />
                                     </Panel>
                                     <Panel class="VoteTrack" hittest="false">
                                         <Panel id="Bar2" class="VoteBar Pct0" hittest="false" />
@@ -114,7 +114,7 @@
                                     </Panel>
                                     <Label class="ItemArrow" text="›" hittest="false" />
                                     <Panel class="SelectedCircle" hittest="false">
-                                        <Label class="SelectedMark" text="✓" hittest="false" />
+                                        <Image class="SelectedMark" src="s2r://panorama/images/custom_game/elysium/menus/check_v4.vsvg" hittest="false" />
                                     </Panel>
                                     <Panel class="VoteTrack" hittest="false">
                                         <Panel id="Bar3" class="VoteBar Pct0" hittest="false" />
@@ -136,7 +136,7 @@
                                     </Panel>
                                     <Label class="ItemArrow" text="›" hittest="false" />
                                     <Panel class="SelectedCircle" hittest="false">
-                                        <Label class="SelectedMark" text="✓" hittest="false" />
+                                        <Image class="SelectedMark" src="s2r://panorama/images/custom_game/elysium/menus/check_v4.vsvg" hittest="false" />
                                     </Panel>
                                     <Panel class="VoteTrack" hittest="false">
                                         <Panel id="Bar4" class="VoteBar Pct0" hittest="false" />
@@ -158,7 +158,7 @@
                                     </Panel>
                                     <Label class="ItemArrow" text="›" hittest="false" />
                                     <Panel class="SelectedCircle" hittest="false">
-                                        <Label class="SelectedMark" text="✓" hittest="false" />
+                                        <Image class="SelectedMark" src="s2r://panorama/images/custom_game/elysium/menus/check_v4.vsvg" hittest="false" />
                                     </Panel>
                                     <Panel class="VoteTrack" hittest="false">
                                         <Panel id="Bar5" class="VoteBar Pct0" hittest="false" />
@@ -182,7 +182,7 @@
                                     </Panel>
                                     <Label class="ItemArrow" text="›" hittest="false" />
                                     <Panel class="SelectedCircle" hittest="false">
-                                        <Label class="SelectedMark" text="✓" hittest="false" />
+                                        <Image class="SelectedMark" src="s2r://panorama/images/custom_game/elysium/menus/check_v4.vsvg" hittest="false" />
                                     </Panel>
                                     <Panel class="VoteTrack" hittest="false">
                                         <Panel id="Bar6" class="VoteBar Pct0" hittest="false" />
@@ -204,7 +204,7 @@
                                     </Panel>
                                     <Label class="ItemArrow" text="›" hittest="false" />
                                     <Panel class="SelectedCircle" hittest="false">
-                                        <Label class="SelectedMark" text="✓" hittest="false" />
+                                        <Image class="SelectedMark" src="s2r://panorama/images/custom_game/elysium/menus/check_v4.vsvg" hittest="false" />
                                     </Panel>
                                     <Panel class="VoteTrack" hittest="false">
                                         <Panel id="Bar7" class="VoteBar Pct0" hittest="false" />
@@ -226,7 +226,7 @@
                                     </Panel>
                                     <Label class="ItemArrow" text="›" hittest="false" />
                                     <Panel class="SelectedCircle" hittest="false">
-                                        <Label class="SelectedMark" text="✓" hittest="false" />
+                                        <Image class="SelectedMark" src="s2r://panorama/images/custom_game/elysium/menus/check_v4.vsvg" hittest="false" />
                                     </Panel>
                                     <Panel class="VoteTrack" hittest="false">
                                         <Panel id="Bar8" class="VoteBar Pct0" hittest="false" />
@@ -248,7 +248,7 @@
                                     </Panel>
                                     <Label class="ItemArrow" text="›" hittest="false" />
                                     <Panel class="SelectedCircle" hittest="false">
-                                        <Label class="SelectedMark" text="✓" hittest="false" />
+                                        <Image class="SelectedMark" src="s2r://panorama/images/custom_game/elysium/menus/check_v4.vsvg" hittest="false" />
                                     </Panel>
                                     <Panel class="VoteTrack" hittest="false">
                                         <Panel id="Bar9" class="VoteBar Pct0" hittest="false" />
@@ -270,7 +270,7 @@
                                     </Panel>
                                     <Label class="ItemArrow" text="›" hittest="false" />
                                     <Panel class="SelectedCircle" hittest="false">
-                                        <Label class="SelectedMark" text="✓" hittest="false" />
+                                        <Image class="SelectedMark" src="s2r://panorama/images/custom_game/elysium/menus/check_v4.vsvg" hittest="false" />
                                     </Panel>
                                     <Panel class="VoteTrack" hittest="false">
                                         <Panel id="Bar10" class="VoteBar Pct0" hittest="false" />
@@ -292,7 +292,7 @@
                                     </Panel>
                                     <Label class="ItemArrow" text="›" hittest="false" />
                                     <Panel class="SelectedCircle" hittest="false">
-                                        <Label class="SelectedMark" text="✓" hittest="false" />
+                                        <Image class="SelectedMark" src="s2r://panorama/images/custom_game/elysium/menus/check_v4.vsvg" hittest="false" />
                                     </Panel>
                                     <Panel class="VoteTrack" hittest="false">
                                         <Panel id="Bar11" class="VoteBar Pct0" hittest="false" />

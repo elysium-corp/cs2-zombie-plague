@@ -29,6 +29,10 @@ public sealed class ZombiePlagueCoreConfig
     // Время до начала заражения
     public int PreStartDelay { get; set; } = 20;
 
+    // Минимум игроков в командах T/CT (без зрителей и подключающихся) для запуска раунда.
+    // До набора минимума идёт подготовка без отсчёта; значения меньше 2 считаются равными 2
+    public int MinimumPlayers { get; set; } = 2;
+
     // Время возрождения зомби
     public int ZombieSpawnDelay { get; set; } = 5;
 
