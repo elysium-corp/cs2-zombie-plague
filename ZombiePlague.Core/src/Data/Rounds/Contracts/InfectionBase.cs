@@ -200,7 +200,8 @@ internal abstract class InfectionBase(
     
     public override bool TryRespawnPlayer(IPlayer player)
     {
-        if (!player.IsValid)
+        // Наблюдатель возвращается в игру только сам; возрождение его не переводит в команду.
+        if (!player.IsValid || player.Controller.Team == Team.Spectator)
         {
             return false;
         }
@@ -346,6 +347,15 @@ internal abstract class InfectionBase(
         {
             // Например, администратор уже возродил игрока. Такой spawn не расходует лимит.
             _respawnTracker.CompleteExternalRespawn(steamId);
+            return;
+        }
+
+        if (player.Controller.Team == Team.Spectator)
+        {
+            // Зомби ушёл в наблюдатели до возрождения: ожидание снимается без расхода жизни,
+            // чтобы оно не удерживало раунд и не вернуло игрока в команду.
+            _respawnTracker.CompleteExternalRespawn(steamId);
+            TryRequestRoundEnd();
             return;
         }
 

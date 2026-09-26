@@ -1,4 +1,6 @@
-﻿namespace ZombiePlague.Core.Config.Core;
+﻿using Admin.Api.Permissions;
+
+namespace ZombiePlague.Core.Config.Core;
 
 public sealed class ZombiePlagueCoreConfig
 {
@@ -35,6 +37,11 @@ public sealed class ZombiePlagueCoreConfig
     // Минимум игроков в командах T/CT (без зрителей и подключающихся) для запуска раунда.
     // До набора минимума идёт подготовка без отсчёта; значения меньше 2 считаются равными 2
     public int MinimumPlayers { get; set; } = 2;
+
+    // Права Admin.Api (любое из списка), с которыми игрок может сам уйти в наблюдатели командой
+    // spectate или jointeam 1 и вернуться jointeam 2/3. Такого наблюдателя плагин не переводит
+    // в команду. Пустой список запрещает наблюдателей всем, как раньше
+    public string[] SpectatorPermissions { get; set; } = [AdminPermissions.Spectate];
 
     // Время возрождения зомби
     public int ZombieSpawnDelay { get; set; } = 5;

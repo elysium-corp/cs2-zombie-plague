@@ -1,0 +1,72 @@
+using Admin.Api;
+using Admin.Api.Permissions;
+using Microsoft.Extensions.Options;
+using Moq;
+using SwiftlyS2.Shared.Players;
+using Xunit;
+using ZombiePlague.Core.Config.Core;
+using ZombiePlague.Core.Data.Service;
+
+namespace ZombiePlague.Core.Tests;
+
+public sealed class SpectatorAccessTests
+{
+    [Fact]
+    public void AdminSpectateIsTheDefaultPermission()
+    {
+        Assert.Equal([AdminPermissions.Spectate], new ZombiePlagueCoreConfig().SpectatorPermissions);
+    }
+
+    [Theory]
+    [InlineData(new[] { "admin.spectate" }, "admin.spectate", true)]
+    [InlineData(new[] { "admin.kick", "admin.spectate" }, "admin.kick", true)]
+    [InlineData(new[] { "admin.spectate" }, "admin.kick", false)]
+    [InlineData(new string[0], "admin.spectate", false)]
+    [InlineData(new[] { " " }, " ", false)]
+    public void AnyConfiguredPermissionAllowsSpectating(string[] configured, string granted, bool expected)
+    {
+        var access = Access(configured, granted, out var player);
+
+        Assert.Equal(expected, access.CanSpectate(player));
+    }
+
+    [Fact]
+    public void BotsCannotSpectate()
+    {
+        var access = Access(["admin.spectate"], "admin.spectate", out _);
+        var bot = Mock.Of<IPlayer>(value => value.SteamID == 0UL);
+
+        Assert.False(access.CanSpectate(bot));
+    }
+
+    [Fact]
+    public void ChoiceIsKeptUntilTheReturnAndRequiresThePermission()
+    {
+        var admin = new Mock<IAdminApi>();
+        var player = Mock.Of<IPlayer>(value => value.SteamID == 76561198000000001UL);
+        admin.Setup(value => value.HasPermission(player, "admin.spectate")).Returns(true);
+        var access = new SpectatorAccess(admin.Object, Options.Create(new ZombiePlagueCoreConfig()));
+
+        Assert.False(access.ChoseSpectators(player));
+        access.RememberSpectator(player);
+        Assert.True(access.ChoseSpectators(player));
+
+        // Снятое право возвращает игрока в игру даже при сохранённом выборе.
+        admin.Setup(value => value.HasPermission(player, "admin.spectate")).Returns(false);
+        Assert.False(access.ChoseSpectators(player));
+
+        admin.Setup(value => value.HasPermission(player, "admin.spectate")).Returns(true);
+        access.ForgetSpectator(player);
+        Assert.False(access.ChoseSpectators(player));
+    }
+
+    private static SpectatorAccess Access(string[] configured, string granted, out IPlayer player)
+    {
+        var admin = new Mock<IAdminApi>();
+        var target = Mock.Of<IPlayer>(value => value.SteamID == 76561198000000001UL);
+        admin.Setup(value => value.HasPermission(target, granted)).Returns(true);
+        player = target;
+
+        return new SpectatorAccess(admin.Object, Options.Create(new ZombiePlagueCoreConfig { SpectatorPermissions = configured }));
+    }
+}

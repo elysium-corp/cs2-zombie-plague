@@ -202,6 +202,39 @@ public sealed class IdleRoundPreparationTests
     }
 
     [Fact]
+    public void SpectatorsAreNeverRespawnedAutomatically()
+    {
+        using var f = new Fixture();
+        var spectator = f.Join(alive: false, role: false, team: Team.Spectator);
+
+        Assert.False(f.Manager.TryRespawnPlayer(spectator.Object));
+        for (var i = 0; i < 5; i++) f.Tick();
+
+        Assert.False(spectator.Alive);
+        Assert.Equal(Team.Spectator, spectator.Team);
+        Assert.Equal(0, f.Players.Respawns);
+    }
+
+    [Fact]
+    public void LeavingForSpectatorsDoesNotRestartOrRespawn()
+    {
+        using var f = new Fixture();
+        var player = f.Join();
+        f.Tick();
+
+        // Команда spectate снимает роль до смены команды, поэтому гибель при уходе игнорируется.
+        f.Players.Remove(player.Object);
+        player.Alive = false;
+        f.Manager.OnPlayerDeath(f.Death(player));
+        player.Team = Team.Spectator;
+        for (var i = 0; i < 5; i++) f.Tick();
+
+        f.Game.Verify(game => game.TerminateRound(It.IsAny<RoundEndReason>(), It.IsAny<float>()), Times.Never);
+        Assert.Empty(f.Delayed);
+        Assert.False(player.Alive);
+    }
+
+    [Fact]
     public void JoiningATeamDuringPreparationRespawnsThePlayerImmediately()
     {
         using var f = new Fixture();
@@ -286,6 +319,7 @@ public sealed class IdleRoundPreparationTests
         public PlayerRegistry Players { get; } = new();
         public CancellationTokenSource Timer { get; } = new();
         public Mock<IGameService> Game { get; } = new();
+        public SpectatorRules Spectators { get; } = new();
         public List<Action> Delayed { get; } = [];
         public TestRound Round { get; }
         public RoundFactory Factory { get; }
@@ -315,7 +349,8 @@ public sealed class IdleRoundPreparationTests
             Factory = new RoundFactory(Round);
             Manager = new RoundManager(core.Object, Options.Create(new ZombiePlagueCoreConfig { PreStartDelay = Delay }),
                 Players, new DamageMovementRestore(core.Object, Players), new RoundRegistry(), Factory,
-                Mock.Of<IHookPublisher>(), () => throw new InvalidOperationException("Переводы здесь не запрашиваются."));
+                Mock.Of<IHookPublisher>(), () => throw new InvalidOperationException("Переводы здесь не запрашиваются."),
+                Spectators);
 
             // Воспроизводим состояние после Prepare без нативного воспроизведения звука CS2.
             Field("_preparationTimer").SetValue(Manager, Timer);
@@ -333,7 +368,7 @@ public sealed class IdleRoundPreparationTests
         public void Leave(TestPlayer player)
         {
             _connected.Remove(player);
-            Players.Humans.Remove(player.Object);
+            Players.Remove(player.Object);
         }
 
         public EventPlayerDeath Death(TestPlayer player)
@@ -395,6 +430,14 @@ public sealed class IdleRoundPreparationTests
         public bool TryCreate(string id, [NotNullWhen(true)] out RoundBase? value) { value = null; return false; }
     }
 
+    private sealed class SpectatorRules : ISpectatorAccess
+    {
+        public bool CanSpectate(IPlayer player) => true;
+        public bool ChoseSpectators(IPlayer player) => false;
+        public void RememberSpectator(IPlayer player) { }
+        public void ForgetSpectator(IPlayer player) { }
+    }
+
     private sealed class RoundRegistry : IRoundRegistrator
     {
         public IEnumerable<IRoundConfig> GetAll() => [];
@@ -422,7 +465,8 @@ public sealed class IdleRoundPreparationTests
         }
 
         public bool TryRespawn(IPlayer player) { Respawns++; OnRespawn(player); return true; }
-        public bool Remove(IPlayer player) => Humans.Remove(player);
+        // IPlayer реализует IEquatable, а у заглушки Moq Equals всегда false: сравниваем по ссылке.
+        public bool Remove(IPlayer player) => Humans.RemoveAll(human => ReferenceEquals(human, player)) > 0;
         public void Clear() => Humans.Clear();
         public bool TryInfect(IPlayer player, IPlayer? infector = null) => throw new NotSupportedException();
         public bool TryDisinfect(IPlayer player) => throw new NotSupportedException();

@@ -33,6 +33,7 @@ internal sealed class RoundManager(
     IRoundFactory roundFactory,
     IHookPublisher hooks,
     Func<ILocalizationApi> localization,
+    ISpectatorAccess spectators,
     BannerNotificationClient? notifications = null
 ) : IRoundManager
 {
@@ -104,10 +105,10 @@ internal sealed class RoundManager(
 
         foreach (var player in allPlayers)
         {
-            // Зритель сам решает, когда войти в игру: его не переводим в CT
-            // и не учитываем в минимуме игроков. Роль прошлого раунда снимаем,
-            // чтобы зритель не считался зомби; при входе в команду он получит новую.
-            if (IsSpectator(player))
+            // Зритель с правом из SpectatorPermissions сам решает, когда войти в игру:
+            // его не переводим в CT и не учитываем в минимуме игроков. Роль прошлого раунда
+            // снимаем, чтобы он не считался зомби. Остальных зрителей режим возвращает в игру.
+            if (IsSpectator(player) && spectators.CanSpectate(player))
             {
                 playerManager.Remove(player);
                 continue;
@@ -283,6 +284,13 @@ internal sealed class RoundManager(
     {
         if (IsPreparing)
         {
+            // Игрок без роли покидает игру (например, уходит в наблюдатели): его смерть
+            // не перезапускает раунд и не возвращает его в команду.
+            if (@event.UserIdPlayer is { } dead && !playerManager.TryGetRole(dead, out _))
+            {
+                return HookResult.Continue;
+            }
+
             // Пока игроков меньше минимума, смерть ожидающего игрока начинает следующий раунд:
             // CS2 заново возродит всех, а подготовка продолжит ждать второго игрока.
             if (IsWaitingForPlayers())
@@ -713,7 +721,8 @@ internal sealed class RoundManager(
 
     public bool TryRespawnPlayer(IPlayer player)
     {
-        if (!player.IsValid || player.IsAlive)
+        // Автоматическое возрождение никогда не забирает игрока из наблюдателей.
+        if (!player.IsValid || player.IsAlive || IsSpectator(player))
         {
             return false;
         }

@@ -17,7 +17,8 @@ internal sealed class PlayerService(
     ISwiftlyCore core,
     IPlayerManager playerManager,
     IRoundManager roundManager,
-    IPlayerPreferencesCoordinator playerPreferencesCoordinator
+    IPlayerPreferencesCoordinator playerPreferencesCoordinator,
+    ISpectatorAccess spectators
 ) : IPlayerService
 {
     private readonly Dictionary<int, CancellationTokenSource> _playerReadyTimers = [];
@@ -120,6 +121,14 @@ internal sealed class PlayerService(
             using (ConnectionDiagnostics.Begin(core.Logger, "ZombiePlague.preferences", playerId, sessionId, attempt))
             {
                 playerPreferencesCoordinator.Initialize(player);
+            }
+
+            // Игрок с правом наблюдателя, ушедший в наблюдатели, остаётся там после смены карты
+            // или переподключения, а не входит в CT автоматически.
+            if (spectators.ChoseSpectators(player))
+            {
+                player.ChangeTeam(Team.Spectator);
+                return;
             }
 
             bool humanized;
