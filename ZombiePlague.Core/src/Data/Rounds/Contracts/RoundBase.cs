@@ -47,6 +47,14 @@ internal abstract class RoundBase(
     private Team? _roundWinner;
     protected Team? RoundWinner => _roundWinner;
 
+    internal void SetRoundWinner(Team winner)
+    {
+        if (winner is Team.T or Team.CT)
+        {
+            _roundWinner = winner;
+        }
+    }
+
     protected abstract bool OnStart();
 
     protected abstract void OnEnd();
