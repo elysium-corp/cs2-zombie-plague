@@ -112,7 +112,10 @@ internal abstract class InfectionBase(
     
     protected override HookResult OnPlayerTeam(EventPlayerTeam @event)
     {
-        if (@event.Disconnect || @event.OldTeam != (byte)Team.Spectator || @event.Team != (byte)Team.T)
+        // Зритель или игрок без команды, выбравший любую сторону, входит в идущий раунд зомби.
+        if (@event.Disconnect ||
+            @event.OldTeam is not ((byte)Team.Spectator or (byte)Team.None) ||
+            @event.Team is not ((byte)Team.T or (byte)Team.CT))
         {
             return HookResult.Continue;
         }
@@ -261,7 +264,19 @@ internal abstract class InfectionBase(
 
     private bool EnsureZombieRole(IPlayer player)
     {
-        return PlayerManager.IsZombie(player) || PlayerManager.TryInfect(player);
+        if (PlayerManager.IsZombie(player))
+        {
+            return true;
+        }
+
+        // Игрок, не получивший роль при подключении (например, вошёл в команду позже),
+        // сначала становится человеком: заразить можно только человека.
+        if (!PlayerManager.IsHuman(player) && !PlayerManager.TrySetHuman(player))
+        {
+            return false;
+        }
+
+        return PlayerManager.TryInfect(player);
     }
 
     private void ScheduleZombieRespawn(IPlayer player, ulong steamId, int retryAttempt = 0)
