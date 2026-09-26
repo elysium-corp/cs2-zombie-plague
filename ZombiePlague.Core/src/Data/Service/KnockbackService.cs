@@ -1,3 +1,4 @@
+using Common.Effects.Effects;
 using Common.Hooks;
 using Common.Hooks.Abstractions;
 using Microsoft.Extensions.Options;
@@ -176,6 +177,8 @@ internal sealed class KnockbackService(
     {
         if (!config.Value.KnockbackEnabled ||
             context.Params.Info.DamageType == DamageTypes_t.DMG_POISON ||
+            (context.Params.Info.DamageType & DamageTypes_t.DMG_BURN) != 0 &&
+            context.Params.Info.DamageCustom == Burn.DamageCustomId ||
             context.Params.Info.NumObjectsPenetrated > 0)
         {
             return;
