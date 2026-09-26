@@ -6,6 +6,7 @@ using CustomEquipment.Api.Enums;
 using CustomEquipment.Api.Events;
 using CustomEquipment.Api.Events.Contexts.Grenades;
 using CustomEquipment.Api.Events.Contexts.Items;
+using CustomEquipment.Data.Equipments.Weapons.Grenades;
 using CustomEquipment.Services;
 using CustomEquipment.Utils;
 using SwiftlyS2.Shared;
@@ -32,6 +33,7 @@ internal sealed class WeaponController(
     private bool _initialized;
 
     private readonly GrenadeHandler _grenadeHandler = new();
+    private readonly Dictionary<CBaseCSGrenadeProjectile, CParticleSystem> _grenadeTrails = [];
 
     private const float MinParticleLifetime = 0.1f;
 
@@ -69,14 +71,35 @@ internal sealed class WeaponController(
             core.GameEvent.Unhook(_guidBulletImpactPost);
             _guidBulletImpactPost = Guid.Empty;
         }
+
+        foreach (var trail in _grenadeTrails.Values)
+        {
+            if (trail.IsValidEntity)
+            {
+                trail.Despawn();
+            }
+        }
+
+        _grenadeTrails.Clear();
         _grenadeHandler.Clear();
     }
 
     private void OnTick() =>
         _grenadeHandler.OnTick(OnGrenadeDetonated);
 
-    private void OnGrenadeThrown(ref GrenadeThrownContext context) =>
+    private void OnGrenadeThrown(ref GrenadeThrownContext context)
+    {
         _grenadeHandler.OnGrenadeThrown(context.Grenade, context.Projectile);
+
+        if (context.Grenade is not FrostNade frostNade || !context.Projectile.IsValidEntity)
+        {
+            return;
+        }
+
+        RemoveGrenadeTrail(context.Projectile);
+        _grenadeTrails[context.Projectile] =
+            particleService.CreateParticleAttached(frostNade.TrailParticle, context.Projectile);
+    }
 
     private void OnGrenadeDetonated(
         IGrenade grenade,
@@ -111,14 +134,34 @@ internal sealed class WeaponController(
             return;
         }
 
+        RemoveGrenadeTrail(preContext.Projectile);
         preContext.Projectile.Despawn();
         baseGrenade.OnDetonate(thrower, preContext.Position);
+
+        if (baseGrenade is FrostNade frostNade)
+        {
+            particleService.CreateParticle(
+                frostNade.ExplosionParticle,
+                preContext.Position,
+                frostNade.ExplosionParticleLifetime
+            );
+        }
 
         var postContext = new GrenadeDetonatedContext(
             baseGrenade,
             preContext.Projectile,
             preContext.Position);
         hooks.Dispatch(ref postContext);
+    }
+
+    private void RemoveGrenadeTrail(CBaseCSGrenadeProjectile projectile)
+    {
+        if (!_grenadeTrails.Remove(projectile, out var trail) || !trail.IsValidEntity)
+        {
+            return;
+        }
+
+        trail.Despawn();
     }
 
     private void DispatchDetonationRejected(
