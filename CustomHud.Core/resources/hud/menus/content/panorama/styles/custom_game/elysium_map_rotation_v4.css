@@ -9,7 +9,7 @@
 .MenuRoot.MapRotation .MenuWindow .Subtitle.Hidden { visibility: collapse; }
 .MenuRoot.MapRotation .Brand, .MenuRoot.MapRotation .Status, .MenuRoot.MapRotation.Result .Badge { color: #DAB56D; }
 .MenuRoot.MapRotation .SelectedCircle { background-color: #88CCA3; border-color: #88CCA3; }
-.MenuRoot.MapRotation .SelectedMark { color: #021616; }
+.MenuRoot.MapRotation .SelectedMark { wash-color: #021616; }
 .MenuRoot.MapRotation .VoteBar { background-color: #88CCA3; }
 .MenuRoot.MapRotation .VoteTrack { background-color: #0B2220; }
 .MenuRoot.MapRotation .PageArrow:hover Label { color: #88CCA3; }
