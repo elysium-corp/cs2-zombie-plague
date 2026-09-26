@@ -17,7 +17,8 @@ internal sealed class PlayerService(
     ISwiftlyCore core,
     IPlayerManager playerManager,
     IRoundManager roundManager,
-    IPlayerPreferencesCoordinator playerPreferencesCoordinator
+    IPlayerPreferencesCoordinator playerPreferencesCoordinator,
+    ISpectatorAccess spectators
 ) : IPlayerService
 {
     private readonly Dictionary<int, CancellationTokenSource> _playerReadyTimers = [];
@@ -216,6 +217,8 @@ internal sealed class PlayerService(
             return HookResult.Continue;
         }
 
+        // После переподключения игрок с правом наблюдателя входит в игру как все.
+        spectators.Forget(player);
         playerPreferencesCoordinator.SaveAndRemove(player);
         playerManager.Remove(player);
 

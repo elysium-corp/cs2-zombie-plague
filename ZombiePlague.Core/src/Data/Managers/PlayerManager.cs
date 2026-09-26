@@ -422,6 +422,17 @@ internal sealed class PlayerManager(
             _ => throw new NotSupportedException($"Unsupported player role: {role.GetType().Name}")
         };
 
-        role.Owner.SwitchTeam(team);
+        var owner = role.Owner;
+
+        // SwitchTeam меняет сторону уже вошедшего в игру игрока. Игрок без команды или зритель
+        // после него числится в T/CT, но не проходит штатный вход в команду и не может возродиться:
+        // так после смены карты без ботов игроки оставались мёртвыми. Для них нужен ChangeTeam.
+        if (owner.Controller is { IsValid: true } controller && controller.Team is Team.None or Team.Spectator)
+        {
+            owner.ChangeTeam(team);
+            return;
+        }
+
+        owner.SwitchTeam(team);
     }
 }

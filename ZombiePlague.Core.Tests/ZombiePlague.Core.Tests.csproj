@@ -24,6 +24,7 @@
         <ProjectReference Include="../Common.Effects/Common.Effects.csproj" Private="true" />
         <ProjectReference Include="../Common.Hooks/Common.Hooks.csproj" Private="true" />
         <ProjectReference Include="../ZombiePlague.Api/ZombiePlague.Api.csproj" Private="true" />
+        <ProjectReference Include="../Admin.Api/Admin.Api.csproj" Private="true" />
         <ProjectReference Include="../CustomHud.Api/CustomHud.Api.csproj" Private="true" />
         <ProjectReference Include="..\Common.Database\Common.Database.csproj" Private="true" />
         <ProjectReference Include="..\Localization.Api\Localization.Api.csproj" Private="true" />

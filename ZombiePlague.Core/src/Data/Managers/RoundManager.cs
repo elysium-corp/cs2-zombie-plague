@@ -1,6 +1,7 @@
 using CustomHud.Api;
 using Common.Hooks.Abstractions;
 using Localization.Api;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
@@ -32,6 +33,7 @@ internal sealed class RoundManager(
     IRoundFactory roundFactory,
     IHookPublisher hooks,
     Func<ILocalizationApi> localization,
+    ISpectatorAccess spectators,
     BannerNotificationClient? notifications = null
 ) : IRoundManager
 {
@@ -54,6 +56,11 @@ internal sealed class RoundManager(
     // до round_end подготовка не должна никого возрождать.
     private bool _nextRoundRequested;
 
+    // Сколько тиков подряд в командах есть мёртвый игрок, которого не удалось возродить,
+    // и сколько тиков ещё нельзя повторно перезапускать раунд ради них.
+    private int _unspawnedTicks;
+    private int _unspawnedRestartCooldown;
+
     private const float DelayPreparationTimer = 1.5f;
 
     private const int PeriodSecondsPreparationTask = 1;
@@ -61,6 +68,10 @@ internal sealed class RoundManager(
     private const int MinimumPlayersFloor = 2;
 
     private const float WaitingRoundRestartDelay = 3.0f;
+
+    private const int UnspawnedTicksBeforeRestart = 3;
+
+    private const int UnspawnedRestartCooldownTicks = 120;
 
     private int RequiredPlayers => Math.Max(MinimumPlayersFloor, config.Value.MinimumPlayers);
 
@@ -94,10 +105,11 @@ internal sealed class RoundManager(
 
         foreach (var player in allPlayers)
         {
-            // Зритель сам решает, когда войти в игру: его не переводим в CT
-            // и не учитываем в минимуме игроков. Роль прошлого раунда снимаем,
-            // чтобы зритель не считался зомби; при входе в команду он получит новую.
-            if (IsSpectator(player))
+            // Зритель, который сам ушёл в наблюдатели на этой карте (право из SpectatorPermissions),
+            // сам решает, когда вернуться: его не переводим в CT и не учитываем в минимуме игроков.
+            // Роль прошлого раунда снимаем, чтобы он не считался зомби. Остальных зрителей,
+            // в том числе оставшихся после смены карты, режим возвращает в игру.
+            if (IsSpectator(player) && spectators.IsVoluntarySpectator(player))
             {
                 playerManager.Remove(player);
                 continue;
@@ -273,6 +285,13 @@ internal sealed class RoundManager(
     {
         if (IsPreparing)
         {
+            // Игрок без роли покидает игру (например, уходит в наблюдатели): его смерть
+            // не перезапускает раунд и не возвращает его в команду.
+            if (@event.UserIdPlayer is { } dead && !playerManager.TryGetRole(dead, out _))
+            {
+                return HookResult.Continue;
+            }
+
             // Пока игроков меньше минимума, смерть ожидающего игрока начинает следующий раунд:
             // CS2 заново возродит всех, а подготовка продолжит ждать второго игрока.
             if (IsWaitingForPlayers())
@@ -345,6 +364,11 @@ internal sealed class RoundManager(
         }
 
         RespawnIdleParticipants();
+
+        if (RestartForUnspawnedParticipants())
+        {
+            return;
+        }
 
         // Пока в командах меньше минимума игроков, подготовка не расходует отсчёт:
         // раунд с одним игроком сразу закончился бы его заражением. IsPreparing
@@ -634,6 +658,49 @@ internal sealed class RoundManager(
         }
     }
 
+    // Respawn не создаёт pawn игроку, который ни разу не появлялся на карте. На картах с ботами
+    // такой игрок появляется при перезапуске раунда CS2; без ботов перезапуска нет, и подготовка
+    // ждала бы вечно. Подготовка ещё не начала режим, поэтому перезапуск ничего не отнимает.
+    private bool RestartForUnspawnedParticipants()
+    {
+        if (_unspawnedRestartCooldown > 0)
+        {
+            _unspawnedRestartCooldown--;
+        }
+
+        var unspawned = core.PlayerManager
+            .GetAllPlayers()
+            .Where(IsUnspawnedParticipant)
+            .ToArray();
+
+        if (unspawned.Length == 0)
+        {
+            _unspawnedTicks = 0;
+            return false;
+        }
+
+        if (++_unspawnedTicks < UnspawnedTicksBeforeRestart || _unspawnedRestartCooldown > 0)
+        {
+            return false;
+        }
+
+        core.Logger.LogWarning(
+            "[ZombiePlague] Игроки в T/CT не возрождаются во время подготовки ({Players}); раунд CS2 перезапускается",
+            string.Join(", ", unspawned.Select(player => $"{player.Name}#{player.PlayerID}")));
+
+        _unspawnedTicks = 0;
+        _unspawnedRestartCooldown = UnspawnedRestartCooldownTicks;
+        RequestNextRound();
+
+        return true;
+    }
+
+    // Игрок T/CT, который после попытки возрождения остался наблюдателем и не ждёт таймера возрождения.
+    private bool IsUnspawnedParticipant(IPlayer player)
+    {
+        return IsParticipant(player) && !player.IsAlive && !_preparationRespawns.ContainsKey(player.PlayerID);
+    }
+
     private void RequestNextRound()
     {
         if (_nextRoundRequested)
@@ -655,7 +722,8 @@ internal sealed class RoundManager(
 
     public bool TryRespawnPlayer(IPlayer player)
     {
-        if (!player.IsValid || player.IsAlive)
+        // Автоматическое возрождение никогда не забирает игрока из наблюдателей.
+        if (!player.IsValid || player.IsAlive || IsSpectator(player))
         {
             return false;
         }

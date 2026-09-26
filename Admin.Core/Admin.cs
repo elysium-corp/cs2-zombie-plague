@@ -22,7 +22,7 @@ namespace Admin.Core;
 
 [PluginMetadata(
     Id = "Admin.Core", 
-    Version = "0.2.0",
+    Version = "0.3.0",
     Name = "Admin Core", 
     Author = "illusion & fdrinv",
     Description = "Added privileges"

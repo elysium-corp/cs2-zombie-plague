@@ -60,4 +60,10 @@ public static class AdminPermissions
 
     /// <summary>Разрешает блокировать и восстанавливать текстовый чат.</summary>
     public const string Gag = "admin.gag";
+
+    /// <summary>
+    /// Разрешает самостоятельно переходить в наблюдатели и возвращаться в игру.
+    /// Игровые режимы не переводят такого наблюдателя в команду автоматически.
+    /// </summary>
+    public const string Spectate = "admin.spectate";
 }
