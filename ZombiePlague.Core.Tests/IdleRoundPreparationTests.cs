@@ -157,6 +157,51 @@ public sealed class IdleRoundPreparationTests
     }
 
     [Fact]
+    public void PlayersThatCannotBeSpawnedRestartTheRoundOnceWithinTheCooldown()
+    {
+        using var f = new Fixture();
+        var first = f.Join(alive: false);
+        var second = f.Join(alive: false);
+        first.Spawnable = second.Spawnable = false;
+
+        f.Tick(); f.Tick();
+        f.Game.Verify(game => game.TerminateRound(It.IsAny<RoundEndReason>(), It.IsAny<float>()), Times.Never);
+        f.Tick();
+        f.Game.Verify(game => game.TerminateRound(RoundEndReason.RoundDraw, It.IsAny<float>()), Times.Once);
+
+        // Новая подготовка после перезапуска не повторяет его, пока не истечёт пауза.
+        f.StartNextPreparation();
+        for (var i = 0; i < 10; i++) f.Tick();
+        f.Game.Verify(game => game.TerminateRound(It.IsAny<RoundEndReason>(), It.IsAny<float>()), Times.Once);
+        Assert.Null(f.Manager.CurrentRound);
+    }
+
+    [Fact]
+    public void LoneUnspawnablePlayerAlsoRestartsTheRound()
+    {
+        using var f = new Fixture();
+        var player = f.Join(alive: false);
+        player.Spawnable = false;
+
+        for (var i = 0; i < 3; i++) f.Tick();
+
+        f.Game.Verify(game => game.TerminateRound(RoundEndReason.RoundDraw, It.IsAny<float>()), Times.Once);
+    }
+
+    [Fact]
+    public void RespawnableAndPendingPlayersNeverRestartTheRound()
+    {
+        using var f = new Fixture();
+        f.Join(alive: false);
+        var dying = f.Join();
+        dying.Alive = false;
+        f.Manager.OnPlayerDeath(f.Death(dying));
+        for (var i = 0; i < 5; i++) f.Tick();
+
+        f.Game.Verify(game => game.TerminateRound(It.IsAny<RoundEndReason>(), It.IsAny<float>()), Times.Never);
+    }
+
+    [Fact]
     public void JoiningATeamDuringPreparationRespawnsThePlayerImmediately()
     {
         using var f = new Fixture();
@@ -219,6 +264,7 @@ public sealed class IdleRoundPreparationTests
         public IPlayer Object => Mock.Object;
         public bool Alive { get; set; }
         public bool Valid { get; set; } = true;
+        public bool Spawnable { get; set; } = true;
         public Team Team { get; set; }
 
         public TestPlayer(int id)
@@ -259,7 +305,11 @@ public sealed class IdleRoundPreparationTests
             core.Setup(value => value.Scheduler.NextWorldUpdate(It.IsAny<Action>()))
                 .Callback((Action task) => task());
             core.SetupGet(value => value.Game).Returns(Game.Object);
-            Players.OnRespawn = player => Find(player).Alive = true;
+            Players.OnRespawn = player =>
+            {
+                var target = Find(player);
+                target.Alive = target.Spawnable;
+            };
             Players.OnHumanize = player => Find(player).Team = Team.CT;
             Round = new TestRound(core.Object, Players);
             Factory = new RoundFactory(Round);
@@ -302,6 +352,13 @@ public sealed class IdleRoundPreparationTests
             change.SetupGet(value => value.OldTeam).Returns((byte)oldTeam);
             change.SetupGet(value => value.Team).Returns((byte)team);
             return change.Object;
+        }
+
+        // Перезапуск раунда CS2 заканчивается новой подготовкой; звук Prepare здесь не воспроизводится.
+        public void StartNextPreparation()
+        {
+            Field("_nextRoundRequested").SetValue(Manager, false);
+            Field("_remainingPreparationTime").SetValue(Manager, Delay);
         }
 
         public void RunDelayed()
