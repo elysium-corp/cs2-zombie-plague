@@ -81,6 +81,40 @@ public sealed class HudMenuTests
         Assert.Single(f.Runtimes);
     }
 
+    [Fact]
+    public void ThemeClassesSwitchOnTheExistingSurfaceAndOldValuesAreRemoved()
+    {
+        using var f = new Fixture();
+        f.Menu = f.Menu with { ThemeClasses = ["ThemeEntranceFade", "ThemeOpacity96"] };
+        var id = f.Open();
+        var surface = f.Current;
+        Assert.True(surface.Classes[("MenuRoot", "ThemeEntranceFade")]);
+        Assert.True(f.Service.Update(f.Player, id, f.Menu with { ThemeClasses = ["ThemeEntranceTilt", "ThemeOpacity96"] }));
+        Assert.Same(surface, f.Current);
+        Assert.False(surface.Classes[("MenuRoot", "ThemeEntranceFade")]);
+        Assert.True(surface.Classes[("MenuRoot", "ThemeEntranceTilt")]);
+        Assert.True(surface.Classes[("MenuRoot", "ThemeOpacity96")]);
+        Assert.True(f.Service.Update(f.Player, id, f.Menu with { ThemeClasses = [] }));
+        Assert.DoesNotContain(surface.Classes, pair => pair.Key.Item2.StartsWith("Theme") && pair.Value);
+        Assert.True(f.Current.Capture);
+        Assert.Single(f.Runtimes);
+    }
+
+    [Theory]
+    [InlineData("Visible")]
+    [InlineData("Theme")]
+    [InlineData("Theme Opacity")]
+    [InlineData("Theme_Opacity")]
+    [InlineData("ThemeOpacity96", "ThemeOpacity96")]
+    public void ThemeClassesCannotTouchRendererStateOrRepeat(params string[] classes)
+    {
+        using var f = new Fixture();
+        var id = f.Open();
+        Assert.False(f.Service.Update(f.Player, id, f.Menu with { ThemeClasses = [.. classes] }));
+        Assert.Null(f.Service.Open(f.Player, f.Menu with { ThemeClasses = [.. classes] }, f.Actions.Add));
+        Assert.True(f.Service.IsOpen(f.Player, id));
+    }
+
     [Theory]
     [InlineData(-1)]
     [InlineData(33)]

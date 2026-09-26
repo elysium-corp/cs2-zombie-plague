@@ -23,6 +23,25 @@ public sealed class RotationHudConfigurationTests
         Assert.True(settings.ShowResult);
     }
 
+    [Fact]
+    public void ThemeClassesUseTheSameNamesAsTheCmsPreview()
+    {
+        // Совпадает с parity.test.cjs в Flute CMS: имена классов — контракт с экспортированной темой.
+        var settings = RotationHudConfiguration.Parse("""{"animation":"slideLeft","duration":245,"opacity":40,"radius":0,"fontSize":32,"showImages":false,"showSubtitle":true,"width":900,"imageWidth":60}""");
+        Assert.Equal(["ThemeEntranceSlideLeft", "ThemeDuration250", "ThemeOpacity40", "ThemeRadius0", "ThemeFontSize32",
+            "ThemeWidth900", "ThemeImageWidth60", "ThemeImagesOff", "ThemeSubtitleOn"], settings.ThemeClasses.ToArray());
+    }
+
+    [Theory]
+    [InlineData("{}", new string[0])]
+    [InlineData("not json", new string[0])]
+    [InlineData("{\"animation\":\"script\",\"duration\":\"240\",\"showImages\":1}", new string[0])]
+    [InlineData("{\"animation\":\"none\",\"duration\":0}", new[] { "ThemeEntranceNone", "ThemeDuration0" })]
+    [InlineData("{\"animation\":\"zoomOut\",\"duration\":999,\"opacity\":5,\"radius\":99}", new[] { "ThemeEntranceZoomOut", "ThemeDuration800", "ThemeOpacity40", "ThemeRadius24" })]
+    [InlineData("{\"fontSize\":1,\"width\":2000,\"imageWidth\":0}", new[] { "ThemeFontSize16", "ThemeWidth900", "ThemeImageWidth60" })]
+    public void ThemeClassesIgnoreInvalidValuesAndClampNumbersToCompiledVariants(string json, string[] expected)
+        => Assert.Equal(expected, RotationHudConfiguration.Parse(json).ThemeClasses);
+
     [Theory]
     [InlineData("{}", 16)]
     [InlineData("{\"horizontalGap\":\"8\"}", 16)]

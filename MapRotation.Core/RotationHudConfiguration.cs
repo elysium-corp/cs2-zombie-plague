@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Text.Json;
 using CustomHud.Api;
 
@@ -9,6 +10,12 @@ namespace MapRotation.Core;
 internal sealed record RotationHudConfiguration(HudMenuPresentation Defaults, int ResultDuration, int VerticalGap,
     int HorizontalGap = 16, bool HideOnClose = false, bool ShowResult = true)
 {
+    /// <summary>Анимации появления темы CMS; имя класса — ThemeEntrance и значение с заглавной буквы.</summary>
+    private static readonly string[] Animations = ["none", "fade", "rise", "drop", "slideLeft", "slideRight", "zoom", "zoomOut", "pop", "tilt"];
+
+    /// <summary>Классы ThemeX для ограниченных параметров оформления; все варианты скомпилированы в тему, поэтому смена не требует пересборки VPK.</summary>
+    public ImmutableArray<string> ThemeClasses { get; init; } = [];
+
     public static RotationHudConfiguration Parse(string json)
     {
         var defaults = RotationHudPreferences.Default;
@@ -17,6 +24,7 @@ internal sealed record RotationHudConfiguration(HudMenuPresentation Defaults, in
         var horizontalGap = 16;
         var hideOnClose = false;
         var showResult = true;
+        var themeClasses = ImmutableArray.CreateBuilder<string>();
         try
         {
             using var document = JsonDocument.Parse(json);
@@ -45,11 +53,36 @@ internal sealed record RotationHudConfiguration(HudMenuPresentation Defaults, in
                 hideOnClose = close.GetString() == "hide";
             if (root.TryGetProperty("showResult", out var result) && result.ValueKind is JsonValueKind.True or JsonValueKind.False)
                 showResult = result.GetBoolean();
+            ThemeClassesOf(root, themeClasses);
         }
         catch (JsonException)
         {
             // Повреждение оформления не должно отключать ротацию карт.
         }
-        return new(defaults, resultDuration, verticalGap, horizontalGap, hideOnClose, showResult);
+        return new(defaults, resultDuration, verticalGap, horizontalGap, hideOnClose, showResult) { ThemeClasses = themeClasses.ToImmutable() };
     }
+
+    // Отсутствующий или неверный параметр не даёт класса: остаётся значение, экспортированное в тему.
+    private static void ThemeClassesOf(JsonElement root, ImmutableArray<string>.Builder classes)
+    {
+        if (root.TryGetProperty("animation", out var animation) && animation.ValueKind == JsonValueKind.String
+            && Array.IndexOf(Animations, animation.GetString()) is >= 0 and var index)
+            classes.Add("ThemeEntrance" + char.ToUpperInvariant(Animations[index][0]) + Animations[index][1..]);
+        if (Integer(root, "duration") is { } duration)
+            classes.Add("ThemeDuration" + (int)Math.Round(Math.Clamp(duration, 0, 800) / 10.0, MidpointRounding.AwayFromZero) * 10);
+        foreach (var (key, name, min, max) in new[]
+        {
+            ("opacity", "Opacity", 40, 100), ("radius", "Radius", 0, 24), ("fontSize", "FontSize", 16, 32),
+            ("width", "Width", 480, 900), ("imageWidth", "ImageWidth", 60, 240)
+        })
+            if (Integer(root, key) is { } value) classes.Add("Theme" + name + Math.Clamp(value, min, max));
+        if (Flag(root, "showImages") is { } images) classes.Add(images ? "ThemeImagesOn" : "ThemeImagesOff");
+        if (Flag(root, "showSubtitle") is { } subtitle) classes.Add(subtitle ? "ThemeSubtitleOn" : "ThemeSubtitleOff");
+    }
+
+    private static int? Integer(JsonElement root, string key)
+        => root.TryGetProperty(key, out var value) && value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out var number) ? number : null;
+
+    private static bool? Flag(JsonElement root, string key)
+        => root.TryGetProperty(key, out var value) && value.ValueKind is JsonValueKind.True or JsonValueKind.False ? value.GetBoolean() : null;
 }

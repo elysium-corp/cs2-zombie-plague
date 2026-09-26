@@ -98,7 +98,7 @@ SET configuration_version = configuration_version + 1 WHERE id = 1;
 
 ### Ресурсы меню
 
-Установить согласованные версии **MapRotation.Core 1.5.0**, **CustomHud.Core 1.10.0**, их API и **Localization.Core 1.10.0**. Новые подписи добавляет миграция `20260925120000_AddMapRotationCompactHudLocalization`; настройки HUD получают готовые переводы через Localization.Api.
+Установить согласованные версии **MapRotation.Core 1.6.0**, **CustomHud.Core 1.11.0**, их API и **Localization.Core 1.10.0**. Новые подписи добавляет миграция `20260925120000_AddMapRotationCompactHudLocalization`; настройки HUD получают готовые переводы через Localization.Api.
 
 Исходники находятся в `CustomHud.Core/resources/hud/menus/content/panorama/`. Для XML/CSS используются:
 
@@ -225,6 +225,20 @@ Flute CMS → **Игровое меню → Раскладка → Вертик�
 ### Горизонтальные отступы (1.5.0)
 
 `hud_settings.horizontalGap` — расстояние между горизонтальными карточками и между двумя столбцами номинации: целое число от **0 до 32** логических пикселей, по умолчанию **16** (прежняя геометрия). Сервер ставит на `MenuRoot` класс `HorizontalGap0`–`HorizontalGap32`, как и для вертикальных отступов. Проценты ширины карточек зависят от `cardWidth`, поэтому эти классы генерирует тема CMS (`elysium_map_rotation_v4.css`); смена только `horizontalGap` не требует пересборки VPK, смена `cardWidth` требует.
+
+### Классы темы без пересборки VPK (1.6.0)
+
+Тема CMS (`elysium_map_rotation_v4.css`) содержит все варианты ограниченных параметров оформления. Плагин читает их из `hud_settings` и передаёт в `HudMenu.ThemeClasses`, CustomHud ставит классы на `MenuRoot` той же сущности без переоткрытия:
+
+| Параметр `hud_settings` | Класс |
+| --- | --- |
+| `animation` (`none`, `fade`, `rise`, `drop`, `slideLeft`, `slideRight`, `zoom`, `zoomOut`, `pop`, `tilt`) | `ThemeEntranceNone` … `ThemeEntranceTilt` |
+| `duration`, 0–800 мс, округление до 10 мс | `ThemeDuration0` … `ThemeDuration800` |
+| `opacity` 40–100, `radius` 0–24, `fontSize` 16–32 | `ThemeOpacityN`, `ThemeRadiusN`, `ThemeFontSizeN` |
+| `width` 480–900, `imageWidth` 60–240 | `ThemeWidthN`, `ThemeImageWidthN` |
+| `showImages`, `showSubtitle` | `ThemeImagesOn/Off`, `ThemeSubtitleOn/Off` |
+
+Отсутствующее или неверное значение не даёт класса — действует значение, экспортированное в тему; числа ограничиваются диапазоном скомпилированных вариантов. `ThemeClasses` принимает только имена `Theme[A-Za-z0-9]+` (до 32), поэтому не пересекается с классами состояния CustomHud. Цвета, высота строки, ширина горизонтальной карточки и изображения по-прежнему вшиваются в тему: их изменение требует экспорта исходников и пересборки VPK, о чём предупреждает редактор CMS. Выбор игрока «без анимации» в шестерёнке по-прежнему отключает анимацию появления.
 
 Изображения разрешены только из `panorama/images/custom_game/elysium/assets/<sha256>_png.vtex`. CustomHud сбрасывает классы старой миниатюры при обновлении пункта, поэтому новая карта не сохраняет чужую картинку. XML/CSS v4, тема и используемые VTEX должны быть скомпилированы актуальными CS2 Workshop Tools и находиться в одном общем `elysiumhud` VPK на сервере и клиентах. Экспорт сайта содержит исходники и `compile.ps1` для импорта в существующий addon; отдельный MapRotation VPK не нужен. Браузерное превью не заменяет проверку в движке.
 
