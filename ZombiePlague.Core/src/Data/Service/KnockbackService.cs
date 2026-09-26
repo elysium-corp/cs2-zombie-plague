@@ -70,6 +70,14 @@ internal sealed class KnockbackService(
     // Горизонтальная скорость игрока до обработки урона от падения, по адресу pawn.
     private readonly Dictionary<nint, Vector> _fallVelocities = [];
 
+    private readonly Dictionary<int, KnockbackInputProtection> _knockbackInputProtections = [];
+
+    private readonly record struct KnockbackInputProtection(
+        float DirectionX,
+        float DirectionY,
+        float ExpiresAt
+    );
+
     public void Register()
     {
         if (_registered)
@@ -80,6 +88,8 @@ internal sealed class KnockbackService(
         _registered = true;
         core.GameHooks.Entities.TakeDamage.Pre += OnTakeDamagePre;
         core.GameHooks.Entities.TakeDamage.Post += OnTakeDamagePost;
+        core.GameHooks.Movement.GroundAccelerate.Pre += OnGroundAcceleratePre;
+        core.GameHooks.Movement.AirAccelerate.Pre += OnAirAcceleratePre;
     }
 
     public void Unregister()
@@ -91,7 +101,10 @@ internal sealed class KnockbackService(
 
         core.GameHooks.Entities.TakeDamage.Pre -= OnTakeDamagePre;
         core.GameHooks.Entities.TakeDamage.Post -= OnTakeDamagePost;
+        core.GameHooks.Movement.GroundAccelerate.Pre -= OnGroundAcceleratePre;
+        core.GameHooks.Movement.AirAccelerate.Pre -= OnAirAcceleratePre;
         _fallVelocities.Clear();
+        _knockbackInputProtections.Clear();
         _registered = false;
     }
 
@@ -398,50 +411,118 @@ internal sealed class KnockbackService(
 
         victim.Teleport(null, null, velocity);
 
+        var protectionTime = config.Value.KnockbackInputProtectionTime;
+
         if (impulseLength <= float.Epsilon ||
-            velocity.Z <= currentVelocity.Z)
+            velocity.Z <= currentVelocity.Z ||
+            protectionTime <= 0.0f)
         {
             return;
         }
 
-        var directionX = impulseX / impulseLength;
-        var directionY = impulseY / impulseLength;
-        var expectedVelocityAlongDirection =
-            velocity.X * directionX +
-            velocity.Y * directionY;
-
-        core.Scheduler.NextWorldUpdate(() =>
-        {
-            if (victim is not { IsValid: true, IsAlive: true } ||
-                victim.PlayerPawn is not { IsValid: true } currentPawn)
-            {
-                return;
-            }
-
-            var afterMovementVelocity = currentPawn.AbsVelocity;
-            var velocityAlongDirection =
-                afterMovementVelocity.X * directionX +
-                afterMovementVelocity.Y * directionY;
-
-            if (velocityAlongDirection >= expectedVelocityAlongDirection)
-            {
-                return;
-            }
-
-            var missingVelocity =
-                expectedVelocityAlongDirection -
-                velocityAlongDirection;
-
-            victim.Teleport(
-                null,
-                null,
-                new Vector(
-                    afterMovementVelocity.X + directionX * missingVelocity,
-                    afterMovementVelocity.Y + directionY * missingVelocity,
-                    afterMovementVelocity.Z
-                )
+        _knockbackInputProtections[victim.PlayerID] =
+            new KnockbackInputProtection(
+                impulseX / impulseLength,
+                impulseY / impulseLength,
+                core.Engine.CurrentTime + protectionTime
             );
-        });
+    }
+
+    private void OnGroundAcceleratePre(ref GroundAccelerateMovementPreContext context)
+    {
+        if (!TryFilterKnockbackInput(
+                context.Params.Player,
+                context.Params.WishDirection,
+                context.Params.WishSpeed,
+                out var wishDirection,
+                out var wishSpeed
+            ))
+        {
+            return;
+        }
+
+        context.Params.WishDirection = wishDirection;
+        context.Params.WishSpeed = wishSpeed;
+    }
+
+    private void OnAirAcceleratePre(ref AirAccelerateMovementPreContext context)
+    {
+        if (!TryFilterKnockbackInput(
+                context.Params.Player,
+                context.Params.WishDirection,
+                context.Params.WishSpeed,
+                out var wishDirection,
+                out var wishSpeed
+            ))
+        {
+            return;
+        }
+
+        context.Params.WishDirection = wishDirection;
+        context.Params.WishSpeed = wishSpeed;
+    }
+
+    private bool TryFilterKnockbackInput(
+        IPlayer player,
+        Vector wishDirection,
+        float wishSpeed,
+        out Vector filteredDirection,
+        out float filteredSpeed
+    )
+    {
+        filteredDirection = wishDirection;
+        filteredSpeed = wishSpeed;
+
+        if (!_knockbackInputProtections.TryGetValue(
+                player.PlayerID,
+                out var protection
+            ))
+        {
+            return false;
+        }
+
+        if (player is not { IsValid: true, IsAlive: true } ||
+            core.Engine.CurrentTime >= protection.ExpiresAt)
+        {
+            _knockbackInputProtections.Remove(player.PlayerID);
+            return false;
+        }
+
+        var wishAgainstKnockback =
+            wishDirection.X * protection.DirectionX +
+            wishDirection.Y * protection.DirectionY;
+
+        if (wishAgainstKnockback >= 0.0f)
+        {
+            return false;
+        }
+
+        var lateralX =
+            wishDirection.X -
+            protection.DirectionX * wishAgainstKnockback;
+        var lateralY =
+            wishDirection.Y -
+            protection.DirectionY * wishAgainstKnockback;
+        var lateralLength = MathF.Sqrt(
+            lateralX * lateralX +
+            lateralY * lateralY
+        );
+
+        if (lateralLength <= float.Epsilon)
+        {
+            filteredDirection = Vector.Zero;
+            filteredSpeed = 0.0f;
+            return true;
+        }
+
+        filteredDirection = new Vector(
+            lateralX / lateralLength,
+            lateralY / lateralLength,
+            wishDirection.Z
+        );
+        filteredSpeed = wishSpeed * lateralLength;
+
+        return true;
     }
 
     private bool TryCalculateVelocity(
