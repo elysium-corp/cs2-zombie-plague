@@ -14,6 +14,105 @@ namespace CustomHud.Core.Tests;
 
 public sealed class HudMenuTests
 {
+    [Theory]
+    [InlineData(HudMenuView.List)]
+    [InlineData(HudMenuView.Compact)]
+    [InlineData(HudMenuView.Result)]
+    public void VerticalGapUpdatesTheExistingSurfaceWithoutChangingItsViewOrCapture(HudMenuView view)
+    {
+        using var f = new Fixture();
+        f.Menu = f.Menu with { View = view, VerticalGap = 24,
+            Items = f.Menu.Items.SetItem(0, f.Menu.Items[0] with { Selected = true }) };
+        var id = f.Open();
+        var surface = f.Current;
+        var capture = surface.Capture;
+        Assert.True(surface.Classes[("MenuRoot", "VerticalGap24")]);
+
+        foreach (var gap in new[] { 0, 12, 32 })
+        {
+            Assert.True(f.Service.Update(f.Player, id, f.Menu with { VerticalGap = gap }));
+            Assert.Same(surface, f.Current);
+            Assert.Equal(capture, surface.Capture);
+            Assert.Equal("VerticalGap" + gap, Assert.Single(surface.Classes, pair =>
+                pair.Key.Item1 == "MenuRoot" && pair.Key.Item2.StartsWith("VerticalGap") && pair.Value).Key.Item2);
+            Assert.True(surface.Classes[("Item0", "Selected")]);
+        }
+        Assert.True(f.Service.Update(f.Player, id, f.Menu with { VerticalGap = null }));
+        Assert.DoesNotContain(surface.Classes, pair => pair.Key.Item2.StartsWith("VerticalGap") && pair.Value);
+        Assert.Single(f.Runtimes);
+        Assert.True(f.Service.IsOpen(f.Player, id));
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(33)]
+    public void UnsupportedVerticalGapDoesNotReplaceAnOpenMenu(int gap)
+    {
+        using var f = new Fixture();
+        var id = f.Open();
+        Assert.False(f.Service.Update(f.Player, id, f.Menu with { VerticalGap = gap }));
+        Assert.Null(f.Service.Open(f.Player, f.Menu with { VerticalGap = gap }, f.Actions.Add));
+        Assert.True(f.Service.IsOpen(f.Player, id));
+        Assert.Single(f.Runtimes);
+        Assert.DoesNotContain(f.Current.Classes, pair => pair.Key.Item2.StartsWith("VerticalGap") && pair.Value);
+    }
+
+    [Theory]
+    [InlineData(HudMenuView.List)]
+    [InlineData(HudMenuView.Compact)]
+    [InlineData(HudMenuView.Result)]
+    public void HorizontalGapUpdatesTheExistingSurfaceIndependentlyOfVerticalGap(HudMenuView view)
+    {
+        using var f = new Fixture();
+        f.Menu = f.Menu with { View = view, VerticalGap = 24, HorizontalGap = 16 };
+        var id = f.Open();
+        var surface = f.Current;
+        Assert.True(surface.Classes[("MenuRoot", "HorizontalGap16")]);
+        foreach (var gap in new[] { 0, 8, 32 })
+        {
+            Assert.True(f.Service.Update(f.Player, id, f.Menu with { HorizontalGap = gap }));
+            Assert.Same(surface, f.Current);
+            Assert.Equal("HorizontalGap" + gap, Assert.Single(surface.Classes, pair =>
+                pair.Key.Item1 == "MenuRoot" && pair.Key.Item2.StartsWith("HorizontalGap") && pair.Value).Key.Item2);
+            Assert.True(surface.Classes[("MenuRoot", "VerticalGap24")]);
+        }
+        Assert.True(f.Service.Update(f.Player, id, f.Menu with { HorizontalGap = null }));
+        Assert.DoesNotContain(surface.Classes, pair => pair.Key.Item2.StartsWith("HorizontalGap") && pair.Value);
+        Assert.Single(f.Runtimes);
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(33)]
+    public void UnsupportedHorizontalGapDoesNotReplaceAnOpenMenu(int gap)
+    {
+        using var f = new Fixture();
+        var id = f.Open();
+        Assert.False(f.Service.Update(f.Player, id, f.Menu with { HorizontalGap = gap }));
+        Assert.Null(f.Service.Open(f.Player, f.Menu with { HorizontalGap = gap }, f.Actions.Add));
+        Assert.True(f.Service.IsOpen(f.Player, id));
+        Assert.DoesNotContain(f.Current.Classes, pair => pair.Key.Item2.StartsWith("HorizontalGap") && pair.Value);
+    }
+
+    [Fact]
+    public void SpacingUpdateKeepsCurrentNominationPageAndSelectedCard()
+    {
+        using var f = new Fixture();
+        f.Menu = f.Menu with { IsNomination = true, VerticalGap = 24,
+            Items = f.Menu.Items.SetItem(5, f.Menu.Items[5] with { Selected = true }) };
+        var id = f.Open();
+        f.Click("NextPage");
+        var surface = f.Current;
+        var surfaces = f.Runtimes.Count;
+        Assert.True(f.Service.Update(f.Player, id, f.Menu with { VerticalGap = 32 }));
+        Assert.Same(surface, f.Current);
+        Assert.Equal(surfaces, f.Runtimes.Count);
+        Assert.Equal("2 / 2", surface.Texts["Page"]);
+        Assert.True(surface.Classes[("Item0", "Selected")]);
+        Assert.True(surface.Classes[("MenuRoot", "VerticalGap32")]);
+        Assert.True(surface.Capture);
+    }
+
     [Fact]
     public void OpenUpdateCloseAndCaptureFollowTheSameConnection()
     {
