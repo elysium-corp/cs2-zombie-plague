@@ -424,7 +424,7 @@ internal sealed class KnockbackService(
             new KnockbackInputProtection(
                 impulseX / impulseLength,
                 impulseY / impulseLength,
-                core.Engine.CurrentTime + protectionTime
+                core.Engine.GlobalVars.CurrentTime + protectionTime
             );
     }
 
@@ -482,7 +482,7 @@ internal sealed class KnockbackService(
         }
 
         if (player is not { IsValid: true, IsAlive: true } ||
-            core.Engine.CurrentTime >= protection.ExpiresAt)
+            core.Engine.GlobalVars.CurrentTime >= protection.ExpiresAt)
         {
             _knockbackInputProtections.Remove(player.PlayerID);
             return false;
