@@ -24,7 +24,7 @@ public sealed class ZombiePlagueCoreConfig
     public float GroundKnockback { get; set; } = 150.0f;
 
     // Минимальная сила отдачи для отталкивания
-    public float MinKnockbackForce { get; set; } = 75.0f;
+    public float MinKnockbackForce { get; set; } = 100.0f;
 
     // Время до начала заражения
     public int PreStartDelay { get; set; } = 20;
