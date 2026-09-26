@@ -98,7 +98,7 @@ SET configuration_version = configuration_version + 1 WHERE id = 1;
 
 ### Ресурсы меню
 
-Установить согласованные версии **MapRotation.Core 1.5.0**, **CustomHud.Core 1.10.0**, их API и **Localization.Core 1.10.0**. Новые подписи добавляет миграция `20260925120000_AddMapRotationCompactHudLocalization`; настройки HUD получают готовые переводы через Localization.Api.
+Установить согласованные версии **MapRotation.Core 1.6.0**, **CustomHud.Core 1.11.0**, их API и **Localization.Core 1.10.0**. Новые подписи добавляет миграция `20260925120000_AddMapRotationCompactHudLocalization`; настройки HUD получают готовые переводы через Localization.Api.
 
 Исходники находятся в `CustomHud.Core/resources/hud/menus/content/panorama/`. Для XML/CSS используются:
 
@@ -226,7 +226,7 @@ Flute CMS → **Игровое меню → Раскладка → Вертик�
 
 `hud_settings.horizontalGap` — расстояние между горизонтальными карточками и между двумя столбцами номинации: целое число от **0 до 32** логических пикселей, по умолчанию **16** (прежняя геометрия). Сервер ставит на `MenuRoot` класс `HorizontalGap0`–`HorizontalGap32`, как и для вертикальных отступов. Проценты ширины карточек зависят от `cardWidth`, поэтому эти классы генерирует тема CMS (`elysium_map_rotation_v4.css`); смена только `horizontalGap` не требует пересборки VPK, смена `cardWidth` требует.
 
-### Классы темы без пересборки VPK (1.5.0)
+### Классы темы без пересборки VPK (1.6.0)
 
 Тема CMS (`elysium_map_rotation_v4.css`) содержит все варианты ограниченных параметров оформления. Плагин читает их из `hud_settings` и передаёт в `HudMenu.ThemeClasses`, CustomHud ставит классы на `MenuRoot` той же сущности без переоткрытия:
 
