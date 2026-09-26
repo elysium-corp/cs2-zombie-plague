@@ -71,6 +71,7 @@ internal sealed class RoundService(
     {
         _isRoundEnded = true;
 
+        roundManager.CurrentRound?.SetRoundWinner((Team)@event.Winner);
         roundManager.ForceStop(dispatchEndedEvent: true);
 
         return HookResult.Continue;
