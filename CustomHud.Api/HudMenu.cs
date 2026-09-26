@@ -132,6 +132,8 @@ public sealed record HudMenu(string Channel, string Title, string Subtitle,
     public int? VerticalGap { get; init; }
     /// <summary>Горизонтальный интервал между карточками и столбцами в логических пикселях Panorama от 0 до 32; null сохраняет интервал темы. Задаётся сервером отдельно от личных настроек.</summary>
     public int? HorizontalGap { get; init; }
+    /// <summary>Классы темы для корня меню из скомпилированного CSS: имена вида <c>ThemeX</c> (латиница и цифры, не более 32 классов). Позволяют менять оформление без пересборки VPK; неизвестный класс просто не имеет правил.</summary>
+    public ImmutableArray<string> ThemeClasses { get; init; } = [];
     /// <summary>Личный вид; рендерер сохраняет его в событии SettingsChanged, а хранение выполняет потребитель.</summary>
     public HudMenuPresentation Presentation { get; init; } = new();
     /// <summary>Наличие подписей разрешает шестерёнку; null скрывает настройки. Для результата настройки всегда скрыты.</summary>

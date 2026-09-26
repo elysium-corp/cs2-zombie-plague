@@ -112,6 +112,20 @@ public sealed class RotationHudLifecycleTests
     }
 
     [Fact]
+    public void CatalogRefreshSwitchesThemeClassesOnTheOpenVoteWithoutReopening()
+    {
+        using var f = new Fixture();
+        f.Refresh();
+        var id = f.Menus.Id;
+        Assert.Empty(f.Menus.Menu!.ThemeClasses);
+        f.ApplyAppearance("{\"animation\":\"pop\",\"duration\":300,\"radius\":4}");
+        f.Refresh();
+        Assert.Equal(["ThemeEntrancePop", "ThemeDuration300", "ThemeRadius4"], f.Menus.Menu!.ThemeClasses.ToArray());
+        Assert.Equal(id, f.Menus.Id);
+        Assert.Equal(1, f.Menus.OpenCount);
+    }
+
+    [Fact]
     public void HidingTheVoteRemovesItUntilRtvWhileTheResultStillAppears()
     {
         using var f = new Fixture();

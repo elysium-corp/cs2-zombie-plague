@@ -1,5 +1,6 @@
 using Common.Di.Diagnostics;
 using CustomHud.Api;
+using System.Collections.Immutable;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
@@ -110,6 +111,9 @@ internal sealed class HudMenuService(ISwiftlyCore core, Func<int, IHudMenuRuntim
         && menu.Presentation.ScalePercent is 80 or 100 or 120
         && menu.VerticalGap is null or >= 0 and <= 32
         && menu.HorizontalGap is null or >= 0 and <= 32
+        && (menu.ThemeClasses.IsDefault || menu.ThemeClasses.Length <= 32
+            && menu.ThemeClasses.All(name => name is not null && Regex.IsMatch(name, "\\ATheme[A-Za-z0-9]{1,58}\\z"))
+            && menu.ThemeClasses.Distinct(StringComparer.Ordinal).Count() == menu.ThemeClasses.Length)
         && menu.Items.Length <= 1000 && menu.Items.All(item => !string.IsNullOrEmpty(item.Id) && item.Percent is null or >= 0 and <= 100)
         && menu.Items.All(item => item.ImagePath is null || Regex.IsMatch(item.ImagePath,
             "\\Apanorama/images/custom_game/elysium/assets/[a-f0-9]{64}_png\\.vtex\\z"))
@@ -183,6 +187,12 @@ internal sealed class HudMenuService(ISwiftlyCore core, Func<int, IHudMenuRuntim
             if (menu.HorizontalGap is { } gap) hud.Class("MenuRoot", "HorizontalGap" + gap, true);
             surface.HorizontalGap = menu.HorizontalGap;
         }
+        // Префикс Theme не пересекается с классами состояния, которыми управляет сам рендерер.
+        var themeClasses = menu.ThemeClasses.IsDefault ? [] : menu.ThemeClasses;
+        foreach (var name in surface.ThemeClasses.Where(name => !themeClasses.Contains(name, StringComparer.Ordinal)))
+            hud.Class("MenuRoot", name, false);
+        foreach (var name in themeClasses) hud.Class("MenuRoot", name, true);
+        surface.ThemeClasses = themeClasses;
         hud.Class("Close", "Hidden", !menu.Options.Closable || menu.View != HudMenuView.List);
         hud.Class("Back", "Hidden", !menu.ShowBack || menu.View != HudMenuView.List);
         hud.Class("Status", "Hidden", string.IsNullOrEmpty(menu.Status));
@@ -489,6 +499,7 @@ internal sealed class HudMenuService(ISwiftlyCore core, Func<int, IHudMenuRuntim
         public string StyleClass { get; set; } = "";
         public int? VerticalGap { get; set; }
         public int? HorizontalGap { get; set; }
+        public ImmutableArray<string> ThemeClasses { get; set; } = [];
         public string[] ImageClasses { get; } = Enumerable.Repeat("", SlotCount).ToArray();
         public int?[] PercentClasses { get; } = new int?[SlotCount];
     }
