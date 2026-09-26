@@ -245,9 +245,9 @@ internal sealed class KnockbackService(
         }
 
         if (!config.Value.KnockbackEnabled ||
-            context.Params.Info.DamageType == DamageTypes_t.DMG_POISON ||
-            (context.Params.Info.DamageType & DamageTypes_t.DMG_BURN) != 0 &&
-            context.Params.Info.DamageCustom == Burn.DamageCustomId ||
+            (context.Params.Info.DamageType & DamageTypes_t.DMG_POISON) != 0 ||
+            (context.Params.Info.DamageType & DamageTypes_t.DMG_BURN) != 0 ||
+            context.Params.Info.DamageCustom == DamageCustomIds.LaserMine ||
             context.Params.Info.NumObjectsPenetrated > 0)
         {
             return;
