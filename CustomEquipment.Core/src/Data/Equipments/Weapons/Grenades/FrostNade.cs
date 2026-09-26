@@ -15,6 +15,12 @@ internal sealed class FrostNade(GameplayItemCatalog catalog)
 {
     private FrostNadeSettings Settings => (FrostNadeSettings)Definition.Settings;
 
+    internal string TrailParticle => Settings.TrailParticle;
+
+    internal string ExplosionParticle => Settings.ExplosionParticle;
+
+    internal float ExplosionParticleLifetime => Settings.ExplosionParticleLifetime;
+
     public override void OnDetonate(IPlayer thrower, Vector position)
     {
         var core = DependencyResolver.GetRequiredService<ISwiftlyCore>();
