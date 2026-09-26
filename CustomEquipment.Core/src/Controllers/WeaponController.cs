@@ -84,8 +84,11 @@ internal sealed class WeaponController(
         _grenadeHandler.Clear();
     }
 
-    private void OnTick() =>
+    private void OnTick()
+    {
         _grenadeHandler.OnTick(OnGrenadeDetonated);
+        CleanupInvalidGrenadeTrails();
+    }
 
     private void OnGrenadeThrown(ref GrenadeThrownContext context)
     {
@@ -152,6 +155,17 @@ internal sealed class WeaponController(
             preContext.Projectile,
             preContext.Position);
         hooks.Dispatch(ref postContext);
+    }
+
+    private void CleanupInvalidGrenadeTrails()
+    {
+        foreach (var projectile in _grenadeTrails.Keys.ToArray())
+        {
+            if (!projectile.IsValidEntity)
+            {
+                RemoveGrenadeTrail(projectile);
+            }
+        }
     }
 
     private void RemoveGrenadeTrail(CBaseCSGrenadeProjectile projectile)
