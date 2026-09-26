@@ -389,14 +389,59 @@ internal sealed class KnockbackService(
         }
 
         var currentVelocity = pawn.AbsVelocity;
+        var impulseX = velocity.X - currentVelocity.X;
+        var impulseY = velocity.Y - currentVelocity.Y;
+        var impulseLength = MathF.Sqrt(
+            impulseX * impulseX +
+            impulseY * impulseY
+        );
 
-        if (pawn.GroundEntity.Value is not null &&
-            velocity.Z > currentVelocity.Z)
+        victim.Teleport(null, null, velocity);
+
+        if (impulseLength <= float.Epsilon ||
+            velocity.Z <= currentVelocity.Z)
         {
-            pawn.GroundEntity.Value = null;
+            return;
         }
 
-        pawn.AbsVelocity = velocity;
+        var directionX = impulseX / impulseLength;
+        var directionY = impulseY / impulseLength;
+        var expectedVelocityAlongDirection =
+            velocity.X * directionX +
+            velocity.Y * directionY;
+
+        core.Scheduler.NextWorldUpdate(() =>
+        {
+            if (victim is not { IsValid: true, IsAlive: true } ||
+                victim.PlayerPawn is not { IsValid: true } currentPawn)
+            {
+                return;
+            }
+
+            var afterMovementVelocity = currentPawn.AbsVelocity;
+            var velocityAlongDirection =
+                afterMovementVelocity.X * directionX +
+                afterMovementVelocity.Y * directionY;
+
+            if (velocityAlongDirection >= expectedVelocityAlongDirection)
+            {
+                return;
+            }
+
+            var missingVelocity =
+                expectedVelocityAlongDirection -
+                velocityAlongDirection;
+
+            victim.Teleport(
+                null,
+                null,
+                new Vector(
+                    afterMovementVelocity.X + directionX * missingVelocity,
+                    afterMovementVelocity.Y + directionY * missingVelocity,
+                    afterMovementVelocity.Z
+                )
+            );
+        });
     }
 
     private bool TryCalculateVelocity(
