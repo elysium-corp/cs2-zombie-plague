@@ -381,7 +381,22 @@ internal sealed class KnockbackService(
 
     private void ApplyKnockback(IPlayer victim, Vector velocity)
     {
-        victim.Teleport(null, null, velocity);
+        var pawn = victim.PlayerPawn;
+
+        if (pawn is not { IsValid: true })
+        {
+            return;
+        }
+
+        var currentVelocity = pawn.AbsVelocity;
+
+        if (pawn.GroundEntity.Value is not null &&
+            velocity.Z > currentVelocity.Z)
+        {
+            pawn.GroundEntity.Value = null;
+        }
+
+        pawn.AbsVelocity = velocity;
     }
 
     private bool TryCalculateVelocity(
